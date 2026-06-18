@@ -1,0 +1,254 @@
+// competitor.inc engine — swappable provider interface.
+//
+// The product is designed "frontier-model-first, behind a swappable interface."
+// `SimulatedProvider` runs fully client-side with no API key (instant, offline demo).
+// A real model is a drop-in: implement `RoomieProvider` to call /api/roomie (server-side,
+// where the key lives) and select it via NEXT_PUBLIC_ROOMIE_PROVIDER.
+
+import type {
+  Activity,
+  AgentRole,
+  ApprovalItem,
+  Company,
+  Experiment,
+  ValidationResult,
+} from "./types";
+
+export interface ShiftResult {
+  activities: Activity[];
+  approvals: ApprovalItem[];
+}
+
+export interface RoomieProvider {
+  readonly name: string;
+  validate(idea: string): ValidationResult;
+  shift(company: Company): ShiftResult;
+}
+
+/* ── deterministic RNG (so a given idea/night is reproducible) ── */
+function hash(str: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function mulberry32(seed: number) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const pick = <T,>(rng: () => number, arr: T[]): T => arr[Math.floor(rng() * arr.length)];
+const between = (rng: () => number, lo: number, hi: number) => lo + rng() * (hi - lo);
+const round = (n: number, d = 2) => Math.round(n * 10 ** d) / 10 ** d;
+const uid = () => crypto.randomUUID();
+
+export function slugify(s: string): string {
+  return (
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, "")
+      .trim()
+      .split(/\s+/)
+      .slice(0, 3)
+      .join("-") || "venture"
+  );
+}
+
+const STOP = new Set([
+  "a", "an", "the", "for", "to", "of", "and", "app", "that", "with", "my", "me", "build",
+  "make", "create", "i", "want", "platform", "tool", "ai", "your", "you",
+]);
+
+export function companyNameFrom(idea: string): string {
+  const words = idea
+    .replace(/[^a-zA-Z\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && !STOP.has(w.toLowerCase()));
+  const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+  if (words.length === 0) return "Untitled Co.";
+  const core = cap(words[0]);
+  const suffix = pick(mulberry32(hash(idea)), ["ly", "ory", "ish", "base", "loop", "hub", "go"]);
+  return core + suffix;
+}
+
+/* ── Validation scoring — shared by simulated + real-model paths ── */
+export interface ValidationCore {
+  waitlist: number;
+  ctr: number;
+  costPerSignup: number;
+  spend: number;
+}
+
+export function scoreIdea(core: ValidationCore, seed: string) {
+  const rng = mulberry32(hash("score:" + seed));
+  const conv = round(between(rng, 2, 9), 1);
+  const fakedoor = round(between(rng, 1.5, 12), 1);
+  const searches = Math.round(between(rng, 200, 18000));
+  const competition = pick(rng, ["low", "medium", "high"]);
+  const sig = (good: boolean, mid: boolean): Experiment["signal"] => (good ? "positive" : mid ? "weak" : "negative");
+  const experiments: Experiment[] = [
+    { key: "landing", label: "Landing page + waitlist", detail: "Real page, real email capture", metric: `${core.waitlist} signups · ${conv}% conversion`, signal: sig(core.waitlist >= 40, core.waitlist >= 20) },
+    { key: "fakedoor", label: "Fake-door test", detail: "A “Get started” button that isn’t built yet", metric: `${fakedoor}% clicked through`, signal: sig(fakedoor >= 6, fakedoor >= 3) },
+    { key: "ads", label: "Paid demand test", detail: "Small ad smoke-test (your budget)", metric: `${core.ctr}% CTR · $${core.costPerSignup}/signup`, signal: sig(core.ctr >= 3 && core.costPerSignup <= 1.5, core.costPerSignup <= 2.5) },
+    { key: "search", label: "Search demand", detail: "Existing intent for this problem", metric: `${searches.toLocaleString()}/mo searches · ${competition} competition`, signal: sig(searches >= 4000 && competition !== "high", searches >= 1500) },
+  ];
+  const points = experiments.reduce((t, e) => t + (e.signal === "positive" ? 2 : e.signal === "weak" ? 1 : 0), 0);
+  const confidence = Math.round((points / (experiments.length * 2)) * 100);
+  const verdict: ValidationResult["verdict"] = confidence >= 65 ? "strong" : confidence < 40 ? "weak" : "mixed";
+  const weakest = experiments.find((e) => e.signal === "negative") ?? experiments.find((e) => e.signal === "weak");
+  const recommendation =
+    verdict === "strong"
+      ? `Strong, consistent signal (${confidence}% confidence). I'd build the MVP.`
+      : verdict === "mixed"
+      ? `Mixed signal (${confidence}%).${weakest ? ` The "${weakest.label}" result is soft —` : ""} I'd sharpen the idea or test a different angle before building.`
+      : `Honestly, the signal is weak (${confidence}%). I'd hold — this isn't worth building yet. Want to try a different angle?`;
+  return { experiments, confidence, verdict, recommendation };
+}
+
+/* ── Simulated provider ─────────────────────────────────────── */
+class SimulatedProvider implements RoomieProvider {
+  readonly name = "simulated";
+
+  validate(idea: string): ValidationResult {
+    const rng = mulberry32(hash("validate:" + idea));
+    const waitlist = Math.round(between(rng, 8, 86));
+    const ctr = round(between(rng, 1.4, 6.4), 1);
+    const costPerSignup = round(between(rng, 0.3, 3.4), 2);
+    const spend = round(between(rng, 15, 25), 2);
+    const score = scoreIdea({ waitlist, ctr, costPerSignup, spend }, idea);
+    return {
+      steps: [
+        { label: "Spun up a landing page", done: true },
+        { label: "Wired a waitlist + analytics", done: true },
+        { label: `Ran a $${spend} demand test`, done: true },
+        { label: "Scored 4 experiments", done: true },
+      ],
+      waitlist,
+      ctr,
+      costPerSignup,
+      spend,
+      ...score,
+    };
+  }
+
+  shift(company: Company): ShiftResult {
+    const night = company.night + 1;
+    const rng = mulberry32(hash(company.id + ":night:" + night));
+    const slug = company.slug;
+    const activities: Activity[] = [];
+    const approvals: ApprovalItem[] = [];
+
+    const add = (
+      agent: AgentRole,
+      action: string,
+      opts: Partial<Activity> = {}
+    ) => {
+      activities.push({
+        id: uid(),
+        night,
+        agent,
+        action,
+        cost: 0,
+        status: "done",
+        ...opts,
+      });
+    };
+
+    // Engineering — ship something, with proof
+    if (rng() > 0.15) {
+      const feat = pick(rng, ["onboarding flow", "billing screen", "search", "share links", "dark mode"]);
+      add("engineering", `Shipped the ${feat}`, {
+        cost: round(between(rng, 0.18, 0.7)),
+        proof: { kind: "url", value: `https://${slug}.competitor.inc` },
+        meta: "build passed",
+      });
+    }
+    if (rng() > 0.6) {
+      // a deploy to prod needs sign-off
+      approvals.push({
+        id: uid(), night, agent: "engineering", kind: "deploy",
+        title: "Deploy v" + night + " to production",
+        detail: "All checks green. Pushing to the live site needs your ok.",
+      });
+    }
+
+    // Marketing — demand test / spend (big spend needs approval)
+    if (rng() > 0.2) {
+      const small = round(between(rng, 8, 22));
+      add("marketing", `Ran a $${small} test — ${round(between(rng, 2.1, 6.2), 1)}% CTR`, {
+        cost: small,
+        proof: { kind: "metric", value: `+${Math.round(between(rng, 6, 40))} signups` },
+        meta: "within budget",
+      });
+    }
+    if (rng() > 0.55) {
+      const big = Math.round(between(rng, 150, 600));
+      approvals.push({
+        id: uid(), night, agent: "marketing", kind: "spend",
+        title: `Scale ad spend to $${big}/day`,
+        detail: `Last test beat target CAC. Pitch wants to scale — that's above the auto-spend cap.`,
+        amount: big,
+      });
+    }
+
+    // Support — handle users, occasional auto-refund
+    if (rng() > 0.25) {
+      add("support", `Answered ${Math.round(between(rng, 3, 19))} support emails`, {
+        cost: round(between(rng, 0.02, 0.12)),
+        meta: "0 escalations",
+      });
+    }
+    if (rng() > 0.78) {
+      // a task failed → auto-refunded (transparency feature)
+      add("engineering", "A codegen task failed — auto-refunded the credits", {
+        cost: round(between(rng, 0.2, 0.5)),
+        status: "failed-refunded",
+        meta: "no charge for failed work",
+      });
+    }
+
+    // Growth — outreach drafts need sign-off
+    if (rng() > 0.5) {
+      approvals.push({
+        id: uid(), night, agent: "growth", kind: "outreach",
+        title: "Post a launch update on X",
+        detail: `Surge drafted a thread about ${company.name}. Outbound messages always wait for your yes.`,
+      });
+    } else if (rng() > 0.4) {
+      add("growth", "Spotted a trend worth riding & drafted notes", {
+        cost: 0,
+        meta: "saved to ideas",
+      });
+    }
+
+    // CEO — nightly audit + the occasional honest "cut this"
+    if (rng() > 0.5) {
+      add("ceo", `Nightly audit: runway healthy, churn ${round(between(rng, 1.1, 4.2), 1)}%`, {
+        cost: 0,
+        meta: "no action needed",
+      });
+    } else {
+      const feat = pick(rng, ["the referral page", "the AI summarizer", "the Pro tier"]);
+      add("ceo", `Reality check: ${feat} isn't converting — I'd cut it`, {
+        cost: 0,
+        meta: "recommend killing",
+      });
+    }
+
+    return { activities, approvals };
+  }
+}
+
+const simulated = new SimulatedProvider();
+
+export function getProvider(): RoomieProvider {
+  // NEXT_PUBLIC_ROOMIE_PROVIDER could select a real, server-backed provider here.
+  // For now everything routes through the offline simulated engine.
+  return simulated;
+}
