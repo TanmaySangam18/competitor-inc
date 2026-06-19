@@ -55,9 +55,13 @@ export default function Live() {
             <LogoMark size={34} />
             competitor.inc
           </Link>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
-            <ArrowLeft size={15} /> Home
-          </Link>
+          <div className="flex items-center gap-4 text-sm text-muted">
+            <Link href="/house" className="transition hover:text-text">The House</Link>
+            <Link href="/delegation" className="transition hover:text-text">The Office</Link>
+            <Link href="/" className="inline-flex items-center gap-2 transition hover:text-text">
+              <ArrowLeft size={15} /> Home
+            </Link>
+          </div>
         </div>
       </header>
 

@@ -360,12 +360,17 @@ export function useRoomie() {
         meta: "you signed off",
         cost,
         status: "done",
+        // Honest: approving QUEUES the action — it doesn't claim the real-world act happened. The
+        // real result (a live URL / send id) is appended by executeAction only when an integration
+        // is actually connected; in simulation nothing is reported as done in the world.
         proof:
           item.kind === "deploy"
-            ? { kind: "build", value: "deployed ✓ live" }
+            ? { kind: "metric", value: "approved — queued to deploy" }
             : item.kind === "outreach"
-            ? { kind: "url", value: "posted to X" }
-            : { kind: "metric", value: `$${cost} authorized` },
+            ? { kind: "metric", value: "approved — drafted, queued to send" }
+            : item.kind === "spend"
+            ? { kind: "metric", value: `$${cost} approved` }
+            : { kind: "metric", value: "approved" },
       };
       return {
         ...s,

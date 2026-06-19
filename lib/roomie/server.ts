@@ -17,6 +17,15 @@ const GATEWAY_KEY = process.env.AI_GATEWAY_API_KEY;
 const SELF_HOST_URL = process.env.ROOMIE_PRIVATE_BASE_URL;
 const SELF_HOST_KEY = process.env.ROOMIE_API_KEY;
 const MODEL_TIMEOUT_MS = 30_000;
+const MODEL_CHEAP = process.env.ROOMIE_MODEL_CHEAP || "claude-haiku-4-5";
+
+// Per-agent model routing: the hard reasoners (Forge=engineering, Apex=ceo) get the strong model
+// (ROOMIE_MODEL); other agents can run on a cheaper/faster one (ROOMIE_MODEL_CHEAP). The managed
+// engine honors this; BYOK always uses the user's own chosen model. Full per-agent task calls extend it.
+const STRONG_ROLES: AgentRole[] = ["engineering", "ceo"];
+export function modelForAgent(role: AgentRole): string {
+  return STRONG_ROLES.includes(role) ? MODEL : MODEL_CHEAP;
+}
 
 // The model is a swappable commodity — never hardwired to one vendor. The managed (server-side)
 // engine resolves from env to: Anthropic, the Vercel AI Gateway (any provider via "provider/model"),
@@ -111,18 +120,18 @@ function modelAvailable(byok?: ByokConfig): boolean {
 
 // Routes to the user's BYOK provider first (their key, their bill — our marginal cost ~$0),
 // then a server env model, else throws so callers fall back to the simulated engine.
-async function callModel(system: string, user: string, byok?: ByokConfig): Promise<string> {
-  // 1) User's BYOK key (their bill — SSRF-guarded because the URL is user-supplied).
+async function callModel(system: string, user: string, byok?: ByokConfig, model?: string): Promise<string> {
+  // 1) User's BYOK key (their bill — SSRF-guarded because the URL is user-supplied; user's model wins).
   if (byok?.apiKey && byok.provider === "openai-compatible" && byok.baseUrl) {
     return callOpenAICompat(byok.baseUrl, byok.apiKey, byok.model || "gpt-4o-mini", system, user, true);
   }
   if (byok?.apiKey && byok.provider === "anthropic") {
     return callAnthropic(system, user, byok.apiKey, byok.model || MODEL);
   }
-  // 2) Managed (operator-configured) engine: Anthropic, Gateway, or any OpenAI-compatible host.
+  // 2) Managed (operator-configured) engine: per-agent `model` override → else the managed default.
   const managed = managedModel();
-  if (managed?.kind === "anthropic") return callAnthropic(system, user, managed.key, managed.model);
-  if (managed?.kind === "openai") return callOpenAICompat(managed.baseUrl, managed.key, managed.model, system, user, false);
+  if (managed?.kind === "anthropic") return callAnthropic(system, user, managed.key, model ?? managed.model);
+  if (managed?.kind === "openai") return callOpenAICompat(managed.baseUrl, managed.key, model ?? managed.model, system, user, false);
   throw new Error("no model configured");
 }
 
@@ -140,7 +149,8 @@ export async function runValidate(idea: string, byok?: ByokConfig): Promise<Vali
       "You are competitor.inc's validation gate. Given a startup idea, estimate honest results of a small real demand test. Be realistic and willing to be skeptical. Return ONLY JSON: " +
         '{"waitlist":number,"ctr":number,"costPerSignup":number,"spend":number}',
       idea,
-      byok
+      byok,
+      modelForAgent("ceo")
     );
     const m = extractJson<{ waitlist?: number; ctr?: number; costPerSignup?: number; spend?: number }>(text);
     const core = {
@@ -168,7 +178,7 @@ export async function runChat(
         `You are the AI co-founder running the company "${company.name}" (idea: ${company.idea}). ` +
         (soul ? soul + " " : "") +
         "Be concise, warm, and candid. If asked to do something consequential (spend, outreach, deploy), say you'll queue it for the user's approval.";
-      const text = await callModel(sys, message, byok);
+      const text = await callModel(sys, message, byok, modelForAgent("ceo"));
       if (text.trim()) return text.trim();
     } catch {
       /* fall through */
@@ -242,7 +252,8 @@ export async function runShift(company: Company, byok?: ByokConfig): Promise<Shi
         "Produce 3-5 realistic actions taken overnight. Consequential actions (spend>$100, outreach, deploy, delete) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
         '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-credited","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete","title":string,"detail":string,"amount":number}]}',
       JSON.stringify({ idea: company.idea, night }),
-      byok
+      byok,
+      modelForAgent("engineering")
     );
     const m = extractJson<ModelShift>(text);
     if (!Array.isArray(m.activities) || !Array.isArray(m.approvals)) throw new Error("bad shape");

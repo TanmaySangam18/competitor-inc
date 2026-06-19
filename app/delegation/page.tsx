@@ -114,8 +114,9 @@ export default function DelegationPage() {
             <span className="text-muted-2">/</span>
             <div className="flex items-center gap-2 font-mono text-sm font-bold tracking-tight">
               <LogoMark size={22} />
-              <span>The Delegation</span>
+              <span>The Delegation <span className="font-normal text-muted-2">· The Office</span></span>
             </div>
+            <Link href="/house" className="hidden text-xs text-muted transition hover:text-text sm:inline">The House →</Link>
           </div>
           <div className="hidden items-center gap-2 text-xs text-muted-2 sm:flex">
             {r.company ? (

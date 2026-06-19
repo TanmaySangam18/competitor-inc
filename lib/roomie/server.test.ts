@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runValidate, runShift, runChat, realModelConfigured, detectChatApproval, assertSafeBaseUrl } from "./server";
+import { runValidate, runShift, runChat, realModelConfigured, detectChatApproval, assertSafeBaseUrl, modelForAgent } from "./server";
 import type { Company } from "./types";
 
 const company: Company = {
@@ -76,5 +76,15 @@ describe("assertSafeBaseUrl — SSRF guard on user-supplied BYOK URLs", () => {
     expect(() => assertSafeBaseUrl("https://169.254.169.254/latest/meta-data")).toThrow(); // cloud metadata
     expect(() => assertSafeBaseUrl("https://[::1]/v1")).toThrow();
     expect(() => assertSafeBaseUrl("https://[::ffff:169.254.169.254]/v1")).toThrow(); // IPv4-mapped
+  });
+});
+
+describe("modelForAgent — per-agent model routing", () => {
+  it("routes hard reasoners to the strong model, others to the cheap one (defaults)", () => {
+    expect(modelForAgent("engineering")).toBe("claude-opus-4-8");
+    expect(modelForAgent("ceo")).toBe("claude-opus-4-8");
+    expect(modelForAgent("growth")).toBe("claude-haiku-4-5");
+    expect(modelForAgent("marketing")).toBe("claude-haiku-4-5");
+    expect(modelForAgent("support")).toBe("claude-haiku-4-5");
   });
 });

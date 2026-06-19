@@ -87,14 +87,16 @@ named teammates" brand. Still gated, still proof-logged.
 
 ## 5 · Build order (Levels — smallest validated wedge first)
 
-1. **Per-agent model routing** — cheapest, highest-leverage "smarter agents" move; config + routing,
-   gated, BYOK-compatible. *(No new creds.)*
-2. **Forge → real coding agent** via the Claude Agent SDK / Managed Agents (build→test→PR, verified).
-   The headline capability; gated by model key + `GITHUB_TOKEN`.
-3. **The House** — competitor.inc's own founder-gated growth crew, on `/live`.
-4. **ChatOps** — InkBox identities + WhatsApp approvals (Chat SDK / WhatsApp API).
+1. **Per-agent model routing** — ✅ **DONE** (foundation): `modelForAgent()` routes Forge/Apex → strong
+   (`ROOMIE_MODEL`), other agents → `ROOMIE_MODEL_CHEAP` (default Haiku 4.5); wired into validate/chat/shift,
+   BYOK-compatible, unit-tested. Full per-agent *task* calls extend it later.
+2. **Forge → real coding agent** (Claude Agent SDK / Managed Agents) — ⏳ **gated scaffold**: the
+   `execution.ts` GitHub build + verify-before-done is live-ready behind `GITHUB_TOKEN`; the Managed-Agents
+   upgrade (sandboxed build → test → PR) is the activation step — needs a model key + token.
+3. **The House** — ✅ **DONE**: `/house` (competitor.inc, run by its own crew), the floor labeled
+   **"The Office"**, cross-linked from `/live`. Simulated; consequential moves founder-gated when keys connect.
+4. **ChatOps** — ⏳ **awaiting services**: InkBox identities + WhatsApp approvals (Chat SDK / WhatsApp API)
+   need third-party accounts; reuses the Approval-Inbox backend. The techie-friend / post-launch phase.
 
-**Recommended first move:** #1 now (I can build it gated today), then scaffold #2. #3 and #4 are
-bigger, credentialed builds for the techie-friend phase.
-
-*Planned, not yet built — this is the map for the next phases.*
+*Status 2026-06-19: **#1 + #3 shipped**; **#2 + #4 are gated/awaiting external credentials or services**
+(both deferred to the techie-friend phase by design).*
