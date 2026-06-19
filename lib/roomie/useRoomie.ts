@@ -1,13 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Activity, ApprovalItem, Company, OperateData, ValidationResult } from "./types";
+import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, OperateData, ValidationResult } from "./types";
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
 import { getByok } from "./config";
 import { canRun, recordRun, FREE_CAPS } from "./usage";
 
 const KEY = "roomie:v2";
 const LEGACY_KEY = "roomie:v1";
+
+// Autopilot pauses (rather than piling up consequential actions) once this many approvals are
+// waiting. Shared by the interval guard and the derived `autopilotPaused` flag so they can't drift.
+export const AUTOPILOT_PAUSE_AT = 3;
 
 interface Store {
   companies: Company[];
@@ -174,6 +178,9 @@ export function useRoomie() {
     setStore((s) => {
       const c = s.companies.find((x) => x.id === s.activeId);
       if (!c) return s;
+      // Idempotent: never re-build a company that's already operating (double-click / re-entry
+      // after redirect would otherwise ship a second MVP and double-charge the ledger).
+      if (approve && c.status === "operating") return s;
       if (!approve) {
         return { ...s, companies: s.companies.map((x) => (x.id === c.id ? { ...x, status: "rejected" } : x)) };
       }
@@ -269,7 +276,7 @@ export function useRoomie() {
       const s = ref.current;
       const active = s.companies.find((c) => c.id === s.activeId);
       const pending = active ? (s.approvals[active.id] ?? []).filter((a) => !a.resolved).length : 0;
-      if (active && active.status === "operating" && pending < 3) runShift();
+      if (active && active.status === "operating" && pending < AUTOPILOT_PAUSE_AT) runShift();
     }, 6000);
     return () => clearInterval(t);
   }, [autopilot, runShift]);
@@ -280,6 +287,8 @@ export function useRoomie() {
       const list = s.approvals[s.activeId] ?? [];
       const item = list.find((a) => a.id === id);
       if (!item) return s;
+      // Idempotent: a re-resolve (double-click) must not re-charge the ledger or re-log the action.
+      if (item.resolved) return s;
       const approvals = {
         ...s.approvals,
         [s.activeId]: list.map((a) => (a.id === id ? { ...a, resolved: approve ? "approved" : ("rejected" as const) } : a)) as ApprovalItem[],
@@ -315,6 +324,29 @@ export function useRoomie() {
       };
     });
   }, []);
+
+  // Queue an approval from outside a shift (e.g. a consequential request made in chat). Keeps the
+  // promise "I'll queue it for your approval" honest — the item really lands in the Approval Inbox.
+  const addApproval = useCallback(
+    (seed: { agent: AgentRole; kind: ApprovalKind; title: string; detail: string; amount?: number }) => {
+      setStore((s) => {
+        if (!s.activeId) return s;
+        const c = s.companies.find((x) => x.id === s.activeId);
+        if (!c) return s;
+        const item: ApprovalItem = {
+          id: rid(),
+          night: c.night,
+          agent: seed.agent,
+          kind: seed.kind,
+          title: seed.title,
+          detail: seed.detail,
+          amount: seed.amount,
+        };
+        return { ...s, approvals: { ...s.approvals, [c.id]: [item, ...(s.approvals[c.id] ?? [])] } };
+      });
+    },
+    []
+  );
 
   const undoActivity = useCallback((id: string) => {
     setStore((s) => {
@@ -356,6 +388,11 @@ export function useRoomie() {
   const resetAll = useCallback(() => setStore(empty), []);
   const clearBlocked = useCallback(() => setBlocked(null), []);
 
+  const pendingApprovals = approvals.filter((a) => !a.resolved);
+  // Autopilot is on but has stopped firing because consequential actions are waiting on the human.
+  const autopilotPaused =
+    autopilot && company?.status === "operating" && pendingApprovals.length >= AUTOPILOT_PAUSE_AT;
+
   return {
     company,
     activities,
@@ -366,15 +403,17 @@ export function useRoomie() {
     working,
     autopilot,
     setAutopilot,
+    autopilotPaused,
     blocked,
     clearBlocked,
-    pendingApprovals: approvals.filter((a) => !a.resolved),
+    pendingApprovals,
     createCompany,
     switchCompany,
     deleteCompany,
     decideBuild,
     runShift,
     resolveApproval,
+    addApproval,
     undoActivity,
     operate,
     addRock,

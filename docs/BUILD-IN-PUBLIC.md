@@ -1,5 +1,11 @@
 # Growth playbook — Build in Public (the Surge agent)
 
+> ⚠️ **SUPERSEDED (founder decision, 2026-06-19).** We do **not** build in public. The canonical GTM is a
+> **big-bang surprise launch → take over** — see [`LAUNCH-PLAYBOOK.md`](LAUNCH-PLAYBOOK.md) and
+> [`PLAYBOOK-revenue-10k.md`](PLAYBOOK-revenue-10k.md). This file is kept only as **competitor research
+> on how *Polsia* grew** (useful intel), not as our strategy. Surge's job is now **demand capture + the
+> launch-day blitz**, not a public diary.
+
 ## What Polsia actually did (researched June 2026)
 
 Beyond the product, Polsia's *distribution* is the real engine. From public sources:

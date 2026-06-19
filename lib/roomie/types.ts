@@ -126,5 +126,5 @@ export const AGENTS: Record<
   engineering: { name: "Forge", label: "Engineering", blurb: "Ships the product — deploys only after it verifies", playbook: "Shape Up (Basecamp)" },
   marketing: { name: "Pitch", label: "Marketing", blurb: "Runs demand tests & campaigns — finds the one channel that works", playbook: "Bullseye / Traction (Weinberg & Mares)" },
   support: { name: "Guard", label: "Support", blurb: "Handles users — can refund, can't touch payments", playbook: "The Effortless Experience (CEB)" },
-  growth: { name: "Surge", label: "Growth", blurb: "Spots trends & builds in public — drafts posts for your sign-off", playbook: "Hacking Growth (Sean Ellis)" },
+  growth: { name: "Surge", label: "Growth", blurb: "Spots trends & loads the surprise-launch blitz — drafts demand-capture posts for your sign-off", playbook: "Hacking Growth (Sean Ellis)" },
 };

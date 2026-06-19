@@ -290,12 +290,18 @@ function Account({ auth, resetAllConfig }: { auth: ReturnType<typeof useAuth>; r
 
   function exportData() {
     const bundle: Record<string, unknown> = {};
-    try {
-      for (let i = 0; i < window.localStorage.length; i++) {
-        const k = window.localStorage.key(i);
-        if (k && k.startsWith("roomie:")) bundle[k] = JSON.parse(window.localStorage.getItem(k) || "null");
+    // Per-key guard: a single corrupted entry must NOT abort the whole export (no silent data loss —
+    // we own-your-data). Unparseable values are kept as their raw string rather than dropped.
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (!k || !k.startsWith("roomie:")) continue;
+      const raw = window.localStorage.getItem(k);
+      try {
+        bundle[k] = raw ? JSON.parse(raw) : null;
+      } catch {
+        bundle[k] = raw;
       }
-    } catch { /* ignore */ }
+    }
     const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

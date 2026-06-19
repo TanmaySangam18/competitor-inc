@@ -133,6 +133,95 @@ h1, h2, h3, h4 {
 }
 .live-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
 
+/* ── The Delegation — floating 3D character labels ───────────────
+   Imperatively positioned by the scene's RAF loop (transform set in JS).
+   Glass pill, monochrome, non-interactive. */
+.delegation-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 9px;
+  border-radius: 9px;
+  white-space: nowrap;
+  background: rgba(10, 10, 10, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+  will-change: transform;
+}
+.delegation-label.is-active {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+.delegation-label .dl-name {
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fafafa;
+}
+.delegation-label .dl-sub {
+  font-size: 9px;
+  line-height: 1;
+  color: #a1a1aa;
+}
+.delegation-label.dl-you {
+  border-style: dashed;
+}
+
+/* ── Claymorphism (monochrome) ───────────────────────────────────
+   Soft, puffy, tactile surfaces — opaque "clay" with a lit top edge and a
+   deep inner bottom shadow so elements look inflated. Reserved for the playful
+   agent-floor surfaces (speech bubbles, the conversation panel); the serious
+   dashboard stays on liquid glass. Works fine under reduced-transparency. */
+.clay-panel {
+  background: #161618;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 22px;
+  box-shadow:
+    0 16px 38px -16px rgba(0, 0, 0, 0.8),
+    inset 0 2px 3px rgba(255, 255, 255, 0.1),
+    inset 0 -5px 10px rgba(0, 0, 0, 0.5);
+}
+.clay-chip {
+  background: #1f1f22;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.14),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Clay speech bubble above the speaking agent. */
+.delegation-caption {
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: 16rem;
+  padding: 8px 13px;
+  border-radius: 18px;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 500;
+  text-align: center;
+  color: #f4f4f5;
+  background: #212124;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 12px 24px -8px rgba(0, 0, 0, 0.75),
+    0 3px 6px rgba(0, 0, 0, 0.5),
+    inset 0 2px 3px rgba(255, 255, 255, 0.15),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  will-change: transform;
+}
+
 /* ── Accessibility ───────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid #fafafa;

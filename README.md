@@ -113,7 +113,7 @@ That single principle shapes every feature:
   - **Forge · Engineering** — ships the product, deploys only after it verifies · playbook: *Shape Up* (Basecamp)
   - **Pitch · Marketing** — runs demand tests & campaigns, finds the one channel that works · playbook: *Bullseye / Traction* (Weinberg & Mares)
   - **Guard · Support** — handles users; can refund, *can't* touch payments · playbook: *The Effortless Experience* (CEB)
-  - **Surge · Growth** — spots trends & **builds in public** · playbook: *Hacking Growth* (Sean Ellis)
+  - **Surge · Growth** — spots trends & **loads the surprise‑launch blitz** (big‑bang drop, not build‑in‑public) · playbook: *Hacking Growth* (Sean Ellis)
 - **The Glass Box** — A public, real‑time log of *every* action, each with a cost and a proof artifact
   (a URL, a build result, or a metric). Total transparency.
 - **Approval Inbox** — Anything consequential (spend over a threshold, outreach, deploys, deletions)
@@ -274,7 +274,9 @@ below) before launch hardening.
 ## 11 · Business & strategy
 
 - **Positioning** — a standalone brand with its own values (validation‑first, honest, human‑in‑control).
-  Deeper competitive/market analysis lives in [`docs/`](docs/) (internal).
+  The lead competitor is **Polsia** (autonomous AI company‑builder, 20% revenue cut); we
+  **counter‑position** as the proof‑first, human‑in‑control, 0%‑cut alternative — full analysis +
+  roadmap in [`docs/COMPETITIVE-polsia.md`](docs/COMPETITIVE-polsia.md) (internal).
 - **Pricing** — **Validate $0** (free forever) · **Operator $39/mo** · **Founding $99 once** (launch‑only,
   ~150 seats). No revenue share, no lock‑in.
 - **Money model** — keep total project spend low (BYOK + free model tiers + free hosting tiers).
@@ -323,6 +325,10 @@ A short changelog of the build, in order:
 6. **Craft (Apple HIG)** — liquid‑glass depth across every surface + the plain‑language `/how-it-works`
    page.
 7. **Repo extraction** — this clean, exclusively‑competitor.inc repository.
+8. **The Delegation + readiness cross‑check** — a 3D office (`/delegation`) where the agent crew works
+   and collaborates in real time (three.js, all‑original assets), and a **Launch Readiness Review**
+   ([`docs/PLAYBOOK-launch-readiness.md`](docs/PLAYBOOK-launch-readiness.md)) that maps every promise
+   above to the code that backs it.
 
 ---
 
@@ -334,6 +340,7 @@ app/                     Next.js routes
   how-it-works/          Plain-language product walkthrough
   dashboard/             The workspace: Validation Gate, Glass Box, Approvals, Chat, Operate
     settings/            Brand voice, team, engine/BYOK, billing, integrations, export
+  delegation/            The Delegation — a 3D office where the agent crew works (three.js, original assets)
   live/                  Public real-time board
   join/                  Founding-member offer + waitlist
   login/                 Magic-link (Supabase) or guest mode
@@ -346,6 +353,11 @@ components/              LogoMark, route-loading fallback
 supabase/migrations/     SQL schema (companies/activities/approvals + RLS)
 scripts/smoke.mjs        E2E smoke + API fuzz (top of the Testing Trophy)
 docs/                    Strategy & research (positioning, money plan, playbooks) — internal
+  PLAYBOOK-launch-readiness.md   Launch Readiness Review: every promise → code → verified status
+  AUDIT-flow-logic.md            Nielsen-heuristics flow audit (findings + fixes)
+  COMPETITIVE-polsia.md          vs Polsia: counter-positioning playbook + roadmap to officially compete
+  PLAYBOOK-revenue-10k.md        Path to $10K MRR (Walling lens) + surprise-launch, not build-in-public
+  SECURITY-REVIEW.md             Defensive security + data-integrity audit (findings + fixes, for handoff)
 launch/                  Launch copy + the techie-friend runbook
 ```
 

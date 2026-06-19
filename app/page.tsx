@@ -62,6 +62,7 @@ function Nav() {
         <div className="hidden items-center gap-9 text-sm text-muted md:flex">
           <a href="/how-it-works" className="transition hover:text-text">How it works</a>
           <a href="#capabilities" className="transition hover:text-text">Capabilities</a>
+          <a href="/delegation" className="transition hover:text-text">The Delegation</a>
           <a href="#trust" className="transition hover:text-text">Glass Box</a>
           <a href="#pricing" className="transition hover:text-text">Pricing</a>
         </div>
@@ -494,6 +495,7 @@ function Footer() {
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
           <a href="/how-it-works" className="transition hover:text-text">How it works</a>
+          <a href="/delegation" className="transition hover:text-text">The Delegation</a>
           <a href="/live" className="transition hover:text-text">Live board</a>
           <a href="/#pricing" className="transition hover:text-text">Pricing</a>
           <a href="/join" className="transition hover:text-text">Founding</a>

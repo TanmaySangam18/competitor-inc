@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
@@ -34,7 +35,7 @@ import {
 } from "lucide-react";
 import { useRoomie } from "@/lib/roomie/useRoomie";
 import { useConfig, getByok } from "@/lib/roomie/config";
-import { AGENTS, type AgentRole, type Activity, type Company } from "@/lib/roomie/types";
+import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/roomie/types";
 import { LogoMark } from "@/components/Logo";
 
 const agentStyle: Record<AgentRole, { icon: typeof Gauge; color: string; ring: string }> = {
@@ -71,7 +72,15 @@ type Tab = "operations" | "history" | "chat" | "operate";
 
 export default function Dashboard() {
   const r = useRoomie();
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("operations");
+
+  // Approving a build is consequential and should be *visible*: ship the MVP, then take the
+  // founder straight to the live agent floor so they watch the crew go to work (Nielsen H1).
+  const goBuild = () => {
+    r.decideBuild(true);
+    router.push("/delegation");
+  };
 
   if (!r.hydrated) {
     return (
@@ -102,8 +111,8 @@ export default function Dashboard() {
       <div className="mx-auto max-w-6xl px-6 py-10">
         {!r.company && <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} />}
         {r.company?.status === "validating" && <ValidationRunning idea={r.company.idea} />}
-        {r.company?.status === "validated" && <ValidationGate r={r} />}
-        {r.company?.status === "rejected" && <Rejected r={r} />}
+        {r.company?.status === "validated" && <ValidationGate r={r} onBuild={goBuild} />}
+        {r.company?.status === "rejected" && <Rejected r={r} onBuild={goBuild} />}
         {r.company?.status === "operating" && <Operating r={r} tab={tab} setTab={setTab} />}
       </div>
     </div>
@@ -124,8 +133,14 @@ function TopBar({ r }: { r: ReturnType<typeof useRoomie> }) {
         </div>
         <div className="flex items-center gap-2">
           {r.company?.status === "operating" && (
-            <AutopilotToggle on={r.autopilot} onToggle={() => r.setAutopilot(!r.autopilot)} />
+            <AutopilotToggle on={r.autopilot} onToggle={() => r.setAutopilot(!r.autopilot)} paused={r.autopilotPaused} />
           )}
+          <Link
+            href="/delegation"
+            className="hidden h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs text-muted transition hover:text-text sm:flex"
+          >
+            <Rocket size={14} /> The Delegation
+          </Link>
           <Link
             href="/dashboard/settings"
             className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted transition hover:text-text"
@@ -200,17 +215,22 @@ function CompanySwitcher({ r }: { r: ReturnType<typeof useRoomie> }) {
   );
 }
 
-function AutopilotToggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+function AutopilotToggle({ on, onToggle, paused }: { on: boolean; onToggle: () => void; paused?: boolean }) {
   return (
     <button
       onClick={onToggle}
+      title={paused ? "Autopilot paused — clear your Approval Inbox to resume" : undefined}
       className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-        on ? "border-mint/40 bg-mint/10 text-mint" : "border-border text-muted hover:text-text"
+        paused
+          ? "border-amber/40 bg-amber/10 text-amber"
+          : on
+          ? "border-mint/40 bg-mint/10 text-mint"
+          : "border-border text-muted hover:text-text"
       }`}
       aria-pressed={on}
     >
-      <Zap size={13} className={on ? "fill-mint" : ""} />
-      {on ? "Autopilot on" : "Autopilot"}
+      <Zap size={13} className={paused ? "" : on ? "fill-mint" : ""} />
+      {paused ? "Autopilot paused" : on ? "Autopilot on" : "Autopilot"}
     </button>
   );
 }
@@ -275,41 +295,65 @@ function Onboarding({ onSubmit, hasOthers }: { onSubmit: (idea: string) => void;
 }
 
 /* ── Validation running ──────────────────────────────────────── */
+const VALIDATION_STEPS = [
+  "Reading your idea",
+  "Spinning up a landing page",
+  "Wiring a waitlist + analytics",
+  "Running a small demand test",
+  "Scoring the signal",
+];
+
 function ValidationRunning({ idea }: { idea: string }) {
-  const steps = [
-    "Reading your idea",
-    "Spinning up a landing page",
-    "Wiring a waitlist + analytics",
-    "Running a small demand test",
-    "Scoring the signal",
-  ];
+  // Walk the steps over the real validate window (~1.9s) so the checkmarks reflect actual progress
+  // instead of all showing "done" instantly (Nielsen H1).
+  const [completed, setCompleted] = useState(0);
+  useEffect(() => {
+    if (completed >= VALIDATION_STEPS.length) return;
+    const t = setTimeout(() => setCompleted((c) => c + 1), completed === 0 ? 280 : 360);
+    return () => clearTimeout(t);
+  }, [completed]);
+
   return (
     <div className="mx-auto mt-12 max-w-lg text-center">
       <Loader2 size={32} className="mx-auto animate-spin text-coral" />
       <h2 className="mt-5 text-2xl font-bold">Checking demand…</h2>
       <p className="mt-2 text-sm text-muted">&ldquo;{idea}&rdquo;</p>
       <div className="mt-8 space-y-2.5 text-left">
-        {steps.map((s, i) => (
-          <motion.div
-            key={s}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.3 }}
-            className="flex items-center gap-3 rounded-xl glass-panel px-4 py-3 text-sm"
-          >
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-mint/15 text-mint">
-              <Check size={12} />
-            </span>
-            {s}
-          </motion.div>
-        ))}
+        {VALIDATION_STEPS.map((s, i) => {
+          const isDone = i < completed;
+          const isCurrent = i === completed;
+          return (
+            <motion.div
+              key={s}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: i <= completed ? 1 : 0.4, x: 0 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-center gap-3 rounded-xl glass-panel px-4 py-3 text-sm"
+            >
+              <span
+                className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
+                  isDone ? "bg-mint/15 text-mint" : isCurrent ? "bg-white/10 text-text" : "border border-border"
+                }`}
+              >
+                {isDone ? (
+                  <Check size={12} />
+                ) : isCurrent ? (
+                  <Loader2 size={11} className="animate-spin" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-2" />
+                )}
+              </span>
+              <span className={i <= completed ? "" : "text-muted-2"}>{s}</span>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
 /* ── Validation Gate ─────────────────────────────────────────── */
-function ValidationGate({ r }: { r: ReturnType<typeof useRoomie> }) {
+function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useRoomie>; onBuild: () => void }) {
   const v = r.company!.validation!;
   const vs = verdictStyle[v.verdict];
   const recommendHold = v.verdict === "weak";
@@ -353,13 +397,13 @@ function ValidationGate({ r }: { r: ReturnType<typeof useRoomie> }) {
               <button onClick={() => r.decideBuild(false)} className="flex-1 rounded-xl bg-coral px-5 py-3 font-semibold text-bg transition hover:brightness-110">
                 Hold — I agree
               </button>
-              <button onClick={() => r.decideBuild(true)} className="rounded-xl border border-border px-5 py-3 font-medium text-muted transition hover:text-text">
+              <button onClick={onBuild} className="rounded-xl border border-border px-5 py-3 font-medium text-muted transition hover:text-text">
                 Build anyway
               </button>
             </>
           ) : (
             <>
-              <button onClick={() => r.decideBuild(true)} className="flex-1 rounded-xl bg-coral px-5 py-3 font-semibold text-bg transition hover:brightness-110">
+              <button onClick={onBuild} className="flex-1 rounded-xl bg-coral px-5 py-3 font-semibold text-bg transition hover:brightness-110">
                 Approve build
               </button>
               <button onClick={() => r.decideBuild(false)} className="rounded-xl border border-border px-5 py-3 font-medium text-muted transition hover:text-text">
@@ -375,7 +419,7 @@ function ValidationGate({ r }: { r: ReturnType<typeof useRoomie> }) {
 }
 
 /* ── Rejected ────────────────────────────────────────────────── */
-function Rejected({ r }: { r: ReturnType<typeof useRoomie> }) {
+function Rejected({ r, onBuild }: { r: ReturnType<typeof useRoomie>; onBuild: () => void }) {
   return (
     <div className="mx-auto mt-16 max-w-md text-center">
       <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-amber/12 text-amber">
@@ -386,7 +430,7 @@ function Rejected({ r }: { r: ReturnType<typeof useRoomie> }) {
         No compute spent on a product nobody asked for yet. Tweak the idea and test again, or build anyway — your call.
       </p>
       <div className="mt-7 flex justify-center gap-3">
-        <button onClick={() => r.decideBuild(true)} className="rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110">
+        <button onClick={onBuild} className="rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110">
           Build anyway
         </button>
         <button onClick={() => r.switchCompany(null)} className="inline-flex items-center gap-2 rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted transition hover:text-text">
@@ -423,7 +467,7 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useRoomie>; tab: T
         </div>
         <button
           onClick={r.runShift}
-          disabled={r.working === "shift"}
+          disabled={r.working !== null}
           className="inline-flex items-center gap-2 rounded-xl bg-coral px-5 py-3 font-semibold text-bg transition hover:brightness-110 disabled:opacity-50"
         >
           {r.working === "shift" ? (
@@ -437,6 +481,13 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useRoomie>; tab: T
           )}
         </button>
       </div>
+
+      {r.autopilotPaused && (
+        <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-amber/30 bg-amber/[0.06] px-4 py-3 text-sm text-amber">
+          <AlertTriangle size={15} className="shrink-0" />
+          Autopilot paused — {r.pendingApprovals.length} approvals are waiting on you. Clear your inbox below to resume nightly shifts.
+        </div>
+      )}
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => (
@@ -478,6 +529,11 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useRoomie>; tab: T
             }`}
           >
             <t.icon size={15} /> {t.label}
+            {t.id === "operations" && r.pendingApprovals.length > 0 && (
+              <span className="ml-1 grid h-4 min-w-4 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-bg">
+                {r.pendingApprovals.length}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -485,7 +541,7 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useRoomie>; tab: T
       <div className="mt-6">
         {tab === "operations" && <OperationsTab r={r} />}
         {tab === "history" && <HistoryTab activities={r.activities} company={c} />}
-        {tab === "chat" && <ChatTab company={c} />}
+        {tab === "chat" && <ChatTab company={c} r={r} />}
         {tab === "operate" && OPERATE_ENABLED && <OperateTab r={r} c={c} />}
       </div>
     </div>
@@ -610,7 +666,7 @@ function BarChart({ title, values, nights, color, fmt }: { title: string; values
 /* ── Chat ────────────────────────────────────────────────────── */
 interface ChatMsg { role: "you" | "roomie"; text: string }
 
-function ChatTab({ company }: { company: Company }) {
+function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useRoomie> }) {
   const { config } = useConfig();
   const storeKey = `roomie:chat:${company.id}`;
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
@@ -646,25 +702,36 @@ function ChatTab({ company }: { company: Company }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ kind: "chat", company: { name: company.name, idea: company.idea }, message: text, soul: config.soul, byok: getByok() ?? undefined }),
       });
+      // A consequential request? The engine flags it; queue a real approval so the inbox matches
+      // what the co-founder promises.
+      let queued: { agent: AgentRole; kind: ApprovalKind; title: string; detail: string; amount?: number } | null = null;
+      const approvalHeader = res.headers.get("x-roomie-approval");
+      if (approvalHeader) {
+        try { queued = JSON.parse(decodeURIComponent(approvalHeader)); } catch { /* ignore */ }
+      }
       if (!res.body) {
         const data = await res.json().catch(() => ({ reply: "…" }));
         setMsgs((m) => [...m, { role: "roomie", text: data.reply ?? "…" }]);
-        return;
+      } else {
+        // stream the reply token-by-token
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        setMsgs((m) => [...m, { role: "roomie", text: "" }]);
+        let acc = "";
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          acc += decoder.decode(value, { stream: true });
+          setMsgs((m) => {
+            const copy = m.slice();
+            copy[copy.length - 1] = { role: "roomie", text: acc };
+            return copy;
+          });
+        }
       }
-      // stream the reply token-by-token
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      setMsgs((m) => [...m, { role: "roomie", text: "" }]);
-      let acc = "";
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMsgs((m) => {
-          const copy = m.slice();
-          copy[copy.length - 1] = { role: "roomie", text: acc };
-          return copy;
-        });
+      if (queued) {
+        r.addApproval(queued);
+        setMsgs((m) => [...m, { role: "roomie", text: "🔔 Queued for your approval — open the Operations tab to approve or reject. Nothing happens until you say yes." }]);
       }
     } catch {
       setMsgs((m) => [...m, { role: "roomie", text: "I couldn't reach the engine just now — try again?" }]);

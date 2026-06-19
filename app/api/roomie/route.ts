@@ -1,4 +1,4 @@
-import { runChat, runShift, runValidate, realModelConfigured } from "@/lib/roomie/server";
+import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval } from "@/lib/roomie/server";
 import type { ByokConfig, Company } from "@/lib/roomie/types";
 
 export const runtime = "nodejs";
@@ -57,10 +57,17 @@ export async function POST(req: Request) {
       if (!body.company || typeof body.message !== "string" || !body.message.trim()) {
         return Response.json({ error: "`company` and `message` are required" }, { status: 400 });
       }
-      const reply = await runChat(body.company, body.message.trim(), body.soul, body.byok);
-      return new Response(streamText(reply), {
-        headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
-      });
+      const message = body.message.trim();
+      const reply = await runChat(body.company, message, body.soul, body.byok);
+      // Consequential asks get a real ApprovalItem queued client-side; pass the seed in a header so
+      // the reply can still stream. (encodeURIComponent keeps the value header-safe + unicode-safe.)
+      const approval = detectChatApproval(message);
+      const headers: Record<string, string> = {
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "no-store",
+      };
+      if (approval) headers["x-roomie-approval"] = encodeURIComponent(JSON.stringify(approval));
+      return new Response(streamText(reply), { headers });
     }
 
     return Response.json({ error: "Unknown `kind` (expected 'validate' | 'shift' | 'chat')" }, { status: 400 });
