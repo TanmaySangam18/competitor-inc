@@ -294,7 +294,7 @@ const capabilities = [
   { icon: Eye, title: "The Glass Box", body: "A human-readable log of every action, every dollar, every decision — with one-click undo.", color: "text-violet", ring: "bg-violet/12" },
   { icon: Inbox, title: "Approval Inbox", body: "Consequential actions wait for your yes/no. Safe autonomy by design — and the right way to handle prompt injection.", color: "text-coral", ring: "bg-coral/12" },
   { icon: Lock, title: "Private Mode", body: "Swap in a self-hosted open-weight model so sensitive business data never leaves your own infrastructure.", color: "text-violet", ring: "bg-violet/12" },
-  { icon: Wallet, title: "Fair pricing", body: "A flat subscription with no revenue share. Failed tasks refund automatically. Export and eject anytime.", color: "text-mint", ring: "bg-mint/12" },
+  { icon: Wallet, title: "Fair pricing", body: "A flat subscription with no revenue share. Failed work is credited back — you only pay for work that lands. Export and eject anytime.", color: "text-mint", ring: "bg-mint/12" },
 ];
 
 function Capabilities() {
@@ -400,7 +400,7 @@ function GlassBox() {
 /* ── Pricing ─────────────────────────────────────────────────── */
 const plans = [
   { name: "Validate", price: "$0", tag: "free forever", points: ["Run the Validation Gate", "Real landing page + waitlist", "Honest go / tweak / kill verdict", "No card required"], cta: "Start free", href: "/dashboard", highlight: false },
-  { name: "Operator", price: "$39", tag: "/ month", points: ["Everything in Validate", "Build-the-winner agent team", "Glass Box + Approval Inbox", "Auto-refund on failed tasks", "BYOK + Private Mode · export anytime"], cta: "Hire your co-founder", href: "/dashboard", highlight: true },
+  { name: "Operator", price: "$39", tag: "/ month", points: ["Everything in Validate", "Build-the-winner agent team", "Glass Box + Approval Inbox", "Never charged for failed work", "BYOK + Private Mode · export anytime"], cta: "Hire your co-founder", href: "/dashboard", highlight: true },
   { name: "Founding", price: "$99", tag: "once · launch only", points: ["Everything in Operator — for life", "Founding-member badge", "Shape the roadmap", "Lock today's price forever"], cta: "Claim a seat", href: "/join", highlight: false },
 ];
 

@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const { data, error } = await sb.from("companies").select("*").eq("status", "operating");
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
-  const EMPTY = { spent: 0, refunded: 0, tasksDone: 0, tasksFailed: 0 };
+  const EMPTY = { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 };
   let ran = 0;
   let failed_companies = 0;
   for (const row of data ?? []) {
@@ -39,13 +39,13 @@ export async function GET(req: Request) {
       await insertApprovals(sb, company.id, approvals);
 
       const done = activities.filter((a) => a.status === "done");
-      const failed = activities.filter((a) => a.status === "failed-refunded");
+      const failed = activities.filter((a) => a.status === "failed-credited");
       await updateCompany(sb, {
         ...company,
         night: company.night + 1,
         ledger: {
           spent: round(company.ledger.spent + done.reduce((t, a) => t + a.cost, 0)),
-          refunded: round(company.ledger.refunded + failed.reduce((t, a) => t + a.cost, 0)),
+          credited: round((company.ledger.credited ?? 0) + failed.reduce((t, a) => t + a.cost, 0)),
           tasksDone: company.ledger.tasksDone + done.length,
           tasksFailed: company.ledger.tasksFailed + failed.length,
         },

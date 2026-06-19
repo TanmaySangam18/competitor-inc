@@ -183,7 +183,7 @@ function simulatedReply(company: { name: string; idea: string }, message: string
   if (/valid|demand|worth|should i|market fit/.test(m))
     return `Before building more, I'd re-check demand. Want me to run another test for ${company.name}?`;
   if (/cost|spend|money|budget|burn/.test(m))
-    return `Every action is in the Glass Box with its cost, and failed tasks auto-refund. I won't spend above the cap without your sign-off.`;
+    return `Every action is in the Glass Box with its cost, and failed work is credited back to your allowance — you're never charged for work that didn't land. I won't spend above the cap without your sign-off.`;
   if (/ship|build|feature|deploy|code/.test(m))
     return `I can ship that. Deploys route through your Approval Inbox first — I'll prep it and wait for your yes.`;
   if (/market|\bad\b|ads|grow|launch|outreach|email/.test(m))
@@ -240,7 +240,7 @@ export async function runShift(company: Company, byok?: ByokConfig): Promise<Shi
     const text = await callModel(
       `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${ROLES.join(", ")}. ` +
         "Produce 3-5 realistic actions taken overnight. Consequential actions (spend>$100, outreach, deploy, delete) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
-        '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-refunded","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete","title":string,"detail":string,"amount":number}]}',
+        '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-credited","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete","title":string,"detail":string,"amount":number}]}',
       JSON.stringify({ idea: company.idea, night }),
       byok
     );
@@ -248,7 +248,7 @@ export async function runShift(company: Company, byok?: ByokConfig): Promise<Shi
     if (!Array.isArray(m.activities) || !Array.isArray(m.approvals)) throw new Error("bad shape");
 
     const activities: Activity[] = m.activities.slice(0, 6).map((a) => {
-      const status: ActivityStatus = a.status === "failed-refunded" ? "failed-refunded" : "done";
+      const status: ActivityStatus = a.status === "failed-credited" ? "failed-credited" : "done";
       const proof =
         a.proof && (a.proof.kind === "url" || a.proof.kind === "build" || a.proof.kind === "metric")
           ? { kind: a.proof.kind as "url" | "build" | "metric", value: str(a.proof.value) }

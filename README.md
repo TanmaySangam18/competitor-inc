@@ -118,8 +118,10 @@ That single principle shapes every feature:
   (a URL, a build result, or a metric). Total transparency.
 - **Approval Inbox** — Anything consequential (spend over a threshold, outreach, deploys, deletions)
   is **queued for your approval** instead of done automatically.
-- **Auto‑refund** — Failed tasks automatically refund their cost in the ledger. You pay for work that
-  worked.
+- **Auto‑credit (not a cash refund)** — When a task fails, its cost is **credited back to your plan's
+  work allowance** — you're simply never charged for work that didn't land (competitor.inc absorbs its
+  own compute cost). It is *not* money returned to your card, and it's separate from real ad spend on
+  your own connected accounts. You pay for work that worked.
 - **Chat with your co‑founder** — A streaming chat to ask questions and direct the work; it queues
   consequential requests for approval rather than just doing them.
 - **Autopilot / nightly heartbeat** — Toggle autopilot and it runs shifts on an interval; deployed, a

@@ -444,12 +444,12 @@ function Rejected({ r, onBuild }: { r: ReturnType<typeof useRoomie>; onBuild: ()
 /* ── Operating ───────────────────────────────────────────────── */
 function Operating({ r, tab, setTab }: { r: ReturnType<typeof useRoomie>; tab: Tab; setTab: (t: Tab) => void }) {
   const c = r.company!;
-  const net = Math.round((c.ledger.spent - c.ledger.refunded) * 100) / 100;
+  const net = Math.round((c.ledger.spent - (c.ledger.credited ?? 0)) * 100) / 100;
   const stats = [
     { label: "Nights run", val: c.night },
     { label: "Tasks done", val: c.ledger.tasksDone },
     { label: "Net spend", val: "$" + net.toFixed(2) },
-    { label: "Refunded", val: "$" + c.ledger.refunded.toFixed(2) },
+    { label: "Credited back", val: "$" + (c.ledger.credited ?? 0).toFixed(2) },
   ];
   const tabs: { id: Tab; label: string; icon: typeof ActivityIcon }[] = [
     { id: "operations", label: "Operations", icon: ActivityIcon },
@@ -779,13 +779,13 @@ function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useRoo
 function OperateTab({ r, c }: { r: ReturnType<typeof useRoomie>; c: Company }) {
   const [rock, setRock] = useState("");
   const [issue, setIssue] = useState("");
-  const net = Math.round((c.ledger.spent - c.ledger.refunded) * 100) / 100;
+  const net = Math.round((c.ledger.spent - (c.ledger.credited ?? 0)) * 100) / 100;
   const resolvedApprovals = r.approvals.filter((a) => a.resolved).length;
   const doneRocks = r.operate.rocks.filter((rk) => rk.done).length;
   const autoIssues = r.activities
-    .filter((a) => a.status === "failed-refunded" || a.meta === "recommend killing")
+    .filter((a) => a.status === "failed-credited" || a.meta === "recommend killing")
     .slice(0, 4)
-    .map((a) => (a.meta === "recommend killing" ? a.action : `${a.action} — auto-refunded`));
+    .map((a) => (a.meta === "recommend killing" ? a.action : `${a.action} — credited back, not charged`));
   const openCount = r.operate.issues.filter((i) => !i.resolved).length + autoIssues.length;
 
   const score = [
@@ -893,7 +893,7 @@ function OperateTab({ r, c }: { r: ReturnType<typeof useRoomie>; c: Company }) {
 function ActivityRow({ a, onUndo }: { a: Activity; onUndo: () => void }) {
   const S = agentStyle[a.agent];
   const A = AGENTS[a.agent];
-  const failed = a.status === "failed-refunded";
+  const failed = a.status === "failed-credited";
   return (
     <motion.div
       layout
@@ -925,7 +925,7 @@ function ActivityRow({ a, onUndo }: { a: Activity; onUndo: () => void }) {
             <Undo2 size={11} /> undo
           </button>
         )}
-        {failed && <span className="rounded-md bg-mint/12 px-2 py-1 text-[11px] text-mint">refunded</span>}
+        {failed && <span className="rounded-md bg-mint/12 px-2 py-1 text-[11px] text-mint">credited back</span>}
         {a.undone && <span className="text-[11px] text-muted-2">undone</span>}
       </div>
     </motion.div>

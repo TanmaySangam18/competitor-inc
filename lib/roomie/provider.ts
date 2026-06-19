@@ -197,7 +197,7 @@ class SimulatedProvider implements RoomieProvider {
       });
     }
 
-    // Support — handle users, occasional auto-refund
+    // Support — handle users, occasional credit-back on failed work
     if (rng() > 0.25) {
       add("support", `Answered ${Math.round(between(rng, 3, 19))} support emails`, {
         cost: round(between(rng, 0.02, 0.12)),
@@ -205,10 +205,10 @@ class SimulatedProvider implements RoomieProvider {
       });
     }
     if (rng() > 0.78) {
-      // a task failed → auto-refunded (transparency feature)
-      add("engineering", "A codegen task failed — auto-refunded the credits", {
+      // a task failed → credits returned to your allowance, never charged (transparency feature)
+      add("engineering", "A codegen task failed — credited back, not charged", {
         cost: round(between(rng, 0.2, 0.5)),
-        status: "failed-refunded",
+        status: "failed-credited",
         meta: "no charge for failed work",
       });
     }

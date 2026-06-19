@@ -139,12 +139,12 @@ function Agents({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
 
 function Engine({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
   const modes: { id: ProviderMode; label: string; desc: string }[] = [
-    { id: "frontier", label: "Frontier model", desc: "Most capable. Routes through a hosted model for the best reasoning." },
+    { id: "simulated", label: "Free · Lite engine", desc: "The baseline everyone gets — $0, offline, always on. No key required, no cost to you." },
+    { id: "frontier", label: "Pro · Premium models", desc: "Top-tier Claude / GPT-class reasoning — on a paid plan, funded by your subscription (not your own wallet)." },
     { id: "private", label: "Private mode", desc: "Self-hosted open-weight model — your data never leaves your infrastructure." },
-    { id: "simulated", label: "Simulated", desc: "No model calls. Fast, free, offline — great for demos." },
   ];
   return (
-    <Card title="Engine" desc="Which brain runs your company. The live default is set server-side; this records your preference.">
+    <Card title="Engine" desc="Three tiers: a free Lite engine for everyone, premium models on paid plans, or bring your own key. The live default is set server-side; this records your preference.">
       <div className="space-y-3">
         {modes.map((m) => (
           <button
@@ -165,7 +165,7 @@ function Engine({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
         ))}
       </div>
       <div className="mt-6 rounded-xl border border-border bg-bg/40 p-4">
-        <div className="text-sm font-medium">Bring your own key (optional)</div>
+        <div className="text-sm font-medium">Bring your own key — use any provider, you pay them directly (optional)</div>
         <p className="mt-1 text-xs text-muted">
           competitor.inc is the validation engine, the agent team, and the proof layer — the model is
           just the brain we plug into it. Most people use the default; bring a key only if you want full
@@ -238,7 +238,7 @@ function Billing() {
     { name: "Founding", price: "$99", tag: "once · launch", current: false },
   ];
   return (
-    <Card title="Billing" desc="Flat pricing, no revenue share. Failed tasks auto-refund.">
+    <Card title="Billing" desc="Flat pricing, no revenue share. Failed work is credited back to your allowance — never charged.">
       <div className="grid gap-3 sm:grid-cols-3">
         {plans.map((p) => (
           <div key={p.name} className={`rounded-xl border p-4 ${p.current ? "border-coral/50 bg-coral/[0.05]" : "border-border bg-bg/40"}`}>

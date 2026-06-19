@@ -47,7 +47,7 @@ Legend: ✅ have it · 🟡 partial/scaffolded · ⛔ gap.
 | Auth + multi-company persistence | real | Supabase scaffolded, not provisioned | 🟡 |
 | **Validate demand BEFORE building** | ❌ builds immediately | ✅ Validation Gate (4 experiments + honest verdict) | ✅ **differentiator** |
 | **Proof on every action** (URL/build/metric) | ❌ "marked complete w/o deploying" | ✅ Glass Box proof + cost | ✅ **differentiator** |
-| **Auto-refund failed tasks** | ❌ "credits burned on failed runs" | ✅ failed-refunded in ledger | ✅ **differentiator** |
+| **Never charge for failed work** | ❌ "credits burned on failed runs" | ✅ failed-credited (work credited back to allowance, not a cash refund) | ✅ **differentiator** |
 | **Human-in-the-loop approval** | mostly autonomous | ✅ Approval Inbox for spend/outreach/deploy/delete | ✅ **differentiator** |
 | **Revenue share** | **20% of revenue + 20% of ads** | **0% — own your upside** | ✅ **differentiator** |
 | Own-your-data / export | unclear | ✅ one-click JSON export | ✅ likely diff |

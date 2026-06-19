@@ -18,7 +18,7 @@ const companyArb = fc.record({
   night: fc.nat({ max: 200 }),
   ledger: fc.record({
     spent: fc.float({ min: 0, max: 1e6, noNaN: true }),
-    refunded: fc.float({ min: 0, max: 1e6, noNaN: true }),
+    credited: fc.float({ min: 0, max: 1e6, noNaN: true }),
     tasksDone: fc.nat(),
     tasksFailed: fc.nat(),
   }),

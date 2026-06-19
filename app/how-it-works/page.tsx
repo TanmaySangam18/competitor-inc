@@ -73,7 +73,7 @@ const steps = [
 
 // The promises that hold underneath the whole thing — what keeps you in control.
 const controls = [
-  { icon: RotateCcw, title: "Failed work refunds itself", body: "If a task doesn't pan out, the money for it comes back automatically. You only pay for work that lands." },
+  { icon: RotateCcw, title: "You're never charged for failed work", body: "Your plan includes a monthly allowance of agent-work. If a task doesn't land, its cost is credited straight back to that allowance — it's not money returned to your card, it's simply never charged. (Real ad spend runs on your own connected accounts — and an ad that didn't convert isn't a failure, it's a result you paid for.)" },
   { icon: Mic, title: "It speaks in your voice", body: "Set your tone and values once, and every agent follows them — so everything sounds like you, not a robot." },
   { icon: KeyRound, title: "Your own brain, if you want it", body: "Most people use the default. If you'd rather, plug in your own AI key for full privacy and cost control — it's optional." },
   { icon: Download, title: "Your data is yours", body: "Export everything anytime, in one click. No lock-in, no hostage-taking, ever." },

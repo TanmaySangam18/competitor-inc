@@ -33,7 +33,7 @@ export default function Live() {
     companies: companies.length,
     nights: companies.reduce((t, c) => t + c.night, 0),
     tasks: companies.reduce((t, c) => t + c.ledger.tasksDone, 0),
-    spend: companies.reduce((t, c) => t + (c.ledger.spent - c.ledger.refunded), 0),
+    spend: companies.reduce((t, c) => t + (c.ledger.spent - (c.ledger.credited ?? 0)), 0),
     approvals: allApprovals.filter((a) => a.resolved).length,
   };
 
@@ -142,7 +142,7 @@ export default function Live() {
                     <div className="mt-3 flex gap-4 text-xs text-muted">
                       <span>{c.night} nights</span>
                       <span>{c.ledger.tasksDone} tasks</span>
-                      <span>${(c.ledger.spent - c.ledger.refunded).toFixed(2)}</span>
+                      <span>${(c.ledger.spent - (c.ledger.credited ?? 0)).toFixed(2)}</span>
                     </div>
                   </div>
                 ))

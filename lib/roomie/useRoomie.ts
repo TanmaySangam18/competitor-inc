@@ -130,7 +130,7 @@ export function useRoomie() {
       createdAt: Date.now(),
       status: "validating",
       night: 0,
-      ledger: { spent: 0, refunded: 0, tasksDone: 0, tasksFailed: 0 },
+      ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
     };
     setStore((s) => ({
       companies: [c, ...s.companies],
@@ -235,9 +235,9 @@ export function useRoomie() {
         const remaining = 900 - (Date.now() - started);
         if (remaining > 0) await sleep(remaining);
         const done = acts.filter((a) => a.status === "done");
-        const failed = acts.filter((a) => a.status === "failed-refunded");
+        const failed = acts.filter((a) => a.status === "failed-credited");
         const spent = done.reduce((t, a) => t + a.cost, 0);
-        const refunded = failed.reduce((t, a) => t + a.cost, 0);
+        const credited = failed.reduce((t, a) => t + a.cost, 0);
         setStore((s) => {
           const c = s.companies.find((x) => x.id === active.id);
           if (!c) return s;
@@ -250,7 +250,7 @@ export function useRoomie() {
                     night: x.night + 1,
                     ledger: {
                       spent: round(x.ledger.spent + spent),
-                      refunded: round(x.ledger.refunded + refunded),
+                      credited: round((x.ledger.credited ?? 0) + credited),
                       tasksDone: x.ledger.tasksDone + done.length,
                       tasksFailed: x.ledger.tasksFailed + failed.length,
                     },
@@ -359,7 +359,7 @@ export function useRoomie() {
         activities: { ...s.activities, [s.activeId]: list.map((a) => (a.id === id ? { ...a, undone: true } : a)) },
         companies: s.companies.map((c) =>
           c.id === s.activeId
-            ? { ...c, ledger: { ...c.ledger, spent: round(Math.max(0, c.ledger.spent - act.cost)), refunded: round(c.ledger.refunded + act.cost) } }
+            ? { ...c, ledger: { ...c.ledger, spent: round(Math.max(0, c.ledger.spent - act.cost)), credited: round((c.ledger.credited ?? 0) + act.cost) } }
             : c
         ),
       };

@@ -33,7 +33,7 @@ export interface ValidationResult {
   recommendation: string; // the engine's honest take
 }
 
-export type ActivityStatus = "done" | "failed-refunded" | "pending-approval";
+export type ActivityStatus = "done" | "failed-credited" | "pending-approval";
 
 export interface Proof {
   kind: "url" | "build" | "metric";
@@ -67,7 +67,9 @@ export interface ApprovalItem {
 
 export interface Ledger {
   spent: number;
-  refunded: number;
+  // Work credited back to your plan's allowance when a task fails — NOT a cash refund. You're simply
+  // never charged for work that didn't land; competitor.inc absorbs its own compute cost.
+  credited: number;
   tasksDone: number;
   tasksFailed: number;
 }

@@ -13,7 +13,7 @@ function makeCompany(overrides: Partial<Company> = {}): Company {
     createdAt: 0,
     status: "operating",
     night: 0,
-    ledger: { spent: 0, refunded: 0, tasksDone: 0, tasksFailed: 0 },
+    ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
     ...overrides,
   };
 }
