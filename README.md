@@ -2,6 +2,9 @@
 
 > **Prove it before you build it.**
 
+> **Founder & creator: Tanmay Sangam.** © 2026 Tanmay Sangam — all rights reserved. Proprietary &
+> confidential: no use, copying, or distribution without written permission. See [LICENSE](LICENSE).
+
 competitor.inc is an AI co‑founder that **validates an idea before it builds it** — it runs a real
 demand test, tells you the honest truth (*build it, tweak it, or kill it*), and only then ships the
 winner. Every action it takes is logged with proof, and it never spends a dollar or sends a message
