@@ -100,7 +100,7 @@ export default function DelegationPage() {
   return (
     <main id="main" className="relative h-[100dvh] w-full overflow-hidden bg-bg mesh">
       <div className="absolute inset-0">
-        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} />
+        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} faces />
       </div>
 
       {/* Top bar */}
@@ -116,7 +116,6 @@ export default function DelegationPage() {
               <LogoMark size={22} />
               <span>The Delegation <span className="font-normal text-muted-2">· The Office</span></span>
             </div>
-            <Link href="/house" className="hidden text-xs text-muted transition hover:text-text sm:inline">The House →</Link>
           </div>
           <div className="hidden items-center gap-2 text-xs text-muted-2 sm:flex">
             {r.company ? (

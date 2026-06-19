@@ -13,6 +13,9 @@ export interface DelegationAgent {
   playbook: string;
   /** Grayscale accent brightness 0..1 — color-as-meaning via light, not hue (brand rule). */
   tone: number;
+  /** Vivid identity color (hue). Used on The House (private founder floor) where color is welcome;
+   *  the public Office stays monochrome-with-faces to protect the brand. */
+  color: string;
   /** Resting desk position on the floor plane, [x, z]. */
   desk: [number, number];
 }
@@ -26,6 +29,15 @@ const TONE: Record<AgentRole, number> = {
   engineering: 0.8, // Forge
   growth: 0.7, // Surge
   marketing: 0.62, // Pitch
+};
+
+// Vivid per-agent identity colors (hue) — distinct, friendly, easy to tell apart on the House floor.
+const COLOR: Record<AgentRole, string> = {
+  ceo: "#ff7a59", // Apex — coral
+  engineering: "#5b8cff", // Forge — blue
+  marketing: "#ffb84d", // Pitch — amber
+  support: "#46d39a", // Guard — mint
+  growth: "#a78bfa", // Surge — violet
 };
 
 // Desks arranged in an arc around the central table, all facing the middle.
@@ -44,6 +56,7 @@ export const DELEGATION: DelegationAgent[] = ORDER.map((role) => ({
   blurb: AGENTS[role].blurb,
   playbook: AGENTS[role].playbook,
   tone: TONE[role],
+  color: COLOR[role],
   desk: DESK[role],
 }));
 

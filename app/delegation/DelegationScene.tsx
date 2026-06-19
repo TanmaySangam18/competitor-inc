@@ -24,6 +24,10 @@ export interface DelegationSceneProps {
   spotlight: AgentRole | null;
   /** The live line being spoken — shown as a clay speech bubble above that agent. */
   speech?: Speech | null;
+  /** Vivid per-agent identity colors instead of grayscale (used on the private House floor). */
+  vivid?: boolean;
+  /** Give the figures faces (eyes + a smile) — Disney "appeal", so they read as characters. */
+  faces?: boolean;
 }
 
 interface Char {
@@ -47,7 +51,7 @@ function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-export default function DelegationScene({ phase, spotlight, speech = null }: DelegationSceneProps) {
+export default function DelegationScene({ phase, spotlight, speech = null, vivid = false, faces = false }: DelegationSceneProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   // Latest props read by the animation loop without re-instantiating the scene.
@@ -181,7 +185,7 @@ export default function DelegationScene({ phase, spotlight, speech = null }: Del
     // ── Characters ────────────────────────────────────────────────
     const chars: Char[] = [];
     DELEGATION.forEach((agent, i) => {
-      const hex = new THREE.Color(toneHex(agent.tone));
+      const hex = new THREE.Color(vivid ? agent.color : toneHex(agent.tone));
       const group = new THREE.Group();
 
       // Matte, rounded "clay" figures (claymorphism) — soft and toy-like, no shine.
@@ -197,10 +201,32 @@ export default function DelegationScene({ phase, spotlight, speech = null }: Del
       );
       head.position.y = 1.3;
 
+      // Faces (Disney "appeal"): two eyes + a friendly smile on the head's front (+z), as children of
+      // the head so they turn with the character. Colorless — reads on both the mono Office and the
+      // colorful House.
+      if (faces) {
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+        const pupilMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5 });
+        for (const sx of [-1, 1]) {
+          const eye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 16, 16), eyeMat);
+          eye.position.set(0.1 * sx, 0.06, 0.225);
+          const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.026, 12, 12), pupilMat);
+          pupil.position.set(0.1 * sx, 0.06, 0.265);
+          head.add(eye, pupil);
+        }
+        const mouth = new THREE.Mesh(
+          new THREE.TorusGeometry(0.085, 0.016, 8, 20, Math.PI),
+          new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.6 })
+        );
+        mouth.rotation.z = Math.PI; // half-arc opening upward → a smile
+        mouth.position.set(0, -0.01, 0.245);
+        head.add(mouth);
+      }
+
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(0.32, 0.4, 32),
         new THREE.MeshBasicMaterial({
-          color: 0xffffff,
+          color: vivid ? hex : 0xffffff,
           transparent: true,
           opacity: 0.18,
           side: THREE.DoubleSide,
