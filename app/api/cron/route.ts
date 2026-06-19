@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { runShift } from "@/lib/roomie/server";
 import { insertActivities, insertApprovals, updateCompany, toCompany } from "@/lib/roomie/db";
+import { sendEmail } from "@/lib/roomie/execution";
 
 export const runtime = "nodejs";
 
@@ -55,6 +56,17 @@ export async function GET(req: Request) {
       failed_companies++;
       console.error("[/api/cron] company shift failed:", err instanceof Error ? err.message : "unknown");
     }
+  }
+
+  // Morning summary (gated): emails the operator what happened overnight — the incumbent's most-loved
+  // feature, on our terms. Off unless Resend + a recipient are configured (sendEmail self-gates).
+  const to = process.env.CRON_SUMMARY_EMAIL;
+  if (to) {
+    await sendEmail({
+      to,
+      subject: `competitor.inc — overnight: ${ran} ${ran === 1 ? "company" : "companies"} advanced`,
+      html: `<p>Ran <b>${ran}</b> overnight shift${ran === 1 ? "" : "s"}${failed_companies ? `, <b>${failed_companies}</b> skipped` : ""}. Open your dashboard for the Glass Box and any approvals waiting on you.</p>`,
+    });
   }
 
   return Response.json({ ran, failed: failed_companies });

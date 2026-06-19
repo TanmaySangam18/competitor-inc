@@ -174,7 +174,44 @@ export function useRoomie() {
     });
   }, []);
 
+  // Best-effort bridge to the gated real-execution layer (/api/execute). Returns null when the
+  // integration is off or the call fails, so the simulated/optimistic UI is never blocked.
+  const executeAction = useCallback(
+    async (
+      action: string,
+      payload: { company: { name: string; idea: string }; item?: { kind: string; title?: string; detail?: string; amount?: number } }
+    ) => {
+      try {
+        const res = await fetch("/api/execute", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, ...payload }) });
+        if (!res.ok) return null;
+        return (await res.json()) as { ok: boolean; disabled?: boolean; proof?: { kind: "url" | "build" | "metric"; value: string }; error?: string };
+      } catch {
+        return null;
+      }
+    },
+    []
+  );
+
+  // When a real action returns a verified proof, log it to the Glass Box (and set the live product
+  // URL for a real build). Append-only — never mutates existing entries, so it's safe offline.
+  const appendRealResult = useCallback(
+    (companyId: string, a: { action: string; agent: AgentRole; proof: { kind: "url" | "build" | "metric"; value: string }; meta?: string; productUrl?: string }) => {
+      setStore((s) => {
+        const c = s.companies.find((x) => x.id === companyId);
+        if (!c) return s;
+        const act: Activity = { id: rid(), night: c.night, agent: a.agent, action: a.action, meta: a.meta, cost: 0, status: "done", proof: a.proof };
+        return {
+          ...s,
+          companies: a.productUrl ? s.companies.map((x) => (x.id === companyId ? { ...x, product: { url: a.productUrl!, status: "live" } } : x)) : s.companies,
+          activities: { ...s.activities, [companyId]: [act, ...(s.activities[companyId] ?? [])] },
+        };
+      });
+    },
+    []
+  );
+
   const decideBuild = useCallback((approve: boolean) => {
+    const active = ref.current.companies.find((x) => x.id === ref.current.activeId);
     setStore((s) => {
       const c = s.companies.find((x) => x.id === s.activeId);
       if (!c) return s;
@@ -213,7 +250,22 @@ export function useRoomie() {
         activities: { ...s.activities, [c.id]: [mvp, ...(s.activities[c.id] ?? [])] },
       };
     });
-  }, []);
+    // Real execution (gated): when keys are set, actually build the MVP on GitHub and log the
+    // verified proof. With no keys, /api/execute returns disabled and nothing extra happens.
+    if (approve && active && active.status !== "operating") {
+      void executeAction("build", { company: { name: active.name, idea: active.idea } }).then((r) => {
+        if (r?.ok && r.proof) {
+          appendRealResult(active.id, {
+            action: "Shipped the MVP to GitHub",
+            agent: "engineering",
+            proof: r.proof,
+            meta: "real build ✓",
+            productUrl: r.proof.kind === "url" ? r.proof.value : undefined,
+          });
+        }
+      });
+    }
+  }, [executeAction, appendRealResult]);
 
   const runShift = useCallback(() => {
     if (inFlightRef.current) return; // no overlapping shifts
@@ -282,6 +334,9 @@ export function useRoomie() {
   }, [autopilot, runShift]);
 
   const resolveApproval = useCallback((id: string, approve: boolean) => {
+    const before = ref.current;
+    const activeCo = before.companies.find((c) => c.id === before.activeId);
+    const seed = activeCo ? (before.approvals[activeCo.id] ?? []).find((a) => a.id === id) : undefined;
     setStore((s) => {
       if (!s.activeId) return s;
       const list = s.approvals[s.activeId] ?? [];
@@ -323,7 +378,16 @@ export function useRoomie() {
         ),
       };
     });
-  }, []);
+    // Real execution (gated): carry out the approved action for real when keys exist; log the proof.
+    if (approve && activeCo && seed && !seed.resolved) {
+      void executeAction(seed.kind, {
+        company: { name: activeCo.name, idea: activeCo.idea },
+        item: { kind: seed.kind, title: seed.title, detail: seed.detail, amount: seed.amount },
+      }).then((r) => {
+        if (r?.ok && r.proof) appendRealResult(activeCo.id, { action: `Executed: ${seed.title}`, agent: seed.agent, proof: r.proof, meta: "real action ✓" });
+      });
+    }
+  }, [executeAction, appendRealResult]);
 
   // Queue an approval from outside a shift (e.g. a consequential request made in chat). Keeps the
   // promise "I'll queue it for your approval" honest — the item really lands in the Approval Inbox.

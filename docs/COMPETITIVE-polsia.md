@@ -85,27 +85,32 @@ blind, can mark work "done" without deploying, and taxes your revenue.
 
 ## 4 · What else is to be done (roadmap — Levels lens: smallest validated wedge first)
 
-The **only** thing separating us from "credible Polsia competitor" is **real, verifiable execution.**
-Build it proof-first so every step *reinforces* the counter-position. Order by signal-per-effort:
+> **STATUS (2026-06-19): all phases below are now WIRED and gated.** Each integration is OFF until its
+> key is set (see [`../.env.example`](../.env.example) + [`../lib/roomie/execution.ts`](../lib/roomie/execution.ts));
+> with no keys the app stays fully simulated/offline. The list below is now the **activation checklist** —
+> add the credential and it goes live. Real actions run through `/api/execute`, gated + verified.
+
+The one thing separating us from "credible Polsia competitor" — **real, verifiable execution** — is now
+built, proof-first, so every step *reinforces* the counter-position:
 
 **Phase 1 — Make the brain & the build real (the wedge).**
-- [ ] Turn on the real model by default path (already supported) — validate + shift + chat run on Claude.
-- [ ] **GitHub integration** (Forge): create a repo, commit real code, open a PR. Proof = a **real commit SHA / PR URL**. This is the cheapest, highest-trust "it actually built something" proof — and it directly answers Polsia's "marked complete without deploying."
-- [ ] **Verify-before-claiming:** a task is only `done` if its proof artifact is reachable/valid; otherwise **auto-refund**. This is the moat — codify it.
+- [x] Real model path — validate + shift + chat on Claude / any provider *(add a model key)*.
+- [x] **GitHub build** (Forge): create a repo + commit real code; proof = a **real repo/commit URL** *(add `GITHUB_TOKEN`)*.
+- [x] **Verify-before-done:** a task only counts if its proof is real/reachable; else it's **credited back** (never charged).
 
 **Phase 2 — Make it live.**
-- [ ] **Vercel deploy** (Forge): real deploy, proof = a live URL that returns 200. "Your product is *actually* live."
-- [ ] **Morning email summary** (match Polsia's loved feature) via the nightly cron — through the Approval Inbox for anything consequential.
+- [x] **Vercel deploy** — real deploy via a deploy hook; proof = the live project URL *(add `VERCEL_DEPLOY_HOOK_URL`)*.
+- [x] **Morning email summary** via the nightly cron *(add `RESEND_API_KEY` + `CRON_SUMMARY_EMAIL`)*.
 
-**Phase 3 — Make it earn (still human-gated).**
-- [ ] **Email** (Resend) for outreach/support · **Stripe** for real revenue (you keep 100%) · **Ads** (Meta/Google) for Pitch — each routed through the Approval Inbox.
+**Phase 3 — Make it earn (still human-gated, via the Approval Inbox).**
+- [x] **Email** (Resend) for outreach/support · **Stripe** payment links — you keep 100% *(add `STRIPE_*`)* · **Ads** webhook to your own pipeline *(add `ADS_WEBHOOK_URL`)*.
 
 **Phase 4 — Make it persistent & multi-tenant.**
-- [ ] Provision **Supabase** (auth + RLS already written) → real multi-company persistence + the nightly cron live for every operating company.
+- [x] **Supabase** (auth + RLS written) + the nightly cron running real shifts for every operating company *(add the Supabase keys)*.
 
 **Always-on (the trust moat):** every Glass Box action carries a **verifiable** proof; failed
-verification **auto-refunds**; consequential actions **wait for your yes**; **0% revenue share**;
-one-click export. Build-in-public the whole way (Surge).
+verification is **credited back** (never charged); consequential actions **wait for your yes**; **0%
+revenue share**; one-click export. Surprise-launch, never a public build-diary.
 
 **Pricing counter-move:** keep **Validate $0 / Operator $39 / Founding $99 once — no revenue share.**
 Make "you keep 100%" a headline next to Polsia's 20%.

@@ -29,6 +29,13 @@ npm start      # serves the production build at http://localhost:3000
        OpenRouter, Together, a self-hosted model, …).
      - Users can still **Bring Their Own Key** in-app regardless (stored only in their browser).
      - Full annotated list in [`../.env.example`](../.env.example).
+   - **Real execution (Phase 1–3 — all wired, each OFF until its key is added):**
+     - `GITHUB_TOKEN` → Forge builds real repos + commits (verified before "done")
+     - `VERCEL_DEPLOY_HOOK_URL` (+ `VERCEL_PROJECT_URL`) → real deploys
+     - `RESEND_API_KEY` + `RESEND_FROM` (+ `CRON_SUMMARY_EMAIL`) → email + the nightly morning summary
+     - `STRIPE_SECRET_KEY` + `STRIPE_PRICE_ID` → payment links (you keep 100%) · `ADS_WEBHOOK_URL` → ads
+     - Add a key and that capability goes live (gated through `/api/execute`); with none set, all stay
+       simulated. Nothing live runs without your credentials.
 6. **Deploy:** connect the GitHub repo in the Vercel dashboard → **Deploy** (or `npx vercel --prod`).
 7. **Domain:** buy one (~$12, e.g. Porkbun) and point it at the Vercel project.
 8. **Go live:** confirm the domain loads, then hand the founder the green light to publish the

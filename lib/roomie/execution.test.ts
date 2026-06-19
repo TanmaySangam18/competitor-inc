@@ -1,13 +1,41 @@
 import { describe, it, expect } from "vitest";
-import { realExecutionEnabled, verifyProof, buildOnGitHub } from "./execution";
+import { realExecutionEnabled, verifyProof, buildOnGitHub, runAction, capabilities } from "./execution";
 
-describe("Phase 1 execution — gated OFF without credentials", () => {
-  it("real execution is disabled when no GITHUB_TOKEN is set", () => {
+const co = { company: { name: "Demo Co", idea: "an idea" } };
+
+describe("execution capabilities — every integration OFF without keys", () => {
+  it("reports github/deploy/email/payments/ads as disabled in a keyless env", () => {
+    const c = capabilities();
+    expect(c.github).toBe(false);
+    expect(c.deploy).toBe(false);
+    expect(c.email).toBe(false);
+    expect(c.payments).toBe(false);
+    expect(c.ads).toBe(false);
+  });
+  it("realExecutionEnabled is false without GITHUB_TOKEN", () => {
     expect(realExecutionEnabled()).toBe(false);
   });
-  it("buildOnGitHub no-ops (falls back to simulated) when disabled — no live calls", async () => {
-    const out = await buildOnGitHub({ repo: "x", description: "y", files: {} });
-    expect(out.ok).toBe(false);
+});
+
+describe("runAction — gated, falls back to simulated (no live calls without keys)", () => {
+  it("build / deploy / outreach / spend / payments all report disabled", async () => {
+    for (const action of ["build", "deploy", "outreach", "spend", "payments"]) {
+      const r = await runAction(action, co);
+      expect(r.ok).toBe(false);
+      expect(r.disabled).toBe(true);
+    }
+  });
+  it("delete is acknowledged locally (no destructive API)", async () => {
+    const r = await runAction("delete", co);
+    expect(r.ok).toBe(true);
+    expect(r.proof?.value).toMatch(/deletion/i);
+  });
+  it("unknown action is rejected", async () => {
+    const r = await runAction("nonsense", co);
+    expect(r.ok).toBe(false);
+  });
+  it("buildOnGitHub no-ops when disabled", async () => {
+    expect((await buildOnGitHub({ repo: "x", description: "y", files: {} })).ok).toBe(false);
   });
 });
 

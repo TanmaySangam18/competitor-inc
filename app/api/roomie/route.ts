@@ -1,4 +1,5 @@
 import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval } from "@/lib/roomie/server";
+import { capabilities } from "@/lib/roomie/execution";
 import type { ByokConfig, Company } from "@/lib/roomie/types";
 
 export const runtime = "nodejs";
@@ -9,6 +10,7 @@ export async function GET() {
     ok: true,
     provider: process.env.ROOMIE_PROVIDER ?? "simulated",
     realModelConfigured: realModelConfigured(),
+    capabilities: capabilities(),
   });
 }
 
