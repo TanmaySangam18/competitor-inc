@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -258,29 +258,50 @@ function Billing() {
 }
 
 function Integrations() {
-  const items = [
-    { icon: Github, name: "GitHub", desc: "Let Forge push code & open PRs." },
-    { icon: Megaphone, name: "Meta Ads", desc: "Let Pitch run real ad campaigns." },
-    { icon: Mail, name: "Email", desc: "Let Guard handle real support & outreach." },
-    { icon: Globe, name: "Domains", desc: "Auto-provision domains for new products." },
+  // Reads the live capability map (which keys the operator has set) from the gated execution layer.
+  const [caps, setCaps] = useState<Record<string, boolean> | null>(null);
+  useEffect(() => {
+    let on = true;
+    fetch("/api/execute")
+      .then((r) => r.json())
+      .then((d) => { if (on) setCaps((d?.capabilities as Record<string, boolean>) ?? {}); })
+      .catch(() => { if (on) setCaps({}); });
+    return () => { on = false; };
+  }, []);
+
+  const items: { key: string; icon: typeof Github; name: string; desc: string }[] = [
+    { key: "model", icon: Cpu, name: "AI model", desc: "Real reasoning — Claude, GPT, gateway, or your own key." },
+    { key: "github", icon: Github, name: "GitHub build", desc: "Forge creates real repos & commits (verified before done)." },
+    { key: "deploy", icon: Globe, name: "Deploy", desc: "Real Vercel deploys — a live product URL." },
+    { key: "email", icon: Mail, name: "Email", desc: "Outreach, support & the nightly morning summary." },
+    { key: "payments", icon: CreditCard, name: "Payments", desc: "Stripe payment links — you keep 100%." },
+    { key: "ads", icon: Megaphone, name: "Ads", desc: "Approved ad spend routed to your own pipeline." },
   ];
+
   return (
-    <Card title="Integrations" desc="Connect real accounts so agents can act in the world. Each stays scoped and approval-gated.">
+    <Card title="Integrations" desc="What the agents can do in the real world. Each is OFF until its key is set — until then agents run in safe simulation. Real actions stay scoped + approval-gated.">
       <div className="grid gap-3 sm:grid-cols-2">
-        {items.map((i) => (
-          <div key={i.name} className="flex items-start gap-3 rounded-xl border border-border bg-bg/40 p-4">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted"><i.icon size={17} /></span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium">{i.name}</div>
-              <div className="text-xs text-muted">{i.desc}</div>
+        {items.map((i) => {
+          const live = !!caps?.[i.key];
+          return (
+            <div key={i.key} className="flex items-start gap-3 rounded-xl border border-border bg-bg/40 p-4">
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${live ? "bg-mint/12 text-mint" : "bg-surface-2 text-muted"}`}><i.icon size={17} /></span>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium">{i.name}</div>
+                <div className="text-xs text-muted">{i.desc}</div>
+              </div>
+              {caps === null ? (
+                <span className="text-[11px] text-muted-2">…</span>
+              ) : live ? (
+                <span className="inline-flex items-center gap-1 rounded-lg bg-mint/12 px-2.5 py-1.5 text-xs font-medium text-mint"><Check size={11} /> Live</span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-2"><Lock size={11} /> Off</span>
+              )}
             </div>
-            <button className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted transition hover:text-text">
-              <Lock size={11} /> Connect
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
-      <p className="mt-4 text-xs text-muted-2">Connecting requires your credentials and authorizes real-world actions (spend, sending). Until then, agents operate in safe simulation.</p>
+      <p className="mt-4 text-xs text-muted-2">Live = the operator added that key (see the deploy runbook / <code>.env</code>). Off = safe simulation. Turning one on authorizes real-world actions; consequential ones still wait in your Approval Inbox.</p>
     </Card>
   );
 }
