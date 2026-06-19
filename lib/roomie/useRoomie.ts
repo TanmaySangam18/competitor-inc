@@ -385,6 +385,52 @@ export function useRoomie() {
   }, [updateOperate]);
   const resolveIssue = useCallback((id: string) => updateOperate((o) => ({ ...o, issues: o.issues.map((i) => (i.id === id ? { ...i, resolved: !i.resolved } : i)) })), [updateOperate]);
 
+  // Seed a fully-populated, already-operating demo company so anyone can explore the whole product
+  // (Glass Box, approvals, history, the 3D floor) end-to-end without running shifts by hand.
+  const loadDemo = useCallback(() => {
+    const idea = "AI meal-prep plans for night-shift nurses";
+    const name = companyNameFrom(idea);
+    const id = rid();
+    let c: Company = {
+      id,
+      name,
+      slug: slugify(name),
+      idea,
+      createdAt: Date.now(),
+      status: "operating",
+      night: 0,
+      validation: getProvider().validate(idea),
+      ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
+      product: { url: `https://${slugify(name)}.demo.competitor.inc`, status: "live" },
+    };
+    let acts: Activity[] = [];
+    let apprs: ApprovalItem[] = [];
+    for (let i = 0; i < 3; i++) {
+      const r = getProvider().shift(c);
+      acts = [...r.activities, ...acts];
+      apprs = [...r.approvals, ...apprs];
+      const done = r.activities.filter((a) => a.status === "done");
+      const failed = r.activities.filter((a) => a.status === "failed-credited");
+      c = {
+        ...c,
+        night: c.night + 1,
+        ledger: {
+          spent: round(c.ledger.spent + done.reduce((t, a) => t + a.cost, 0)),
+          credited: round(c.ledger.credited + failed.reduce((t, a) => t + a.cost, 0)),
+          tasksDone: c.ledger.tasksDone + done.length,
+          tasksFailed: c.ledger.tasksFailed + failed.length,
+        },
+      };
+    }
+    setStore((s) => ({
+      ...s,
+      companies: [c, ...s.companies],
+      activities: { ...s.activities, [id]: acts },
+      approvals: { ...s.approvals, [id]: apprs },
+      activeId: id,
+    }));
+  }, []);
+
   const resetAll = useCallback(() => setStore(empty), []);
   const clearBlocked = useCallback(() => setBlocked(null), []);
 
@@ -408,6 +454,7 @@ export function useRoomie() {
     clearBlocked,
     pendingApprovals,
     createCompany,
+    loadDemo,
     switchCompany,
     deleteCompany,
     decideBuild,

@@ -109,7 +109,7 @@ export default function Dashboard() {
         </div>
       )}
       <div className="mx-auto max-w-6xl px-6 py-10">
-        {!r.company && <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} />}
+        {!r.company && <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} onDemo={r.loadDemo} />}
         {r.company?.status === "validating" && <ValidationRunning idea={r.company.idea} />}
         {r.company?.status === "validated" && <ValidationGate r={r} onBuild={goBuild} />}
         {r.company?.status === "rejected" && <Rejected r={r} onBuild={goBuild} />}
@@ -236,7 +236,7 @@ function AutopilotToggle({ on, onToggle, paused }: { on: boolean; onToggle: () =
 }
 
 /* ── Onboarding ──────────────────────────────────────────────── */
-function Onboarding({ onSubmit, hasOthers }: { onSubmit: (idea: string) => void; hasOthers: boolean }) {
+function Onboarding({ onSubmit, hasOthers, onDemo }: { onSubmit: (idea: string) => void; hasOthers: boolean; onDemo: () => void }) {
   const [idea, setIdea] = useState("");
   return (
     <motion.div
@@ -290,6 +290,13 @@ function Onboarding({ onSubmit, hasOthers }: { onSubmit: (idea: string) => void;
           </button>
         ))}
       </div>
+
+      <button
+        onClick={onDemo}
+        className="mt-6 text-xs text-muted-2 underline-offset-4 transition hover:text-text hover:underline"
+      >
+        Or load a demo company to explore the full workflow →
+      </button>
     </motion.div>
   );
 }
