@@ -14,7 +14,7 @@ const MODEL = process.env.ROOMIE_MODEL ?? "claude-opus-4-8";
 const KEY = process.env.ANTHROPIC_API_KEY;
 const GATEWAY_KEY = process.env.AI_GATEWAY_API_KEY;
 // Self-hosted / any OpenAI-compatible endpoint set by the operator (trusted, not user-supplied).
-const SELF_HOST_URL = process.env.ROOMIE_PRIVATE_BASE_URL || process.env.ROOMIE_BASE_URL;
+const SELF_HOST_URL = process.env.ROOMIE_PRIVATE_BASE_URL;
 const SELF_HOST_KEY = process.env.ROOMIE_API_KEY;
 const MODEL_TIMEOUT_MS = 30_000;
 
