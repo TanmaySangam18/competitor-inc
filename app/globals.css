@@ -138,6 +138,16 @@ h1, h2, h3, h4 {
 }
 .live-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
 
+/* ── Welcome agent (landing) — a friendly animated greeter ─────── */
+@keyframes agent-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes agent-wave { 0%, 55%, 100% { transform: rotate(0deg); } 65% { transform: rotate(-20deg); } 75% { transform: rotate(8deg); } 85% { transform: rotate(-16deg); } }
+@keyframes agent-blink { 0%, 90%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.12); } }
+@keyframes bubble-in { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.ag-float { animation: agent-float 4s ease-in-out infinite; }
+.ag-wave { animation: agent-wave 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 88%; }
+.ag-blink { animation: agent-blink 4.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+.ag-bubble { animation: bubble-in 0.5s ease both; }
+
 /* ── The Delegation — floating 3D character labels (light pills on the cream floor) ── */
 .delegation-label {
   position: absolute;

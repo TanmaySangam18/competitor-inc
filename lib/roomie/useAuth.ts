@@ -48,11 +48,23 @@ export function useAuth() {
     if (error) throw error;
   }, []);
 
+  // Social sign-in. GitHub (our indie/technical beachhead lives there) + Google (universal). Supabase
+  // handles the OAuth handshake; providers are configured in the Supabase dashboard.
+  const signInWithOAuth = useCallback(async (provider: "google" | "github") => {
+    const sb = getBrowserSupabase();
+    if (!sb) throw new Error("Supabase not configured");
+    const { error } = await sb.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined },
+    });
+    if (error) throw error;
+  }, []);
+
   const signOut = useCallback(async () => {
     const sb = getBrowserSupabase();
     if (sb) await sb.auth.signOut();
     if (!configured) setUser({ email: "you@local", guest: true });
   }, [configured]);
 
-  return { user, ready, configured, signInWithEmail, signOut };
+  return { user, ready, configured, signInWithEmail, signInWithOAuth, signOut };
 }

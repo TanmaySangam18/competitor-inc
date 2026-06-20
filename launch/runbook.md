@@ -19,6 +19,9 @@ npm start      # serves the production build at http://localhost:3000
 4. **(If using Supabase)** open the Supabase SQL editor and run `supabase/migrations/0001_init.sql`.
 5. **Set env vars in Vercel** (all optional — app works with none):
    - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` → real auth + persistence
+     - **Social sign-in (Google + GitHub):** enable each in the Supabase dashboard → Authentication →
+       Providers (paste each provider's OAuth client id/secret), and add `https://YOURDOMAIN/dashboard`
+       as a redirect URL. The `/login` + `/signup` buttons light up automatically once they're on.
    - `NEXT_PUBLIC_CHECKOUT_URL` → the founder's LemonSqueezy/Gumroad link (turns on Founding checkout)
    - `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` → nightly heartbeat cron
    - **Model engine (optional, swappable — pick ONE, or leave unset for the offline simulated demo):**

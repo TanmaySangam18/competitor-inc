@@ -18,6 +18,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import { AgentWelcome } from "@/components/AgentWelcome";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },
@@ -228,6 +229,19 @@ function Hero() {
         >
           <RoomiePreview />
         </motion.div>
+      </div>
+
+      {/* welcome agent + huge wordmark */}
+      <div className="relative border-t border-border py-16">
+        <div className="mx-auto mb-1 max-w-[300px]">
+          <AgentWelcome />
+        </div>
+        <div
+          className="text-center leading-[0.85] tracking-tight text-[10vw]"
+          style={{ fontFamily: "var(--font-heavy)" }}
+        >
+          competitor<span className="text-coral">.inc</span>
+        </div>
       </div>
     </section>
   );
