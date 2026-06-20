@@ -214,26 +214,26 @@ export function LiveGlassBox({ company }: { company?: Pick<Company, "name" | "id
         <span className="hidden text-[11px] text-muted-2 sm:inline">{i + 1} / {screens.length}</span>
       </div>
 
-      <div className="glassbox-stage relative">
-        {/* arrows */}
+      <div className="glassbox-stage relative mx-auto max-w-2xl">
+        {/* arrows — kept inside the frame so nothing bleeds past the box */}
         <button
           onClick={() => go(-1)}
           aria-label="Previous screen"
-          className="absolute -left-2 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full glass-panel text-text transition hover:border-coral/40 sm:-left-5"
+          className="absolute left-2 top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full glass-panel text-text transition hover:border-coral/40 sm:left-3"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={17} />
         </button>
         <button
           onClick={() => go(1)}
           aria-label="Next screen"
-          className="absolute -right-2 top-1/2 z-20 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full glass-panel text-text transition hover:border-coral/40 sm:-right-5"
+          className="absolute right-2 top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full glass-panel text-text transition hover:border-coral/40 sm:right-3"
         >
-          <ChevronRight size={18} />
+          <ChevronRight size={17} />
         </button>
 
-        <div className="glassbox-3d relative mx-auto max-w-2xl">
-          {/* the box body (depth) */}
-          <div aria-hidden className="glassbox-body absolute -inset-1 rounded-[26px]" />
+        <div className="glassbox-3d relative">
+          {/* the box body (depth) — sits just behind the screen */}
+          <div aria-hidden className="glassbox-body absolute inset-0 rounded-[24px]" />
           {/* the screen */}
           <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[22px] glass-panel">
             <AnimatePresence initial={false} mode="wait" custom={dir}>
