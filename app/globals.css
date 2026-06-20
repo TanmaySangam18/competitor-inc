@@ -231,6 +231,35 @@ h1, h2, h3, h4 {
   will-change: transform;
 }
 
+/* ── The Live Glass Box — a glass slab, with depth, that shows what the agents
+   are actually producing (the visual, not the stats). Tilts at rest, straightens
+   on hover/focus. Polsia hides this; we put it front and center. */
+.glassbox-stage { perspective: 1700px; }
+.glassbox-3d {
+  transform: rotateX(7deg) rotateY(-11deg);
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.glassbox-stage:hover .glassbox-3d,
+.glassbox-stage:focus-within .glassbox-3d { transform: rotateX(0deg) rotateY(0deg); }
+/* the box's "body" — a slab sitting behind the screen, in Z */
+.glassbox-body {
+  transform: translateZ(-26px);
+  background: #ece4c8;
+  border: 1px solid var(--color-border);
+}
+/* a glass sheen sweeping the screen */
+.glassbox-sheen {
+  background: linear-gradient(133deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0) 46%);
+  mix-blend-mode: screen;
+}
+@media (prefers-reduced-motion: reduce) {
+  .glassbox-3d,
+  .glassbox-stage:hover .glassbox-3d,
+  .glassbox-stage:focus-within .glassbox-3d { transform: none; transition: none; }
+}
+
 /* ── Accessibility ───────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid #14130e;

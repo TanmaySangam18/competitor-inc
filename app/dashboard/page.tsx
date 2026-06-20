@@ -37,6 +37,7 @@ import { useRoomie } from "@/lib/roomie/useRoomie";
 import { useConfig, getByok } from "@/lib/roomie/config";
 import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/roomie/types";
 import { LogoMark } from "@/components/Logo";
+import { LiveGlassBox } from "@/components/LiveGlassBox";
 
 const agentStyle: Record<AgentRole, { icon: typeof Gauge; color: string; ring: string }> = {
   ceo: { icon: Gauge, color: "text-violet", ring: "bg-violet/12" },
@@ -559,6 +560,10 @@ function OperationsTab({ r }: { r: ReturnType<typeof useRoomie> }) {
   const { config } = useConfig();
   const roles = (Object.keys(AGENTS) as AgentRole[]).filter((role) => config.agents[role]?.enabled ?? true);
   return (
+    <div className="space-y-8">
+      <div className="rounded-3xl glass-panel p-5 sm:p-7">
+        <LiveGlassBox company={r.company ?? undefined} />
+      </div>
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <section>
         <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
@@ -625,6 +630,7 @@ function OperationsTab({ r }: { r: ReturnType<typeof useRoomie> }) {
           </div>
         </div>
       </aside>
+    </div>
     </div>
   );
 }
