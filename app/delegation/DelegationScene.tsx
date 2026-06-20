@@ -7,7 +7,7 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { DELEGATION, toneHex, type DelegationAgent } from "@/lib/roomie/delegation";
+import { DELEGATION, type DelegationAgent } from "@/lib/roomie/delegation";
 import type { AgentRole } from "@/lib/roomie/types";
 
 export type Phase = "idle" | "working";
@@ -89,7 +89,7 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x0a0a0a, 12, 26);
+    scene.fog = new THREE.Fog(0xf7f0da, 12, 26);
 
     const camera = new THREE.PerspectiveCamera(
       46,
@@ -99,24 +99,24 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
     );
 
     // ── Lighting (grayscale, soft) ─────────────────────────────────
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x101010, 0.85));
-    const key = new THREE.DirectionalLight(0xffffff, 1.1);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xcabf9e, 1.0));
+    const key = new THREE.DirectionalLight(0xffffff, 1.0);
     key.position.set(5, 9, 6);
     scene.add(key);
-    const rim = new THREE.PointLight(0xffffff, 18, 14, 2);
+    const rim = new THREE.PointLight(0xffffff, 9, 14, 2);
     rim.position.set(0, 3.2, 0);
     scene.add(rim);
 
     // ── Floor + grid (echoes the site's grid-bg) ──────────────────
     const floor = new THREE.Mesh(
       new THREE.CircleGeometry(7.5, 64),
-      new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.95, metalness: 0.0 })
+      new THREE.MeshStandardMaterial({ color: 0xece4c8, roughness: 0.98, metalness: 0.0 })
     );
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    const grid = new THREE.GridHelper(15, 30, 0xffffff, 0xffffff);
-    (grid.material as THREE.Material).opacity = 0.05;
+    const grid = new THREE.GridHelper(15, 30, 0x14130e, 0x14130e);
+    (grid.material as THREE.Material).opacity = 0.07;
     (grid.material as THREE.Material).transparent = true;
     grid.position.y = 0.001;
     scene.add(grid);
@@ -125,23 +125,22 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
     const table = new THREE.Mesh(
       new THREE.CylinderGeometry(1.5, 1.55, 0.16, 48),
       new THREE.MeshStandardMaterial({
-        color: 0x1a1a1a,
-        roughness: 0.4,
-        metalness: 0.2,
-        emissive: 0x111111,
+        color: 0x141310,
+        roughness: 0.5,
+        metalness: 0.1,
       })
     );
     table.position.y = 0.62;
     scene.add(table);
     const tableLeg = new THREE.Mesh(
       new THREE.CylinderGeometry(0.18, 0.28, 0.54, 24),
-      new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.6 })
+      new THREE.MeshStandardMaterial({ color: 0x141310, roughness: 0.6 })
     );
     tableLeg.position.y = 0.27;
     scene.add(tableLeg);
     const tableGlow = new THREE.Mesh(
       new THREE.RingGeometry(1.5, 1.62, 48),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.18 })
+      new THREE.MeshBasicMaterial({ color: 0xff5a36, transparent: true, opacity: 0.3 })
     );
     tableGlow.rotation.x = -Math.PI / 2;
     tableGlow.position.y = 0.705;
@@ -150,7 +149,7 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
     // "You" — the human in the loop, seated at the head of the table.
     const youSeat = new THREE.Mesh(
       new THREE.RingGeometry(0.34, 0.42, 32),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+      new THREE.MeshBasicMaterial({ color: 0x14130e, transparent: true, opacity: 0.4 })
     );
     youSeat.rotation.x = -Math.PI / 2;
     youSeat.position.set(0, 0.02, -1.95);
@@ -185,7 +184,7 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
     // ── Characters ────────────────────────────────────────────────
     const chars: Char[] = [];
     DELEGATION.forEach((agent, i) => {
-      const hex = new THREE.Color(vivid ? agent.color : toneHex(agent.tone));
+      const hex = vivid ? new THREE.Color(agent.color) : new THREE.Color().setHSL(0.1, 0.1, 0.14 + agent.tone * 0.06);
       const group = new THREE.Group();
 
       // Matte, rounded "clay" figures (claymorphism) — soft and toy-like, no shine.
@@ -226,7 +225,7 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(0.32, 0.4, 32),
         new THREE.MeshBasicMaterial({
-          color: vivid ? hex : 0xffffff,
+          color: vivid ? hex : 0x14130e,
           transparent: true,
           opacity: 0.18,
           side: THREE.DoubleSide,

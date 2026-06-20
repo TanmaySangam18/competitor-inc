@@ -167,9 +167,9 @@ function Hero() {
             animate="show"
             variants={fadeUp}
             transition={{ duration: 0.6, delay: 0.06 }}
-            className="mt-6 text-[2.75rem] font-bold leading-[1.04] sm:text-6xl"
+            className="display mt-6 text-[2.75rem] leading-[1.04] sm:text-6xl"
           >
-            Prove it <span className="gradient-text">before</span> you build it.
+            Prove it <span className="text-coral">before</span> you build it.
           </motion.h1>
 
           <motion.p
@@ -262,7 +262,7 @@ function HowItWorks() {
   return (
     <section id="how" className="mx-auto max-w-6xl px-6 py-28">
       <Reveal className="max-w-2xl">
-        <h2 className="text-3xl font-bold md:text-[2.6rem]">Validate first. Build the winner. Own it.</h2>
+        <h2 className="display text-3xl md:text-[2.6rem]">Validate first. Build the winner. Own it.</h2>
         <p className="mt-4 text-lg text-muted">
           Four steps that put proof before code — and keep you in the founder&apos;s seat the whole way.
         </p>
@@ -302,7 +302,7 @@ function Capabilities() {
     <section id="capabilities" className="border-t border-border bg-surface/20">
       <div className="mx-auto max-w-6xl px-6 py-28">
         <Reveal className="max-w-2xl">
-          <h2 className="text-3xl font-bold md:text-[2.6rem]">Built on trust, not vibes</h2>
+          <h2 className="display text-3xl md:text-[2.6rem]">Built on trust, not vibes</h2>
           <p className="mt-4 text-lg text-muted">
             Each capability is designed to make autonomy feel safe, transparent, and yours.
           </p>
@@ -340,7 +340,7 @@ function GlassBox() {
           <div className="inline-flex items-center gap-2 rounded-full border border-violet/25 bg-violet/[0.06] px-3 py-1 text-xs text-violet">
             <Eye size={13} /> The Glass Box
           </div>
-          <h2 className="mt-5 text-3xl font-bold md:text-[2.6rem]">See everything. Undo anything.</h2>
+          <h2 className="display mt-5 text-3xl md:text-[2.6rem]">See everything. Undo anything.</h2>
           <p className="mt-4 text-lg leading-relaxed text-muted">
             competitor.inc logs every action, dollar, and decision it makes — in plain language. Nothing
             consequential happens without your sign-off, and you can reverse any step in one click.
@@ -409,7 +409,7 @@ function Pricing() {
     <section id="pricing" className="border-t border-border bg-surface/20">
       <div className="mx-auto max-w-5xl px-6 py-28">
         <Reveal className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold md:text-[2.6rem]">Honest pricing</h2>
+          <h2 className="display text-3xl md:text-[2.6rem]">Honest pricing</h2>
           <p className="mt-4 text-lg text-muted">
             Pay for the work. Keep your upside. No revenue share, no lock-in.
           </p>
@@ -464,10 +464,10 @@ function FinalCTA() {
     <section className="relative overflow-hidden mesh">
       <div className="absolute inset-0 grid-bg" />
       <div className="relative mx-auto max-w-3xl px-6 py-32 text-center">
-        <h2 className="text-4xl font-bold leading-tight md:text-5xl">
+        <h2 className="display text-4xl leading-tight md:text-5xl">
           Don&apos;t build it blind.
           <br />
-          <span className="gradient-text">Prove it first.</span>
+          <span className="text-coral">Prove it first.</span>
         </h2>
         <p className="mt-5 text-lg text-muted">
           Bring an idea. competitor.inc tells you the honest truth about it — then builds the one that&apos;s worth it.

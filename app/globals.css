@@ -4,26 +4,28 @@
    Tailwind's layered spacing utilities. Tailwind v4 preflight handles box-sizing/margins. */
 
 @theme {
-  /* competitor.inc — monochrome, Cursor-like. Black canvas, white accent, grayscale surfaces. */
-  --color-bg: #0a0a0a;
-  --color-surface: #151515;
-  --color-surface-2: #1f1f1f;
-  --color-border: rgba(255, 255, 255, 0.1);
+  /* competitor.inc — "Paper & Ink": warm cream paper, heavy black ink, coral accent. High-contrast
+     utility aesthetic; emphasis via black inverted cards + bold type, not color. See docs/DESIGN.md. */
+  --color-bg: #f7f0da;
+  --color-surface: #efe7cd;
+  --color-surface-2: #e6dcc0;
+  --color-border: rgba(20, 19, 14, 0.16);
 
-  /* Semantic vars remapped to mono. "coral" = primary (white buttons). Differentiation where
-     meaning matters (signals/verdicts) is handled per-component via brightness, not hue. */
-  --color-coral: #fafafa;
-  --color-amber: #c7c7c7;
-  --color-mint: #fafafa;
-  --color-violet: #a8a8a8;
+  /* coral = the single accent (used sparingly). amber/mint/violet kept for semantic + the House crew,
+     retuned to read on cream. */
+  --color-coral: #ff5a36;
+  --color-amber: #b5760e;
+  --color-mint: #1f8f5f;
+  --color-violet: #6a4bc0;
 
-  --color-text: #fafafa;
-  --color-muted: #a1a1aa;
-  --color-muted-2: #6b6b72;
+  --color-text: #14130e;
+  --color-muted: #5b5644;
+  --color-muted-2: #8a846e;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+  --font-heavy: "Archivo Black", "Arial Black", sans-serif;
 }
 
 html {
@@ -32,8 +34,8 @@ html {
 }
 
 body {
-  background-color: #0a0a0a;
-  color: #fafafa;
+  background-color: #f7f0da;
+  color: #14130e;
   font-family: var(--font-body), "Inter", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,86 +47,89 @@ h1, h2, h3, h4 {
   letter-spacing: -0.025em;
 }
 
-::selection { background: rgba(255, 255, 255, 0.18); }
+/* Heavy uppercase display — the signature headline treatment. Use on hero/section titles. */
+.display {
+  font-family: var(--font-heavy), "Arial Black", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.98;
+  font-weight: 800;
+}
+
+::selection { background: rgba(255, 90, 54, 0.22); }
 
 ::-webkit-scrollbar { width: 7px; }
-::-webkit-scrollbar-track { background: #0a0a0a; }
-::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+::-webkit-scrollbar-track { background: #efe7cd; }
+::-webkit-scrollbar-thumb { background: #cabf9e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #b3a886; }
 
 /* ── Utilities ───────────────────────────────────────────────── */
 
 .gradient-text {
-  background: linear-gradient(100deg, #ffffff 0%, #9a9aa1 100%);
+  background: linear-gradient(100deg, #14130e 0%, #5b5644 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* ── Liquid glass (Apple HIG · Depth) ────────────────────────────
-   Translucent frosted layers with a lit top edge. Content leads
-   (Deference): the blur floats panels off the canvas without
-   competing for attention. Monochrome — no hue, just light. */
+/* ── Liquid glass on paper (Apple HIG · Depth) ───────────────────
+   Frosted near-white panels floating off the cream, with a hairline
+   ink edge + soft shadow. Content leads; emphasis goes to black cards. */
 .glass,
 .glass-panel {
-  /* Drive the blur through Tailwind's utility (@apply) — a hand-written
-     backdrop-filter gets stripped by the build's CSS pipeline. */
   @apply backdrop-blur-xl backdrop-saturate-150;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 253, 247, 0.66);
+  border: 1px solid var(--color-border);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08), /* lit top edge */
-    0 10px 34px -16px rgba(0, 0, 0, 0.65); /* soft float */
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 1px 2px rgba(20, 19, 14, 0.05),
+    0 14px 30px -22px rgba(20, 19, 14, 0.35);
 }
 .glass-panel {
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* sticky translucent header — frosts the content scrolling beneath it */
+/* sticky translucent header — frosts the cream scrolling beneath it */
 .glass-nav {
   @apply backdrop-blur-xl backdrop-saturate-150;
-  background: rgba(10, 10, 10, 0.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+  background: rgba(247, 240, 218, 0.82);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .card {
-  @apply backdrop-blur-xl backdrop-saturate-150;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #fffdf6;
+  border: 1px solid var(--color-border);
   border-radius: 1.25rem;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 10px 34px -16px rgba(0, 0, 0, 0.65);
+    0 1px 2px rgba(20, 19, 14, 0.05),
+    0 14px 30px -22px rgba(20, 19, 14, 0.3);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 24px 60px -28px rgba(255, 255, 255, 0.12);
+  border-color: rgba(20, 19, 14, 0.35);
+  box-shadow: 0 24px 50px -28px rgba(20, 19, 14, 0.4);
 }
 
-/* subtle monochrome glow behind hero + CTA */
+/* subtle warm glow + a coral whisper behind hero/CTA */
 .mesh {
   background-image:
-    radial-gradient(55% 50% at 50% -8%, rgba(255, 255, 255, 0.07), transparent 70%),
-    radial-gradient(40% 40% at 85% 10%, rgba(255, 255, 255, 0.04), transparent 72%);
+    radial-gradient(55% 50% at 50% -8%, rgba(20, 19, 14, 0.05), transparent 70%),
+    radial-gradient(38% 38% at 85% 8%, rgba(255, 90, 54, 0.06), transparent 72%);
 }
 
 .grid-bg {
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(20, 19, 14, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 19, 14, 0.05) 1px, transparent 1px);
   background-size: 56px 56px;
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
 }
 
 .ring-soft {
-  box-shadow: 0 0 0 1px var(--color-border), 0 30px 80px -40px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 0 0 1px var(--color-border), 0 30px 80px -40px rgba(20, 19, 14, 0.25);
 }
 
 @keyframes pulse-dot {
@@ -133,9 +138,7 @@ h1, h2, h3, h4 {
 }
 .live-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
 
-/* ── The Delegation — floating 3D character labels ───────────────
-   Imperatively positioned by the scene's RAF loop (transform set in JS).
-   Glass pill, monochrome, non-interactive. */
+/* ── The Delegation — floating 3D character labels (light pills on the cream floor) ── */
 .delegation-label {
   position: absolute;
   top: 0;
@@ -147,9 +150,9 @@ h1, h2, h3, h4 {
   padding: 3px 9px;
   border-radius: 9px;
   white-space: nowrap;
-  background: rgba(10, 10, 10, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: rgba(255, 253, 247, 0.78);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 6px rgba(20, 19, 14, 0.12);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   opacity: 0;
@@ -157,47 +160,45 @@ h1, h2, h3, h4 {
   will-change: transform;
 }
 .delegation-label.is-active {
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: rgba(20, 19, 14, 0.5);
 }
 .delegation-label .dl-name {
   font-family: var(--font-mono), monospace;
   font-size: 11px;
   font-weight: 600;
   line-height: 1;
-  color: #fafafa;
+  color: #14130e;
 }
 .delegation-label .dl-sub {
   font-size: 9px;
   line-height: 1;
-  color: #a1a1aa;
+  color: #5b5644;
 }
 .delegation-label.dl-you {
   border-style: dashed;
 }
 
-/* ── Claymorphism (monochrome) ───────────────────────────────────
-   Soft, puffy, tactile surfaces — opaque "clay" with a lit top edge and a
-   deep inner bottom shadow so elements look inflated. Reserved for the playful
-   agent-floor surfaces (speech bubbles, the conversation panel); the serious
-   dashboard stays on liquid glass. Works fine under reduced-transparency. */
+/* ── Claymorphism on paper ───────────────────────────────────────
+   Soft, puffy, tactile light "clay" — cream surfaces with a lit top edge and a
+   gentle inner bottom shadow. Reserved for the playful agent-floor surfaces. */
 .clay-panel {
-  background: #161618;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #fffdf6;
+  border: 1px solid rgba(20, 19, 14, 0.08);
   border-radius: 22px;
   box-shadow:
-    0 16px 38px -16px rgba(0, 0, 0, 0.8),
-    inset 0 2px 3px rgba(255, 255, 255, 0.1),
-    inset 0 -5px 10px rgba(0, 0, 0, 0.5);
+    0 16px 38px -18px rgba(20, 19, 14, 0.22),
+    inset 0 2px 3px rgba(255, 255, 255, 0.8),
+    inset 0 -5px 10px rgba(20, 19, 14, 0.05);
 }
 .clay-chip {
-  background: #1f1f22;
+  background: #f1ead4;
   border-radius: 999px;
   box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.14),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+    inset 0 1px 2px rgba(255, 255, 255, 0.8),
+    inset 0 -2px 4px rgba(20, 19, 14, 0.06);
 }
 
-/* Clay speech bubble above the speaking agent. */
+/* Clay speech bubble above the speaking agent — black "ink" card so it pops on the cream floor. */
 .delegation-caption {
   position: absolute;
   top: 0;
@@ -209,14 +210,12 @@ h1, h2, h3, h4 {
   line-height: 1.35;
   font-weight: 500;
   text-align: center;
-  color: #f4f4f5;
-  background: #212124;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #f2ecd8;
+  background: #141310;
+  border: 1px solid rgba(0, 0, 0, 0.25);
   box-shadow:
-    0 12px 24px -8px rgba(0, 0, 0, 0.75),
-    0 3px 6px rgba(0, 0, 0, 0.5),
-    inset 0 2px 3px rgba(255, 255, 255, 0.15),
-    inset 0 -4px 8px rgba(0, 0, 0, 0.55);
+    0 12px 24px -8px rgba(20, 19, 14, 0.4),
+    inset 0 2px 3px rgba(255, 255, 255, 0.12);
   opacity: 0;
   transition: opacity 0.25s ease;
   will-change: transform;
@@ -224,7 +223,7 @@ h1, h2, h3, h4 {
 
 /* ── Accessibility ───────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid #fafafa;
+  outline: 2px solid #14130e;
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -232,11 +231,11 @@ h1, h2, h3, h4 {
 /* Honor reduced-transparency: drop the blur and go fully solid. */
 @media (prefers-reduced-transparency: reduce) {
   .glass, .glass-panel, .card {
-    background: var(--color-surface);
+    background: #fffdf6;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  .glass-nav { background: #0a0a0a; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .glass-nav { background: #f7f0da; backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
