@@ -2,7 +2,7 @@
 
 > **Prove it before you build it.**
 
-> **Founder & creator: Tanmay Sangam.** © 2026 Tanmay Sangam — all rights reserved. Proprietary &
+> **Founder & creator: [Tanmay Sangam](https://www.linkedin.com/in/tanmaysangam/).** © 2026 Tanmay Sangam — all rights reserved. Proprietary &
 > confidential: no use, copying, or distribution without written permission. See [LICENSE](LICENSE).
 
 competitor.inc is an AI co‑founder that **validates an idea before it builds it** — it runs a real
@@ -223,14 +223,16 @@ project stays viable on a tiny budget without VC‑subsidized pricing.
 
 ## 8 · Design system
 
-- **Monochrome** — a black canvas with white accents and grayscale surfaces (a "Cursor / coding /
-  serious‑business" aesthetic). Color‑as‑meaning (verdicts, signals) is expressed through **brightness**,
-  not hue.
+- **Paper & Ink** — a warm cream‑paper canvas with heavy black ink and a single **coral** accent (used
+  sparingly on the one thing that matters). High‑contrast utility aesthetic; emphasis via black inverted
+  cards + bold type. Full spec in [`docs/DESIGN.md`](docs/DESIGN.md). *(Earlier builds were monochrome
+  dark; the founder chose Paper & Ink.)*
 - **Liquid glass (Apple HIG: Clarity · Deference · Depth)** — translucent, frosted panels with a lit
   top edge float content off the canvas to convey hierarchy without stealing attention. Honors
   `prefers-reduced-transparency` (drops the blur) and `prefers-reduced-motion`.
-- **Type & mark** — a monospace wordmark (JetBrains Mono), Space Grotesk for headings, Inter for body;
-  a custom `LogoMark` (a speech bubble fused with a checkmark — *companion + proof*).
+- **Type & mark** — a monospace wordmark (JetBrains Mono), **Archivo Black** for the heavy uppercase
+  display headlines, Space Grotesk for headings, Inter for body; a custom `LogoMark` (a speech bubble
+  fused with a checkmark — *companion + proof*).
 - **Accessibility** — skip‑link, landmarks, visible focus rings, AA contrast on the grayscale palette.
 
 ---
@@ -363,6 +365,13 @@ docs/                    Strategy & research (positioning, money plan, playbooks
   COMPETITIVE-polsia.md          vs Polsia: counter-positioning playbook + roadmap to officially compete
   PLAYBOOK-revenue-10k.md        Path to $10K MRR (Walling lens) + surprise-launch, not build-in-public
   SECURITY-REVIEW.md             Defensive security + data-integrity audit (findings + fixes, for handoff)
+  DESIGN.md                      The "Paper & Ink" design system (single source of truth)
+  PLAYBOOK-conviction-voice.md   Conviction voice — honest energy that sells the dream
+  COMPETITIVE-landscape.md       The full field (Polsia/cofounder.co/NanoCorp/HeyBoss…) + where we stand
+  PLAN-beachhead-and-launch.md   Beachhead niche + positioning + surprise-launch plan
+  PLAN-agent-intelligence.md     Polsia scorecard + agentic-AI roadmap (agentic yes, ML later)
+  PLAN-two-layer-and-chatops.md  Office vs House, per-agent models, real coding agent, ChatOps
+  PROCEDURE-preflight.md         Checklist-Manifesto pre-flight (catch cracks before shipping)
 launch/                  Launch copy + the techie-friend runbook
 ```
 
