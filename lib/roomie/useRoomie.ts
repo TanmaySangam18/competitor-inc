@@ -5,6 +5,9 @@ import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, OperateD
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
 import { getByok, getConnections } from "./config";
 import { canRun, recordRun, FREE_CAPS } from "./usage";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { useAuth } from "./useAuth";
+import { useDbSync, type SyncState } from "./sync";
 
 const KEY = "roomie:v2";
 const LEGACY_KEY = "roomie:v1";
@@ -107,6 +110,32 @@ export function useRoomie() {
       /* ignore */
     }
   }, [store, hydrated]);
+
+  // Cloud persistence (GATED + best-effort). Only when Supabase is configured AND the user is signed
+  // in (non-guest); otherwise this is inert and the app stays entirely on the localStorage store
+  // above. localStorage always remains the offline cache/source-of-truth. NOTE: not yet verified
+  // against a live DB — see lib/roomie/sync.ts.
+  const { user, ready: authReady } = useAuth();
+  const dbEnabled = isSupabaseConfigured() && authReady && !!user && !user.guest;
+  const overlayFromDb = useCallback((s: SyncState) => {
+    // Merge cloud state in. operate has no table → keep whatever is local. Preserve the active
+    // selection, falling back to the first cloud company.
+    setStore((prev) => ({
+      ...prev,
+      companies: s.companies,
+      activities: s.activities,
+      approvals: s.approvals,
+      activeId: prev.activeId ?? s.companies[0]?.id ?? null,
+    }));
+  }, []);
+  useDbSync({
+    enabled: dbEnabled,
+    hydrated,
+    companies: store.companies,
+    activities: store.activities,
+    approvals: store.approvals,
+    overlay: overlayFromDb,
+  });
 
   const company = store.companies.find((c) => c.id === store.activeId) ?? null;
   const activities = company ? store.activities[company.id] ?? [] : [];
