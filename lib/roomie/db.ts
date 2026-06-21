@@ -112,6 +112,10 @@ export async function createCompany(sb: SupabaseClient, userId: string, c: Compa
   const { data, error } = await sb
     .from("companies")
     .insert({
+      // Client-authoritative id: the offline store generates the UUID, so we persist the SAME id
+      // (the column default only applies when omitted). Keeps client and DB ids identical, which the
+      // sync layer relies on to diff and to target child activities/approvals + undo/resolve by id.
+      id: c.id,
       user_id: userId,
       name: c.name,
       slug: c.slug,
@@ -139,6 +143,7 @@ export async function insertActivities(sb: SupabaseClient, companyId: string, it
   if (items.length === 0) return;
   const { error } = await sb.from("activities").insert(
     items.map((a) => ({
+      id: a.id, // client-authoritative (see createCompany) — lets setActivityUndone target by id
       company_id: companyId,
       night: a.night,
       agent: a.agent,
@@ -157,6 +162,7 @@ export async function insertApprovals(sb: SupabaseClient, companyId: string, ite
   if (items.length === 0) return;
   const { error } = await sb.from("approvals").insert(
     items.map((p) => ({
+      id: p.id, // client-authoritative (see createCompany) — lets setApprovalResolved target by id
       company_id: companyId,
       night: p.night,
       agent: p.agent,
