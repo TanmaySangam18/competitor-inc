@@ -1,4 +1,5 @@
 import { runAction, capabilities } from "@/lib/roomie/execution";
+import type { Connections } from "@/lib/roomie/types";
 
 // Runs a real, gated agent action (build / deploy / outreach / spend / payments / delete) server-side.
 // Every executor is OFF unless its key is set, in which case it returns { disabled: true } and the
@@ -15,6 +16,7 @@ export async function POST(req: Request) {
     company?: { name?: unknown; idea?: unknown };
     item?: { kind?: unknown; title?: unknown; detail?: unknown; amount?: unknown };
     ownerEmail?: unknown;
+    connections?: Record<string, unknown>;
   };
   const action = typeof b.action === "string" ? b.action : "";
   if (!action) return Response.json({ ok: false, error: "no action" }, { status: 400 });
@@ -29,9 +31,20 @@ export async function POST(req: Request) {
       }
     : undefined;
   const ownerEmail = typeof b.ownerEmail === "string" ? b.ownerEmail : undefined;
+  // Per-user connections: client-stored, sent per-request, never persisted here. Coerce each field
+  // to a trimmed string so a malformed payload can't reach an executor as a non-string credential.
+  const s = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+  const connections: Connections | undefined = b.connections && typeof b.connections === "object"
+    ? {
+        githubToken: s(b.connections.githubToken),
+        resendApiKey: s(b.connections.resendApiKey),
+        resendFrom: s(b.connections.resendFrom),
+        adsWebhookUrl: s(b.connections.adsWebhookUrl),
+      }
+    : undefined;
 
   try {
-    const result = await runAction(action, { company, item, ownerEmail });
+    const result = await runAction(action, { company, item, ownerEmail, connections });
     return Response.json(result);
   } catch (err) {
     console.error("[/api/execute] error:", err instanceof Error ? err.message : "unknown");

@@ -66,8 +66,9 @@ const signalStyle = {
   negative: { dot: "border border-muted-2", text: "text-muted-2" },
 } as const;
 
-// Operate layer is gated — off by default (launch surface frozen), on in dev/post-launch.
-const OPERATE_ENABLED = process.env.NEXT_PUBLIC_OPERATE === "1";
+// Operate layer (EOS company-OS) — now ON by default. Set NEXT_PUBLIC_OPERATE=0 to freeze it (e.g.
+// the launch build keeps it off to shrink the launch surface until v0.2.0, per the blueprint).
+const OPERATE_ENABLED = process.env.NEXT_PUBLIC_OPERATE !== "0";
 
 type Tab = "operations" | "history" | "chat" | "operate";
 

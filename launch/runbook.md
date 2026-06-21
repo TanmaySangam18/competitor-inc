@@ -39,6 +39,13 @@ npm start      # serves the production build at http://localhost:3000
      - `STRIPE_SECRET_KEY` + `STRIPE_PRICE_ID` → payment links (you keep 100%) · `ADS_WEBHOOK_URL` → ads
      - Add a key and that capability goes live (gated through `/api/execute`); with none set, all stay
        simulated. Nothing live runs without your credentials.
+     - **Per-user connections:** like the model BYOK, each user can connect their *own* GitHub / Resend
+       / ads webhook in-app (Settings → Integrations). Stored only in their browser, sent per-request,
+       never persisted server-side; the operator env keys above act as the shared fallback. The ads
+       webhook URL is SSRF-guarded (https + no private/loopback/metadata hosts).
+   - **Feature flag — Operate layer:** the EOS company-OS surface (Scorecard/Rocks/Issues) is **on by
+     default**. For the launch build, set `NEXT_PUBLIC_OPERATE=0` to freeze it and keep the launch
+     surface lean until v0.2.0 (per `docs/COMPANY-BLUEPRINT.md`). Drop the var post-launch to turn it on.
 6. **Deploy:** connect the GitHub repo in the Vercel dashboard → **Deploy** (or `npx vercel --prod`).
 7. **Domain:** buy one (~$12, e.g. Porkbun) and point it at the Vercel project.
 8. **Go live:** confirm the domain loads, then hand the founder the green light to publish the

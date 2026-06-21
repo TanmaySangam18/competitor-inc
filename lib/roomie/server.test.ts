@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runValidate, runShift, runChat, realModelConfigured, detectChatApproval, assertSafeBaseUrl, modelForAgent } from "./server";
+import { runValidate, runShift, runChat, realModelConfigured, detectChatApproval, assertSafeBaseUrl, modelForAgent, streamChatReply } from "./server";
 import type { Company } from "./types";
 
 const company: Company = {
@@ -41,6 +41,17 @@ describe("server engine", () => {
     expect(typeof reply).toBe("string");
     expect(reply.length).toBeGreaterThan(0);
     expect(/approval|outbound|campaign/i.test(reply)).toBe(true);
+  });
+
+  it("streamChatReply returns null when no model is configured (caller falls back to simulated)", async () => {
+    // With no BYOK key and no server model, real token-streaming isn't possible — the route must
+    // detect this (null) and degrade to the fake-streamed simulated reply.
+    const gen = await streamChatReply({ name: company.name, idea: company.idea }, "hello", undefined, undefined);
+    if (realModelConfigured()) {
+      expect(gen).not.toBeNull();
+    } else {
+      expect(gen).toBeNull();
+    }
   });
 });
 
