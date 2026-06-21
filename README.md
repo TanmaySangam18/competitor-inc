@@ -132,8 +132,8 @@ That single principle shapes every feature:
 - **Public `/live` board** — A shareable, real‑time view of every company being validated and built —
   the Glass Box, out in the open.
 - **`/how-it-works`** — A plain‑language, illustrated walkthrough of the whole product for newcomers.
-- **Operate layer (EOS)** — An optional "company operating system" surface (Scorecard, Rocks, Issues,
-  Weekly Review) inspired by EOS/Traction. *Feature‑flagged off by default.*
+- **Operate layer (EOS)** — A "company operating system" surface (Scorecard, Rocks, Issues,
+  Weekly Review) inspired by EOS/Traction. *On by default; set `NEXT_PUBLIC_OPERATE=0` to freeze it.*
 - **Settings** — Your **brand voice** (`soul.md`), your **team** (`agents.md`, toggle/scope each
   agent), the **engine** (which model runs it + bring‑your‑own‑key), **billing**, **integrations**,
   and **one‑click data export** (no lock‑in).
@@ -320,8 +320,8 @@ A short changelog of the build, in order:
 1. **Foundation** — scaffolded the app, the validation‑first onboarding, the agent loop, the API +
    real‑model wiring, auth, the nightly scheduler, chat, settings, history charts, the public board,
    and an a11y/perf/test hardening pass. (*tagged v0.1.0*)
-2. **Operate layer** — added the EOS company‑OS surface, gated behind a feature flag so the launch
-   surface stays frozen. (*v0.2.0*)
+2. **Operate layer** — added the EOS company‑OS surface. Now **on by default**; the launch build can
+   freeze it with `NEXT_PUBLIC_OPERATE=0` to keep the launch surface lean until v0.2.0. (*v0.2.0*)
 3. **Rebrand → competitor.inc** — renamed from the working title, re‑themed to monochrome black/white,
    monospace wordmark, custom logo. (*v0.3.0*)
 4. **Consistency sweep** — a Checklist‑Manifesto pass to kill every stray old‑brand reference, unify

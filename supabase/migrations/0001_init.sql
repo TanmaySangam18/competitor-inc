@@ -12,7 +12,7 @@ create table if not exists public.companies (
   status      text not null default 'validating'
                 check (status in ('validating','validated','rejected','operating')),
   night       integer not null default 0,
-  ledger      jsonb not null default '{"spent":0,"refunded":0,"tasksDone":0,"tasksFailed":0}'::jsonb,
+  ledger      jsonb not null default '{"spent":0,"credited":0,"tasksDone":0,"tasksFailed":0}'::jsonb,
   validation  jsonb,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
@@ -29,7 +29,7 @@ create table if not exists public.activities (
   meta        text,
   cost        numeric(12,2) not null default 0,
   status      text not null default 'done'
-                check (status in ('done','failed-refunded','pending-approval')),
+                check (status in ('done','failed-credited','pending-approval')),
   proof       jsonb,
   undone      boolean not null default false,
   created_at  timestamptz not null default now()

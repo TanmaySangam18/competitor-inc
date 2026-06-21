@@ -77,26 +77,10 @@ async function callAnthropic(system: string, user: string, key: string = KEY ?? 
   return data?.content?.[0]?.text ?? "";
 }
 
-// SSRF guard: the user-supplied baseUrl receives their API key as a Bearer token and is fetched
-// server-side, so a malicious/typo'd URL could turn our server into a proxy to internal hosts
-// (e.g. cloud metadata at 169.254.169.254). Require https + reject private/loopback/link-local.
-export function assertSafeBaseUrl(raw: string): void {
-  let u: URL;
-  try { u = new URL(raw); } catch { throw new Error("invalid baseUrl"); }
-  if (u.protocol !== "https:") throw new Error("baseUrl must be https");
-  const host = u.hostname.toLowerCase().replace(/^\[|\]$/g, "");
-  if (host === "localhost" || host.endsWith(".localhost") || host === "metadata.google.internal") throw new Error("blocked host");
-  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
-    const [a, b] = host.split(".").map(Number);
-    if (a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168))
-      throw new Error("blocked private IP");
-  }
-  // IPv6: loopback (::1), unspecified (::), unique-local (fc00::/7 → fc/fd), link-local (fe80::/10 →
-  // fe8–feb), and ANY IPv4-mapped form (::ffff:… — the URL parser serializes it as hex or dotted, and
-  // it can smuggle a private/metadata IPv4 such as 169.254.169.254). Public model APIs use hostnames.
-  if (host === "::1" || host === "::" || host.startsWith("::ffff:") || /^f[cd]/.test(host) || /^fe[89ab]/.test(host))
-    throw new Error("blocked IPv6 host");
-}
+// SSRF guard for the user-supplied BYOK base URL. Single source of truth lives in ./net and is
+// re-exported here so existing importers (and tests) keep working unchanged.
+export { assertSafeBaseUrl } from "./net";
+import { assertSafeBaseUrl } from "./net";
 
 // Any OpenAI-compatible endpoint: OpenAI, Groq, OpenRouter, Together, the Vercel AI Gateway, local
 // servers, … `enforceSsrf` is true ONLY for user-supplied (BYOK) URLs; operator-set env URLs are
@@ -111,6 +95,75 @@ async function callOpenAICompat(baseUrl: string, key: string, model: string, sys
   if (!res.ok) throw new Error(`model ${res.status}`);
   const data = await res.json();
   return data?.choices?.[0]?.message?.content ?? "";
+}
+
+/* ── Real token-streaming ──────────────────────────────────────
+   The non-streaming calls above resolve the whole reply, then the route fake-chunks it. The
+   functions below stream the model's tokens as they're produced (true token-streaming) so chat
+   feels live end-to-end. Each opens the connection and verifies the response BEFORE returning the
+   generator, so a pre-stream failure throws and the caller degrades to the simulated engine. */
+
+// Reads a Server-Sent-Events body, yielding each `data:` payload (without the prefix). Both
+// Anthropic and OpenAI-compatible streaming use SSE; only the JSON shape inside differs.
+async function* sseData(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let nl: number;
+      while ((nl = buf.indexOf("\n")) !== -1) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (line.startsWith("data:")) yield line.slice(5).trim();
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+// Anthropic Messages streaming: text arrives in `content_block_delta` events (delta.text).
+async function streamAnthropic(system: string, user: string, key: string, model: string): Promise<AsyncGenerator<string>> {
+  const res = await fetchWithTimeout("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({ model, max_tokens: 1500, system, stream: true, messages: [{ role: "user", content: user }] }),
+  });
+  if (!res.ok || !res.body) throw new Error(`anthropic ${res.status}`);
+  return (async function* () {
+    for await (const data of sseData(res.body!)) {
+      if (data === "[DONE]") break;
+      try {
+        const obj = JSON.parse(data);
+        if (obj?.type === "content_block_delta" && typeof obj.delta?.text === "string" && obj.delta.text)
+          yield obj.delta.text as string;
+      } catch { /* keepalive / non-JSON line — skip */ }
+    }
+  })();
+}
+
+// OpenAI-compatible streaming: text arrives in `choices[0].delta.content`, terminated by `[DONE]`.
+async function streamOpenAICompat(baseUrl: string, key: string, model: string, system: string, user: string, enforceSsrf: boolean): Promise<AsyncGenerator<string>> {
+  if (enforceSsrf) assertSafeBaseUrl(baseUrl);
+  const res = await fetchWithTimeout(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+    body: JSON.stringify({ model, stream: true, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
+  });
+  if (!res.ok || !res.body) throw new Error(`model ${res.status}`);
+  return (async function* () {
+    for await (const data of sseData(res.body!)) {
+      if (data === "[DONE]") break;
+      try {
+        const delta = JSON.parse(data)?.choices?.[0]?.delta?.content;
+        if (typeof delta === "string" && delta) yield delta;
+      } catch { /* keepalive / non-JSON line — skip */ }
+    }
+  })();
 }
 
 // True when SOME model is reachable: the user's BYOK key, or a server-side env key.
@@ -132,6 +185,21 @@ async function callModel(system: string, user: string, byok?: ByokConfig, model?
   const managed = managedModel();
   if (managed?.kind === "anthropic") return callAnthropic(system, user, managed.key, model ?? managed.model);
   if (managed?.kind === "openai") return callOpenAICompat(managed.baseUrl, managed.key, model ?? managed.model, system, user, false);
+  throw new Error("no model configured");
+}
+
+// Streaming twin of `callModel`: same BYOK-first → managed routing, but returns a generator of
+// token deltas. Throws (before any token) when no model is configured so callers can fall back.
+async function callModelStream(system: string, user: string, byok?: ByokConfig, model?: string): Promise<AsyncGenerator<string>> {
+  if (byok?.apiKey && byok.provider === "openai-compatible" && byok.baseUrl) {
+    return streamOpenAICompat(byok.baseUrl, byok.apiKey, byok.model || "gpt-4o-mini", system, user, true);
+  }
+  if (byok?.apiKey && byok.provider === "anthropic") {
+    return streamAnthropic(system, user, byok.apiKey, byok.model || MODEL);
+  }
+  const managed = managedModel();
+  if (managed?.kind === "anthropic") return streamAnthropic(system, user, managed.key, model ?? managed.model);
+  if (managed?.kind === "openai") return streamOpenAICompat(managed.baseUrl, managed.key, model ?? managed.model, system, user, false);
   throw new Error("no model configured");
 }
 
@@ -166,6 +234,14 @@ export async function runValidate(idea: string, byok?: ByokConfig): Promise<Vali
   }
 }
 
+function chatSystem(company: { name: string; idea: string }, soul?: string): string {
+  return (
+    `You are the AI co-founder running the company "${company.name}" (idea: ${company.idea}). ` +
+    (soul ? soul + " " : "") +
+    "Be concise, warm, and candid. If asked to do something consequential (spend, outreach, deploy), say you'll queue it for the user's approval."
+  );
+}
+
 export async function runChat(
   company: { name: string; idea: string },
   message: string,
@@ -174,17 +250,37 @@ export async function runChat(
 ): Promise<string> {
   if (modelAvailable(byok)) {
     try {
-      const sys =
-        `You are the AI co-founder running the company "${company.name}" (idea: ${company.idea}). ` +
-        (soul ? soul + " " : "") +
-        "Be concise, warm, and candid. If asked to do something consequential (spend, outreach, deploy), say you'll queue it for the user's approval.";
-      const text = await callModel(sys, message, byok, modelForAgent("ceo"));
+      const text = await callModel(chatSystem(company, soul), message, byok, modelForAgent("ceo"));
       if (text.trim()) return text.trim();
     } catch {
       /* fall through */
     }
   }
   return simulatedReply(company, message);
+}
+
+// Real token-streaming for chat. Returns a generator that yields the model's tokens as they arrive,
+// or `null` to signal the caller should fall back to the simulated (fake-streamed) reply. Null covers
+// every degradation path: no model configured, the stream failing to open, OR an empty completion —
+// we peek the first token so an empty real reply still degrades gracefully, exactly like runChat.
+export async function streamChatReply(
+  company: { name: string; idea: string },
+  message: string,
+  soul?: string,
+  byok?: ByokConfig
+): Promise<AsyncGenerator<string> | null> {
+  if (!modelAvailable(byok)) return null;
+  try {
+    const gen = await callModelStream(chatSystem(company, soul), message, byok, modelForAgent("ceo"));
+    const first = await gen.next();
+    if (first.done || !first.value) return null; // empty completion → simulated fallback
+    return (async function* () {
+      yield first.value;
+      yield* gen;
+    })();
+  } catch {
+    return null;
+  }
 }
 
 function simulatedReply(company: { name: string; idea: string }, message: string): string {
