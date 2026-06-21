@@ -16,24 +16,30 @@
 
 import { useEffect, useRef } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Activity, ApprovalItem, Company } from "./types";
+import type { Activity, ApprovalItem, Company, OperateData } from "./types";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import {
   fetchUserCompanies,
   fetchCompanyState,
+  fetchOperate,
   createCompany,
   updateCompany,
   insertActivities,
   insertApprovals,
   setApprovalResolved,
   setActivityUndone,
+  upsertRocks,
+  upsertIssues,
+  deleteRocks,
+  deleteIssues,
 } from "./db";
 
-// The slice of the store we persist (operate is intentionally excluded — no table).
+// The slice of the store we persist.
 export interface SyncState {
   companies: Company[];
   activities: Record<string, Activity[]>;
   approvals: Record<string, ApprovalItem[]>;
+  operate: Record<string, OperateData>;
 }
 
 export interface SyncOps {
@@ -43,9 +49,15 @@ export interface SyncOps {
   undoActivities: string[];
   insertApprovals: { companyId: string; items: ApprovalItem[] }[];
   resolveApprovals: { id: string; resolved: "approved" | "rejected" }[];
+  // operate is tiny → upsert the whole list on change + delete removed ids
+  upsertRocks: { companyId: string; rocks: OperateData["rocks"] }[];
+  deleteRockIds: string[];
+  upsertIssues: { companyId: string; issues: OperateData["issues"] }[];
+  deleteIssueIds: string[];
 }
 
-const EMPTY_STATE: SyncState = { companies: [], activities: {}, approvals: {} };
+const EMPTY_STATE: SyncState = { companies: [], activities: {}, approvals: {}, operate: {} };
+const EMPTY_OPERATE: OperateData = { rocks: [], issues: [] };
 
 // Tracked company fields — a change in any of these triggers an UPDATE. (slug/idea/createdAt are
 // immutable after creation, so they're not compared.)
@@ -75,6 +87,10 @@ export function diffStore(prev: SyncState, next: SyncState): SyncOps {
   const undoActivities: string[] = [];
   const insertApps: SyncOps["insertApprovals"] = [];
   const resolveApprovals: SyncOps["resolveApprovals"] = [];
+  const upRocks: SyncOps["upsertRocks"] = [];
+  const deleteRockIds: string[] = [];
+  const upIssues: SyncOps["upsertIssues"] = [];
+  const deleteIssueIds: string[] = [];
 
   for (const c of next.companies) {
     // activities (append-only + an undone flip)
@@ -96,9 +112,27 @@ export function diffStore(prev: SyncState, next: SyncState): SyncOps {
       const p = prevApps.get(a.id);
       if (a.resolved && (!p || p.resolved !== a.resolved)) resolveApprovals.push({ id: a.id, resolved: a.resolved });
     }
+
+    // operate (Rocks/Issues): if a list changed, upsert it whole + delete any vanished ids
+    const pOp = prev.operate[c.id] ?? EMPTY_OPERATE;
+    const nOp = next.operate[c.id] ?? EMPTY_OPERATE;
+    if (JSON.stringify(pOp.rocks) !== JSON.stringify(nOp.rocks)) {
+      if (nOp.rocks.length) upRocks.push({ companyId: c.id, rocks: nOp.rocks });
+      const keep = new Set(nOp.rocks.map((r) => r.id));
+      for (const r of pOp.rocks) if (!keep.has(r.id)) deleteRockIds.push(r.id);
+    }
+    if (JSON.stringify(pOp.issues) !== JSON.stringify(nOp.issues)) {
+      if (nOp.issues.length) upIssues.push({ companyId: c.id, issues: nOp.issues });
+      const keep = new Set(nOp.issues.map((i) => i.id));
+      for (const i of pOp.issues) if (!keep.has(i.id)) deleteIssueIds.push(i.id);
+    }
   }
 
-  return { createCompanies, updateCompanies, insertActivities: insertActs, undoActivities, insertApprovals: insertApps, resolveApprovals };
+  return {
+    createCompanies, updateCompanies, insertActivities: insertActs, undoActivities,
+    insertApprovals: insertApps, resolveApprovals,
+    upsertRocks: upRocks, deleteRockIds, upsertIssues: upIssues, deleteIssueIds,
+  };
 }
 
 export function isEmptyOps(o: SyncOps): boolean {
@@ -108,7 +142,11 @@ export function isEmptyOps(o: SyncOps): boolean {
     o.insertActivities.length === 0 &&
     o.undoActivities.length === 0 &&
     o.insertApprovals.length === 0 &&
-    o.resolveApprovals.length === 0
+    o.resolveApprovals.length === 0 &&
+    o.upsertRocks.length === 0 &&
+    o.deleteRockIds.length === 0 &&
+    o.upsertIssues.length === 0 &&
+    o.deleteIssueIds.length === 0
   );
 }
 
@@ -118,6 +156,7 @@ export async function loadFromDb(sb: SupabaseClient, userId: string): Promise<Sy
   const companies = await fetchUserCompanies(sb, userId);
   const activities: Record<string, Activity[]> = {};
   const approvals: Record<string, ApprovalItem[]> = {};
+  const operate: Record<string, OperateData> = {};
   await Promise.all(
     companies.map(async (c) => {
       try {
@@ -128,9 +167,14 @@ export async function loadFromDb(sb: SupabaseClient, userId: string): Promise<Sy
         activities[c.id] = [];
         approvals[c.id] = [];
       }
+      try {
+        operate[c.id] = await fetchOperate(sb, c.id);
+      } catch {
+        operate[c.id] = { rocks: [], issues: [] };
+      }
     })
   );
-  return { companies, activities, approvals };
+  return { companies, activities, approvals, operate };
 }
 
 // Push a delta. Ordered so parents exist before children (companies → their activities/approvals).
@@ -149,6 +193,10 @@ export async function applyOps(sb: SupabaseClient, userId: string, ops: SyncOps)
   for (const id of ops.undoActivities) await guard("setActivityUndone", () => setActivityUndone(sb, id));
   for (const g of ops.insertApprovals) await guard("insertApprovals", () => insertApprovals(sb, g.companyId, g.items));
   for (const r of ops.resolveApprovals) await guard("setApprovalResolved", () => setApprovalResolved(sb, r.id, r.resolved));
+  for (const g of ops.upsertRocks) await guard("upsertRocks", () => upsertRocks(sb, g.companyId, g.rocks));
+  if (ops.deleteRockIds.length) await guard("deleteRocks", () => deleteRocks(sb, ops.deleteRockIds));
+  for (const g of ops.upsertIssues) await guard("upsertIssues", () => upsertIssues(sb, g.companyId, g.issues));
+  if (ops.deleteIssueIds.length) await guard("deleteIssues", () => deleteIssues(sb, ops.deleteIssueIds));
 }
 
 export interface UseDbSyncParams {
@@ -157,11 +205,12 @@ export interface UseDbSyncParams {
   companies: Company[];
   activities: Record<string, Activity[]>;
   approvals: Record<string, ApprovalItem[]>;
+  operate: Record<string, OperateData>;
   // Called once after a successful DB load that returns data — merges cloud state into the store.
   overlay: (s: SyncState) => void;
 }
 
-export function useDbSync({ enabled, hydrated, companies, activities, approvals, overlay }: UseDbSyncParams): void {
+export function useDbSync({ enabled, hydrated, companies, activities, approvals, operate, overlay }: UseDbSyncParams): void {
   const syncedRef = useRef<SyncState | null>(null); // what we believe is in the DB
   const readyRef = useRef(false); // true after a successful initial load (gates write-through)
   const userIdRef = useRef<string | null>(null);
@@ -205,10 +254,10 @@ export function useDbSync({ enabled, hydrated, companies, activities, approvals,
     const sb = getBrowserSupabase();
     const uid = userIdRef.current;
     if (!sb || !uid) return;
-    const next: SyncState = { companies, activities, approvals };
+    const next: SyncState = { companies, activities, approvals, operate };
     const ops = diffStore(syncedRef.current ?? EMPTY_STATE, next);
     if (isEmptyOps(ops)) return;
     syncedRef.current = next; // optimistic; best-effort push below
     void applyOps(sb, uid, ops);
-  }, [enabled, hydrated, companies, activities, approvals]);
+  }, [enabled, hydrated, companies, activities, approvals, operate]);
 }

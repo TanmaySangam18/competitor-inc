@@ -29,10 +29,17 @@ const jetBrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+// Canonical site URL for absolute OG/Twitter image URLs (link-preview scrapers reject relative ones).
+// Defaults to the Vercel URL; set NEXT_PUBLIC_SITE_URL to the custom domain at launch.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://competitor-inc.vercel.app";
+const TITLE = "competitor.inc — Prove it before you build it";
+const DESCRIPTION =
+  "competitor.inc is the AI co-founder that validates your idea — honestly — before it builds the winner. Real demand tests, proof-of-work, and human-in-control. You stay the founder.";
+
 export const metadata: Metadata = {
-  title: "competitor.inc — Prove it before you build it",
-  description:
-    "competitor.inc is the AI co-founder that validates your idea — honestly — before it builds the winner. Real demand tests, proof-of-work, and human-in-control. You stay the founder.",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
   keywords: [
     "AI co-founder",
     "autonomous company",
@@ -42,10 +49,18 @@ export const metadata: Metadata = {
     "AI operations platform",
   ],
   openGraph: {
-    title: "competitor.inc — Prove it before you build it",
+    title: TITLE,
     description:
       "Validates your idea before it builds it — real demand tests, proof-of-work, human-in-control. Prove it before you build it.",
     type: "website",
+    siteName: "competitor.inc",
+    url: SITE_URL,
+  },
+  // The launch leans on X — a large-image card is the difference between a rich preview and a bare link.
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: "The AI co-founder that proves demand before it builds. Prove it before you build it.",
   },
 };
 

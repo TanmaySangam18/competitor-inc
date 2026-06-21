@@ -53,6 +53,16 @@ describe("validate", () => {
     expect(v.experiments).toHaveLength(4);
     for (const e of v.experiments) expect(["positive", "weak", "negative"]).toContain(e.signal);
   });
+  it("salt varies the reading for re-tests, but is deterministic per salt", () => {
+    const base = provider.validate("a marketplace for plants");
+    const reA = provider.validate("a marketplace for plants", "42");
+    const reB = provider.validate("a marketplace for plants", "42");
+    expect(reA).toEqual(reB); // same idea + salt → reproducible
+    // a salted re-test should differ from the unsalted first run on at least one core metric
+    const differs = reA.waitlist !== base.waitlist || reA.ctr !== base.ctr || reA.confidence !== base.confidence;
+    expect(differs).toBe(true);
+  });
+
   it("verdict matches the confidence band", () => {
     const v = provider.validate("some idea");
     expect(v.confidence).toBeGreaterThanOrEqual(0);
