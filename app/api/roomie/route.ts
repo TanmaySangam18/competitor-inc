@@ -15,7 +15,7 @@ export async function GET() {
 }
 
 type Body =
-  | { kind: "validate"; idea: string; byok?: ByokConfig }
+  | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig }
   | { kind: "shift"; company: Company; byok?: ByokConfig }
   | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; byok?: ByokConfig };
 
@@ -36,7 +36,8 @@ export async function POST(req: Request) {
       if (typeof body.idea !== "string" || !body.idea.trim()) {
         return Response.json({ error: "`idea` (non-empty string) is required" }, { status: 400 });
       }
-      const validation = await runValidate(body.idea.trim(), body.byok);
+      const salt = typeof body.nonce === "number" && Number.isFinite(body.nonce) ? String(body.nonce) : undefined;
+      const validation = await runValidate(body.idea.trim(), body.byok, salt);
       return Response.json({ validation });
     }
 

@@ -474,21 +474,47 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useRoomie>; tab: T
           <h1 className="text-3xl font-bold">{c.name}</h1>
           <p className="mt-1 max-w-xl text-sm text-muted">{c.idea}</p>
         </div>
-        <button
-          onClick={r.runShift}
-          disabled={r.working !== null}
-          className="inline-flex items-center gap-2 rounded-xl bg-coral px-5 py-3 font-semibold text-bg transition hover:brightness-110 disabled:opacity-50"
-        >
-          {r.working === "shift" ? (
-            <>
-              <Loader2 size={17} className="animate-spin" /> Working…
-            </>
-          ) : (
-            <>
-              <Moon size={17} /> Run tonight&apos;s shift
-            </>
-          )}
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={r.revalidate}
+            disabled={r.working !== null}
+            title="Re-run the demand test — validation is continuous, not one-shot"
+            className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium text-muted transition hover:text-text disabled:opacity-50"
+          >
+            {r.working === "validating" ? (
+              <>
+                <Loader2 size={16} className="animate-spin" /> Re-testing…
+              </>
+            ) : (
+              <>
+                <FlaskConical size={16} /> Re-test demand
+              </>
+            )}
+          </button>
+          <button
+            onClick={r.launchBlitz}
+            disabled={r.working !== null}
+            title="Surge drafts launch posts — queued for your approval, nothing posts without your yes"
+            className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium text-muted transition hover:text-text disabled:opacity-50"
+          >
+            <Megaphone size={16} /> Draft launch blitz
+          </button>
+          <button
+            onClick={r.runShift}
+            disabled={r.working !== null}
+            className="inline-flex items-center gap-2 rounded-xl bg-coral px-5 py-3 font-semibold text-bg transition hover:brightness-110 disabled:opacity-50"
+          >
+            {r.working === "shift" ? (
+              <>
+                <Loader2 size={17} className="animate-spin" /> Working…
+              </>
+            ) : (
+              <>
+                <Moon size={17} /> Run tonight&apos;s shift
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {r.autopilotPaused && (

@@ -209,13 +209,15 @@ function extractJson<T>(text: string): T {
   return JSON.parse(match[0]) as T;
 }
 
-export async function runValidate(idea: string, byok?: ByokConfig): Promise<ValidationResult> {
-  const base = getProvider().validate(idea); // realistic defaults + steps
+export async function runValidate(idea: string, byok?: ByokConfig, salt?: string): Promise<ValidationResult> {
+  const base = getProvider().validate(idea, salt); // realistic defaults + steps
   if (!modelAvailable(byok)) return base;
+  const seed = salt ? idea + "::" + salt : idea;
   try {
     const text = await callModel(
-      "You are competitor.inc's validation gate. Given a startup idea, estimate honest results of a small real demand test. Be realistic and willing to be skeptical. Return ONLY JSON: " +
-        '{"waitlist":number,"ctr":number,"costPerSignup":number,"spend":number}',
+      "You are competitor.inc's validation gate. Given a startup idea, estimate honest results of a small real demand test. Be realistic and willing to be skeptical." +
+        (salt ? " This is a RE-TEST — market conditions may have shifted since the last reading, so don't just echo it." : "") +
+        ' Return ONLY JSON: {"waitlist":number,"ctr":number,"costPerSignup":number,"spend":number}',
       idea,
       byok,
       modelForAgent("ceo")
@@ -228,7 +230,7 @@ export async function runValidate(idea: string, byok?: ByokConfig): Promise<Vali
       spend: num(m.spend, base.spend),
     };
     // derive experiments/confidence/verdict deterministically from the model's core estimates
-    return { steps: base.steps, ...core, ...scoreIdea(core, idea) };
+    return { steps: base.steps, ...core, ...scoreIdea(core, seed) };
   } catch {
     return base; // graceful degradation
   }

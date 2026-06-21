@@ -47,7 +47,9 @@ npm start      # serves the production build at http://localhost:3000
      default**. For the launch build, set `NEXT_PUBLIC_OPERATE=0` to freeze it and keep the launch
      surface lean until v0.2.0 (per `docs/COMPANY-BLUEPRINT.md`). Drop the var post-launch to turn it on.
 6. **Deploy:** connect the GitHub repo in the Vercel dashboard → **Deploy** (or `npx vercel --prod`).
-7. **Domain:** buy one (~$12, e.g. Porkbun) and point it at the Vercel project.
+7. **Domain:** buy one (~$12, e.g. Porkbun) and point it at the Vercel project. Then set
+   `NEXT_PUBLIC_SITE_URL` to that domain (e.g. `https://competitor.inc`) so link-preview cards on
+   X / HN / Slack use absolute image URLs and render the large social image.
 8. **Go live:** confirm the domain loads, then hand the founder the green light to publish the
    `launch/` posts. Done — competitor.inc is on the web.
 

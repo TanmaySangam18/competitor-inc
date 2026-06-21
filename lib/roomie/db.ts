@@ -3,7 +3,7 @@
 // provisioned (see docs/SUPABASE-SETUP.md) the app falls back to the local store in useRoomie.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Activity, ApprovalItem, Company, Ledger, Proof, ValidationResult } from "./types";
+import type { Activity, ApprovalItem, Company, Issue, Ledger, OperateData, Proof, Rock, ValidationResult } from "./types";
 
 /* ── row shapes ─────────────────────────────────────────────── */
 interface CompanyRow {
@@ -182,5 +182,48 @@ export async function setApprovalResolved(sb: SupabaseClient, id: string, resolv
 
 export async function setActivityUndone(sb: SupabaseClient, id: string): Promise<void> {
   const { error } = await sb.from("activities").update({ undone: true }).eq("id", id);
+  if (error) throw error;
+}
+
+/* ── operate (Rocks + Issues) ───────────────────────────────── */
+// Tiny per-company lists, so the sync layer upserts the whole list on change + deletes any removed
+// ids — simpler and more robust than fine-grained diffing. Ids are client-authoritative.
+interface RockRow { id: string; title: string; done: boolean }
+interface IssueRow { id: string; title: string; resolved: boolean }
+
+export async function fetchOperate(sb: SupabaseClient, companyId: string): Promise<OperateData> {
+  const [r, i] = await Promise.all([
+    sb.from("rocks").select("*").eq("company_id", companyId).order("created_at", { ascending: true }),
+    sb.from("issues").select("*").eq("company_id", companyId).order("created_at", { ascending: false }),
+  ]);
+  if (r.error) throw r.error;
+  if (i.error) throw i.error;
+  return {
+    rocks: ((r.data as RockRow[]) ?? []).map((x) => ({ id: x.id, title: x.title, done: x.done })),
+    issues: ((i.data as IssueRow[]) ?? []).map((x) => ({ id: x.id, title: x.title, resolved: x.resolved })),
+  };
+}
+
+export async function upsertRocks(sb: SupabaseClient, companyId: string, rocks: Rock[]): Promise<void> {
+  if (rocks.length === 0) return;
+  const { error } = await sb.from("rocks").upsert(rocks.map((r) => ({ id: r.id, company_id: companyId, title: r.title, done: r.done })));
+  if (error) throw error;
+}
+
+export async function upsertIssues(sb: SupabaseClient, companyId: string, issues: Issue[]): Promise<void> {
+  if (issues.length === 0) return;
+  const { error } = await sb.from("issues").upsert(issues.map((i) => ({ id: i.id, company_id: companyId, title: i.title, resolved: i.resolved })));
+  if (error) throw error;
+}
+
+export async function deleteRocks(sb: SupabaseClient, ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  const { error } = await sb.from("rocks").delete().in("id", ids);
+  if (error) throw error;
+}
+
+export async function deleteIssues(sb: SupabaseClient, ids: string[]): Promise<void> {
+  if (ids.length === 0) return;
+  const { error } = await sb.from("issues").delete().in("id", ids);
   if (error) throw error;
 }

@@ -81,6 +81,43 @@ create policy "own approvals - all" on public.approvals
     exists (select 1 from public.companies c where c.id = approvals.company_id and c.user_id = auth.uid())
   );
 
+-- ── operate layer (EOS): quarterly Rocks + an Issues list, per company ───────
+create table if not exists public.rocks (
+  id          uuid primary key default gen_random_uuid(),
+  company_id  uuid not null references public.companies (id) on delete cascade,
+  title       text not null,
+  done        boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+create index if not exists rocks_company_id_idx on public.rocks (company_id);
+
+create table if not exists public.issues (
+  id          uuid primary key default gen_random_uuid(),
+  company_id  uuid not null references public.companies (id) on delete cascade,
+  title       text not null,
+  resolved    boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+create index if not exists issues_company_id_idx on public.issues (company_id);
+
+alter table public.rocks  enable row level security;
+alter table public.issues enable row level security;
+
+-- Rocks / issues: access gated through ownership of the parent company (same as activities/approvals).
+create policy "own rocks - all" on public.rocks
+  for all using (
+    exists (select 1 from public.companies c where c.id = rocks.company_id and c.user_id = auth.uid())
+  ) with check (
+    exists (select 1 from public.companies c where c.id = rocks.company_id and c.user_id = auth.uid())
+  );
+
+create policy "own issues - all" on public.issues
+  for all using (
+    exists (select 1 from public.companies c where c.id = issues.company_id and c.user_id = auth.uid())
+  ) with check (
+    exists (select 1 from public.companies c where c.id = issues.company_id and c.user_id = auth.uid())
+  );
+
 -- keep updated_at fresh on companies
 create or replace function public.touch_updated_at() returns trigger as $$
 begin new.updated_at = now(); return new; end;

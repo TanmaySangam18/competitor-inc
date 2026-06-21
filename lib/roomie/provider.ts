@@ -21,7 +21,9 @@ export interface ShiftResult {
 
 export interface RoomieProvider {
   readonly name: string;
-  validate(idea: string): ValidationResult;
+  // `salt` varies the deterministic result for re-tests (continuous validation) — same idea, a
+  // fresh-but-plausible reading. Omitted = the stable first-run result.
+  validate(idea: string, salt?: string): ValidationResult;
   shift(company: Company): ShiftResult;
 }
 
@@ -115,13 +117,14 @@ export function scoreIdea(core: ValidationCore, seed: string) {
 class SimulatedProvider implements RoomieProvider {
   readonly name = "simulated";
 
-  validate(idea: string): ValidationResult {
-    const rng = mulberry32(hash("validate:" + idea));
+  validate(idea: string, salt = ""): ValidationResult {
+    const seed = salt ? idea + "::" + salt : idea;
+    const rng = mulberry32(hash("validate:" + seed));
     const waitlist = Math.round(between(rng, 8, 86));
     const ctr = round(between(rng, 1.4, 6.4), 1);
     const costPerSignup = round(between(rng, 0.3, 3.4), 2);
     const spend = round(between(rng, 15, 25), 2);
-    const score = scoreIdea({ waitlist, ctr, costPerSignup, spend }, idea);
+    const score = scoreIdea({ waitlist, ctr, costPerSignup, spend }, seed);
     return {
       steps: [
         { label: "Spun up a landing page", done: true },
