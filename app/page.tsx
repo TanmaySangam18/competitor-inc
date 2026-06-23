@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { AgentWelcome } from "@/components/AgentWelcome";
+import { SecretHouseDoor } from "@/components/SecretHouseDoor";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },
@@ -236,12 +237,13 @@ function Hero() {
         <div className="mx-auto mb-1 max-w-[300px]">
           <AgentWelcome />
         </div>
-        <div
+        <SecretHouseDoor
           className="text-center leading-[0.85] tracking-tight text-[10vw]"
-          style={{ fontFamily: "var(--font-heavy)" }}
         >
-          competitor<span className="text-coral">.inc</span>
-        </div>
+          <span style={{ fontFamily: "var(--font-heavy)" }}>
+            competitor<span className="text-coral">.inc</span>
+          </span>
+        </SecretHouseDoor>
       </div>
     </section>
   );
