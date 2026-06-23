@@ -44,4 +44,11 @@ npm start      # serves the production build at http://localhost:3000
 8. **Go live:** confirm the domain loads, then hand the founder the green light to publish the
    `launch/` posts. Done — competitor.inc is on the web.
 
+**Observability (post-launch, optional):** once real agents are running, add **LangSmith**
+([langchain.com](https://www.langchain.com/langsmith)) for trace-level visibility into agent calls,
+quality monitoring, and per-trace cost — it's **framework-neutral** (works with our custom engine, no
+LangChain required) and has a **free tier**. Cheaper/built-in alternatives first: **Vercel AI Gateway**
+(`ROOMIE_PROVIDER=gateway`) logs requests + cost out of the box, and **Langfuse** is an open-source
+self-host option. This is developer-side tracing for *us* — distinct from the user-facing Glass Box.
+
 **Rollback:** Vercel keeps every deployment — one click to promote a previous one. Nothing here is destructive.
