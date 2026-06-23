@@ -6,6 +6,35 @@ Daily competitive-intelligence log on our main rival, Polsia. Newest entry on to
 
 ---
 
+## 2026-06-23 (manual run, pre-handoff)
+
+**Funding (confirmed):** **$30M at a $250M valuation** (May 2026), led by **Sound Ventures + True
+Ventures** (+ Offline, Adjacent, Tekton, Vaynerfund, angels). Still a **solo founder** (Ben Cera).
+
+**Claimed scale:** ~**$10M ARR, 7,600 customers, 85% month-2 retention** at ~5 months post-launch — **BUT
+multiple reports say the numbers "started to wobble" by mid-June 2026.**
+
+**⚠️ Data-honesty correction:** sources diverge hard. The $10M ARR / 7.6k figure is the **funding-
+announcement (PR) number**; third-party trackers (findstack/Product Hunt) show far less (~$450k ARR /
+~700 companies). Truth is likely **between** — and now **softening**. (This corrects my 06-20 baseline,
+which over-confidently treated $450k as settled fact. Honest read: scale is *disputed and wobbling*.)
+
+**Pricing (unchanged):** $49/mo **+ 20% revenue share** (on generated revenue + ad spend); **9 agents**.
+
+**Trust (the wound, unchanged):** Trustpilot **2.1/5** — complaints center on **incomplete task
+execution** and **credits lost on failed agent actions**.
+
+**Top 3 takeaways:**
+1. **The funded leader is wobbling.** Cash isn't the moat — *reliability + trust* is, and that's exactly
+   our lane. The softening is the moment to be visible to their churning users.
+2. **Their #1 complaint is literally our #1 feature.** "Credits lost on failed actions" → our **never
+   charged for failed work**; "incomplete execution" → our **verify-before-done + Glass Box**. Lead with
+   this contrast in launch copy.
+3. **The 20% cut + spending-in-the-dark is the trust tax** burned founders resent → **0% + Approval
+   Inbox** is the switch reason.
+
+---
+
 ## 2026-06-20 (baseline)
 
 **Positioning / headline:** "AI That Runs Your Company While You Sleep" — autonomy-forward, "CEO agent"
