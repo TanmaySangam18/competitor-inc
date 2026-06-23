@@ -575,7 +575,7 @@ function OperationsTab({ r }: { r: ReturnType<typeof useRoomie> }) {
               Nothing yet. Hit <span className="text-muted">Run tonight&apos;s shift</span> (or flip on Autopilot) and watch it work.
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="max-h-[60vh] space-y-2.5 overflow-y-auto pr-1">
               <AnimatePresence initial={false}>
                 {r.activities.map((a) => (
                   <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} />
@@ -592,7 +592,7 @@ function OperationsTab({ r }: { r: ReturnType<typeof useRoomie> }) {
             <h2 className="flex items-center gap-2 text-sm font-semibold text-coral">
               <Sparkles size={15} /> Approval Inbox · {r.pendingApprovals.length}
             </h2>
-            <div className="mt-3 space-y-3">
+            <div className="mt-3 max-h-[44vh] space-y-3 overflow-y-auto pr-1">
               {r.pendingApprovals.map((ap) => (
                 <ApprovalCard
                   key={ap.id}
