@@ -331,7 +331,9 @@ export function detectChatApproval(message: string): ChatApproval | null {
   if (/\b(deploy|ship|release|go live|push (to )?prod|publish the (site|app))\b/.test(m)) {
     return { agent: "engineering", kind: "deploy", title: "Approve deploy", detail: `You asked: “${quote}”` };
   }
-  if (/\b(email|e-mail|reach out|outreach|dm|message|contact|tweet|post|announce|launch post)\b/.test(m)) {
+  // Outreach + marketing: "market it / run a campaign / promote it" is consequential too (implies
+  // public posting or spend), so it queues. Scoped to skip benign mentions like "market fit".
+  if (/\b(email|e-mail|reach out|outreach|dm|message|contact|tweet|post|announce|launch post|marketing|market (?:it|us|this|the|competitor)|campaign|promote|advertis|run (?:an )?ads?|go to market)\b/.test(m)) {
     return { agent: "growth", kind: "outreach", title: "Approve outreach", detail: `You asked: “${quote}”` };
   }
   if (/\b(delete|remove|tear down|shut ?down|cancel|wipe|purge)\b/.test(m)) {

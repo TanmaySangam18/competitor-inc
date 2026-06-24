@@ -66,6 +66,13 @@ describe("detectChatApproval — chat must DO what it says, not just say it", ()
     expect(detectChatApproval("email the waitlist about the launch")?.kind).toBe("outreach");
     expect(detectChatApproval("delete the staging company")?.kind).toBe("delete");
   });
+  it("treats a marketing ask as consequential (queues outreach), without false-firing on 'market fit'", () => {
+    expect(detectChatApproval("market competitor.inc")?.kind).toBe("outreach");
+    expect(detectChatApproval("run a marketing campaign for us")?.kind).toBe("outreach");
+    expect(detectChatApproval("promote it on social")?.kind).toBe("outreach");
+    expect(detectChatApproval("how's our market fit?")).toBeNull();
+    expect(detectChatApproval("is the market big enough?")).toBeNull();
+  });
   it("returns null for a harmless question (no false approval)", () => {
     expect(detectChatApproval("how is the company doing?")).toBeNull();
     expect(detectChatApproval("what's our churn looking like")).toBeNull();
