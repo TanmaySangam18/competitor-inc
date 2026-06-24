@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>competitor.inc — trailer animatic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --cream:#f7f0da; --surface:#efe7cd; --ink:#14130e; --coral:#ff5a36;
+    --muted:#5b5644; --mint:#1f8f5f; --amber:#b5760e; --violet:#6a4bc0;
+    --heavy:"Archivo Black","Arial Black",sans-serif; --body:"Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:#000;font-family:var(--body);color:var(--ink);overflow:hidden}
+  #app{position:relative;width:100vw;height:100vh;background:#000}
+  .stage{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:6vh 7vw;opacity:0;transition:opacity .6s ease}
+  .stage.show{opacity:1}
+  .display{font-family:var(--heavy);text-transform:uppercase;line-height:.96;letter-spacing:-.01em}
+  .kicker{font-size:clamp(11px,1.4vw,15px);letter-spacing:.28em;text-transform:uppercase;font-weight:600;opacity:.7}
+  .big{font-size:clamp(34px,7.5vw,104px)}
+  .mid{font-size:clamp(24px,4.6vw,60px)}
+  .coral{color:var(--coral)}
+  .vo{position:absolute;left:0;right:0;bottom:8.5vh;text-align:center;font-size:clamp(14px,1.9vw,22px);
+    font-weight:500;padding:0 10vw;opacity:0;transition:opacity .5s ease}
+  .vo.show{opacity:.92}
+  .ken{animation:ken var(--dur,6s) linear both}
+  @keyframes ken{from{transform:scale(1.0)}to{transform:scale(1.12)}}
+  .rise{animation:rise var(--dur,6s) ease both}
+  @keyframes rise{from{transform:translateY(18px)}to{transform:translateY(-14px)}}
+  /* progress + controls */
+  #bar{position:absolute;top:0;left:0;height:4px;width:0;background:var(--coral);z-index:30;transition:width .25s linear}
+  #ui{position:absolute;top:14px;right:16px;z-index:30;display:flex;gap:8px}
+  #ui button{font-family:var(--body);font-size:13px;font-weight:500;color:#fff;background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px)}
+  #ui button:hover{background:rgba(255,255,255,.22)}
+  #label{position:absolute;top:16px;left:18px;z-index:30;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:rgba(255,255,255,.6);font-weight:600}
+  /* reusable bits */
+  .card{background:#fffdf6;border:1px solid rgba(20,19,14,.14);border-radius:18px;
+    box-shadow:0 24px 60px -30px rgba(0,0,0,.5)}
+  .pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 14px;font-size:clamp(11px,1.3vw,14px);
+    font-weight:600;letter-spacing:.04em}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .rain::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(105deg,rgba(255,255,255,.05) 0 1px,transparent 1px 14px);opacity:.5}
+  .bubble{max-width:74%;padding:12px 15px;border-radius:16px;font-size:clamp(13px,1.7vw,18px);font-weight:500;text-align:left}
+  .b-agent{background:#fffdf6;color:var(--ink);border:1px solid rgba(20,19,14,.12);border-top-left-radius:5px;align-self:flex-start}
+  .b-you{background:var(--coral);color:#fff;border-top-right-radius:5px;align-self:flex-end}
+  .count{font-family:var(--heavy);font-size:clamp(44px,10vw,150px);letter-spacing:-.02em}
+  .agentrow{display:flex;gap:clamp(10px,2vw,28px);align-items:flex-end;justify-content:center}
+  .agent{display:flex;flex-direction:column;align-items:center;gap:8px;animation:bob 2.2s ease-in-out infinite}
+  .agent .head{width:clamp(34px,5vw,60px);height:clamp(34px,5vw,60px);border-radius:14px}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .agent:nth-child(2){animation-delay:.3s}.agent:nth-child(3){animation-delay:.6s}
+  .agent:nth-child(4){animation-delay:.9s}.agent:nth-child(5){animation-delay:1.2s}
+  .scrim{position:absolute;inset:0}
+  #hint{position:absolute;left:0;right:0;bottom:3.4vh;text-align:center;color:rgba(255,255,255,.45);font-size:12px;z-index:30}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="bar"></div>
+  <div id="label"></div>
+  <div id="ui"><button id="pause">Pause</button><button id="replay">Replay</button></div>
+  <div class="stage" id="stage"></div>
+  <div class="vo" id="vo"></div>
+  <div id="hint">animatic / previz — final cut renders cinematic (see trailer-build-kit.md)</div>
+</div>
+<script>
+const C={cream:"#f7f0da",surface:"#efe7cd",ink:"#14130e",coral:"#ff5a36",mint:"#1f8f5f",amber:"#b5760e",violet:"#6a4bc0"};
+// scenes: {bg, fg(optional text color), dur(sec), label, html, text(big on-screen), vo}
+const scenes=[
+ {bg:"#0c0c10",dur:7,label:"01 · the pain",anim:"ken",
+  html:`<div class="rain scrim"></div>
+        <div style="position:relative;width:min(440px,70vw);height:min(220px,34vh);border-radius:14px;background:#15151b;border:1px solid #26262e;display:flex;align-items:center;justify-content:center;box-shadow:0 0 120px 10px rgba(90,120,255,.18)">
+          <div style="font-family:var(--body);color:#7f86a0"><div style="font-size:clamp(13px,1.6vw,16px)">your-startup.com</div><div class="display" style="color:#3a3f55;font-size:clamp(28px,5vw,64px);margin-top:6px">0 users</div></div>
+        </div>`,
+  text:`<div class="display big" style="color:var(--cream);margin-top:5vh">You built it.<br><span style="color:#6b7286">Nobody came.</span></div>`,
+  vo:"You had the idea. You spent months building it. And nobody came."},
+
+ {bg:"#140a0a",dur:7,label:"02 · the betrayal",anim:"ken",
+  html:`<div class="display" style="color:#e7553c;font-size:clamp(30px,6.5vw,86px);text-shadow:0 0 60px rgba(231,85,60,.4)">−20% of your<br>revenue</div>
+        <div style="margin-top:3vh;display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+          <span class="pill" style="background:#2a1414;color:#f0997b">card charged — you didn't approve</span>
+          <span class="pill" style="background:#2a1414;color:#f0997b">spent in the dark</span>
+          <span class="pill" style="background:#2a1414;color:#f0997b">★ 2.1 / 5</span>
+        </div>`,
+  text:"",
+  vo:"The new AI tools promised to build your company — then spent your money in the dark, and took a cut."},
+
+ {bg:C.cream,dur:7,label:"03 · the reveal",anim:"rise",
+  html:`<div class="kicker" style="color:var(--muted)">competitor<span class="coral">.inc</span></div>
+        <div class="display" style="color:var(--ink);font-size:clamp(40px,9vw,128px);margin-top:2vh">Prove it<br>before you<br><span class="coral">build it.</span></div>`,
+  text:"",
+  vo:"competitor.inc is the honest one."},
+
+ {bg:C.cream,dur:8,label:"04 · validate first",anim:"rise",
+  html:`<div class="card" style="width:min(560px,82vw);padding:22px 24px;text-align:left">
+          <div style="font-size:clamp(12px,1.5vw,14px);color:var(--muted)">your idea</div>
+          <div style="font-size:clamp(16px,2.2vw,22px);font-weight:600;margin:4px 0 16px">“An app for AI bedtime stories for kids”</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <span class="pill" style="background:var(--surface);color:var(--muted)">checking demand…</span>
+            <span class="pill" style="background:rgba(31,143,95,.14);color:var(--mint)"><span class="dot" style="background:var(--mint)"></span>41 waitlist</span>
+            <span class="pill" style="background:rgba(31,143,95,.14);color:var(--mint)">4.6% CTR</span>
+          </div>
+          <div class="display" style="color:var(--mint);font-size:clamp(20px,3vw,30px);margin-top:18px">Strong signal ✓</div>
+        </div>`,
+  text:"",
+  vo:"It runs a real demand test — and tells you the truth — before it builds anything."},
+
+ {bg:C.cream,dur:8,label:"05 · you stay in control",anim:"rise",
+  html:`<div class="card" style="width:min(540px,82vw);padding:20px 22px;text-align:left">
+          <div style="font-size:clamp(11px,1.4vw,13px);letter-spacing:.1em;text-transform:uppercase;color:var(--coral);font-weight:600">Approval inbox</div>
+          <div style="font-size:clamp(15px,2vw,20px);font-weight:600;margin:8px 0 4px">Pitch wants to spend $40 on an ad test</div>
+          <div style="font-size:clamp(13px,1.6vw,16px);color:var(--muted);margin-bottom:16px">Nothing happens without your yes.</div>
+          <div style="display:flex;gap:10px">
+            <span style="flex:1;text-align:center;background:var(--coral);color:#fff;border-radius:10px;padding:11px;font-weight:600">Approve</span>
+            <span style="text-align:center;border:1px solid rgba(20,19,14,.2);color:var(--muted);border-radius:10px;padding:11px 18px">Reject</span>
+          </div>
+        </div>`,
+  text:"",
+  vo:"Every action, every dollar — visible. And nothing happens without your approval."},
+
+ {bg:"#0f1420",dur:8,label:"06 · your crew",anim:"ken",
+  html:`<div class="agentrow">
+          ${[["Apex",C.violet],["Forge",C.mint],["Pitch",C.amber],["Guard",C.coral],["Surge","#a78bfa"]].map(([n,c])=>`
+            <div class="agent"><div class="head" style="background:${c}"></div>
+              <div style="font-size:clamp(11px,1.4vw,15px);font-weight:600;color:#fff">${n}</div></div>`).join("")}
+        </div>
+        <div class="display" style="color:var(--cream);font-size:clamp(24px,4.4vw,58px);margin-top:5vh">A crew that builds<br>& runs the winner</div>`,
+  text:"",
+  vo:"Then a crew of AI agents builds and runs the winner — and shows you the work."},
+
+ {bg:C.surface,dur:7,label:"07 · see the work",anim:"rise",
+  html:`<div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;max-width:90vw">
+          ${[["the website","#fffdf6"],["the ad, in-feed","#fffdf6"],["the launch post","#fffdf6"],["A/B — B wins","rgba(31,143,95,.14)"]].map(t=>`
+            <div class="card" style="width:min(190px,40vw);height:118px;display:flex;align-items:center;justify-content:center;background:${t[1]};font-weight:600;color:var(--ink);font-size:clamp(13px,1.6vw,16px);text-align:center;padding:10px">${t[0]}</div>`).join("")}
+        </div>
+        <div class="display" style="color:var(--ink);font-size:clamp(20px,3.6vw,46px);margin-top:4vh">Not just stats — <span class="coral">the work.</span></div>`,
+  text:"",
+  vo:"The Live Glass Box shows the real thing it made — not numbers, the actual work."},
+
+ {bg:"#fff7ee",dur:8,label:"08 · run it from your texts",anim:"rise",
+  html:`<div style="display:flex;flex-direction:column;gap:10px;width:min(440px,80vw)">
+          <div class="bubble b-agent">Shipped the landing 🚀</div>
+          <div class="bubble b-agent">Pitch: approve $60 on the winning ad?</div>
+          <div class="bubble b-you">approve ✅</div>
+          <div class="bubble b-agent">Done — it's live. Report tonight.</div>
+        </div>
+        <div class="display" style="color:var(--ink);font-size:clamp(20px,3.4vw,44px);margin-top:3.5vh">Run it from your <span class="coral">texts.</span></div>`,
+  text:"",
+  vo:"Soon you won't even open the site — your agents text you, you approve from your phone. (Coming soon.)"},
+
+ {bg:"#0a0a12",dur:7,label:"09 · while you sleep",anim:"ken",
+  html:`<div style="position:absolute;top:14%;right:16%;width:60px;height:60px;border-radius:50%;background:#f7f0da;box-shadow:0 0 80px 18px rgba(247,240,218,.35)"></div>
+        <div class="display" style="color:var(--cream);font-size:clamp(24px,4.6vw,60px)">It works<br>while you sleep</div>
+        <div style="margin-top:3vh;font-size:clamp(13px,1.7vw,18px);color:#8a90a8;font-weight:500">agents shipping · customers answered · revenue climbing</div>`,
+  text:"",
+  vo:"While you sleep, the crew keeps working — shipping, supporting, and growing. (The vision.)"},
+
+ {bg:"#fbf3df",dur:8,label:"10 · the payoff",anim:"rise",
+  html:`<div class="kicker" style="color:var(--muted)">monthly recurring revenue</div>
+        <div class="count coral" style="margin-top:1vh">$10,000</div>
+        <div class="display" style="color:var(--ink);font-size:clamp(20px,3.4vw,42px);margin-top:2vh">We did it.</div>
+        <div style="margin-top:1.5vh"><span class="pill" style="background:rgba(31,143,95,.14);color:var(--mint)"><span class="dot" style="background:var(--mint)"></span>verified in the Glass Box</span></div>`,
+  text:"",
+  vo:"And one month in — it crossed ten thousand dollars a month. Provably. (The goal.)"},
+
+ {bg:C.cream,dur:6,label:"11 · the thesis",anim:"rise",
+  html:`<div class="display" style="color:var(--ink);font-size:clamp(26px,5vw,66px);line-height:1.08">
+          Validate first.<br>Stay in control.<br><span class="coral">0% of your revenue.</span></div>`,
+  text:"",
+  vo:"Validate first. Stay in control. Zero percent of your revenue."},
+
+ {bg:C.ink,dur:6,label:"12 · brand close",anim:"rise",
+  html:`<div class="display" style="color:var(--cream);font-size:clamp(44px,11vw,150px)">competitor<span class="coral">.inc</span></div>
+        <div style="margin-top:2.5vh;font-size:clamp(15px,2.2vw,24px);font-weight:500;color:#d9d2bd">Prove it before you build it.</div>
+        <div style="margin-top:3vh"><span class="pill" style="background:var(--coral);color:#fff">Founding members — limited</span></div>`,
+  text:"",
+  vo:"competitor.inc — prove it before you build it."}
+];
+
+const stage=document.getElementById("stage"),vo=document.getElementById("vo"),
+      bar=document.getElementById("bar"),label=document.getElementById("label"),app=document.getElementById("app");
+let i=0,paused=false,timer=null,t0=0,elapsed=0,curDur=0,raf=null;
+function render(s){
+  app.style.background=s.bg;
+  stage.style.background=s.bg;
+  stage.style.setProperty("--dur",s.dur+"s");
+  stage.className="stage";
+  stage.innerHTML=`<div class="${s.anim}" style="--dur:${s.dur}s;display:flex;flex-direction:column;align-items:center">${s.html}${s.text||""}</div>`;
+  label.textContent=s.label;
+  vo.textContent=s.vo||"";
+  void stage.offsetWidth;
+  stage.classList.add("show"); vo.classList.add("show");
+}
+function tickBar(){
+  if(paused)return;
+  const p=Math.min(1,(elapsed+(performance.now()-t0))/(curDur*1000));
+  bar.style.width=(p*100).toFixed(1)+"%";
+  raf=requestAnimationFrame(tickBar);
+}
+function play(idx){
+  i=idx; const s=scenes[i]; curDur=s.dur; elapsed=0; t0=performance.now();
+  render(s);
+  cancelAnimationFrame(raf); raf=requestAnimationFrame(tickBar);
+  clearTimeout(timer);
+  timer=setTimeout(()=>{ stage.classList.remove("show"); vo.classList.remove("show");
+    setTimeout(()=>{ i+1<scenes.length?play(i+1):end(); },600);
+  }, s.dur*1000);
+}
+function end(){ label.textContent="end"; bar.style.width="100%"; }
+function pause(){ if(paused)return; paused=true; clearTimeout(timer); elapsed+=performance.now()-t0;
+  cancelAnimationFrame(raf); document.getElementById("pause").textContent="Play"; }
+function resume(){ if(!paused)return; paused=false; t0=performance.now();
+  const remain=curDur*1000-elapsed;
+  timer=setTimeout(()=>{ stage.classList.remove("show"); vo.classList.remove("show");
+    setTimeout(()=>{ i+1<scenes.length?play(i+1):end(); },600); }, Math.max(0,remain));
+  raf=requestAnimationFrame(tickBar); document.getElementById("pause").textContent="Pause"; }
+document.getElementById("pause").onclick=()=>paused?resume():pause();
+document.getElementById("replay").onclick=()=>{paused=false;document.getElementById("pause").textContent="Pause";play(0);};
+play(0);
+</script>
+</body>
+</html>
