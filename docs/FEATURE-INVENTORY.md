@@ -64,7 +64,7 @@
 | Capability | competitor.inc |
 |---|---|
 | Persistent server-side data store | ❌ missing (localStorage only) |
-| Backend API layer | 🟡 building this iteration (`/api/roomie`) |
+| Backend API layer | 🟡 building this iteration (`/api/engine`) |
 | LLM provider integration (frontier model) | 🟡 partial (swappable interface; real call being wired) |
 | Dual-model generate→verify pattern | ❌ missing |
 | Background job / scheduler (the nightly heartbeat) | ❌ missing |
@@ -88,7 +88,7 @@
 Priority = (parity impact) × (buildable without external $/creds) ÷ (effort). P0 = do first.
 
 **P0 — Foundation (makes it a platform, not a demo)**
-1. **Backend API + real-model wiring** (`/api/roomie`, key-gated, validated, error-handled; simulated fallback). _Started this iteration._
+1. **Backend API + real-model wiring** (`/api/engine`, key-gated, validated, error-handled; simulated fallback). _Started this iteration._
 2. **Auth + persistent multi-company store** (Supabase is connected): sign in, multiple companies per user, server persistence, RLS isolation.
 3. **Real heartbeat scheduler** — actual nightly autonomous runs (cron) instead of manual button, with run history.
 

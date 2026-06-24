@@ -33,9 +33,9 @@ Restart `npm run dev`. `isSupabaseConfigured()` now returns true.
 ## What's wired vs. what's next
 - ✅ Schema + RLS migration (`supabase/migrations/0001_init.sql`)
 - ✅ Browser + server clients (`lib/supabase/{client,server}.ts`), env-gated
-- ✅ Typed data-access layer (`lib/roomie/db.ts`) — CRUD for companies/activities/approvals
+- ✅ Typed data-access layer (`lib/engine/db.ts`) — CRUD for companies/activities/approvals
 - ⏳ **Next (once a project exists & is reachable for testing):** wire auth UI (sign in/up),
-  swap `useRoomie`'s local store for `db.ts`, add multi-company switching, and a middleware
+  swap `useEngine`'s local store for `db.ts`, add multi-company switching, and a middleware
   session refresh. These are deferred deliberately so they can be **verified against a live DB**
   rather than shipped blind.
 

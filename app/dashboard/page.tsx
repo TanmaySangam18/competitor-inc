@@ -33,9 +33,9 @@ import {
   Target,
   AlertTriangle,
 } from "lucide-react";
-import { useRoomie } from "@/lib/roomie/useRoomie";
-import { useConfig, getByok } from "@/lib/roomie/config";
-import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/roomie/types";
+import { useEngine } from "@/lib/engine/useEngine";
+import { useConfig, getByok } from "@/lib/engine/config";
+import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/engine/types";
 import { LogoMark } from "@/components/Logo";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 
@@ -73,7 +73,7 @@ const OPERATE_ENABLED = process.env.NEXT_PUBLIC_OPERATE !== "0";
 type Tab = "operations" | "history" | "chat" | "operate";
 
 export default function Dashboard() {
-  const r = useRoomie();
+  const r = useEngine();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("operations");
 
@@ -122,7 +122,7 @@ export default function Dashboard() {
 }
 
 /* ── Top bar ─────────────────────────────────────────────────── */
-function TopBar({ r }: { r: ReturnType<typeof useRoomie> }) {
+function TopBar({ r }: { r: ReturnType<typeof useEngine> }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -156,7 +156,7 @@ function TopBar({ r }: { r: ReturnType<typeof useRoomie> }) {
   );
 }
 
-function CompanySwitcher({ r }: { r: ReturnType<typeof useRoomie> }) {
+function CompanySwitcher({ r }: { r: ReturnType<typeof useEngine> }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -362,7 +362,7 @@ function ValidationRunning({ idea }: { idea: string }) {
 }
 
 /* ── Validation Gate ─────────────────────────────────────────── */
-function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useRoomie>; onBuild: () => void }) {
+function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBuild: () => void }) {
   const v = r.company!.validation!;
   const vs = verdictStyle[v.verdict];
   const recommendHold = v.verdict === "weak";
@@ -428,7 +428,7 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useRoomie>; onBui
 }
 
 /* ── Rejected ────────────────────────────────────────────────── */
-function Rejected({ r, onBuild }: { r: ReturnType<typeof useRoomie>; onBuild: () => void }) {
+function Rejected({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBuild: () => void }) {
   return (
     <div className="mx-auto mt-16 max-w-md text-center">
       <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-amber/12 text-amber">
@@ -451,7 +451,7 @@ function Rejected({ r, onBuild }: { r: ReturnType<typeof useRoomie>; onBuild: ()
 }
 
 /* ── Operating ───────────────────────────────────────────────── */
-function Operating({ r, tab, setTab }: { r: ReturnType<typeof useRoomie>; tab: Tab; setTab: (t: Tab) => void }) {
+function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: Tab; setTab: (t: Tab) => void }) {
   const c = r.company!;
   const net = Math.round((c.ledger.spent - (c.ledger.credited ?? 0)) * 100) / 100;
   const stats = [
@@ -583,7 +583,7 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useRoomie>; tab: T
   );
 }
 
-function OperationsTab({ r }: { r: ReturnType<typeof useRoomie> }) {
+function OperationsTab({ r }: { r: ReturnType<typeof useEngine> }) {
   const { config } = useConfig();
   const roles = (Object.keys(AGENTS) as AgentRole[]).filter((role) => config.agents[role]?.enabled ?? true);
   return (
@@ -712,11 +712,11 @@ function BarChart({ title, values, nights, color, fmt }: { title: string; values
 }
 
 /* ── Chat ────────────────────────────────────────────────────── */
-interface ChatMsg { role: "you" | "roomie"; text: string }
+interface ChatMsg { role: "you" | "agent"; text: string }
 
-function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useRoomie> }) {
+function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useEngine> }) {
   const { config } = useConfig();
-  const storeKey = `roomie:chat:${company.id}`;
+  const storeKey = `cofounder:chat:${company.id}`;
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -725,7 +725,7 @@ function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useRoo
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(storeKey);
-      setMsgs(raw ? (JSON.parse(raw) as ChatMsg[]) : [{ role: "roomie", text: `Hey! I'm running ${company.name} with you — what should we tackle?` }]);
+      setMsgs(raw ? (JSON.parse(raw) as ChatMsg[]) : [{ role: "agent", text: `Hey! I'm running ${company.name} with you — what should we tackle?` }]);
     } catch {
       setMsgs([]);
     }
@@ -745,7 +745,7 @@ function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useRoo
     setMsgs((m) => [...m, { role: "you", text }]);
     setSending(true);
     try {
-      const res = await fetch("/api/roomie", {
+      const res = await fetch("/api/engine", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ kind: "chat", company: { name: company.name, idea: company.idea }, message: text, soul: config.soul, byok: getByok() ?? undefined }),
@@ -753,18 +753,18 @@ function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useRoo
       // A consequential request? The engine flags it; queue a real approval so the inbox matches
       // what the co-founder promises.
       let queued: { agent: AgentRole; kind: ApprovalKind; title: string; detail: string; amount?: number } | null = null;
-      const approvalHeader = res.headers.get("x-roomie-approval");
+      const approvalHeader = res.headers.get("x-approval");
       if (approvalHeader) {
         try { queued = JSON.parse(decodeURIComponent(approvalHeader)); } catch { /* ignore */ }
       }
       if (!res.body) {
         const data = await res.json().catch(() => ({ reply: "…" }));
-        setMsgs((m) => [...m, { role: "roomie", text: data.reply ?? "…" }]);
+        setMsgs((m) => [...m, { role: "agent", text: data.reply ?? "…" }]);
       } else {
         // stream the reply token-by-token
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
-        setMsgs((m) => [...m, { role: "roomie", text: "" }]);
+        setMsgs((m) => [...m, { role: "agent", text: "" }]);
         let acc = "";
         for (;;) {
           const { done, value } = await reader.read();
@@ -772,17 +772,17 @@ function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useRoo
           acc += decoder.decode(value, { stream: true });
           setMsgs((m) => {
             const copy = m.slice();
-            copy[copy.length - 1] = { role: "roomie", text: acc };
+            copy[copy.length - 1] = { role: "agent", text: acc };
             return copy;
           });
         }
       }
       if (queued) {
         r.addApproval(queued);
-        setMsgs((m) => [...m, { role: "roomie", text: "🔔 Queued for your approval — open the Operations tab to approve or reject. Nothing happens until you say yes." }]);
+        setMsgs((m) => [...m, { role: "agent", text: "🔔 Queued for your approval — open the Operations tab to approve or reject. Nothing happens until you say yes." }]);
       }
     } catch {
-      setMsgs((m) => [...m, { role: "roomie", text: "I couldn't reach the engine just now — try again?" }]);
+      setMsgs((m) => [...m, { role: "agent", text: "I couldn't reach the engine just now — try again?" }]);
     } finally {
       setSending(false);
     }
@@ -793,7 +793,7 @@ function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useRoo
       <div className="h-[420px] space-y-3 overflow-y-auto p-5">
         {msgs.map((m, i) => (
           <div key={i} className={m.role === "you" ? "flex justify-end" : "flex items-start gap-2.5"}>
-            {m.role === "roomie" && (
+            {m.role === "agent" && (
               <LogoMark size={28} className="mt-0.5 shrink-0" />
             )}
             <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${m.role === "you" ? "rounded-tr-sm bg-surface-2" : "rounded-tl-sm border border-border bg-bg/50 text-muted"}`}>
@@ -824,7 +824,7 @@ function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useRoo
 }
 
 /* ── Operate (EOS company-OS, gated) ─────────────────────────── */
-function OperateTab({ r, c }: { r: ReturnType<typeof useRoomie>; c: Company }) {
+function OperateTab({ r, c }: { r: ReturnType<typeof useEngine>; c: Company }) {
   const [rock, setRock] = useState("");
   const [issue, setIssue] = useState("");
   const net = Math.round((c.ledger.spent - (c.ledger.credited ?? 0)) * 100) / 100;

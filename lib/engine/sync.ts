@@ -4,7 +4,7 @@
 //
 // Status: built but NOT yet verified against a live database (no Supabase project was connected
 // when this was written). It activates ONLY when Supabase is configured AND the user is signed in
-// (non-guest); otherwise the app stays 100% on the localStorage store in useRoomie, unchanged. All
+// (non-guest); otherwise the app stays 100% on the localStorage store in useEngine, unchanged. All
 // DB calls are best-effort: any failure is swallowed and localStorage remains the source of truth,
 // matching the app's degrade-gracefully philosophy. Operate (Rocks/Issues) has no table yet, so it
 // stays local even in DB mode.

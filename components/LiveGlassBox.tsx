@@ -23,7 +23,7 @@ import {
   Repeat2,
   type LucideIcon,
 } from "lucide-react";
-import type { AgentRole, Company } from "@/lib/roomie/types";
+import type { AgentRole, Company } from "@/lib/engine/types";
 
 const agentMeta: Record<AgentRole, { name: string; icon: LucideIcon; accent: string; ring: string }> = {
   ceo: { name: "Apex", icon: TrendingUp, accent: "text-violet", ring: "bg-violet/12" },

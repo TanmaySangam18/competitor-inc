@@ -87,7 +87,7 @@ export interface Company {
   product?: { url: string; status: "live" | "building" }; // the built winner (proof-of-work)
 }
 
-export interface RoomieState {
+export interface EngineState {
   company: Company | null;
   activities: Activity[];
   approvals: ApprovalItem[];

@@ -42,7 +42,7 @@ function repoSlug(s: string): string {
 // (e.g. the capability GET, which carries no creds) reports operator-env capabilities only.
 export function capabilities(conn?: Connections) {
   return {
-    model: !!(process.env.ANTHROPIC_API_KEY || process.env.AI_GATEWAY_API_KEY || process.env.ROOMIE_API_KEY),
+    model: !!(process.env.ANTHROPIC_API_KEY || process.env.AI_GATEWAY_API_KEY || process.env.MODEL_API_KEY),
     github: !!(conn?.githubToken || process.env.GITHUB_TOKEN),
     deploy: !!process.env.VERCEL_DEPLOY_HOOK_URL,
     email: !!((conn?.resendApiKey || process.env.RESEND_API_KEY) && (conn?.resendFrom || process.env.RESEND_FROM)),

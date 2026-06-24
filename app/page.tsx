@@ -79,8 +79,8 @@ function Nav() {
   );
 }
 
-/* ── Roomie companion mockup (hero visual) ───────────────────── */
-function RoomiePreview() {
+/* ── Co-founder companion mockup (hero visual) ───────────────── */
+function CofounderPreview() {
   return (
     <div className="ring-soft relative rounded-3xl border border-border bg-surface/80 p-3 backdrop-blur-xl">
       {/* window chrome */}
@@ -228,7 +228,7 @@ function Hero() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
         >
-          <RoomiePreview />
+          <CofounderPreview />
         </motion.div>
       </div>
 

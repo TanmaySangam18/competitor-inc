@@ -1,7 +1,7 @@
 import "server-only";
 
 // Server-side engine. Runs the simulated provider by default; when a frontier model is
-// configured (ROOMIE_PROVIDER=anthropic + ANTHROPIC_API_KEY), it asks the real model and
+// configured (MODEL_PROVIDER=anthropic + ANTHROPIC_API_KEY), it asks the real model and
 // normalizes the output into our types, falling back to simulated on any error. The API key
 // never reaches the client because this module is server-only.
 
@@ -9,18 +9,22 @@ import { getProvider, scoreIdea, type ShiftResult } from "./provider";
 import type { Activity, ActivityStatus, AgentRole, ApprovalItem, ApprovalKind, ByokConfig, Company, ValidationResult } from "./types";
 import { AGENTS } from "./types";
 
-const PROVIDER = process.env.ROOMIE_PROVIDER ?? "simulated";
-const MODEL = process.env.ROOMIE_MODEL ?? "claude-opus-4-8";
+const PROVIDER = process.env.MODEL_PROVIDER ?? "simulated";
+// Default model: Claude Sonnet 4.6 (the in-house agents run on it for now). Override per-deploy with
+// MODEL_ID. Sonnet 4.6 takes our standard Messages call as-is (no thinking/sampling params).
+const MODEL = process.env.MODEL_ID ?? "claude-sonnet-4-6";
 const KEY = process.env.ANTHROPIC_API_KEY;
 const GATEWAY_KEY = process.env.AI_GATEWAY_API_KEY;
 // Self-hosted / any OpenAI-compatible endpoint set by the operator (trusted, not user-supplied).
-const SELF_HOST_URL = process.env.ROOMIE_PRIVATE_BASE_URL;
-const SELF_HOST_KEY = process.env.ROOMIE_API_KEY;
+const SELF_HOST_URL = process.env.MODEL_BASE_URL;
+const SELF_HOST_KEY = process.env.MODEL_API_KEY;
 const MODEL_TIMEOUT_MS = 30_000;
-const MODEL_CHEAP = process.env.ROOMIE_MODEL_CHEAP || "claude-haiku-4-5";
+// For now every agent is on Sonnet 4.6. Set MODEL_CHEAP (e.g. claude-haiku-4-5) to split the
+// lighter roles onto a cheaper/faster model later.
+const MODEL_CHEAP = process.env.MODEL_CHEAP || "claude-sonnet-4-6";
 
 // Per-agent model routing: the hard reasoners (Forge=engineering, Apex=ceo) get the strong model
-// (ROOMIE_MODEL); other agents can run on a cheaper/faster one (ROOMIE_MODEL_CHEAP). The managed
+// (MODEL_ID); other agents can run on a cheaper/faster one (MODEL_CHEAP). The managed
 // engine honors this; BYOK always uses the user's own chosen model. Full per-agent task calls extend it.
 const STRONG_ROLES: AgentRole[] = ["engineering", "ceo"];
 export function modelForAgent(role: AgentRole): string {

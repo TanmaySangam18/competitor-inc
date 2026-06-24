@@ -8,7 +8,7 @@ import { LogoMark } from "@/components/Logo";
 // Checkout activates when the founder sets NEXT_PUBLIC_CHECKOUT_URL (LemonSqueezy/Gumroad).
 // Until then, the Founding CTA routes to the waitlist.
 const CHECKOUT_URL = process.env.NEXT_PUBLIC_CHECKOUT_URL || "";
-const WL_KEY = "roomie:waitlist:v1";
+const WL_KEY = "cofounder:waitlist:v1";
 
 interface Entry {
   email: string;

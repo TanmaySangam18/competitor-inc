@@ -1,7 +1,7 @@
 "use client";
 
 // /delegation — a 3D "living office" where the agent crew works, collaborates, and talks in real
-// time. Wired to the real useRoomie store; also the destination after a build is approved (you watch
+// time. Wired to the real useEngine store; also the destination after a build is approved (you watch
 // the crew ship the MVP and run the first shift). The crew keeps up an ambient conversation — work
 // talk woven with jokes and chatter — so the floor never goes quiet. Concept inspired by "The
 // Delegation"; built original + on-brand (monochrome liquid glass + claymorphism on the playful bits).
@@ -11,10 +11,10 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowLeft, ExternalLink, Inbox, Loader2, MessagesSquare, Play, Power, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
-import { useRoomie } from "@/lib/roomie/useRoomie";
-import { DELEGATION, toneHex } from "@/lib/roomie/delegation";
-import { pickExchange, type BanterCtx, type Turn } from "@/lib/roomie/banter";
-import type { AgentRole } from "@/lib/roomie/types";
+import { useEngine } from "@/lib/engine/useEngine";
+import { DELEGATION, toneHex } from "@/lib/engine/delegation";
+import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
+import type { AgentRole } from "@/lib/engine/types";
 
 const DelegationScene = dynamic(() => import("./DelegationScene"), {
   ssr: false,
@@ -31,7 +31,7 @@ const BY_ROLE = Object.fromEntries(DELEGATION.map((a) => [a.role, a])) as Record
 >;
 
 export default function DelegationPage() {
-  const r = useRoomie();
+  const r = useEngine();
 
   const operating = r.company?.status === "operating";
   const live = r.activities.filter((a) => !a.undone);

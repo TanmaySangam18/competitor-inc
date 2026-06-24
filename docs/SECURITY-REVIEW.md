@@ -14,8 +14,8 @@
 | **SSRF** (BYOK base URL) | https-only; block loopback/private/link-local/metadata, IPv6 internals, IPv4-mapped | ✅ Hardened + unit-tested (see fix #1) |
 | **Input validation** | Malformed API bodies → 5xx | ✅ Rejected with 400; fuzz of 60 garbage payloads → **zero 5xx** |
 | **XSS** | User text rendered as HTML | ✅ React auto-escapes; the 3D scene renders user-derived banter via `textContent`; removed the only `innerHTML` usage (fix #2) |
-| **Header injection** | The `x-roomie-approval` chat header | ✅ `encodeURIComponent`-encoded server-side, `JSON.parse(decodeURIComponent(...))` in try/catch client-side |
-| **Corrupted localStorage** | A bad entry crashing a page | ✅ Every read (`useRoomie`, `config`, `usage`, `/live`, `/join`, chat) is try/catch-guarded with shape validation |
+| **Header injection** | The `x-approval` chat header | ✅ `encodeURIComponent`-encoded server-side, `JSON.parse(decodeURIComponent(...))` in try/catch client-side |
+| **Corrupted localStorage** | A bad entry crashing a page | ✅ Every read (`useEngine`, `config`, `usage`, `/live`, `/join`, chat) is try/catch-guarded with shape validation |
 | **Data loss on export** | One bad key dropping the whole export | ✅ Fixed — per-key guard, raw fallback (fix #3) |
 | **Destructive actions** | Spend/deploy/delete without consent | ✅ Routed through the Approval Inbox; activity undo + auto-refund; `decideBuild`/`resolveApproval` are idempotent |
 | **Cron endpoint** | Open nightly trigger | ✅ Optional `CRON_SECRET` bearer check |
@@ -23,10 +23,10 @@
 
 ## Fixes applied this pass
 
-1. **SSRF guard hardened** ([`lib/roomie/server.ts`](../lib/roomie/server.ts)) — now also blocks `::`,
+1. **SSRF guard hardened** ([`lib/engine/server.ts`](../lib/engine/server.ts)) — now also blocks `::`,
    `*.localhost`, and **all IPv4-mapped IPv6** (`::ffff:…`, which the URL parser serializes to hex and
    was bypassing the dotted-decimal check). A unit test (`[::ffff:169.254.169.254]`) caught the bypass
-   before it shipped. Exported + covered in [`server.test.ts`](../lib/roomie/server.test.ts).
+   before it shipped. Exported + covered in [`server.test.ts`](../lib/engine/server.test.ts).
 2. **Removed `innerHTML`** ([`app/delegation/DelegationScene.tsx`](../app/delegation/DelegationScene.tsx))
    — agent/"You" labels now built with `textContent`; zero HTML-injection surface even if names become
    user-configurable later.

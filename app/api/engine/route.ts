@@ -1,6 +1,6 @@
-import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply } from "@/lib/roomie/server";
-import { capabilities } from "@/lib/roomie/execution";
-import type { ByokConfig, Company } from "@/lib/roomie/types";
+import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply } from "@/lib/engine/server";
+import { capabilities } from "@/lib/engine/execution";
+import type { ByokConfig, Company } from "@/lib/engine/types";
 
 export const runtime = "nodejs";
 
@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export async function GET() {
   return Response.json({
     ok: true,
-    provider: process.env.ROOMIE_PROVIDER ?? "simulated",
+    provider: process.env.MODEL_PROVIDER ?? "simulated",
     realModelConfigured: realModelConfigured(),
     capabilities: capabilities(),
   });
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
         "content-type": "text/plain; charset=utf-8",
         "cache-control": "no-store",
       };
-      if (approval) headers["x-roomie-approval"] = encodeURIComponent(JSON.stringify(approval));
+      if (approval) headers["x-approval"] = encodeURIComponent(JSON.stringify(approval));
       // Real model → stream its tokens as they arrive (model speed). No model / any failure →
       // fake-stream the simulated reply with a typewriter cadence so it still feels live.
       const live = await streamChatReply(body.company, message, body.soul, body.byok);
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "Unknown `kind` (expected 'validate' | 'shift' | 'chat')" }, { status: 400 });
   } catch (err) {
     // Log only the message — never the raw error/body, since this path handles the BYOK key.
-    console.error("[/api/roomie] engine error:", err instanceof Error ? err.message : "unknown");
+    console.error("[/api/engine] engine error:", err instanceof Error ? err.message : "unknown");
     return Response.json({ error: "Engine failure" }, { status: 500 });
   }
 }

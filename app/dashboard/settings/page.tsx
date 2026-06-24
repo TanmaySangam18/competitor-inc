@@ -18,9 +18,9 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
-import { useConfig, type ProviderMode } from "@/lib/roomie/config";
-import { useAuth } from "@/lib/roomie/useAuth";
-import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/roomie/types";
+import { useConfig, type ProviderMode } from "@/lib/engine/config";
+import { useAuth } from "@/lib/engine/useAuth";
+import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/engine/types";
 
 type Section = "brand" | "agents" | "engine" | "billing" | "integrations" | "account";
 
@@ -377,7 +377,7 @@ function Account({ auth, resetAllConfig }: { auth: ReturnType<typeof useAuth>; r
     // we own-your-data). Unparseable values are kept as their raw string rather than dropped.
     for (let i = 0; i < window.localStorage.length; i++) {
       const k = window.localStorage.key(i);
-      if (!k || !k.startsWith("roomie:")) continue;
+      if (!k || !k.startsWith("cofounder:")) continue;
       const raw = window.localStorage.getItem(k);
       try {
         bundle[k] = raw ? JSON.parse(raw) : null;

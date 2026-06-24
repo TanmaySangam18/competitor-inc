@@ -37,10 +37,10 @@ Legend: ✅ have it · 🟡 partial/scaffolded · ⛔ gap.
 
 | Capability | Polsia | competitor.inc | Status |
 | --- | --- | --- | --- |
-| Named agent crew | ~9 agents | 5 ([`AGENTS`](../lib/roomie/types.ts)) | ✅ concept (fewer) |
+| Named agent crew | ~9 agents | 5 ([`AGENTS`](../lib/engine/types.ts)) | ✅ concept (fewer) |
 | Live activity stream | live stream | Glass Box + `/live` + 3D `/delegation` floor w/ live agent conversation | ✅ (arguably better) |
 | Nightly heartbeat | AI CEO + morning email | `/api/cron` nightly ([cron](../app/api/cron/route.ts)) | 🟡 scaffolded; **no morning email** |
-| Real reasoning model | Claude | BYOK + `ANTHROPIC_API_KEY` ([server](../lib/roomie/server.ts)) | 🟡 wired, off by default |
+| Real reasoning model | Claude | BYOK + `ANTHROPIC_API_KEY` ([server](../lib/engine/server.ts)) | 🟡 wired, off by default |
 | **Build a real MVP** | real code | **simulated** (ships a placeholder URL) | ⛔ **biggest gap** |
 | Deploy to live product | real | simulated | ⛔ gap |
 | GitHub / email / ads / Stripe | real | none | ⛔ gap |
@@ -86,7 +86,7 @@ blind, can mark work "done" without deploying, and taxes your revenue.
 ## 4 · What else is to be done (roadmap — Levels lens: smallest validated wedge first)
 
 > **STATUS (2026-06-19): all phases below are now WIRED and gated.** Each integration is OFF until its
-> key is set (see [`../.env.example`](../.env.example) + [`../lib/roomie/execution.ts`](../lib/roomie/execution.ts));
+> key is set (see [`../.env.example`](../.env.example) + [`../lib/engine/execution.ts`](../lib/engine/execution.ts));
 > with no keys the app stays fully simulated/offline. The list below is now the **activation checklist** —
 > add the credential and it goes live. Real actions run through `/api/execute`, gated + verified.
 

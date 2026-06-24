@@ -10,8 +10,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "./useAuth";
 import { useDbSync, type SyncState } from "./sync";
 
-const KEY = "roomie:v2";
-const LEGACY_KEY = "roomie:v1";
+const KEY = "cofounder:v2";
+const LEGACY_KEY = "cofounder:v1";
 
 // Autopilot pauses (rather than piling up consequential actions) once this many approvals are
 // waiting. Shared by the interval guard and the derived `autopilotPaused` flag so they can't drift.
@@ -72,7 +72,7 @@ async function callEngine(
   body: { kind: "validate"; idea: string; nonce?: number } | { kind: "shift"; company: Company }
 ): Promise<{ validation: ValidationResult } | ShiftResult> {
   try {
-    const res = await fetch("/api/roomie", {
+    const res = await fetch("/api/engine", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ ...body, byok: getByok() ?? undefined }),
@@ -87,7 +87,7 @@ async function callEngine(
   }
 }
 
-export function useRoomie() {
+export function useEngine() {
   const [store, setStore] = useState<Store>(empty);
   const [hydrated, setHydrated] = useState(false);
   const [working, setWorking] = useState<null | "validating" | "shift">(null);
@@ -117,7 +117,7 @@ export function useRoomie() {
   // Cloud persistence (GATED + best-effort). Only when Supabase is configured AND the user is signed
   // in (non-guest); otherwise this is inert and the app stays entirely on the localStorage store
   // above. localStorage always remains the offline cache/source-of-truth. NOTE: not yet verified
-  // against a live DB — see lib/roomie/sync.ts.
+  // against a live DB — see lib/engine/sync.ts.
   const { user, ready: authReady } = useAuth();
   const dbEnabled = isSupabaseConfigured() && authReady && !!user && !user.guest;
   const overlayFromDb = useCallback((s: SyncState) => {

@@ -2,8 +2,8 @@
 //
 // The product is designed "frontier-model-first, behind a swappable interface."
 // `SimulatedProvider` runs fully client-side with no API key (instant, offline demo).
-// A real model is a drop-in: implement `RoomieProvider` to call /api/roomie (server-side,
-// where the key lives) and select it via NEXT_PUBLIC_ROOMIE_PROVIDER.
+// A real model is a drop-in: implement `EngineProvider` to call /api/engine (server-side,
+// where the key lives) and select it via NEXT_PUBLIC_MODEL_PROVIDER.
 
 import type {
   Activity,
@@ -19,7 +19,7 @@ export interface ShiftResult {
   approvals: ApprovalItem[];
 }
 
-export interface RoomieProvider {
+export interface EngineProvider {
   readonly name: string;
   // `salt` varies the deterministic result for re-tests (continuous validation) — same idea, a
   // fresh-but-plausible reading. Omitted = the stable first-run result.
@@ -114,7 +114,7 @@ export function scoreIdea(core: ValidationCore, seed: string) {
 }
 
 /* ── Simulated provider ─────────────────────────────────────── */
-class SimulatedProvider implements RoomieProvider {
+class SimulatedProvider implements EngineProvider {
   readonly name = "simulated";
 
   validate(idea: string, salt = ""): ValidationResult {
@@ -250,8 +250,8 @@ class SimulatedProvider implements RoomieProvider {
 
 const simulated = new SimulatedProvider();
 
-export function getProvider(): RoomieProvider {
-  // NEXT_PUBLIC_ROOMIE_PROVIDER could select a real, server-backed provider here.
+export function getProvider(): EngineProvider {
+  // NEXT_PUBLIC_MODEL_PROVIDER could select a real, server-backed provider here.
   // For now everything routes through the offline simulated engine.
   return simulated;
 }

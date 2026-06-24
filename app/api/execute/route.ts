@@ -1,5 +1,5 @@
-import { runAction, capabilities } from "@/lib/roomie/execution";
-import type { Connections } from "@/lib/roomie/types";
+import { runAction, capabilities } from "@/lib/engine/execution";
+import type { Connections } from "@/lib/engine/types";
 
 // Runs a real, gated agent action (build / deploy / outreach / spend / payments / delete) server-side.
 // Every executor is OFF unless its key is set, in which case it returns { disabled: true } and the

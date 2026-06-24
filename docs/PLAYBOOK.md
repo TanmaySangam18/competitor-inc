@@ -118,7 +118,7 @@ Everything below will be **ready in the repo before D-Day** (env template, DB mi
 ```bash
 # 1. Get the code
 git clone https://github.com/TanmaySangam18/competitor-inc
-cd roomiebot && npm install
+cd competitor-inc && npm install
 
 # 2. Make it run (verify locally)
 cp .env.example .env.local        # BYOK default → no model key needed to boot
@@ -127,7 +127,7 @@ npm run build && npm start        # confirm it builds + runs on localhost:3000
 3. **Create free accounts:** a **Vercel** project (Hobby = $0) and a **Supabase** project ($0).
 4. **Run the DB migration:** paste `supabase/migrations/0001_init.sql` into Supabase's SQL editor → Run.
 5. **Set env vars in Vercel:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   (optional: `ANTHROPIC_API_KEY` + `ROOMIE_PROVIDER=anthropic`, `CRON_SECRET`).
+   (optional: `ANTHROPIC_API_KEY` + `MODEL_PROVIDER=anthropic`, `CRON_SECRET`).
 6. **Deploy:** connect the GitHub repo in Vercel → **Deploy** (or `vercel --prod`).
 7. **Domain:** buy one (~$12, Porkbun) → point it at Vercel.
 8. **Go loud:** publish the prepared posts in `launch/` (Show HN, Product Hunt, X thread) and fire

@@ -49,7 +49,7 @@ Path-to-$10K · Distribution playbook · Zero-budget-compute · Feature rating (
 2. **Repoint the live deploy.** In Vercel → Settings → Git: set repo to **`TanmaySangam18/competitor-inc`**, Production Branch **`main`**, enable auto-deploy → **Redeploy.** This is why the live site is stale.
 3. **🔴 Security (do with #2).** The live `/house` is currently **publicly openable** (our fix isn't deployed). Redeploy fixes it. Then **enable Supabase auth + the founder email allow-list** so the House is founder-only on the live URL.
 4. **Review 2 flagged items from his fork:** (a) **per-user integrations** — confirm real actions still route through the Approval Inbox; (b) **Operate-on-by-default** — consider gating off for v1 (onboarding clutter).
-5. **$0-AI setup.** Wire a **free-tier provider as default**: NVIDIA NIM (`integrate.api.nvidia.com/v1`) or Groq via `ROOMIE_PROVIDER=openai-compatible` (~free credits, OpenAI-compatible = drop-in). Plan **WebLLM** (browser AI) as the later fallback.
+5. **$0-AI setup.** Wire a **free-tier provider as default**: NVIDIA NIM (`integrate.api.nvidia.com/v1`) or Groq via `MODEL_PROVIDER=openai-compatible` (~free credits, OpenAI-compatible = drop-in). Plan **WebLLM** (browser AI) as the later fallback.
 6. **Re-run the QA gate after merge** — confirm green before redeploy.
 7. **Turn on real integrations only as keys are added** (GitHub / Stripe / Resend / ads) — each stays gated/off without its key.
 8. **(Optional) Domain** — buy (~$12) + point at Vercel.

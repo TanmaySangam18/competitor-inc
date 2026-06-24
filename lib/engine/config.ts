@@ -13,7 +13,7 @@ export interface AgentConfig {
 
 export type ProviderMode = "frontier" | "private" | "simulated";
 
-export interface RoomieConfig {
+export interface EngineConfig {
   soul: string;
   agents: Record<AgentRole, AgentConfig>;
   providerMode: ProviderMode;
@@ -23,7 +23,7 @@ export interface RoomieConfig {
 
 const ROLES = Object.keys(AGENTS) as AgentRole[];
 
-export const DEFAULT_CONFIG: RoomieConfig = {
+export const DEFAULT_CONFIG: EngineConfig = {
   soul:
     "Warm, candid, and a little playful. Prove there's real demand before building anything. " +
     "Optimize for the user's real outcome, not vanity metrics — and tell the truth even when it " +
@@ -41,7 +41,7 @@ export const DEFAULT_CONFIG: RoomieConfig = {
   connections: { githubToken: "", resendApiKey: "", resendFrom: "", adsWebhookUrl: "" },
 };
 
-const KEY = "roomie:config:v1";
+const KEY = "cofounder:config:v1";
 
 // Read the user's BYOK config from local storage (used by request senders outside React).
 // Returns null unless a provider + key are set, so requests fall back to simulated.
@@ -50,7 +50,7 @@ export function getByok(): ByokConfig | null {
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return null;
-    const b = (JSON.parse(raw) as RoomieConfig).byok;
+    const b = (JSON.parse(raw) as EngineConfig).byok;
     if (b && b.provider && b.apiKey) return b;
   } catch {
     /* ignore */
@@ -65,7 +65,7 @@ export function getConnections(): Connections | null {
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return null;
-    const c = (JSON.parse(raw) as RoomieConfig).connections;
+    const c = (JSON.parse(raw) as EngineConfig).connections;
     if (c && (c.githubToken || c.resendApiKey || c.adsWebhookUrl)) return c;
   } catch {
     /* ignore */
@@ -74,14 +74,14 @@ export function getConnections(): Connections | null {
 }
 
 export function useConfig() {
-  const [config, setConfig] = useState<RoomieConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<EngineConfig>(DEFAULT_CONFIG);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<RoomieConfig>;
+        const parsed = JSON.parse(raw) as Partial<EngineConfig>;
         if (parsed && typeof parsed === "object") {
           setConfig({
             ...DEFAULT_CONFIG,

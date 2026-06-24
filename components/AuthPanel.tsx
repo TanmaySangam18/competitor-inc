@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Github, Loader2, Mail } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
-import { useAuth } from "@/lib/roomie/useAuth";
+import { useAuth } from "@/lib/engine/useAuth";
 
 function GoogleMark() {
   return (

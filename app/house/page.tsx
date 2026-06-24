@@ -9,10 +9,10 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowLeft, KeyRound, Loader2, Lock, MessagesSquare, Send } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
-import { useAuth } from "@/lib/roomie/useAuth";
-import { DELEGATION, type DelegationAgent } from "@/lib/roomie/delegation";
-import { pickExchange, type BanterCtx, type Turn } from "@/lib/roomie/banter";
-import type { AgentRole } from "@/lib/roomie/types";
+import { useAuth } from "@/lib/engine/useAuth";
+import { DELEGATION, type DelegationAgent } from "@/lib/engine/delegation";
+import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
+import type { AgentRole } from "@/lib/engine/types";
 
 const DelegationScene = dynamic(() => import("../delegation/DelegationScene"), {
   ssr: false,
@@ -45,7 +45,7 @@ export default function House() {
   const [unlocked, setUnlocked] = useState(false);
   const [isLocalhost, setIsLocalhost] = useState(false);
   useEffect(() => {
-    try { setUnlocked(localStorage.getItem("roomie:founder") === "1"); } catch { /* ignore */ }
+    try { setUnlocked(localStorage.getItem("cofounder:founder") === "1"); } catch { /* ignore */ }
     setIsLocalhost(hostIsLocalhost());
   }, []);
 
@@ -94,7 +94,7 @@ export default function House() {
   const [target, setTarget] = useState<AgentRole>("ceo");
   const [directives, setDirectives] = useState<{ text: string; role: AgentRole; at: number }[]>([]);
   useEffect(() => {
-    try { const raw = localStorage.getItem("roomie:house:directives"); if (raw) setDirectives(JSON.parse(raw)); } catch { /* ignore */ }
+    try { const raw = localStorage.getItem("cofounder:house:directives"); if (raw) setDirectives(JSON.parse(raw)); } catch { /* ignore */ }
   }, []);
   const sendDirective = () => {
     const text = directive.trim();
@@ -102,7 +102,7 @@ export default function House() {
     const entry = { text, role: target, at: Date.now() };
     setDirectives((d) => {
       const next = [entry, ...d].slice(0, 50);
-      try { localStorage.setItem("roomie:house:directives", JSON.stringify(next)); } catch { /* ignore */ }
+      try { localStorage.setItem("cofounder:house:directives", JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
     // The agent acknowledges in its bubble. Simulated for now; post-launch this dispatches to the real
@@ -132,7 +132,7 @@ export default function House() {
             </Link>
           ) : isLocalhost ? (
             <button
-              onClick={() => { try { localStorage.setItem("roomie:founder", "1"); } catch { /* ignore */ } setUnlocked(true); }}
+              onClick={() => { try { localStorage.setItem("cofounder:founder", "1"); } catch { /* ignore */ } setUnlocked(true); }}
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110"
             >
               <KeyRound size={15} /> Unlock on this device
