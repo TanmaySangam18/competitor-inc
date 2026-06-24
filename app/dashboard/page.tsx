@@ -268,7 +268,7 @@ function Onboarding({ onSubmit, hasOthers, onDemo }: { onSubmit: (idea: string) 
           aria-label="Describe your company idea"
         />
         <div className="flex items-center justify-between px-1 pt-1">
-          <span className="text-xs text-muted-2">competitor.inc runs a real demand test first.</span>
+          <span className="text-xs text-muted-2">competitor.inc estimates demand first — an honest AI read before you build.</span>
           <button
             onClick={() => onSubmit(idea)}
             disabled={!idea.trim()}
@@ -304,11 +304,13 @@ function Onboarding({ onSubmit, hasOthers, onDemo }: { onSubmit: (idea: string) 
 }
 
 /* ── Validation running ──────────────────────────────────────── */
+// Honest framing: this is a fast AI estimate, not a live test. (A real live test — deploy a page,
+// collect real signups over time — is the separate, opt-in path.)
 const VALIDATION_STEPS = [
   "Reading your idea",
-  "Spinning up a landing page",
-  "Wiring a waitlist + analytics",
-  "Running a small demand test",
+  "Modeling landing + waitlist demand",
+  "Estimating ad + search signals",
+  "Weighing the evidence",
   "Scoring the signal",
 ];
 
@@ -372,6 +374,7 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
         <div className="flex items-center justify-between">
           <div className={`flex items-center gap-2 text-sm font-semibold ${vs.text}`}>
             <FlaskConical size={16} /> VALIDATION GATE · {vs.label}
+            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-2">AI estimate</span>
           </div>
           <div className="text-right">
             <div className={`font-display text-2xl font-bold ${vs.text}`}>{v.confidence}%</div>
@@ -422,7 +425,9 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
           )}
         </div>
       </div>
-      <p className="mt-3 text-center text-xs text-muted-2">You decide. competitor.inc only builds once you approve.</p>
+      <p className="mt-3 text-center text-xs text-muted-2">
+        These are <span className="text-muted">AI estimates</span> from your idea — a fast read, not a live test with real signups yet. You decide; competitor.inc only builds once you approve.
+      </p>
     </motion.div>
   );
 }
