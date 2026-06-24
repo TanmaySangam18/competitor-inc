@@ -219,22 +219,32 @@ export async function runValidate(idea: string, byok?: ByokConfig, salt?: string
   const seed = salt ? idea + "::" + salt : idea;
   try {
     const text = await callModel(
-      "You are competitor.inc's validation gate. Given a startup idea, estimate honest results of a small real demand test. Be realistic and willing to be skeptical." +
+      "You are competitor.inc's validation gate. Given a startup idea, estimate honest results of a small demand test. Be realistic and willing to be skeptical — estimate EVERY field from the specifics of this idea (don't return round/placeholder numbers)." +
         (salt ? " This is a RE-TEST — market conditions may have shifted since the last reading, so don't just echo it." : "") +
-        ' Return ONLY JSON: {"waitlist":number,"ctr":number,"costPerSignup":number,"spend":number}',
+        ' Return ONLY JSON: {"waitlist":number (signups from a small landing-page test),"ctr":number (ad click-through %),"costPerSignup":number (dollars),"spend":number (test budget dollars),"conversion":number (landing→waitlist %),"clickThrough":number (fake-door button %),"searchVolume":number (monthly searches for this problem),"competition":"low"|"medium"|"high"}',
       idea,
       byok,
       modelForAgent("ceo")
     );
-    const m = extractJson<{ waitlist?: number; ctr?: number; costPerSignup?: number; spend?: number }>(text);
+    const m = extractJson<{
+      waitlist?: number; ctr?: number; costPerSignup?: number; spend?: number;
+      conversion?: number; clickThrough?: number; searchVolume?: number; competition?: string;
+    }>(text);
     const core = {
       waitlist: Math.round(num(m.waitlist, base.waitlist)),
       ctr: num(m.ctr, base.ctr),
       costPerSignup: num(m.costPerSignup, base.costPerSignup),
       spend: num(m.spend, base.spend),
     };
-    // derive experiments/confidence/verdict deterministically from the model's core estimates
-    return { steps: base.steps, ...core, ...scoreIdea(core, seed) };
+    // Every number is now the model's estimate for this idea; scoreIdea falls back to its RNG only
+    // for any field the model omitted.
+    const extras = {
+      conversion: typeof m.conversion === "number" ? m.conversion : undefined,
+      clickThrough: typeof m.clickThrough === "number" ? m.clickThrough : undefined,
+      searchVolume: typeof m.searchVolume === "number" ? m.searchVolume : undefined,
+      competition: (["low", "medium", "high"] as const).find((c) => c === m.competition),
+    };
+    return { steps: base.steps, ...core, ...scoreIdea(core, seed, extras) };
   } catch {
     return base; // graceful degradation
   }

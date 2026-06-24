@@ -90,6 +90,18 @@ describe("scoreIdea", () => {
     expect(r.confidence).toBeLessThanOrEqual(100);
     expect(["strong", "weak", "mixed"]).toContain(r.verdict);
   });
+  it("uses model-provided extras over the RNG when given", () => {
+    const core = { waitlist: 50, ctr: 4, costPerSignup: 1, spend: 20 };
+    const r = scoreIdea(core, "z", { conversion: 12.3, clickThrough: 8, searchVolume: 9999, competition: "low" });
+    const m = Object.fromEntries(r.experiments.map((e) => [e.key, e.metric]));
+    expect(m.landing).toContain("12.3% conversion");
+    expect(m.fakedoor).toContain("8% clicked through");
+    expect(m.search).toContain("9,999/mo searches · low competition");
+  });
+  it("falls back to the deterministic RNG for omitted extras", () => {
+    const core = { waitlist: 30, ctr: 3, costPerSignup: 1.2, spend: 20 };
+    expect(scoreIdea(core, "seed", {})).toEqual(scoreIdea(core, "seed")); // {} === no extras
+  });
 });
 
 describe("shift", () => {
