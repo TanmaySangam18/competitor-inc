@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { AgentWelcome } from "@/components/AgentWelcome";
+import { SecretHouseDoor } from "@/components/SecretHouseDoor";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },
@@ -236,12 +237,13 @@ function Hero() {
         <div className="mx-auto mb-1 max-w-[300px]">
           <AgentWelcome />
         </div>
-        <div
+        <SecretHouseDoor
           className="text-center leading-[0.85] tracking-tight text-[10vw]"
-          style={{ fontFamily: "var(--font-heavy)" }}
         >
-          competitor<span className="text-coral">.inc</span>
-        </div>
+          <span style={{ fontFamily: "var(--font-heavy)" }}>
+            competitor<span className="text-coral">.inc</span>
+          </span>
+        </SecretHouseDoor>
       </div>
     </section>
   );
@@ -539,6 +541,53 @@ function Footer() {
   );
 }
 
+/* ── ChatOps teaser (coming soon — texting your agents) ───────── */
+function ChatOpsTeaser() {
+  return (
+    <section className="border-t border-border bg-surface/20">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-24 md:grid-cols-2">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-coral/30 bg-coral/10 px-3 py-1 text-xs font-medium text-coral">
+            <Sparkles size={13} /> Coming soon
+          </span>
+          <h2 className="display mt-5 text-3xl md:text-[2.6rem]">Run it from your texts.</h2>
+          <p className="mt-4 max-w-md text-muted">
+            Soon you won&apos;t need to open competitor.inc at all. Your agents will text you what they&apos;re
+            doing and what needs your call — you reply <span className="text-text">approve</span> or{" "}
+            <span className="text-text">reject</span>, right from your phone. The Approval Inbox, brought to
+            where you already live.
+          </p>
+          <p className="mt-3 text-sm text-muted-2">
+            Same rule as always: nothing consequential happens without your yes.
+          </p>
+        </div>
+
+        {/* a little text-thread preview */}
+        <div className="clay-panel mx-auto w-full max-w-sm p-5">
+          <div className="space-y-3">
+            <div className="flex items-start gap-2.5">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-text text-bg"><LogoMark size={16} /></span>
+              <div className="rounded-2xl rounded-tl-sm border border-border bg-bg/60 px-3.5 py-2 text-sm text-muted">
+                Pitch wants to spend $40 on an X ad test. Approve?
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <div className="rounded-2xl rounded-tr-sm bg-coral px-3.5 py-2 text-sm font-medium text-bg">approve ✅</div>
+            </div>
+            <div className="flex items-start gap-2.5">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-text text-bg"><LogoMark size={16} /></span>
+              <div className="rounded-2xl rounded-tl-sm border border-border bg-bg/60 px-3.5 py-2 text-sm text-muted">
+                Done — it&apos;s live. I&apos;ll report results tonight. 🚀
+              </div>
+            </div>
+          </div>
+          <p className="mt-4 text-center text-[11px] text-muted-2">Texting with your crew · preview</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <main id="main">
@@ -548,6 +597,7 @@ export default function Home() {
       <HowItWorks />
       <Capabilities />
       <GlassBox />
+      <ChatOpsTeaser />
       <Pricing />
       <FinalCTA />
       <Footer />
