@@ -1,5 +1,6 @@
 import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply } from "@/lib/engine/server";
 import { capabilities } from "@/lib/engine/execution";
+import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import type { ByokConfig, Company } from "@/lib/engine/types";
 
 export const runtime = "nodejs";
@@ -20,6 +21,16 @@ type Body =
   | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; byok?: ByokConfig };
 
 export async function POST(req: Request) {
+  // Cost/abuse guard: soft per-IP rate limit. Active only on Vercel (real deployments) so the local
+  // dev server + QA smoke harness aren't throttled. A 429 makes the clients fall back to the free
+  // simulated engine, so a flooding IP can't keep spending model tokens.
+  if (process.env.VERCEL && rateLimited(clientIp(req))) {
+    return new Response("You're going a bit fast — give it a moment and try again.", {
+      status: 429,
+      headers: { "content-type": "text/plain; charset=utf-8", "retry-after": "60" },
+    });
+  }
+
   let body: Body;
   try {
     body = (await req.json()) as Body;
