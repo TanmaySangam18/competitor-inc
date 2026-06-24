@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono, Archivo_Black } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { StorageMigrator } from "@/components/StorageMigrator";
 
 const spaceGrotesk = Space_Grotesk({
@@ -78,6 +79,7 @@ export default function RootLayout({
     >
       <body>
         <StorageMigrator />
+        <Analytics />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-coral focus:px-4 focus:py-2 focus:font-semibold focus:text-bg"
