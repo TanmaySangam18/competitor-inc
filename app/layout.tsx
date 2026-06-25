@@ -3,6 +3,7 @@ import { Space_Grotesk, Inter, JetBrains_Mono, Archivo_Black } from "next/font/g
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { StorageMigrator } from "@/components/StorageMigrator";
+import { FeedbackWidget } from "@/components/FeedbackWidget";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -87,6 +88,7 @@ export default function RootLayout({
           Skip to content
         </a>
         {children}
+        <FeedbackWidget />
       </body>
     </html>
   );
