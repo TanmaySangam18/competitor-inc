@@ -52,7 +52,7 @@ export interface Activity {
   undone?: boolean;
 }
 
-export type ApprovalKind = "spend" | "outreach" | "deploy" | "delete";
+export type ApprovalKind = "spend" | "outreach" | "deploy" | "delete" | "bluesky";
 
 export interface ApprovalItem {
   id: string;

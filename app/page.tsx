@@ -63,6 +63,7 @@ function Nav() {
         </a>
         <div className="hidden items-center gap-9 text-sm text-muted md:flex">
           <a href="/how-it-works" className="transition hover:text-text">How it works</a>
+          <a href="/playbooks" className="transition hover:text-text">Playbooks</a>
           <a href="#capabilities" className="transition hover:text-text">Capabilities</a>
           <a href="/delegation" className="transition hover:text-text">The Delegation</a>
           <a href="#trust" className="transition hover:text-text">Glass Box</a>
@@ -161,7 +162,7 @@ function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3.5 py-1.5 text-xs text-muted backdrop-blur"
           >
             <Sparkles size={13} className="text-amber" />
-            Validation-first · honest by design
+            For first-time founders · honest by design
           </motion.div>
 
           <motion.h1
@@ -181,10 +182,10 @@ function Hero() {
             transition={{ duration: 0.6, delay: 0.13 }}
             className="mt-6 max-w-xl text-lg leading-relaxed text-muted"
           >
-            competitor.inc is your AI co-founder that{" "}
-            <span className="text-text">validates an idea before it builds it</span> — running real
-            demand tests, telling you the honest truth, then shipping only the winner. It shows its
-            work, and never spends a dollar or sends a message without your say-so.
+            competitor.inc is the AI co-founder for{" "}
+            <span className="text-text">your first company</span> — it validates your idea before you build
+            it, tells you the honest truth (even when that's &ldquo;don&apos;t&rdquo;), then ships only the
+            winner. It shows its work, and never spends a dollar or sends a message without your say-so.
           </motion.p>
 
           <motion.div
@@ -511,6 +512,7 @@ function Footer() {
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
           <a href="/how-it-works" className="transition hover:text-text">How it works</a>
+          <a href="/playbooks" className="transition hover:text-text">Playbooks</a>
           <a href="/delegation" className="transition hover:text-text">The Delegation</a>
           <a href="/blog" className="transition hover:text-text">Blog</a>
           <a href="/live" className="transition hover:text-text">Live board</a>

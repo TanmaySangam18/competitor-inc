@@ -230,9 +230,9 @@ class SimulatedProvider implements EngineProvider {
     // Growth — outreach drafts need sign-off
     if (rng() > 0.5) {
       approvals.push({
-        id: uid(), night, agent: "growth", kind: "outreach",
-        title: "Post a launch update on X",
-        detail: `Surge drafted a thread about ${company.name}. Outbound messages always wait for your yes.`,
+        id: uid(), night, agent: "growth", kind: "bluesky",
+        title: "Post a launch update on Bluesky",
+        detail: `${company.name} — the honest AI co-founder that validates your idea before it builds it, and takes 0% of your revenue. Soft launch is live.`,
       });
     } else if (rng() > 0.4) {
       add("growth", "Spotted a trend worth riding & drafted notes", {

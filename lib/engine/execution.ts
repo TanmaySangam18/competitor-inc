@@ -48,6 +48,7 @@ export function capabilities(conn?: Connections) {
     email: !!((conn?.resendApiKey || process.env.RESEND_API_KEY) && (conn?.resendFrom || process.env.RESEND_FROM)),
     payments: !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),
     ads: !!(conn?.adsWebhookUrl || process.env.ADS_WEBHOOK_URL),
+    bluesky: !!(process.env.BLUESKY_HANDLE && process.env.BLUESKY_APP_PASSWORD),
   };
 }
 export function realExecutionEnabled(): boolean {
@@ -184,6 +185,43 @@ export async function placeAd(
   }
 }
 
+// ── Bluesky (AT Protocol) — free, approval-gated organic posting ──────────────
+// Auth with a scoped app-password (createSession) → publish a post (createRecord). App-password is
+// server-only and rotate-able; OFF until BLUESKY_HANDLE + BLUESKY_APP_PASSWORD are set. Never autonomous —
+// only fires for a post the founder approved in the Approval Inbox.
+export async function postToBluesky(opts: { text: string }): Promise<ExecOutcome> {
+  const handle = process.env.BLUESKY_HANDLE;
+  const password = process.env.BLUESKY_APP_PASSWORD;
+  const text = (opts.text || "").slice(0, 300);
+  if (!handle || !password || !text) return disabled();
+  try {
+    const auth = await timed("https://bsky.social/xrpc/com.atproto.server.createSession", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ identifier: handle, password }),
+    });
+    if (!auth.ok) return { ok: false, error: `bluesky auth ${auth.status}` };
+    const session = (await auth.json().catch(() => ({}))) as { accessJwt?: string; did?: string };
+    if (!session.accessJwt || !session.did) return { ok: false, error: "bluesky no session" };
+    const res = await timed("https://bsky.social/xrpc/com.atproto.repo.createRecord", {
+      method: "POST",
+      headers: { authorization: `Bearer ${session.accessJwt}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        repo: session.did,
+        collection: "app.bsky.feed.post",
+        record: { $type: "app.bsky.feed.post", text, createdAt: new Date().toISOString() },
+      }),
+    });
+    if (!res.ok) return { ok: false, error: `bluesky post ${res.status}` };
+    const data = (await res.json().catch(() => ({}))) as { uri?: string };
+    const rkey = data.uri?.split("/").pop();
+    const link = rkey ? `https://bsky.app/profile/${handle}/post/${rkey}` : undefined;
+    return { ok: true, proof: link ? { kind: "url", value: link } : { kind: "metric", value: "posted to Bluesky" } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 // ── Dispatcher: map an agent action / approved item to its real executor ──────
 export interface ActionPayload {
   company: { name: string; idea: string };
@@ -214,6 +252,8 @@ export async function runAction(action: string, p: ActionPayload): Promise<ExecO
         c?.resendFrom || process.env.RESEND_FROM
       );
     }
+    case "bluesky":
+      return postToBluesky({ text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
     case "spend":
       return placeAd(
         { objective: p.item?.title || "demand test", budget: p.item?.amount ?? 50, copy: p.item?.detail || p.company.idea },
