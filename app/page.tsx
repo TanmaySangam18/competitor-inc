@@ -418,7 +418,7 @@ function GlassBox() {
 const plans = [
   { name: "Validate", price: "$0", tag: "free forever", points: ["Run the Validation Gate", "Real landing page + waitlist", "Honest go / tweak / kill verdict", "No card required"], cta: "Start free", href: "/dashboard", highlight: false },
   { name: "Operator", price: "$39", tag: "/ month", points: ["Everything in Validate", "Build-the-winner agent team", "Glass Box + Approval Inbox", "Never charged for failed work", "BYOK + Private Mode · export anytime"], cta: "Hire your co-founder", href: "/dashboard", highlight: true },
-  { name: "Founding", price: "$99", tag: "once · launch only", points: ["Everything in Operator — for life", "Founding-member badge", "Shape the roadmap", "Lock today's price forever"], cta: "Claim a seat", href: "/join", highlight: false },
+  { name: "Founding", price: "$99", tag: "once · launch only", points: ["Everything in Operator — for life", "Founding-member badge", "Shape the roadmap", "Lock today's price forever", "First 150 founders — then it's gone"], cta: "Claim a seat", href: "/join", highlight: false },
 ];
 
 function Pricing() {
@@ -429,6 +429,9 @@ function Pricing() {
           <h2 className="display text-3xl md:text-[2.6rem]">Honest pricing</h2>
           <p className="mt-4 text-lg text-muted">
             Pay for the work. Keep your upside. No revenue share, no lock-in.
+          </p>
+          <p className="mt-2 text-sm text-muted-2">
+            Start free — you only pay once there&apos;s a winner worth building.
           </p>
         </Reveal>
         <div className="mt-14 grid gap-6 md:grid-cols-3">

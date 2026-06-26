@@ -403,6 +403,14 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
           <p className="text-sm text-muted">{v.recommendation}</p>
         </div>
 
+        {recommendHold && (
+          <p className="mt-4 rounded-2xl border border-mint/25 bg-mint/[0.05] px-4 py-3 text-sm text-muted">
+            <span className="font-medium text-mint">A &ldquo;not yet&rdquo; is a win.</span> You just learned it
+            cheaply — before months and your savings went in. Tweak the idea or the audience and run the gate
+            again; that&apos;s the whole point.
+          </p>
+        )}
+
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           {recommendHold ? (
             <>
