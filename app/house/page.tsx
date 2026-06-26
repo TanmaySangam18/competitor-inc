@@ -9,10 +9,11 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowLeft, KeyRound, Loader2, Lock, MessagesSquare, Send } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
-import { useAuth } from "@/lib/roomie/useAuth";
-import { DELEGATION, type DelegationAgent } from "@/lib/roomie/delegation";
-import { pickExchange, type BanterCtx, type Turn } from "@/lib/roomie/banter";
-import type { AgentRole } from "@/lib/roomie/types";
+import { useAuth } from "@/lib/engine/useAuth";
+import { DELEGATION, type DelegationAgent } from "@/lib/engine/delegation";
+import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
+import { AGENTS, type AgentRole } from "@/lib/engine/types";
+import { getByok } from "@/lib/engine/config";
 
 const DelegationScene = dynamic(() => import("../delegation/DelegationScene"), {
   ssr: false,
@@ -45,7 +46,7 @@ export default function House() {
   const [unlocked, setUnlocked] = useState(false);
   const [isLocalhost, setIsLocalhost] = useState(false);
   useEffect(() => {
-    try { setUnlocked(localStorage.getItem("roomie:founder") === "1"); } catch { /* ignore */ }
+    try { setUnlocked(localStorage.getItem("cofounder:founder") === "1"); } catch { /* ignore */ }
     setIsLocalhost(hostIsLocalhost());
   }, []);
 
@@ -64,9 +65,14 @@ export default function House() {
   const ctxRef = useRef<BanterCtx>({ company: "competitor.inc", idea: "the honest AI co-founder", working: true });
   const queueRef = useRef<Turn[]>([]);
   const lastIdRef = useRef<number | undefined>(undefined);
+  // True while a founder directive is streaming a real (Sonnet) reply — pause the ambient banter so
+  // it doesn't talk over the agent actually responding.
+  const busyRef = useRef(false);
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (!isFounder) return;
     const tick = () => {
+      if (busyRef.current) return;
       if (queueRef.current.length === 0) {
         const ex = pickExchange(ctxRef.current, lastIdRef.current);
         lastIdRef.current = ex.id;
@@ -94,23 +100,77 @@ export default function House() {
   const [target, setTarget] = useState<AgentRole>("ceo");
   const [directives, setDirectives] = useState<{ text: string; role: AgentRole; at: number }[]>([]);
   useEffect(() => {
-    try { const raw = localStorage.getItem("roomie:house:directives"); if (raw) setDirectives(JSON.parse(raw)); } catch { /* ignore */ }
+    try { const raw = localStorage.getItem("cofounder:house:directives"); if (raw) setDirectives(JSON.parse(raw)); } catch { /* ignore */ }
   }, []);
-  const sendDirective = () => {
+  const sendDirective = async () => {
     const text = directive.trim();
-    if (!text) return;
-    const entry = { text, role: target, at: Date.now() };
+    if (!text || busyRef.current) return;
+    const role = target;
+    const entry = { text, role, at: Date.now() };
     setDirectives((d) => {
       const next = [entry, ...d].slice(0, 50);
-      try { localStorage.setItem("roomie:house:directives", JSON.stringify(next)); } catch { /* ignore */ }
+      try { localStorage.setItem("cofounder:house:directives", JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
-    // The agent acknowledges in its bubble. Simulated for now; post-launch this dispatches to the real
-    // agent queue. Honest framing: queued, and consequential moves still wait for your approval.
-    const ack: Turn = { role: target, text: `On it — “${text}”. Queued for the crew; nothing consequential ships without your yes.` };
-    setSpeaker(ack);
-    setTranscript((t) => [...t, ack].slice(-40));
     setDirective("");
+    busyRef.current = true;
+    setBusy(true);
+
+    // The addressed agent answers for real (Sonnet 4.6 via /api/engine) in its own voice + playbook,
+    // about competitor.inc itself (customer zero). Streamed onto the floor. Consequential moves
+    // (spend, outreach, posting, deploys) it drafts and queues for your sign-off — never auto-ships.
+    const a = AGENTS[role];
+    const soul =
+      `You are ${a.name}, the ${a.label} agent at competitor.inc — the proof-first AI co-founder. ` +
+      `Right now you're working on competitor.inc ITSELF (customer zero), not a user's company. Your playbook: ${a.playbook}. ` +
+      `Reply in-character: concise, specific, action-oriented — name the concrete next steps you'd take. ` +
+      `Anything consequential (spending money, outreach, posting publicly, deploying) you DRAFT and queue for the founder's approval — say so; never claim you already shipped it.`;
+
+    // Streaming bubble: append one floor entry for this agent and update it live as tokens arrive.
+    setTranscript((t) => [...t, { role, text: "…" }].slice(-40));
+    const update = (txt: string) => {
+      setSpeaker({ role, text: txt });
+      setTranscript((t) => { const copy = t.slice(); copy[copy.length - 1] = { role, text: txt }; return copy; });
+    };
+
+    try {
+      const res = await fetch("/api/engine", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          kind: "chat",
+          company: { name: "competitor.inc", idea: "the proof-first AI co-founder that validates demand before building" },
+          message: text,
+          soul,
+          byok: getByok() ?? undefined,
+        }),
+      });
+      const consequential = !!res.headers.get("x-approval");
+      let acc = "";
+      if (!res.body) {
+        const d = await res.json().catch(() => ({} as { reply?: string }));
+        acc = d.reply ?? "On it.";
+        update(acc);
+      } else {
+        const reader = res.body.getReader();
+        const dec = new TextDecoder();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          acc += dec.decode(value, { stream: true });
+          update(acc);
+        }
+      }
+      // Honest human-in-the-loop signal: a consequential ask is flagged as waiting on the founder.
+      if (consequential) {
+        setTranscript((t) => [...t, { role, text: "🔔 Queued for your approval — nothing consequential ships without your yes." }].slice(-40));
+      }
+    } catch {
+      update("I couldn't reach the engine just now — try again?");
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
   };
 
   // ── Gate screens ────────────────────────────────────────────────
@@ -132,7 +192,7 @@ export default function House() {
             </Link>
           ) : isLocalhost ? (
             <button
-              onClick={() => { try { localStorage.setItem("roomie:founder", "1"); } catch { /* ignore */ } setUnlocked(true); }}
+              onClick={() => { try { localStorage.setItem("cofounder:founder", "1"); } catch { /* ignore */ } setUnlocked(true); }}
               className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110"
             >
               <KeyRound size={15} /> Unlock on this device
@@ -199,17 +259,18 @@ export default function House() {
               value={directive}
               onChange={(e) => setDirective(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendDirective()}
-              placeholder="Tell the crew what to do next…"
+              disabled={busy}
+              placeholder={busy ? `${AGENTS[target].name} is working…` : "Tell the crew what to do next…"}
               aria-label="Command the crew"
-              className="w-full rounded-lg bg-bg/60 px-3 py-2 text-sm outline-none placeholder:text-muted-2"
+              className="w-full rounded-lg bg-bg/60 px-3 py-2 text-sm outline-none placeholder:text-muted-2 disabled:opacity-60"
             />
             <button
               onClick={sendDirective}
-              disabled={!directive.trim()}
+              disabled={!directive.trim() || busy}
               aria-label="Send directive"
               className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-coral text-bg transition hover:brightness-110 disabled:opacity-40"
             >
-              <Send size={15} />
+              {busy ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
             </button>
           </div>
           {directives.length > 0 && (

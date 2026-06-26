@@ -88,7 +88,7 @@ named teammates" brand. Still gated, still proof-logged.
 ## 5 · Build order (Levels — smallest validated wedge first)
 
 1. **Per-agent model routing** — ✅ **DONE** (foundation): `modelForAgent()` routes Forge/Apex → strong
-   (`ROOMIE_MODEL`), other agents → `ROOMIE_MODEL_CHEAP` (default Haiku 4.5); wired into validate/chat/shift,
+   (`MODEL_ID`), other agents → `MODEL_CHEAP` (default Haiku 4.5); wired into validate/chat/shift,
    BYOK-compatible, unit-tested. Full per-agent *task* calls extend it later.
 2. **Forge → real coding agent** (Claude Agent SDK / Managed Agents) — ⏳ **gated scaffold**: the
    `execution.ts` GitHub build + verify-before-done is live-ready behind `GITHUB_TOKEN`; the Managed-Agents

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowLeft, Building2, Moon, CheckCircle2, Wallet, ShieldCheck } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
-import type { Activity, ApprovalItem, Company } from "@/lib/roomie/types";
-import { AGENTS, type AgentRole } from "@/lib/roomie/types";
+import type { Activity, ApprovalItem, Company } from "@/lib/engine/types";
+import { AGENTS, type AgentRole } from "@/lib/engine/types";
 
 interface Store {
   companies: Company[];
@@ -19,7 +19,7 @@ export default function Live() {
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem("roomie:v2");
+      const raw = window.localStorage.getItem("cofounder:v2");
       setStore(raw ? (JSON.parse(raw) as Store) : { companies: [], activities: {}, approvals: {} });
     } catch {
       setStore({ companies: [], activities: {}, approvals: {} });

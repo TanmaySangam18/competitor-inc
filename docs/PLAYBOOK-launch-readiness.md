@@ -59,35 +59,35 @@ Legend: ✅ verified in code · 🟡 verified with a caveat / residual risk · �
 
 | README promise | Backed by | Status |
 | --- | --- | --- |
-| Validation Gate runs 4 experiments → confidence % + honest verdict (`strong/weak/mixed`) | [`provider.ts` `scoreIdea()`](../lib/roomie/provider.ts) · [`types.ts:24`](../lib/roomie/types.ts) · API [`route.ts:33`](../app/api/roomie/route.ts) | ✅ |
-| Build-the-winner ships an MVP with a real proof-of-work URL | [`useRoomie.ts:180`](../lib/roomie/useRoomie.ts) (`decideBuild`) | ✅ |
-| Overnight shifts produce 3–5 logged actions, each with cost + proof | [`server.ts:158`](../lib/roomie/server.ts) (`runShift`) · sim [`provider.ts`](../lib/roomie/provider.ts) | ✅ |
-| Named crew with scoped playbooks (Apex/Forge/Pitch/Guard/Surge) | [`types.ts:121`](../lib/roomie/types.ts) (`AGENTS`) | ✅ |
-| Chat with the co-founder, streamed | [`route.ts:56`](../app/api/roomie/route.ts) + `streamText` [:76](../app/api/roomie/route.ts) | 🟡 *post-hoc* token streaming, not true model streaming (README discloses this) |
-| Approval Inbox for consequential actions; Auto-refund on failed tasks | `runShift` routes spend/outreach/deploy/delete to approvals [`server.ts:164`](../lib/roomie/server.ts) · refund math [`useRoomie.ts:230`](../lib/roomie/useRoomie.ts) | ✅ |
-| Autopilot / nightly heartbeat | in-app interval [`useRoomie.ts:266`](../lib/roomie/useRoomie.ts) · cron [`app/api/cron/route.ts`](../app/api/cron/route.ts) | ✅ |
+| Validation Gate runs 4 experiments → confidence % + honest verdict (`strong/weak/mixed`) | [`provider.ts` `scoreIdea()`](../lib/engine/provider.ts) · [`types.ts:24`](../lib/engine/types.ts) · API [`route.ts:33`](../app/api/engine/route.ts) | ✅ |
+| Build-the-winner ships an MVP with a real proof-of-work URL | [`useEngine.ts:180`](../lib/engine/useEngine.ts) (`decideBuild`) | ✅ |
+| Overnight shifts produce 3–5 logged actions, each with cost + proof | [`server.ts:158`](../lib/engine/server.ts) (`runShift`) · sim [`provider.ts`](../lib/engine/provider.ts) | ✅ |
+| Named crew with scoped playbooks (Apex/Forge/Pitch/Guard/Surge) | [`types.ts:121`](../lib/engine/types.ts) (`AGENTS`) | ✅ |
+| Chat with the co-founder, streamed | [`route.ts:56`](../app/api/engine/route.ts) + `streamText` [:76](../app/api/engine/route.ts) | 🟡 *post-hoc* token streaming, not true model streaming (README discloses this) |
+| Approval Inbox for consequential actions; Auto-refund on failed tasks | `runShift` routes spend/outreach/deploy/delete to approvals [`server.ts:164`](../lib/engine/server.ts) · refund math [`useEngine.ts:230`](../lib/engine/useEngine.ts) | ✅ |
+| Autopilot / nightly heartbeat | in-app interval [`useEngine.ts:266`](../lib/engine/useEngine.ts) · cron [`app/api/cron/route.ts`](../app/api/cron/route.ts) | ✅ |
 | Public `/live` board · `/how-it-works` | routes present, smoke `200` | ✅ |
 
 ### 3.2 Failure handling & graceful degradation
 
 | Promise | Backed by | Status |
 | --- | --- | --- |
-| Runs fully offline with no keys (simulated engine + localStorage) | `callEngine` falls back to local provider [`useRoomie.ts:74`](../lib/roomie/useRoomie.ts) · `modelAvailable` gate [`server.ts:69`](../lib/roomie/server.ts) | ✅ |
-| Real model failure degrades to simulated (never 5xx to the user) | try/catch → sim in `runValidate`/`runChat`/`runShift` [`server.ts:111,130,191`](../lib/roomie/server.ts) | ✅ |
-| Corrupted localStorage doesn't wedge the UI | guarded `load()` [`useRoomie.ts:21`](../lib/roomie/useRoomie.ts) | ✅ |
-| Malformed API 200 doesn't corrupt state | array/shape guards [`useRoomie.ts:143,226`](../lib/roomie/useRoomie.ts) | ✅ |
-| No overlapping autopilot shifts | `inFlightRef` mutex [`useRoomie.ts:88,212`](../lib/roomie/useRoomie.ts) | ✅ |
+| Runs fully offline with no keys (simulated engine + localStorage) | `callEngine` falls back to local provider [`useEngine.ts:74`](../lib/engine/useEngine.ts) · `modelAvailable` gate [`server.ts:69`](../lib/engine/server.ts) | ✅ |
+| Real model failure degrades to simulated (never 5xx to the user) | try/catch → sim in `runValidate`/`runChat`/`runShift` [`server.ts:111,130,191`](../lib/engine/server.ts) | ✅ |
+| Corrupted localStorage doesn't wedge the UI | guarded `load()` [`useEngine.ts:21`](../lib/engine/useEngine.ts) | ✅ |
+| Malformed API 200 doesn't corrupt state | array/shape guards [`useEngine.ts:143,226`](../lib/engine/useEngine.ts) | ✅ |
+| No overlapping autopilot shifts | `inFlightRef` mutex [`useEngine.ts:88,212`](../lib/engine/useEngine.ts) | ✅ |
 | API never 5xx on garbage input | fuzz: 60 payloads, zero 5xx ([`smoke.mjs:70`](../scripts/smoke.mjs)) | ✅ |
 
 ### 3.3 Security & privacy
 
 | Promise | Backed by | Status |
 | --- | --- | --- |
-| API key is server-only, never reaches the client | `import "server-only"` + key read in module [`server.ts:1,14`](../lib/roomie/server.ts) | ✅ |
-| BYOK key sent per-request, never persisted server-side | forwarded in body, used transiently [`server.ts:75`](../lib/roomie/server.ts); no write path | ✅ |
-| SSRF guard on user-supplied BYOK base URL | `assertSafeBaseUrl` [`server.ts:41`](../lib/roomie/server.ts) — https-only; blocks loopback, `10/8`, `127/8`, `0.0.0.0`, `169.254`, `172.16–31`, `192.168`, `::1`, `fc/fd/fe80`, `localhost`, GCP metadata host | 🟡 covers **literal IPs + known hostnames**; a DNS name that *resolves* to a private IP is not re-checked (DNS-rebinding residual risk). See **F-3** |
-| Logs scrub secrets (message only, never raw error/body) | [`route.ts:68`](../app/api/roomie/route.ts) | ✅ |
-| Input validation rejects malformed bodies with 400 | [`route.ts:28–66`](../app/api/roomie/route.ts) | ✅ |
+| API key is server-only, never reaches the client | `import "server-only"` + key read in module [`server.ts:1,14`](../lib/engine/server.ts) | ✅ |
+| BYOK key sent per-request, never persisted server-side | forwarded in body, used transiently [`server.ts:75`](../lib/engine/server.ts); no write path | ✅ |
+| SSRF guard on user-supplied BYOK base URL | `assertSafeBaseUrl` [`server.ts:41`](../lib/engine/server.ts) — https-only; blocks loopback, `10/8`, `127/8`, `0.0.0.0`, `169.254`, `172.16–31`, `192.168`, `::1`, `fc/fd/fe80`, `localhost`, GCP metadata host | 🟡 covers **literal IPs + known hostnames**; a DNS name that *resolves* to a private IP is not re-checked (DNS-rebinding residual risk). See **F-3** |
+| Logs scrub secrets (message only, never raw error/body) | [`route.ts:68`](../app/api/engine/route.ts) | ✅ |
+| Input validation rejects malformed bodies with 400 | [`route.ts:28–66`](../app/api/engine/route.ts) | ✅ |
 | Per-user data isolation (RLS) | [`supabase/migrations/0001_init.sql:55–81`](../supabase/migrations/0001_init.sql) — RLS enabled on companies/activities/approvals, all keyed to `auth.uid()` | ✅ |
 | Own your data / one-click export | export action in dashboard settings | ✅ |
 | 3D office uses no third-party assets (license-clean to sell) | [`DelegationScene.tsx`](../app/delegation/DelegationScene.tsx) — procedural three.js geometry only, **no `.glb`** | ✅ |
@@ -96,8 +96,8 @@ Legend: ✅ verified in code · 🟡 verified with a caveat / residual risk · �
 
 | Promise | Backed by | Status |
 | --- | --- | --- |
-| Marginal inference cost ~$0 (BYOK / sim default) | default = simulated; BYOK = user's bill [`server.ts:73`](../lib/roomie/server.ts) | ✅ |
-| Free-tier caps keep our cost bounded | `FREE_CAPS {validate:3, shift:12}`/day; BYOK uncapped [`usage.ts:10,40`](../lib/roomie/usage.ts) | ✅ |
+| Marginal inference cost ~$0 (BYOK / sim default) | default = simulated; BYOK = user's bill [`server.ts:73`](../lib/engine/server.ts) | ✅ |
+| Free-tier caps keep our cost bounded | `FREE_CAPS {validate:3, shift:12}`/day; BYOK uncapped [`usage.ts:10,40`](../lib/engine/usage.ts) | ✅ |
 
 ### 3.5 Operations
 
@@ -107,7 +107,7 @@ Legend: ✅ verified in code · 🟡 verified with a caveat / residual risk · �
 | Cron authenticated | `CRON_SECRET` bearer check [`app/api/cron/route.ts:11`](../app/api/cron/route.ts) | ✅ |
 | Per-company isolation (one bad row ≠ whole run fails) | per-row try/catch in the cron loop | ✅ |
 | Idle (not crash) when Supabase unset | early return with note [`app/api/cron/route.ts:21`](../app/api/cron/route.ts) | ✅ |
-| Collision-safe IDs | `crypto.randomUUID()` everywhere ([`useRoomie.ts:61`](../lib/roomie/useRoomie.ts), [`server.ts:22`](../lib/roomie/server.ts)) | ✅ |
+| Collision-safe IDs | `crypto.randomUUID()` everywhere ([`useEngine.ts:61`](../lib/engine/useEngine.ts), [`server.ts:22`](../lib/engine/server.ts)) | ✅ |
 
 ### 3.6 Product truth (Working Backwards)
 
@@ -123,8 +123,8 @@ The PR-FAQ test: would the README's headline survive a skeptical customer clicki
 | Every route returns 200 in the smoke sweep (incl. new `/delegation`, added this review) | ✅ [`smoke.mjs:52`](../scripts/smoke.mjs) |
 | Brand string present on landing | ✅ |
 | No stray old working-title brand in user-facing copy | ✅ (UI says competitor.inc) |
-| `package.json` identity matches the rebrand | ⛔ still `"name": "roomiebot"`, `"version": "0.1.0"` — see **F-1** |
-| `.env.example` keys all consumed by code | 🟡 `AI_GATEWAY_API_KEY`, `ROOMIE_PRIVATE_BASE_URL` listed but unreferenced — see **F-2** |
+| `package.json` identity matches the rebrand | ⛔ still `"name": "competitor-inc"`, `"version": "0.1.0"` — see **F-1** |
+| `.env.example` keys all consumed by code | 🟡 `AI_GATEWAY_API_KEY`, `MODEL_BASE_URL` listed but unreferenced — see **F-2** |
 
 ---
 
@@ -132,21 +132,21 @@ The PR-FAQ test: would the README's headline survive a skeptical customer clicki
 
 None block the offline demo launch. Listed worst-first.
 
-- **F-1 · Rebrand drift in `package.json`** — `name: "roomiebot"`, `version: "0.1.0"` despite the README
+- **F-1 · Rebrand drift in `package.json`** — `name: "competitor-inc"`, `version: "0.1.0"` despite the README
   claiming a completed rebrand at v0.3.0. Cosmetic, but it's the kind of thing the Checklist Manifesto
   exists to catch. *Fix:* rename to `competitor-inc`, bump version. ([package.json](../package.json))
 - **F-2 · Doc/code drift in `.env.example`** — advertises `AI_GATEWAY_API_KEY` and
-  `ROOMIE_PRIVATE_BASE_URL`, which no module reads. Either wire them or drop them so deployers aren't
+  `MODEL_BASE_URL`, which no module reads. Either wire them or drop them so deployers aren't
   misled. ([.env.example](../.env.example))
 - **F-3 · SSRF guard is literal-IP only** — `assertSafeBaseUrl` blocks private *literals* and known
   metadata *hostnames*, but does not resolve DNS names, so a hostname pointing at a private IP slips
   through (classic DNS-rebinding gap). Acceptable while BYOK base URLs are rare/trusted; before
   promoting BYOK broadly, resolve the host and re-check the resolved address (and/or pin an allowlist).
-  ([server.ts:41](../lib/roomie/server.ts))
+  ([server.ts:41](../lib/engine/server.ts))
 - **F-4 · `metadataBase` unset** — OG/Twitter preview images resolve to `localhost` in the build. Set
   `metadataBase` in [`app/layout.tsx`](../app/layout.tsx) to the production origin before the public drop.
 - **F-5 · Chat is post-hoc streaming** — the reply is resolved, then streamed token-by-token. Already
-  disclosed in the README roadmap; flagged here for completeness. ([route.ts:76](../app/api/roomie/route.ts))
+  disclosed in the README roadmap; flagged here for completeness. ([route.ts:76](../app/api/engine/route.ts))
 
 ---
 

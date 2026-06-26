@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono, Archivo_Black } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
+import { StorageMigrator } from "@/components/StorageMigrator";
+import { FeedbackWidget } from "@/components/FeedbackWidget";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -29,10 +32,17 @@ const jetBrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+// Canonical site URL for absolute OG/Twitter image URLs (link-preview scrapers reject relative ones).
+// Defaults to the Vercel URL; set NEXT_PUBLIC_SITE_URL to the custom domain at launch.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://competitor-inc.vercel.app";
+const TITLE = "competitor.inc — Prove it before you build it";
+const DESCRIPTION =
+  "competitor.inc is the AI co-founder that validates your idea — honestly — before it builds the winner. Real demand tests, proof-of-work, and human-in-control. You stay the founder.";
+
 export const metadata: Metadata = {
-  title: "competitor.inc — Prove it before you build it",
-  description:
-    "competitor.inc is the AI co-founder that validates your idea — honestly — before it builds the winner. Real demand tests, proof-of-work, and human-in-control. You stay the founder.",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
   keywords: [
     "AI co-founder",
     "autonomous company",
@@ -42,10 +52,18 @@ export const metadata: Metadata = {
     "AI operations platform",
   ],
   openGraph: {
-    title: "competitor.inc — Prove it before you build it",
+    title: TITLE,
     description:
       "Validates your idea before it builds it — real demand tests, proof-of-work, human-in-control. Prove it before you build it.",
     type: "website",
+    siteName: "competitor.inc",
+    url: SITE_URL,
+  },
+  // The launch leans on X — a large-image card is the difference between a rich preview and a bare link.
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: "The AI co-founder that proves demand before it builds. Prove it before you build it.",
   },
 };
 
@@ -61,6 +79,8 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetBrainsMono.variable} ${archivoBlack.variable}`}
     >
       <body>
+        <StorageMigrator />
+        <Analytics />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-coral focus:px-4 focus:py-2 focus:font-semibold focus:text-bg"
@@ -68,6 +88,7 @@ export default function RootLayout({
           Skip to content
         </a>
         {children}
+        <FeedbackWidget />
       </body>
     </html>
   );

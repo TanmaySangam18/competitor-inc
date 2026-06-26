@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AGENTS, type AgentRole, type ByokConfig } from "./types";
+import { AGENTS, type AgentRole, type ByokConfig, type Connections } from "./types";
 
 // Config = competitor.inc's "soul.md / agents.md" surface: brand voice, per-agent scoped authority,
 // and which engine drives it. Persisted locally (and ready to move to the DB with the rest).
@@ -13,16 +13,17 @@ export interface AgentConfig {
 
 export type ProviderMode = "frontier" | "private" | "simulated";
 
-export interface RoomieConfig {
+export interface EngineConfig {
   soul: string;
   agents: Record<AgentRole, AgentConfig>;
   providerMode: ProviderMode;
   byok: ByokConfig;
+  connections: Connections;
 }
 
 const ROLES = Object.keys(AGENTS) as AgentRole[];
 
-export const DEFAULT_CONFIG: RoomieConfig = {
+export const DEFAULT_CONFIG: EngineConfig = {
   soul:
     "Warm, candid, and a little playful. Prove there's real demand before building anything. " +
     "Optimize for the user's real outcome, not vanity metrics — and tell the truth even when it " +
@@ -37,9 +38,10 @@ export const DEFAULT_CONFIG: RoomieConfig = {
   ),
   providerMode: "simulated",
   byok: { provider: "", apiKey: "", baseUrl: "", model: "" },
+  connections: { githubToken: "", resendApiKey: "", resendFrom: "", adsWebhookUrl: "" },
 };
 
-const KEY = "roomie:config:v1";
+const KEY = "cofounder:config:v1";
 
 // Read the user's BYOK config from local storage (used by request senders outside React).
 // Returns null unless a provider + key are set, so requests fall back to simulated.
@@ -48,7 +50,7 @@ export function getByok(): ByokConfig | null {
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return null;
-    const b = (JSON.parse(raw) as RoomieConfig).byok;
+    const b = (JSON.parse(raw) as EngineConfig).byok;
     if (b && b.provider && b.apiKey) return b;
   } catch {
     /* ignore */
@@ -56,21 +58,37 @@ export function getByok(): ByokConfig | null {
   return null;
 }
 
+// Read the user's per-user integration connections (used by request senders outside React).
+// Returns null unless at least one field is set, so requests fall back to the operator's env keys.
+export function getConnections(): Connections | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return null;
+    const c = (JSON.parse(raw) as EngineConfig).connections;
+    if (c && (c.githubToken || c.resendApiKey || c.adsWebhookUrl)) return c;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 export function useConfig() {
-  const [config, setConfig] = useState<RoomieConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<EngineConfig>(DEFAULT_CONFIG);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<RoomieConfig>;
+        const parsed = JSON.parse(raw) as Partial<EngineConfig>;
         if (parsed && typeof parsed === "object") {
           setConfig({
             ...DEFAULT_CONFIG,
             ...parsed,
             agents: parsed.agents && typeof parsed.agents === "object" ? parsed.agents : DEFAULT_CONFIG.agents,
             byok: parsed.byok && typeof parsed.byok === "object" ? { ...DEFAULT_CONFIG.byok, ...parsed.byok } : DEFAULT_CONFIG.byok,
+            connections: parsed.connections && typeof parsed.connections === "object" ? { ...DEFAULT_CONFIG.connections, ...parsed.connections } : DEFAULT_CONFIG.connections,
           });
         }
       }
@@ -111,7 +129,11 @@ export function useConfig() {
     (patch: Partial<ByokConfig>) => setConfig((c) => ({ ...c, byok: { ...c.byok, ...patch } })),
     []
   );
+  const setConnections = useCallback(
+    (patch: Partial<Connections>) => setConfig((c) => ({ ...c, connections: { ...c.connections, ...patch } })),
+    []
+  );
   const reset = useCallback(() => setConfig(DEFAULT_CONFIG), []);
 
-  return { config, hydrated, setSoul, setProviderMode, toggleAgent, setAgentScope, setByok, reset };
+  return { config, hydrated, setSoul, setProviderMode, toggleAgent, setAgentScope, setByok, setConnections, reset };
 }

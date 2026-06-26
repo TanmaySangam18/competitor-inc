@@ -132,8 +132,8 @@ That single principle shapes every feature:
 - **Public `/live` board** — A shareable, real‑time view of every company being validated and built —
   the Glass Box, out in the open.
 - **`/how-it-works`** — A plain‑language, illustrated walkthrough of the whole product for newcomers.
-- **Operate layer (EOS)** — An optional "company operating system" surface (Scorecard, Rocks, Issues,
-  Weekly Review) inspired by EOS/Traction. *Feature‑flagged off by default.*
+- **Operate layer (EOS)** — A "company operating system" surface (Scorecard, Rocks, Issues,
+  Weekly Review) inspired by EOS/Traction. *On by default; set `NEXT_PUBLIC_OPERATE=0` to freeze it.*
 - **Settings** — Your **brand voice** (`soul.md`), your **team** (`agents.md`, toggle/scope each
   agent), the **engine** (which model runs it + bring‑your‑own‑key), **billing**, **integrations**,
   and **one‑click data export** (no lock‑in).
@@ -149,23 +149,23 @@ That single principle shapes every feature:
 ┌──────────────────────────────────────────────────────────────────┐
 │  Browser (client)                                                  │
 │   • app/* route pages (landing, dashboard, live, join, settings)   │
-│   • useRoomie()  → store: companies / activities / approvals       │
+│   • useEngine()  → store: companies / activities / approvals       │
 │   • useConfig()  → soul.md, agents.md, engine + BYOK               │
 │   • useAuth()    → Supabase session OR local "guest" mode          │
-│   • persistence: localStorage (roomie:*)  ⇄  Supabase (if env set) │
+│   • persistence: localStorage (cofounder:*)  ⇄  Supabase (if env set) │
 └───────────────┬────────────────────────────────────────────────────┘
-                │ fetch /api/roomie  { kind: validate | shift | chat } │
+                │ fetch /api/engine  { kind: validate | shift | chat } │
                 ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │  Server (Next.js route handlers, Node runtime)                     │
-│   • app/api/roomie/route.ts  → validates input, calls the engine   │
-│   • lib/roomie/server.ts     → callModel(): BYOK → env → simulated │
+│   • app/api/engine/route.ts  → validates input, calls the engine   │
+│   • lib/engine/server.ts     → callModel(): BYOK → env → simulated │
 │   • app/api/cron/route.ts    → nightly heartbeat (Vercel Cron)     │
 │   • the API key lives ONLY here (server-only), never on the client │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-**Key modules** (`lib/roomie/`):
+**Key modules** (`lib/engine/`):
 
 - **`types.ts`** — the domain model (Company, Activity, ApprovalItem, ValidationResult, Experiment,
   Rock/Issue, ByokConfig, the `AGENTS` map).
@@ -173,7 +173,7 @@ That single principle shapes every feature:
   shared validation‑scoring logic used by both the simulated and real‑model paths.
 - **`server.ts`** — `server-only`. Routes a request to a real model (your BYOK key → a server env key
   → otherwise throws and falls back to simulated), normalizes the output into our types.
-- **`useRoomie.ts`** — the client store + all actions (create/validate, decide build, run shift,
+- **`useEngine.ts`** — the client store + all actions (create/validate, decide build, run shift,
   autopilot, approvals, undo, Operate). Guards against overlapping shifts, malformed responses, and
   corrupted local storage.
 - **`config.ts` / `usage.ts` / `useAuth.ts`** — config + BYOK, free‑tier usage caps, and auth.
@@ -253,7 +253,7 @@ real features, copy `.env.example` → `.env.local` and fill in what you want �
 
 | Variable | Enables |
 | --- | --- |
-| `ANTHROPIC_API_KEY` + `ROOMIE_PROVIDER=anthropic` | A real frontier‑model engine (server‑side) |
+| `ANTHROPIC_API_KEY` + `MODEL_PROVIDER=anthropic` | A real frontier‑model engine (server‑side) |
 | `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Real auth + persistent multi‑company store |
 | `SUPABASE_SERVICE_ROLE_KEY` (+ `CRON_SECRET`) | The nightly heartbeat cron |
 | `NEXT_PUBLIC_CHECKOUT_URL` | The "Claim a Founding seat" checkout link |
@@ -320,8 +320,8 @@ A short changelog of the build, in order:
 1. **Foundation** — scaffolded the app, the validation‑first onboarding, the agent loop, the API +
    real‑model wiring, auth, the nightly scheduler, chat, settings, history charts, the public board,
    and an a11y/perf/test hardening pass. (*tagged v0.1.0*)
-2. **Operate layer** — added the EOS company‑OS surface, gated behind a feature flag so the launch
-   surface stays frozen. (*v0.2.0*)
+2. **Operate layer** — added the EOS company‑OS surface. Now **on by default**; the launch build can
+   freeze it with `NEXT_PUBLIC_OPERATE=0` to keep the launch surface lean until v0.2.0. (*v0.2.0*)
 3. **Rebrand → competitor.inc** — renamed from the working title, re‑themed to monochrome black/white,
    monospace wordmark, custom logo. (*v0.3.0*)
 4. **Consistency sweep** — a Checklist‑Manifesto pass to kill every stray old‑brand reference, unify
@@ -354,7 +354,7 @@ app/                     Next.js routes
   api/roomie/            The engine endpoint (validate | shift | chat)
   api/cron/              Nightly heartbeat
   opengraph-image.tsx    Social/link-preview image
-lib/roomie/              Domain types, simulated provider, server engine, store, config, usage, db
+lib/engine/              Domain types, simulated provider, server engine, store, config, usage, db
 lib/supabase/            Client/server Supabase wiring (gated)
 components/              LogoMark, route-loading fallback
 supabase/migrations/     SQL schema (companies/activities/approvals + RLS)

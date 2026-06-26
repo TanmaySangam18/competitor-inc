@@ -7,8 +7,8 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { DELEGATION, type DelegationAgent } from "@/lib/roomie/delegation";
-import type { AgentRole } from "@/lib/roomie/types";
+import { DELEGATION, type DelegationAgent } from "@/lib/engine/delegation";
+import type { AgentRole } from "@/lib/engine/types";
 
 export type Phase = "idle" | "working";
 

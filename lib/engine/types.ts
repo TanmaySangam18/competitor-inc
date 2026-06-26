@@ -87,7 +87,7 @@ export interface Company {
   product?: { url: string; status: "live" | "building" }; // the built winner (proof-of-work)
 }
 
-export interface RoomieState {
+export interface EngineState {
   company: Company | null;
   activities: Activity[];
   approvals: ApprovalItem[];
@@ -116,6 +116,18 @@ export interface ByokConfig {
   apiKey: string;
   baseUrl: string;
   model: string;
+}
+
+// Per-user integration connections — same trust model as ByokConfig (stored client-side, sent
+// per-request, never persisted server-side). Lets each founder run real actions on THEIR OWN
+// accounts — build in their GitHub, email from their Resend domain, route ad spend to their own
+// pipeline — instead of a single shared operator key. Empty string = not connected; the operator's
+// env key is the fallback. The ads webhook is treated as untrusted (SSRF-guarded) since it's user URL.
+export interface Connections {
+  githubToken: string;
+  resendApiKey: string;
+  resendFrom: string;
+  adsWebhookUrl: string;
 }
 
 // The competitive crew. Each agent runs a proven real-world playbook for its function.

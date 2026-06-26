@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runValidate, runShift, runChat, realModelConfigured, detectChatApproval, assertSafeBaseUrl, modelForAgent } from "./server";
+import { runValidate, runShift, runChat, realModelConfigured, detectChatApproval, assertSafeBaseUrl, modelForAgent, streamChatReply } from "./server";
 import type { Company } from "./types";
 
 const company: Company = {
@@ -42,6 +42,17 @@ describe("server engine", () => {
     expect(reply.length).toBeGreaterThan(0);
     expect(/approval|outbound|campaign/i.test(reply)).toBe(true);
   });
+
+  it("streamChatReply returns null when no model is configured (caller falls back to simulated)", async () => {
+    // With no BYOK key and no server model, real token-streaming isn't possible — the route must
+    // detect this (null) and degrade to the fake-streamed simulated reply.
+    const gen = await streamChatReply({ name: company.name, idea: company.idea }, "hello", undefined, undefined);
+    if (realModelConfigured()) {
+      expect(gen).not.toBeNull();
+    } else {
+      expect(gen).toBeNull();
+    }
+  });
 });
 
 describe("detectChatApproval — chat must DO what it says, not just say it", () => {
@@ -54,6 +65,13 @@ describe("detectChatApproval — chat must DO what it says, not just say it", ()
     expect(detectChatApproval("ship it to prod tonight")?.kind).toBe("deploy");
     expect(detectChatApproval("email the waitlist about the launch")?.kind).toBe("outreach");
     expect(detectChatApproval("delete the staging company")?.kind).toBe("delete");
+  });
+  it("treats a marketing ask as consequential (queues outreach), without false-firing on 'market fit'", () => {
+    expect(detectChatApproval("market competitor.inc")?.kind).toBe("outreach");
+    expect(detectChatApproval("run a marketing campaign for us")?.kind).toBe("outreach");
+    expect(detectChatApproval("promote it on social")?.kind).toBe("outreach");
+    expect(detectChatApproval("how's our market fit?")).toBeNull();
+    expect(detectChatApproval("is the market big enough?")).toBeNull();
   });
   it("returns null for a harmless question (no false approval)", () => {
     expect(detectChatApproval("how is the company doing?")).toBeNull();
@@ -80,11 +98,9 @@ describe("assertSafeBaseUrl — SSRF guard on user-supplied BYOK URLs", () => {
 });
 
 describe("modelForAgent — per-agent model routing", () => {
-  it("routes hard reasoners to the strong model, others to the cheap one (defaults)", () => {
-    expect(modelForAgent("engineering")).toBe("claude-opus-4-8");
-    expect(modelForAgent("ceo")).toBe("claude-opus-4-8");
-    expect(modelForAgent("growth")).toBe("claude-haiku-4-5");
-    expect(modelForAgent("marketing")).toBe("claude-haiku-4-5");
-    expect(modelForAgent("support")).toBe("claude-haiku-4-5");
+  it("defaults every agent to Sonnet 4.6 (strong + cheap tiers, for now)", () => {
+    for (const role of ["engineering", "ceo", "growth", "marketing", "support"] as const) {
+      expect(modelForAgent(role)).toBe("claude-sonnet-4-6");
+    }
   });
 });

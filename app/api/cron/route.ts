@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { runShift } from "@/lib/roomie/server";
-import { insertActivities, insertApprovals, updateCompany, toCompany } from "@/lib/roomie/db";
-import { sendEmail } from "@/lib/roomie/execution";
+import { runShift } from "@/lib/engine/server";
+import { insertActivities, insertApprovals, updateCompany, toCompany } from "@/lib/engine/db";
+import { sendEmail } from "@/lib/engine/execution";
 
 export const runtime = "nodejs";
 

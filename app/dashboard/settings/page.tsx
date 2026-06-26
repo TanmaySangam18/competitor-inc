@@ -18,9 +18,9 @@ import {
   Globe,
   Lock,
 } from "lucide-react";
-import { useConfig, type ProviderMode } from "@/lib/roomie/config";
-import { useAuth } from "@/lib/roomie/useAuth";
-import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/roomie/types";
+import { useConfig, type ProviderMode } from "@/lib/engine/config";
+import { useAuth } from "@/lib/engine/useAuth";
+import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/engine/types";
 
 type Section = "brand" | "agents" | "engine" | "billing" | "integrations" | "account";
 
@@ -67,7 +67,7 @@ export default function Settings() {
           {section === "agents" && <Agents cfg={cfg} />}
           {section === "engine" && <Engine cfg={cfg} />}
           {section === "billing" && <Billing />}
-          {section === "integrations" && <Integrations />}
+          {section === "integrations" && <Integrations cfg={cfg} />}
           {section === "account" && <Account auth={auth} resetAllConfig={cfg.reset} />}
         </div>
       </div>
@@ -257,8 +257,8 @@ function Billing() {
   );
 }
 
-function Integrations() {
-  // Reads the live capability map (which keys the operator has set) from the gated execution layer.
+function Integrations({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
+  // Operator-level capabilities (which env keys the deploy has set), read from the gated layer.
   const [caps, setCaps] = useState<Record<string, boolean> | null>(null);
   useEffect(() => {
     let on = true;
@@ -268,6 +268,15 @@ function Integrations() {
       .catch(() => { if (on) setCaps({}); });
     return () => { on = false; };
   }, []);
+
+  const conn = cfg.config.connections;
+  // github/email/ads can be turned on per-user (the founder's own connection below) OR by the
+  // operator's env key — either makes it live. model/deploy/payments are operator-level only.
+  const userOn: Record<string, boolean> = {
+    github: !!conn.githubToken,
+    email: !!(conn.resendApiKey && conn.resendFrom),
+    ads: !!conn.adsWebhookUrl,
+  };
 
   const items: { key: string; icon: typeof Github; name: string; desc: string }[] = [
     { key: "model", icon: Cpu, name: "AI model", desc: "Real reasoning — Claude, GPT, gateway, or your own key." },
@@ -279,10 +288,11 @@ function Integrations() {
   ];
 
   return (
-    <Card title="Integrations" desc="What the agents can do in the real world. Each is OFF until its key is set — until then agents run in safe simulation. Real actions stay scoped + approval-gated.">
+    <Card title="Integrations" desc="What the agents can do in the real world. Each is OFF until connected — until then agents run in safe simulation. Real actions stay scoped + approval-gated.">
       <div className="grid gap-3 sm:grid-cols-2">
         {items.map((i) => {
-          const live = !!caps?.[i.key];
+          const live = !!caps?.[i.key] || !!userOn[i.key];
+          const byYou = !caps?.[i.key] && !!userOn[i.key];
           return (
             <div key={i.key} className="flex items-start gap-3 rounded-xl border border-border bg-bg/40 p-4">
               <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${live ? "bg-mint/12 text-mint" : "bg-surface-2 text-muted"}`}><i.icon size={17} /></span>
@@ -293,7 +303,7 @@ function Integrations() {
               {caps === null ? (
                 <span className="text-[11px] text-muted-2">…</span>
               ) : live ? (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-mint/12 px-2.5 py-1.5 text-xs font-medium text-mint"><Check size={11} /> Live</span>
+                <span className="inline-flex items-center gap-1 rounded-lg bg-mint/12 px-2.5 py-1.5 text-xs font-medium text-mint"><Check size={11} /> {byYou ? "Yours" : "Live"}</span>
               ) : (
                 <span className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-2"><Lock size={11} /> Off</span>
               )}
@@ -301,7 +311,59 @@ function Integrations() {
           );
         })}
       </div>
-      <p className="mt-4 text-xs text-muted-2">Live = the operator added that key (see the deploy runbook / <code>.env</code>). Off = safe simulation. Turning one on authorizes real-world actions; consequential ones still wait in your Approval Inbox.</p>
+
+      <div className="mt-6 rounded-xl border border-border bg-bg/40 p-4">
+        <div className="text-sm font-medium">Connect your own accounts (optional)</div>
+        <p className="mt-1 text-xs text-muted">
+          Run real actions on <span className="text-text">your own</span> accounts — build in your GitHub,
+          email from your domain, route ad spend to your own pipeline. Like your model key, these stay in
+          this browser, are sent per-request, and are never persisted by us. Leave blank to stay simulated
+          (or to use the operator&apos;s shared keys, if set).
+        </p>
+        <label className="mt-4 block text-xs text-muted-2">
+          GitHub token <span className="text-muted-2/70">— Forge builds repos in your account</span>
+          <input
+            type="password"
+            autoComplete="off"
+            value={conn.githubToken}
+            onChange={(e) => cfg.setConnections({ githubToken: e.target.value })}
+            placeholder="ghp_…"
+            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
+          />
+        </label>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="block text-xs text-muted-2">
+            Resend API key <span className="text-muted-2/70">— email from your domain</span>
+            <input
+              type="password"
+              autoComplete="off"
+              value={conn.resendApiKey}
+              onChange={(e) => cfg.setConnections({ resendApiKey: e.target.value })}
+              placeholder="re_…"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
+            />
+          </label>
+          <label className="block text-xs text-muted-2">
+            Resend &ldquo;from&rdquo; address
+            <input
+              value={conn.resendFrom}
+              onChange={(e) => cfg.setConnections({ resendFrom: e.target.value })}
+              placeholder="you@yourdomain.com"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
+            />
+          </label>
+        </div>
+        <label className="mt-3 block text-xs text-muted-2">
+          Ads webhook URL <span className="text-muted-2/70">— approved spend POSTs here (https only)</span>
+          <input
+            value={conn.adsWebhookUrl}
+            onChange={(e) => cfg.setConnections({ adsWebhookUrl: e.target.value })}
+            placeholder="https://hooks.your-pipeline.com/…"
+            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
+          />
+        </label>
+      </div>
+      <p className="mt-4 text-xs text-muted-2">&ldquo;Live&rdquo; = the operator set that key · &ldquo;Yours&rdquo; = running on your own connection · &ldquo;Off&rdquo; = safe simulation. Turning one on authorizes real-world actions; consequential ones still wait in your Approval Inbox.</p>
     </Card>
   );
 }
@@ -315,7 +377,7 @@ function Account({ auth, resetAllConfig }: { auth: ReturnType<typeof useAuth>; r
     // we own-your-data). Unparseable values are kept as their raw string rather than dropped.
     for (let i = 0; i < window.localStorage.length; i++) {
       const k = window.localStorage.key(i);
-      if (!k || !k.startsWith("roomie:")) continue;
+      if (!k || !k.startsWith("cofounder:")) continue;
       const raw = window.localStorage.getItem(k);
       try {
         bundle[k] = raw ? JSON.parse(raw) : null;

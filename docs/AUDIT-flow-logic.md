@@ -50,13 +50,13 @@ show real-time working."*
 
 A rapid double-click (or any double-fire) on **Approve** re-charged the ledger and logged the action
 twice, because the reducer never checked whether the item was already resolved.
-**Fix:** `if (item.resolved) return s;`. ([useRoomie.ts](../lib/roomie/useRoomie.ts))
+**Fix:** `if (item.resolved) return s;`. ([useEngine.ts](../lib/engine/useEngine.ts))
 
 ### ✅ G3 — `decideBuild` could build twice (H5)
 
 No status guard meant a second approve (now more likely, since approve also navigates) would ship a
 **second MVP** and double-charge. **Fix:** `if (approve && c.status === "operating") return s;`.
-([useRoomie.ts](../lib/roomie/useRoomie.ts))
+([useEngine.ts](../lib/engine/useEngine.ts))
 
 ### ✅ G4 — No status on the agent floor (H1)
 
@@ -76,18 +76,18 @@ can't fire mid-transition. ([dashboard Operating](../app/dashboard/page.tsx))
 ### ✅ N1 — Chat now actually queues approvals (H2 — the most important one)
 
 **Before:** the co-founder replied *"I'll queue it for your approval"* but **no `ApprovalItem` was ever
-created** — the system claimed an action it didn't take. **After:** [`detectChatApproval`](../lib/roomie/server.ts)
+created** — the system claimed an action it didn't take. **After:** [`detectChatApproval`](../lib/engine/server.ts)
 runs deterministic intent detection (spend / deploy / outreach / delete) on every chat message; the API
-passes the approval seed back in an `x-roomie-approval` header alongside the streamed reply
-([route.ts](../app/api/roomie/route.ts)); [`ChatTab`](../app/dashboard/page.tsx) calls the new
-[`useRoomie.addApproval`](../lib/roomie/useRoomie.ts) so the item **really lands in the Approval Inbox**,
+passes the approval seed back in an `x-approval` header alongside the streamed reply
+([route.ts](../app/api/engine/route.ts)); [`ChatTab`](../app/dashboard/page.tsx) calls the new
+[`useEngine.addApproval`](../lib/engine/useEngine.ts) so the item **really lands in the Approval Inbox**,
 with an in-thread confirmation and a count badge on the Operations tab. Covered by the smoke suite
 (`chat queued an approval` / `benign chat queued nothing`).
 
 ### ✅ N2 — Autopilot pause is now visible (H1)
 
 Extracted `AUTOPILOT_PAUSE_AT` (= 3) so the interval guard and a new derived `autopilotPaused` flag
-can't drift ([useRoomie.ts](../lib/roomie/useRoomie.ts)). The dashboard shows an amber
+can't drift ([useEngine.ts](../lib/engine/useEngine.ts)). The dashboard shows an amber
 *"Autopilot paused — N approvals are waiting"* banner + toggle state, and `/delegation` mirrors it.
 
 ### ✅ N3 — Validation steps now reflect real progress (H1)

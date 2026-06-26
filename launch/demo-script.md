@@ -8,7 +8,7 @@ captions carry it (works muted on autoplay). Keep cuts fast.
 |---|---|---|
 | 0:00–0:05 | Landing hero ("Prove it before you build it") | "Every AI tool wants to build your startup." |
 | 0:05–0:09 | — (text card) | "This one tells you NOT to." |
-| 0:09–0:16 | Dashboard onboarding — type an idea, hit "Hand it to Roomie" | "Give it an idea." |
+| 0:09–0:16 | Dashboard onboarding — type an idea, hit "Hand it over" | "Give it an idea." |
 | 0:16–0:24 | Validation running → Validation Gate appears | "It runs real demand experiments first." |
 | 0:24–0:34 | Slow pan over the 4 experiments + confidence + verdict | "Landing page. Fake-door. Ad test. Search demand. → an honest verdict." |
 | 0:34–0:40 | A *weak* verdict on a second idea (the "Hold — I agree" button) | "Sometimes the answer is: don't build this." |

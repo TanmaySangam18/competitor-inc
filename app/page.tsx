@@ -80,8 +80,8 @@ function Nav() {
   );
 }
 
-/* ── Roomie companion mockup (hero visual) ───────────────────── */
-function RoomiePreview() {
+/* ── Co-founder companion mockup (hero visual) ───────────────── */
+function CofounderPreview() {
   return (
     <div className="ring-soft relative rounded-3xl border border-border bg-surface/80 p-3 backdrop-blur-xl">
       {/* window chrome */}
@@ -182,10 +182,10 @@ function Hero() {
             transition={{ duration: 0.6, delay: 0.13 }}
             className="mt-6 max-w-xl text-lg leading-relaxed text-muted"
           >
-            competitor.inc is the AI co-founder for your{" "}
-            <span className="text-text">first company</span> — it validates your idea before it builds
-            it: real demand tests, the honest truth, then it ships only the winner. It shows its work,
-            and never spends a dollar or sends a message without your say-so.
+            competitor.inc is the AI co-founder for{" "}
+            <span className="text-text">your first company</span> — it validates your idea before you build
+            it, tells you the honest truth (even when that's &ldquo;don&apos;t&rdquo;), then ships only the
+            winner. It shows its work, and never spends a dollar or sends a message without your say-so.
           </motion.p>
 
           <motion.div
@@ -229,7 +229,7 @@ function Hero() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
         >
-          <RoomiePreview />
+          <CofounderPreview />
         </motion.div>
       </div>
 
@@ -514,6 +514,7 @@ function Footer() {
           <a href="/how-it-works" className="transition hover:text-text">How it works</a>
           <a href="/playbooks" className="transition hover:text-text">Playbooks</a>
           <a href="/delegation" className="transition hover:text-text">The Delegation</a>
+          <a href="/blog" className="transition hover:text-text">Blog</a>
           <a href="/live" className="transition hover:text-text">Live board</a>
           <a href="/#pricing" className="transition hover:text-text">Pricing</a>
           <a href="/join" className="transition hover:text-text">Founding</a>
@@ -536,7 +537,10 @@ function Footer() {
               <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
             </svg>
           </a>
-          <span>· © 2026</span>
+          <span>· © 2026 ·</span>
+          <a href="/privacy" className="transition hover:text-text">Privacy</a>
+          <span>·</span>
+          <a href="/terms" className="transition hover:text-text">Terms</a>
         </div>
       </div>
     </footer>
@@ -547,7 +551,7 @@ function Footer() {
 function ChatOpsTeaser() {
   return (
     <section className="border-t border-border bg-surface/20">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 pt-24 pb-10 md:grid-cols-2">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-24 md:grid-cols-2">
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-coral/30 bg-coral/10 px-3 py-1 text-xs font-medium text-coral">
             <Sparkles size={13} /> Coming soon
@@ -584,22 +588,6 @@ function ChatOpsTeaser() {
             </div>
           </div>
           <p className="mt-4 text-center text-[11px] text-muted-2">Texting with your crew · preview</p>
-        </div>
-      </div>
-
-      {/* On the roadmap — capabilities by function (no product codenames) */}
-      <div className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="flex flex-wrap items-center gap-2.5 border-t border-border pt-6">
-          <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-2">On the roadmap</span>
-          {[
-            "Text your agents · approve from your phone",
-            "Browser-run AI — free to try",
-            "Your agents post for you — with your yes",
-          ].map((c) => (
-            <span key={c} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted">
-              <span className="h-1.5 w-1.5 rounded-full bg-coral/70" /> {c}
-            </span>
-          ))}
         </div>
       </div>
     </section>

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Clock, Lock, Check } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
-import { PLAYBOOKS, getPlaybook } from "@/lib/roomie/playbooks";
+import { PLAYBOOKS, getPlaybook } from "@/lib/engine/playbooks";
 
 export function generateStaticParams() {
   return PLAYBOOKS.map((p) => ({ slug: p.slug }));

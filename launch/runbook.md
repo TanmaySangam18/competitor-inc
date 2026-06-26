@@ -25,10 +25,10 @@ npm start      # serves the production build at http://localhost:3000
    - `NEXT_PUBLIC_CHECKOUT_URL` → the founder's LemonSqueezy/Gumroad link (turns on Founding checkout)
    - `SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET` → nightly heartbeat cron
    - **Model engine (optional, swappable — pick ONE, or leave unset for the offline simulated demo):**
-     - `ROOMIE_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`, or
-     - `ROOMIE_PROVIDER=gateway` + `AI_GATEWAY_API_KEY` (Vercel AI Gateway — any provider via a
-       `provider/model` string in `ROOMIE_MODEL`), or
-     - `ROOMIE_PROVIDER=openai-compatible` + `ROOMIE_PRIVATE_BASE_URL` + `ROOMIE_API_KEY` (OpenAI, Groq,
+     - `MODEL_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`, or
+     - `MODEL_PROVIDER=gateway` + `AI_GATEWAY_API_KEY` (Vercel AI Gateway — any provider via a
+       `provider/model` string in `MODEL_ID`), or
+     - `MODEL_PROVIDER=openai-compatible` + `MODEL_BASE_URL` + `MODEL_API_KEY` (OpenAI, Groq,
        OpenRouter, Together, a self-hosted model, …).
      - Users can still **Bring Their Own Key** in-app regardless (stored only in their browser).
      - Full annotated list in [`../.env.example`](../.env.example).
@@ -39,8 +39,17 @@ npm start      # serves the production build at http://localhost:3000
      - `STRIPE_SECRET_KEY` + `STRIPE_PRICE_ID` → payment links (you keep 100%) · `ADS_WEBHOOK_URL` → ads
      - Add a key and that capability goes live (gated through `/api/execute`); with none set, all stay
        simulated. Nothing live runs without your credentials.
+     - **Per-user connections:** like the model BYOK, each user can connect their *own* GitHub / Resend
+       / ads webhook in-app (Settings → Integrations). Stored only in their browser, sent per-request,
+       never persisted server-side; the operator env keys above act as the shared fallback. The ads
+       webhook URL is SSRF-guarded (https + no private/loopback/metadata hosts).
+   - **Feature flag — Operate layer:** the EOS company-OS surface (Scorecard/Rocks/Issues) is **on by
+     default**. For the launch build, set `NEXT_PUBLIC_OPERATE=0` to freeze it and keep the launch
+     surface lean until v0.2.0 (per `docs/COMPANY-BLUEPRINT.md`). Drop the var post-launch to turn it on.
 6. **Deploy:** connect the GitHub repo in the Vercel dashboard → **Deploy** (or `npx vercel --prod`).
-7. **Domain:** buy one (~$12, e.g. Porkbun) and point it at the Vercel project.
+7. **Domain:** buy one (~$12, e.g. Porkbun) and point it at the Vercel project. Then set
+   `NEXT_PUBLIC_SITE_URL` to that domain (e.g. `https://competitor.inc`) so link-preview cards on
+   X / HN / Slack use absolute image URLs and render the large social image.
 8. **Go live:** confirm the domain loads, then hand the founder the green light to publish the
    `launch/` posts. Done — competitor.inc is on the web.
 
@@ -48,7 +57,7 @@ npm start      # serves the production build at http://localhost:3000
 ([langchain.com](https://www.langchain.com/langsmith)) for trace-level visibility into agent calls,
 quality monitoring, and per-trace cost — it's **framework-neutral** (works with our custom engine, no
 LangChain required) and has a **free tier**. Cheaper/built-in alternatives first: **Vercel AI Gateway**
-(`ROOMIE_PROVIDER=gateway`) logs requests + cost out of the box, and **Langfuse** is an open-source
+(`MODEL_PROVIDER=gateway`) logs requests + cost out of the box, and **Langfuse** is an open-source
 self-host option. This is developer-side tracing for *us* — distinct from the user-facing Glass Box.
 
 **Rollback:** Vercel keeps every deployment — one click to promote a previous one. Nothing here is destructive.

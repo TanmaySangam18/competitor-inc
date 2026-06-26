@@ -3,11 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, OperateData, ValidationResult } from "./types";
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
-import { getByok } from "./config";
+import { getByok, getConnections } from "./config";
+import { draftBlitz } from "./blitz";
 import { canRun, recordRun, FREE_CAPS } from "./usage";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { useAuth } from "./useAuth";
+import { useDbSync, type SyncState } from "./sync";
 
-const KEY = "roomie:v2";
-const LEGACY_KEY = "roomie:v1";
+const KEY = "cofounder:v2";
+const LEGACY_KEY = "cofounder:v1";
 
 // Autopilot pauses (rather than piling up consequential actions) once this many approvals are
 // waiting. Shared by the interval guard and the derived `autopilotPaused` flag so they can't drift.
@@ -65,10 +69,10 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const rid = () => crypto.randomUUID();
 
 async function callEngine(
-  body: { kind: "validate"; idea: string } | { kind: "shift"; company: Company }
+  body: { kind: "validate"; idea: string; nonce?: number } | { kind: "shift"; company: Company }
 ): Promise<{ validation: ValidationResult } | ShiftResult> {
   try {
-    const res = await fetch("/api/roomie", {
+    const res = await fetch("/api/engine", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ ...body, byok: getByok() ?? undefined }),
@@ -77,11 +81,13 @@ async function callEngine(
     return await res.json();
   } catch {
     const p = getProvider();
-    return body.kind === "validate" ? { validation: p.validate(body.idea) } : p.shift(body.company);
+    return body.kind === "validate"
+      ? { validation: p.validate(body.idea, body.nonce != null ? String(body.nonce) : undefined) }
+      : p.shift(body.company);
   }
 }
 
-export function useRoomie() {
+export function useEngine() {
   const [store, setStore] = useState<Store>(empty);
   const [hydrated, setHydrated] = useState(false);
   const [working, setWorking] = useState<null | "validating" | "shift">(null);
@@ -107,6 +113,34 @@ export function useRoomie() {
       /* ignore */
     }
   }, [store, hydrated]);
+
+  // Cloud persistence (GATED + best-effort). Only when Supabase is configured AND the user is signed
+  // in (non-guest); otherwise this is inert and the app stays entirely on the localStorage store
+  // above. localStorage always remains the offline cache/source-of-truth. NOTE: not yet verified
+  // against a live DB — see lib/engine/sync.ts.
+  const { user, ready: authReady } = useAuth();
+  const dbEnabled = isSupabaseConfigured() && authReady && !!user && !user.guest;
+  const overlayFromDb = useCallback((s: SyncState) => {
+    // Merge cloud state in, including operate (Rocks/Issues now persist). Preserve the active
+    // selection, falling back to the first cloud company.
+    setStore((prev) => ({
+      ...prev,
+      companies: s.companies,
+      activities: s.activities,
+      approvals: s.approvals,
+      operate: { ...prev.operate, ...s.operate },
+      activeId: prev.activeId ?? s.companies[0]?.id ?? null,
+    }));
+  }, []);
+  useDbSync({
+    enabled: dbEnabled,
+    hydrated,
+    companies: store.companies,
+    activities: store.activities,
+    approvals: store.approvals,
+    operate: store.operate,
+    overlay: overlayFromDb,
+  });
 
   const company = store.companies.find((c) => c.id === store.activeId) ?? null;
   const activities = company ? store.activities[company.id] ?? [] : [];
@@ -182,7 +216,7 @@ export function useRoomie() {
       payload: { company: { name: string; idea: string }; item?: { kind: string; title?: string; detail?: string; amount?: number } }
     ) => {
       try {
-        const res = await fetch("/api/execute", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, ...payload }) });
+        const res = await fetch("/api/execute", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, ...payload, connections: getConnections() ?? undefined }) });
         if (!res.ok) return null;
         return (await res.json()) as { ok: boolean; disabled?: boolean; proof?: { kind: "url" | "build" | "metric"; value: string }; error?: string };
       } catch {
@@ -266,6 +300,55 @@ export function useRoomie() {
       });
     }
   }, [executeAction, appendRealResult]);
+
+  // Re-test demand on an operating company — continuous validation, not one-shot. Re-runs the gate
+  // with a fresh seed (the engine varies the reading), logs the new verdict + a confidence delta to
+  // the Glass Box, and updates the company's live validation. Honest: it's a real demand test, so it
+  // costs (logged in the ledger) and counts against the free-tier validation cap.
+  const revalidate = useCallback(() => {
+    if (inFlightRef.current) return;
+    const active = ref.current.companies.find((c) => c.id === ref.current.activeId);
+    if (!active || active.status !== "operating") return;
+    if (!canRun("validate")) {
+      setBlocked(`That's today's ${FREE_CAPS.validate} free demand tests. Add your own model key in Settings to keep going — or come back tomorrow.`);
+      return;
+    }
+    recordRun("validate");
+    inFlightRef.current = true;
+    setWorking("validating");
+    (async () => {
+      try {
+        const prevConf = active.validation?.confidence ?? 0;
+        const nonce = (active.night + 1) * 1000 + (Date.now() % 1000);
+        const res = (await callEngine({ kind: "validate", idea: active.idea, nonce })) as { validation?: ValidationResult };
+        const validation = res?.validation ?? getProvider().validate(active.idea, String(nonce));
+        const delta = Math.round(validation.confidence - prevConf);
+        const arrow = delta > 0 ? "▲" : delta < 0 ? "▼" : "→";
+        const reActivity: Activity = {
+          id: rid(),
+          night: active.night,
+          agent: "marketing",
+          action: `Re-tested demand — ${validation.confidence}% confidence (${arrow}${Math.abs(delta)} pts vs last)`,
+          meta: `${validation.verdict} signal`,
+          cost: validation.spend,
+          status: "done",
+          proof: { kind: "metric", value: `${validation.waitlist} signups · ${validation.ctr}% CTR` },
+        };
+        setStore((s) => ({
+          ...s,
+          companies: s.companies.map((x) =>
+            x.id === active.id
+              ? { ...x, validation, ledger: { ...x.ledger, spent: round(x.ledger.spent + validation.spend), tasksDone: x.ledger.tasksDone + 1 } }
+              : x
+          ),
+          activities: { ...s.activities, [active.id]: [reActivity, ...(s.activities[active.id] ?? [])] },
+        }));
+      } finally {
+        inFlightRef.current = false;
+        setWorking(null);
+      }
+    })();
+  }, []);
 
   const runShift = useCallback(() => {
     if (inFlightRef.current) return; // no overlapping shifts
@@ -393,6 +476,42 @@ export function useRoomie() {
       });
     }
   }, [executeAction, appendRealResult]);
+
+  // Surge's launch blitz: draft demand-capture posts for the active company and queue each as an
+  // OUTREACH approval — so the blitz is ready to fire but nothing posts without the founder's yes
+  // (human-in-the-loop). Logs a Glass Box entry noting the drafts are waiting.
+  const launchBlitz = useCallback(() => {
+    const active = ref.current.companies.find((c) => c.id === ref.current.activeId);
+    if (!active || active.status !== "operating") return;
+    const drafts = draftBlitz({ name: active.name, idea: active.idea });
+    if (drafts.length === 0) return;
+    setStore((s) => {
+      const cid = active.id;
+      const queued: ApprovalItem[] = drafts.map((d) => ({
+        id: rid(),
+        night: active.night,
+        agent: "growth",
+        kind: "outreach",
+        title: d.title,
+        detail: d.body,
+      }));
+      const logged: Activity = {
+        id: rid(),
+        night: active.night,
+        agent: "growth",
+        action: `Drafted the launch blitz — ${drafts.length} posts queued for your approval`,
+        meta: "outbound waits for your yes",
+        cost: 0,
+        status: "done",
+        proof: { kind: "metric", value: `${drafts.length} drafts ready` },
+      };
+      return {
+        ...s,
+        approvals: { ...s.approvals, [cid]: [...queued, ...(s.approvals[cid] ?? [])] },
+        activities: { ...s.activities, [cid]: [logged, ...(s.activities[cid] ?? [])] },
+      };
+    });
+  }, []);
 
   // Queue an approval from outside a shift (e.g. a consequential request made in chat). Keeps the
   // promise "I'll queue it for your approval" honest — the item really lands in the Approval Inbox.
@@ -528,6 +647,8 @@ export function useRoomie() {
     deleteCompany,
     decideBuild,
     runShift,
+    revalidate,
+    launchBlitz,
     resolveApproval,
     addApproval,
     undoActivity,

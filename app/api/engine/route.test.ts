@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { GET, POST } from "./route";
 
 function post(body: unknown) {
-  return new Request("http://localhost/api/roomie", {
+  return new Request("http://localhost/api/engine", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
@@ -20,7 +20,7 @@ const company = {
   ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
 };
 
-describe("/api/roomie route", () => {
+describe("/api/engine route", () => {
   it("GET returns a status payload", async () => {
     const data = await (await GET()).json();
     expect(data.ok).toBe(true);
@@ -28,7 +28,7 @@ describe("/api/roomie route", () => {
   });
 
   it("400 on invalid JSON", async () => {
-    const res = await POST(new Request("http://localhost/api/roomie", { method: "POST", body: "not json" }));
+    const res = await POST(new Request("http://localhost/api/engine", { method: "POST", body: "not json" }));
     expect(res.status).toBe(400);
   });
 

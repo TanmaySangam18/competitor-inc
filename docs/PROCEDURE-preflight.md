@@ -29,7 +29,7 @@
 - [ ] **[KILLER] Terminology.** `grep -rni "refund" lib app` → only **Guard's customer-refund** copy; the ledger field is **`credited`**, never `refunded`. No "refund" used to mean work-credit.
 - [ ] **No build-in-public in the product/strategy.** `grep -rni "build.in.public" lib app README.md` → **none** (allowed only in superseded/research docs).
 - [ ] **Model IDs valid + current.** `grep -rnoE "claude-[a-z0-9.-]+" lib app .env.example` → only real current IDs (`claude-opus-4-8`, `claude-sonnet-4-6`, `claude-haiku-4-5`); no dated/retired strings.
-- [ ] **Brand.** No stray old working titles in user-facing UI/docs (internal `roomie:`/`ROOMIE_` namespace is fine).
+- [ ] **Brand.** No stray old working titles in user-facing UI/docs (internal `cofounder:`/`ROOMIE_` namespace is fine).
 - [ ] **Doc ⇄ code parity.** `capabilities()` keys == Settings → Integrations rows == `.env.example` engine/integration vars == runbook list.
 
 ## Block 3 · Flow-logic trace *(no dead ends, no illogical transitions)* — [EYES]

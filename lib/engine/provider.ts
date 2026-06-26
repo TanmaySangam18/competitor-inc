@@ -2,8 +2,8 @@
 //
 // The product is designed "frontier-model-first, behind a swappable interface."
 // `SimulatedProvider` runs fully client-side with no API key (instant, offline demo).
-// A real model is a drop-in: implement `RoomieProvider` to call /api/roomie (server-side,
-// where the key lives) and select it via NEXT_PUBLIC_ROOMIE_PROVIDER.
+// A real model is a drop-in: implement `EngineProvider` to call /api/engine (server-side,
+// where the key lives) and select it via NEXT_PUBLIC_MODEL_PROVIDER.
 
 import type {
   Activity,
@@ -19,9 +19,11 @@ export interface ShiftResult {
   approvals: ApprovalItem[];
 }
 
-export interface RoomieProvider {
+export interface EngineProvider {
   readonly name: string;
-  validate(idea: string): ValidationResult;
+  // `salt` varies the deterministic result for re-tests (continuous validation) — same idea, a
+  // fresh-but-plausible reading. Omitted = the stable first-run result.
+  validate(idea: string, salt?: string): ValidationResult;
   shift(company: Company): ShiftResult;
 }
 
@@ -85,16 +87,27 @@ export interface ValidationCore {
   spend: number;
 }
 
-export function scoreIdea(core: ValidationCore, seed: string) {
+// Secondary estimates. When a real model runs, it provides these (so every number reflects reasoning
+// about the specific idea); offline/simulated falls back to the deterministic RNG below.
+export interface ScoreExtras {
+  conversion?: number; // landing → waitlist conversion %
+  clickThrough?: number; // fake-door click-through %
+  searchVolume?: number; // monthly searches
+  competition?: "low" | "medium" | "high";
+}
+const COMPETITION = ["low", "medium", "high"] as const;
+const fin = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+
+export function scoreIdea(core: ValidationCore, seed: string, extras?: ScoreExtras) {
   const rng = mulberry32(hash("score:" + seed));
-  const conv = round(between(rng, 2, 9), 1);
-  const fakedoor = round(between(rng, 1.5, 12), 1);
-  const searches = Math.round(between(rng, 200, 18000));
-  const competition = pick(rng, ["low", "medium", "high"]);
+  const conv = fin(extras?.conversion) ? round(Math.max(0, extras!.conversion!), 1) : round(between(rng, 2, 9), 1);
+  const fakedoor = fin(extras?.clickThrough) ? round(Math.max(0, extras!.clickThrough!), 1) : round(between(rng, 1.5, 12), 1);
+  const searches = fin(extras?.searchVolume) ? Math.max(0, Math.round(extras!.searchVolume!)) : Math.round(between(rng, 200, 18000));
+  const competition = extras?.competition && COMPETITION.includes(extras.competition) ? extras.competition : pick(rng, [...COMPETITION]);
   const sig = (good: boolean, mid: boolean): Experiment["signal"] => (good ? "positive" : mid ? "weak" : "negative");
   const experiments: Experiment[] = [
-    { key: "landing", label: "Landing page + waitlist", detail: "Real page, real email capture", metric: `${core.waitlist} signups · ${conv}% conversion`, signal: sig(core.waitlist >= 40, core.waitlist >= 20) },
-    { key: "fakedoor", label: "Fake-door test", detail: "A “Get started” button that isn’t built yet", metric: `${fakedoor}% clicked through`, signal: sig(fakedoor >= 6, fakedoor >= 3) },
+    { key: "landing", label: "Landing page + waitlist", detail: "Projected signups + conversion", metric: `${core.waitlist} signups · ${conv}% conversion`, signal: sig(core.waitlist >= 40, core.waitlist >= 20) },
+    { key: "fakedoor", label: "Fake-door test", detail: "A “Get started” click-through estimate", metric: `${fakedoor}% clicked through`, signal: sig(fakedoor >= 6, fakedoor >= 3) },
     { key: "ads", label: "Paid demand test", detail: "Small ad smoke-test (your budget)", metric: `${core.ctr}% CTR · $${core.costPerSignup}/signup`, signal: sig(core.ctr >= 3 && core.costPerSignup <= 1.5, core.costPerSignup <= 2.5) },
     { key: "search", label: "Search demand", detail: "Existing intent for this problem", metric: `${searches.toLocaleString()}/mo searches · ${competition} competition`, signal: sig(searches >= 4000 && competition !== "high", searches >= 1500) },
   ];
@@ -112,16 +125,17 @@ export function scoreIdea(core: ValidationCore, seed: string) {
 }
 
 /* ── Simulated provider ─────────────────────────────────────── */
-class SimulatedProvider implements RoomieProvider {
+class SimulatedProvider implements EngineProvider {
   readonly name = "simulated";
 
-  validate(idea: string): ValidationResult {
-    const rng = mulberry32(hash("validate:" + idea));
+  validate(idea: string, salt = ""): ValidationResult {
+    const seed = salt ? idea + "::" + salt : idea;
+    const rng = mulberry32(hash("validate:" + seed));
     const waitlist = Math.round(between(rng, 8, 86));
     const ctr = round(between(rng, 1.4, 6.4), 1);
     const costPerSignup = round(between(rng, 0.3, 3.4), 2);
     const spend = round(between(rng, 15, 25), 2);
-    const score = scoreIdea({ waitlist, ctr, costPerSignup, spend }, idea);
+    const score = scoreIdea({ waitlist, ctr, costPerSignup, spend }, seed);
     return {
       steps: [
         { label: "Spun up a landing page", done: true },
@@ -247,8 +261,8 @@ class SimulatedProvider implements RoomieProvider {
 
 const simulated = new SimulatedProvider();
 
-export function getProvider(): RoomieProvider {
-  // NEXT_PUBLIC_ROOMIE_PROVIDER could select a real, server-backed provider here.
+export function getProvider(): EngineProvider {
+  // NEXT_PUBLIC_MODEL_PROVIDER could select a real, server-backed provider here.
   // For now everything routes through the offline simulated engine.
   return simulated;
 }

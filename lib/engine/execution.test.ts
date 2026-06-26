@@ -16,10 +16,19 @@ describe("execution capabilities — every integration OFF without keys", () => 
   it("realExecutionEnabled is false without GITHUB_TOKEN", () => {
     expect(realExecutionEnabled()).toBe(false);
   });
+
+  it("per-user connections turn github/email/ads live (email needs key AND from)", () => {
+    expect(capabilities({ githubToken: "ghp_x", resendApiKey: "", resendFrom: "", adsWebhookUrl: "" }).github).toBe(true);
+    expect(capabilities({ githubToken: "", resendApiKey: "re_x", resendFrom: "", adsWebhookUrl: "" }).email).toBe(false);
+    expect(capabilities({ githubToken: "", resendApiKey: "re_x", resendFrom: "me@d.com", adsWebhookUrl: "" }).email).toBe(true);
+    expect(capabilities({ githubToken: "", resendApiKey: "", resendFrom: "", adsWebhookUrl: "https://h.co/x" }).ads).toBe(true);
+    // a connection never flips an operator-only integration
+    expect(capabilities({ githubToken: "ghp_x", resendApiKey: "", resendFrom: "", adsWebhookUrl: "" }).deploy).toBe(false);
+  });
 });
 
 describe("runAction — gated, falls back to simulated (no live calls without keys)", () => {
-  it("build / deploy / outreach / spend / payments / bluesky all report disabled", async () => {
+  it("build / deploy / outreach / spend / payments all report disabled", async () => {
     for (const action of ["build", "deploy", "outreach", "spend", "payments", "bluesky"]) {
       const r = await runAction(action, co);
       expect(r.ok).toBe(false);
@@ -37,6 +46,17 @@ describe("runAction — gated, falls back to simulated (no live calls without ke
   });
   it("buildOnGitHub no-ops when disabled", async () => {
     expect((await buildOnGitHub({ repo: "x", description: "y", files: {} })).ok).toBe(false);
+  });
+
+  it("SSRF-guards a user-supplied ads webhook (blocked URL → error, no network, not disabled)", async () => {
+    const r = await runAction("spend", {
+      company: { name: "X", idea: "y" },
+      item: { kind: "spend", title: "t", amount: 10 },
+      connections: { githubToken: "", resendApiKey: "", resendFrom: "", adsWebhookUrl: "https://169.254.169.254/hook" },
+    });
+    expect(r.ok).toBe(false);
+    expect(r.disabled).toBeUndefined();
+    expect(r.error).toMatch(/blocked|private/i);
   });
 });
 

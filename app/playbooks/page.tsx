@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeft, ArrowRight, BookOpen, Clock } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
-import { PLAYBOOKS } from "@/lib/roomie/playbooks";
+import { PLAYBOOKS } from "@/lib/engine/playbooks";
 
 export const metadata: Metadata = {
   title: "Playbooks — competitor.inc",

@@ -6,7 +6,7 @@ import { getByok } from "./config";
 // uncapped. Free users (running on our free-tier/simulated engine) get a generous daily cap so
 // our marginal cost stays ~$0. Tracked per-day in localStorage.
 
-const KEY = "roomie:usage:v1";
+const KEY = "cofounder:usage:v1";
 export const FREE_CAPS = { validate: 3, shift: 12 } as const;
 
 type Kind = keyof typeof FREE_CAPS;

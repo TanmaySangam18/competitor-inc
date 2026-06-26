@@ -6,7 +6,8 @@ import "server-only";
 // payments — each gated, and (where it applies) checked by "verify-before-done" before being reported
 // as done. Nothing here runs live without the operator's credentials.
 
-import type { Proof, ApprovalKind } from "./types";
+import type { Proof, ApprovalKind, Connections } from "./types";
+import { assertSafeBaseUrl } from "./net";
 
 const TIMEOUT_MS = 8000;
 
@@ -35,15 +36,18 @@ function repoSlug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "competitor-mvp";
 }
 
-// Which real integrations are live right now (i.e. which keys the operator has set).
-export function capabilities() {
+// Which real integrations are live right now. github/email/ads can be turned on per-user (the
+// founder's own connection) OR by the operator's env key — either one makes it live. model/deploy/
+// payments remain operator-level. Passing `conn` reflects a specific user's connections; omitting it
+// (e.g. the capability GET, which carries no creds) reports operator-env capabilities only.
+export function capabilities(conn?: Connections) {
   return {
-    model: !!(process.env.ANTHROPIC_API_KEY || process.env.AI_GATEWAY_API_KEY || process.env.ROOMIE_API_KEY),
-    github: !!process.env.GITHUB_TOKEN,
+    model: !!(process.env.ANTHROPIC_API_KEY || process.env.AI_GATEWAY_API_KEY || process.env.MODEL_API_KEY),
+    github: !!(conn?.githubToken || process.env.GITHUB_TOKEN),
     deploy: !!process.env.VERCEL_DEPLOY_HOOK_URL,
-    email: !!(process.env.RESEND_API_KEY && process.env.RESEND_FROM),
+    email: !!((conn?.resendApiKey || process.env.RESEND_API_KEY) && (conn?.resendFrom || process.env.RESEND_FROM)),
     payments: !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),
-    ads: !!process.env.ADS_WEBHOOK_URL,
+    ads: !!(conn?.adsWebhookUrl || process.env.ADS_WEBHOOK_URL),
     bluesky: !!(process.env.BLUESKY_HANDLE && process.env.BLUESKY_APP_PASSWORD),
   };
 }
@@ -79,8 +83,7 @@ export interface BuildSpec {
   description: string;
   files: Record<string, string>;
 }
-export async function buildOnGitHub(spec: BuildSpec): Promise<ExecOutcome> {
-  const token = process.env.GITHUB_TOKEN;
+export async function buildOnGitHub(spec: BuildSpec, token: string | undefined = process.env.GITHUB_TOKEN): Promise<ExecOutcome> {
   if (!token) return disabled();
   const headers = { authorization: `Bearer ${token}`, accept: "application/vnd.github+json", "content-type": "application/json" };
   try {
@@ -121,9 +124,11 @@ export async function deployToVercel(): Promise<ExecOutcome> {
 }
 
 // ── Phase 2/3: Email (Resend) ────────────────────────────────────────────────
-export async function sendEmail(opts: { to: string; subject: string; html: string }): Promise<ExecOutcome> {
-  const key = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM;
+export async function sendEmail(
+  opts: { to: string; subject: string; html: string },
+  key: string | undefined = process.env.RESEND_API_KEY,
+  from: string | undefined = process.env.RESEND_FROM
+): Promise<ExecOutcome> {
   if (!key || !from || !opts.to) return disabled();
   try {
     const res = await timed("https://api.resend.com/emails", {
@@ -162,10 +167,16 @@ export async function createPaymentLink(): Promise<ExecOutcome> {
 }
 
 // ── Phase 3: Ads (operator-supplied webhook to their own ad pipeline) ─────────
-export async function placeAd(spec: { objective: string; budget: number; copy: string }): Promise<ExecOutcome> {
-  const hook = process.env.ADS_WEBHOOK_URL;
+export async function placeAd(
+  spec: { objective: string; budget: number; copy: string },
+  hook: string | undefined = process.env.ADS_WEBHOOK_URL,
+  enforceSsrf = false
+): Promise<ExecOutcome> {
   if (!hook) return disabled();
   try {
+    // A per-user webhook is an untrusted URL receiving a server-side POST → SSRF-guard it. An
+    // operator env webhook is trusted (may point at internal infra) and skips the guard.
+    if (enforceSsrf) assertSafeBaseUrl(hook);
     const res = await timed(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(spec) });
     if (!res.ok) return { ok: false, error: `ads ${res.status}` };
     return { ok: true, proof: { kind: "metric", value: `ad queued: ${spec.objective}` } };
@@ -174,14 +185,14 @@ export async function placeAd(spec: { objective: string; budget: number; copy: s
   }
 }
 
-// ── Phase 2: Bluesky (AT Protocol) — free, approval-gated organic posting ─────
+// ── Bluesky (AT Protocol) — free, approval-gated organic posting ──────────────
 // Auth with a scoped app-password (createSession) → publish a post (createRecord). App-password is
 // server-only and rotate-able; OFF until BLUESKY_HANDLE + BLUESKY_APP_PASSWORD are set. Never autonomous —
 // only fires for a post the founder approved in the Approval Inbox.
 export async function postToBluesky(opts: { text: string }): Promise<ExecOutcome> {
   const handle = process.env.BLUESKY_HANDLE;
   const password = process.env.BLUESKY_APP_PASSWORD;
-  const text = (opts.text || "").slice(0, 300); // Bluesky's post limit
+  const text = (opts.text || "").slice(0, 300);
   if (!handle || !password || !text) return disabled();
   try {
     const auth = await timed("https://bsky.social/xrpc/com.atproto.server.createSession", {
@@ -203,7 +214,6 @@ export async function postToBluesky(opts: { text: string }): Promise<ExecOutcome
     });
     if (!res.ok) return { ok: false, error: `bluesky post ${res.status}` };
     const data = (await res.json().catch(() => ({}))) as { uri?: string };
-    // Turn the at:// URI into a public https permalink (proof the post is live).
     const rkey = data.uri?.split("/").pop();
     const link = rkey ? `https://bsky.app/profile/${handle}/post/${rkey}` : undefined;
     return { ok: true, proof: link ? { kind: "url", value: link } : { kind: "metric", value: "posted to Bluesky" } };
@@ -217,26 +227,39 @@ export interface ActionPayload {
   company: { name: string; idea: string };
   item?: { kind: ApprovalKind | string; title?: string; detail?: string; amount?: number };
   ownerEmail?: string;
+  connections?: Connections; // per-user credentials; each falls back to the operator env key
 }
 export async function runAction(action: string, p: ActionPayload): Promise<ExecOutcome> {
+  const c = p.connections;
   switch (action) {
     case "build":
-      return buildOnGitHub({
-        repo: repoSlug(p.company.name),
-        description: p.company.idea.slice(0, 140),
-        files: { "README.md": `# ${p.company.name}\n\n> ${p.company.idea}\n\nValidated MVP scaffolded by competitor.inc.\n` },
-      });
+      return buildOnGitHub(
+        {
+          repo: repoSlug(p.company.name),
+          description: p.company.idea.slice(0, 140),
+          files: { "README.md": `# ${p.company.name}\n\n> ${p.company.idea}\n\nValidated MVP scaffolded by competitor.inc.\n` },
+        },
+        c?.githubToken || process.env.GITHUB_TOKEN
+      );
     case "deploy":
       return deployToVercel();
     case "outreach": {
       const to = p.ownerEmail || process.env.OUTREACH_TO || "";
       if (!to) return disabled();
-      return sendEmail({ to, subject: `[${p.company.name}] ${p.item?.title || "Outreach"}`, html: `<p>${escapeHtml(p.item?.detail || "")}</p>` });
+      return sendEmail(
+        { to, subject: `[${p.company.name}] ${p.item?.title || "Outreach"}`, html: `<p>${escapeHtml(p.item?.detail || "")}</p>` },
+        c?.resendApiKey || process.env.RESEND_API_KEY,
+        c?.resendFrom || process.env.RESEND_FROM
+      );
     }
     case "bluesky":
       return postToBluesky({ text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
     case "spend":
-      return placeAd({ objective: p.item?.title || "demand test", budget: p.item?.amount ?? 50, copy: p.item?.detail || p.company.idea });
+      return placeAd(
+        { objective: p.item?.title || "demand test", budget: p.item?.amount ?? 50, copy: p.item?.detail || p.company.idea },
+        c?.adsWebhookUrl || process.env.ADS_WEBHOOK_URL,
+        !!c?.adsWebhookUrl // user-supplied URL → enforce SSRF guard
+      );
     case "payments":
       return createPaymentLink();
     case "delete":

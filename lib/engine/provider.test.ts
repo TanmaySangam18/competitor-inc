@@ -53,6 +53,16 @@ describe("validate", () => {
     expect(v.experiments).toHaveLength(4);
     for (const e of v.experiments) expect(["positive", "weak", "negative"]).toContain(e.signal);
   });
+  it("salt varies the reading for re-tests, but is deterministic per salt", () => {
+    const base = provider.validate("a marketplace for plants");
+    const reA = provider.validate("a marketplace for plants", "42");
+    const reB = provider.validate("a marketplace for plants", "42");
+    expect(reA).toEqual(reB); // same idea + salt → reproducible
+    // a salted re-test should differ from the unsalted first run on at least one core metric
+    const differs = reA.waitlist !== base.waitlist || reA.ctr !== base.ctr || reA.confidence !== base.confidence;
+    expect(differs).toBe(true);
+  });
+
   it("verdict matches the confidence band", () => {
     const v = provider.validate("some idea");
     expect(v.confidence).toBeGreaterThanOrEqual(0);
@@ -79,6 +89,18 @@ describe("scoreIdea", () => {
     expect(r.confidence).toBeGreaterThanOrEqual(0);
     expect(r.confidence).toBeLessThanOrEqual(100);
     expect(["strong", "weak", "mixed"]).toContain(r.verdict);
+  });
+  it("uses model-provided extras over the RNG when given", () => {
+    const core = { waitlist: 50, ctr: 4, costPerSignup: 1, spend: 20 };
+    const r = scoreIdea(core, "z", { conversion: 12.3, clickThrough: 8, searchVolume: 9999, competition: "low" });
+    const m = Object.fromEntries(r.experiments.map((e) => [e.key, e.metric]));
+    expect(m.landing).toContain("12.3% conversion");
+    expect(m.fakedoor).toContain("8% clicked through");
+    expect(m.search).toContain("9,999/mo searches · low competition");
+  });
+  it("falls back to the deterministic RNG for omitted extras", () => {
+    const core = { waitlist: 30, ctr: 3, costPerSignup: 1.2, spend: 20 };
+    expect(scoreIdea(core, "seed", {})).toEqual(scoreIdea(core, "seed")); // {} === no extras
   });
 });
 

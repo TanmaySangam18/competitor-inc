@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getBrowserSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
-export interface RoomieUser {
+export interface EngineUser {
   email: string;
   guest: boolean;
 }
@@ -12,7 +12,7 @@ export interface RoomieUser {
 // "guest" workspace so the product is fully usable offline.
 export function useAuth() {
   const configured = isSupabaseConfigured();
-  const [user, setUser] = useState<RoomieUser | null>(null);
+  const [user, setUser] = useState<EngineUser | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
