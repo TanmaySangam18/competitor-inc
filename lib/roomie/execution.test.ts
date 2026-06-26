@@ -11,6 +11,7 @@ describe("execution capabilities — every integration OFF without keys", () => 
     expect(c.email).toBe(false);
     expect(c.payments).toBe(false);
     expect(c.ads).toBe(false);
+    expect(c.bluesky).toBe(false);
   });
   it("realExecutionEnabled is false without GITHUB_TOKEN", () => {
     expect(realExecutionEnabled()).toBe(false);
@@ -18,8 +19,8 @@ describe("execution capabilities — every integration OFF without keys", () => 
 });
 
 describe("runAction — gated, falls back to simulated (no live calls without keys)", () => {
-  it("build / deploy / outreach / spend / payments all report disabled", async () => {
-    for (const action of ["build", "deploy", "outreach", "spend", "payments"]) {
+  it("build / deploy / outreach / spend / payments / bluesky all report disabled", async () => {
+    for (const action of ["build", "deploy", "outreach", "spend", "payments", "bluesky"]) {
       const r = await runAction(action, co);
       expect(r.ok).toBe(false);
       expect(r.disabled).toBe(true);
