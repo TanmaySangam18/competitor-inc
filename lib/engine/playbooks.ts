@@ -207,6 +207,67 @@ export const PLAYBOOKS: Playbook[] = [
       },
     ],
   },
+  {
+    slug: "how-people-decide",
+    title: "How people actually decide",
+    summary: "The honest version of persuasion — the mental shortcuts behind real decisions, and how to earn a yes without ever manipulating one.",
+    readMins: 6,
+    freeIntro: [
+      "People like to believe they decide with cold logic. They mostly don't. Real decisions run on fast mental shortcuts — what feels safe, what others are doing, what they'd lose by waiting — and only get dressed up as reasons afterward. If you want someone to say yes to your product, understand the shortcuts; don't argue with the after-the-fact logic.",
+      "There's a fork here that matters: the same shortcuts can manipulate or clarify. Manipulation buys a yes today and a refund (and a bad review) tomorrow. Clarity helps someone make a choice they'll still be glad they made next month. This playbook is the honest side — using how people decide to remove confusion and fear, never to trick.",
+    ],
+    body: [
+      {
+        heading: "The shortcuts that move a decision",
+        paragraphs: [
+          "A handful of forces do most of the work: social proof (what people like me are doing), authority (does a credible source vouch for this), scarcity and loss (what do I lose if I wait), reciprocity (they gave first, so I lean in), commitment (small yeses lead to bigger ones), and liking (I trust people who feel like me). Name the one or two that genuinely apply to you and lead with them.",
+          "The honesty test: every one must be true. Real scarcity, not a fake countdown. Real proof, not invented reviews. The moment a shortcut is a lie, you've traded a long-term customer for a short-term click — a terrible trade, especially for a trust-based product.",
+        ],
+      },
+      {
+        heading: "Fast brain, slow brain",
+        paragraphs: [
+          "People judge with a fast, emotional system first and a slow, rational one second. Your headline and first screen are read by the fast brain — it decides whether the slow brain even bothers. So make the first impression feel safe and clear before you pile on features and detail.",
+        ],
+      },
+      {
+        heading: "Reduce fear, don't just add desire",
+        paragraphs: [
+          "Most founders crank up desire. Often the bigger lever is removing fear: 'what if it's a scam,' 'what if I'm locked in,' 'what if I lose my money.' Answer the scariest objection out loud, early, and plainly. A yes is frequently just what's left once the fear is gone.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "design-for-action",
+    title: "Design for action — why people do (or don't) act",
+    summary: "A simple model for why someone takes an action — and the one lever that beats motivation almost every time: make it easier.",
+    readMins: 5,
+    freeIntro: [
+      "You've seen it: people say they want the thing, then don't do it. They didn't lie — an action only happens when three things line up in the same moment: enough motivation, enough ability (it's easy enough), and a clear prompt to do it now. Miss any one and nothing happens, no matter how good the product is.",
+      "The trap is to obsess over motivation — louder copy, bigger promises — when the cheapest, most reliable win is usually ability: just make the action easier. This playbook breaks down the three ingredients and shows why 'remove a step' beats 'shout louder' nearly every time.",
+    ],
+    body: [
+      {
+        heading: "Motivation × Ability × Prompt",
+        paragraphs: [
+          "Picture three dials. Motivation is how much they want it. Ability is how easy it is to do. Prompt is the nudge that says 'now.' An action fires only when all three are high enough together. A highly motivated person will do a hard thing; a barely motivated one will only do a trivially easy thing — so the cooler your visitor, the easier the step must be.",
+        ],
+      },
+      {
+        heading: "Make it easier before you make it louder",
+        paragraphs: [
+          "Cutting friction is almost always cheaper and more effective than boosting desire. Every extra field, click, decision, or moment of confusion bleeds people out of your funnel. Count the steps to the action and delete half. One email field beats a ten-field form; one clear button beats three competing ones.",
+        ],
+      },
+      {
+        heading: "Prompt at the moment of peak motivation",
+        paragraphs: [
+          "A prompt works only when motivation and ability are already high. Ask for the bigger commitment right after a win — the moment they felt the value — not before. The right ask at the wrong time reads as pushy; the same ask seconds after an 'aha' feels obvious.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getPlaybook(slug: string): Playbook | undefined {

@@ -112,6 +112,9 @@ export default function Join() {
           >
             {CHECKOUT_URL ? "Claim a Founding seat — $99" : "Notify me when seats open"}
           </a>
+          <p className="mt-3 text-xs text-muted-2">
+            Pay once. No subscription, no revenue share, no surprises — that&apos;s the whole point.
+          </p>
         </div>
 
         <div id="waitlist" className="mt-12">
