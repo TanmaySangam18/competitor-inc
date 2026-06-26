@@ -38,6 +38,7 @@ import { useConfig, getByok } from "@/lib/engine/config";
 import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/engine/types";
 import { LogoMark } from "@/components/Logo";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
+import DemandTestPanel from "@/components/DemandTestPanel";
 
 const agentStyle: Record<AgentRole, { icon: typeof Gauge; color: string; ring: string }> = {
   ceo: { icon: Gauge, color: "text-violet", ring: "bg-violet/12" },
@@ -436,6 +437,7 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
       <p className="mt-3 text-center text-xs text-muted-2">
         These are <span className="text-muted">AI estimates</span> from your idea — a fast read, not a live test with real signups yet. You decide; competitor.inc only builds once you approve.
       </p>
+      <DemandTestPanel slug={r.company!.slug} idea={r.company!.idea} />
     </motion.div>
   );
 }
