@@ -268,6 +268,60 @@ export const PLAYBOOKS: Playbook[] = [
       },
     ],
   },
+  {
+    slug: "build-a-habit-loop",
+    title: "Make it a habit, not a one-time visit",
+    summary: "Why most products get tried once and forgotten — and the four-step loop that turns a first visit into a returning one.",
+    readMins: 5,
+    freeIntro: [
+      "Getting someone to try your product is the easy part. Getting them to come back — without paying to re-acquire them every time — is what actually builds a business. Most products die not because nobody tried them, but because nobody returned. Retention, not acquisition, is the real test.",
+      "Habits form through a repeatable loop: a trigger brings someone back, they take a simple action, they get a reward that's a little unpredictable (so it stays interesting), and they invest a little of themselves — which makes the next loop more likely. Run that loop enough times and your product becomes a default, not a decision. Here's how to design it honestly.",
+    ],
+    body: [
+      {
+        heading: "Trigger → action → reward → investment",
+        paragraphs: [
+          "A trigger is what brings them back — at first external (an email, a notification), later internal (an itch they now associate with you). The action must be dead simple. The reward should vary a little — a perfectly predictable reward gets boring fast. The investment is the small thing they leave behind (data, a setup, a streak) that makes returning easier than starting over.",
+        ],
+      },
+      {
+        heading: "Find your internal trigger",
+        paragraphs: [
+          "External triggers wear out; the durable habit is built on an internal one — an emotion or moment your product reliably answers ('I'm bored', 'I need to know how we're doing'). Name the exact moment you want to own, and design every loop to attach to it.",
+        ],
+      },
+      {
+        heading: "The honesty line",
+        paragraphs: [
+          "These loops can manipulate or serve. The honest version builds a habit around a real benefit and lets people leave anytime; the dishonest version engineers compulsion they'll resent. Build the kind of habit people would thank you for — anything else churns harder in the end.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "tell-a-story-that-sells",
+    title: "Tell a story that sells (make the customer the hero)",
+    summary: "Why your messaging falls flat when you're the hero — and the simple story shape that makes a stranger feel understood.",
+    readMins: 5,
+    freeIntro: [
+      "Most founders talk about themselves: our features, our technology, our journey. But people don't buy the hero's story — they buy a guide who helps THEM win their own. The fastest way to make a stranger care is to make them the hero and cast yourself as the guide who takes them from stuck to sorted.",
+      "A story that sells has a clear shape: a hero (your customer) has a problem, meets a guide (you) who offers a plan, gets called to act, and sees what success and failure look like. Get that order right and your message stops being noise and starts feeling like it was written for one specific person.",
+    ],
+    body: [
+      {
+        heading: "The shape of a story that sells",
+        paragraphs: [
+          "Name the hero's problem in their own words (so they think 'that's me'). Position yourself as the guide with empathy and a little authority — not another hero competing for the spotlight. Give them a simple plan (three steps, not ten). Make one clear call to action. And make the stakes real: what they gain by acting, what they keep losing by not.",
+        ],
+      },
+      {
+        heading: "Lead with the problem, not the product",
+        paragraphs: [
+          "The opening line should be about their pain, not your feature list. People decide whether to keep reading based on whether you understand their problem — features only matter once they believe you get it. Win the 'they understand me' moment first; everything else waits its turn.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getPlaybook(slug: string): Playbook | undefined {
