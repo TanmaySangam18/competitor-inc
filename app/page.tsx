@@ -161,7 +161,7 @@ function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3.5 py-1.5 text-xs text-muted backdrop-blur"
           >
             <Sparkles size={13} className="text-amber" />
-            Validation-first · honest by design
+            For first-time founders · honest by design
           </motion.div>
 
           <motion.h1
@@ -181,10 +181,10 @@ function Hero() {
             transition={{ duration: 0.6, delay: 0.13 }}
             className="mt-6 max-w-xl text-lg leading-relaxed text-muted"
           >
-            competitor.inc is your AI co-founder that{" "}
-            <span className="text-text">validates an idea before it builds it</span> — running real
-            demand tests, telling you the honest truth, then shipping only the winner. It shows its
-            work, and never spends a dollar or sends a message without your say-so.
+            competitor.inc is the AI co-founder for your{" "}
+            <span className="text-text">first company</span> — it validates your idea before it builds
+            it: real demand tests, the honest truth, then it ships only the winner. It shows its work,
+            and never spends a dollar or sends a message without your say-so.
           </motion.p>
 
           <motion.div
@@ -545,7 +545,7 @@ function Footer() {
 function ChatOpsTeaser() {
   return (
     <section className="border-t border-border bg-surface/20">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-24 md:grid-cols-2">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 pt-24 pb-10 md:grid-cols-2">
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-coral/30 bg-coral/10 px-3 py-1 text-xs font-medium text-coral">
             <Sparkles size={13} /> Coming soon
@@ -582,6 +582,22 @@ function ChatOpsTeaser() {
             </div>
           </div>
           <p className="mt-4 text-center text-[11px] text-muted-2">Texting with your crew · preview</p>
+        </div>
+      </div>
+
+      {/* On the roadmap — capabilities by function (no product codenames) */}
+      <div className="mx-auto max-w-6xl px-6 pb-20">
+        <div className="flex flex-wrap items-center gap-2.5 border-t border-border pt-6">
+          <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-2">On the roadmap</span>
+          {[
+            "Text your agents · approve from your phone",
+            "Browser-run AI — free to try",
+            "Your agents post for you — with your yes",
+          ].map((c) => (
+            <span key={c} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted">
+              <span className="h-1.5 w-1.5 rounded-full bg-coral/70" /> {c}
+            </span>
+          ))}
         </div>
       </div>
     </section>

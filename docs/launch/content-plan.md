@@ -6,6 +6,9 @@
 > X / YouTube Shorts / LinkedIn) — NOT pre-launch drip (surprise-launch rule holds; deploy at launch). Most
 > footage is repurposed from the [trailer](trailer-storyboard.md) + screen-records of the product.
 
+**ICP framing:** every hook is aimed at the **first-time / student & new-grad founder** — the person
+terrified of pouring their savings into an idea nobody wants. Speak to *that* person's fear and relief.
+
 **Format for each:** 15–30s vertical. **Hook in the first 3 seconds** (that's 80% of the battle). End on the
 same CTA: *"competitor.inc — prove it before you build it. Link in bio."*
 

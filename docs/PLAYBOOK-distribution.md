@@ -8,6 +8,10 @@
 >
 > **The founder's stance:** *I am not walking away.* You are the **trust champion** for launch + the first
 > ~30 days — not the operator. The agents run the machine; you do the few things that can't be automated.
+>
+> **Beachhead = first-time / student & new-grad founders** (the WHO, not a vertical). Channels skew to where
+> they gather: campus orgs, **NU IDEA/Sherman**, student & indie communities (IndieHackers, r/startups), and
+> honesty-reveal reels framed for first-timers. (Crossing the Chasm: own the segment.)
 
 ---
 

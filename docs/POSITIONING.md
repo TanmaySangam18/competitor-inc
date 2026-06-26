@@ -2,6 +2,13 @@
 
 **Tagline:** *The AI companion that runs your company — with complete autonomy, and complete honesty.*
 
+**Beachhead (the WHO, not a vertical):** **first-time / student & new-grad founders** — people building
+their *first* company. It's a customer segment defined by a shared problem (never done it, terrified of
+wasting their savings, need the honest truth + hand-holding), so they can still build/run *any kind* of
+company. We win this beachhead because the validate-first + proof + 0% + human-in-control wedge lands hardest
+on people who've never done it — while the incumbents (Polsia, Result) chase broad/experienced operators.
+*(Reach: campus orgs, NU IDEA/Sherman, student & indie communities, r/startups.)*
+
 **One-liner vs Polsia:** Polsia proved the category ("AI that runs your company while you
 sleep") and then earned a **2.1/5 Trustpilot**. competitor.inc is the *trustworthy* version — we win
 exactly where they break. We don't replicate Polsia; we ship the capabilities it's missing.
