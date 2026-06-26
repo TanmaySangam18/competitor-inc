@@ -39,6 +39,7 @@ import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company 
 import { LogoMark } from "@/components/Logo";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import DemandTestPanel from "@/components/DemandTestPanel";
+import CrewCard from "@/components/CrewCard";
 
 const agentStyle: Record<AgentRole, { icon: typeof Gauge; color: string; ring: string }> = {
   ceo: { icon: Gauge, color: "text-violet", ring: "bg-violet/12" },
@@ -671,6 +672,7 @@ function OperationsTab({ r }: { r: ReturnType<typeof useEngine> }) {
             })}
           </div>
         </div>
+        <CrewCard idea={r.company!.idea} />
       </aside>
     </div>
     </div>
