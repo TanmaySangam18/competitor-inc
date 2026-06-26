@@ -3,6 +3,7 @@ import { runShift } from "@/lib/engine/server";
 import { insertActivities, insertApprovals, updateCompany, toCompany } from "@/lib/engine/db";
 import { sendEmail } from "@/lib/engine/execution";
 import { remember } from "@/lib/engine/memory";
+import { withTrace } from "@/lib/engine/observability";
 
 export const runtime = "nodejs";
 
@@ -36,7 +37,7 @@ export async function GET(req: Request) {
     try {
       const company = toCompany(row);
       if (!company.ledger || typeof company.ledger !== "object") company.ledger = { ...EMPTY };
-      const { activities, approvals } = await runShift(company);
+      const { activities, approvals } = await withTrace("shift", () => runShift(company), { companyId: company.id, night: company.night });
       await insertActivities(sb, company.id, activities);
       await insertApprovals(sb, company.id, approvals);
 
