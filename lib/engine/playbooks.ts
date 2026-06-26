@@ -147,6 +147,66 @@ export const PLAYBOOKS: Playbook[] = [
       },
     ],
   },
+  {
+    slug: "the-autonomy-ladder",
+    title: "The autonomy ladder — how much should you let AI run?",
+    summary: "Where to place AI on the spectrum from 'suggests' to 'fully autonomous' — and why the winning rung keeps a human on the calls that matter.",
+    readMins: 5,
+    freeIntro: [
+      "It's tempting to want an AI that runs your whole company while you sleep — zero involvement, pure magic. But the people who get burned are the ones who hand over the keys completely, then watch an opaque system spend their money or email the wrong person. The real question isn't \"autonomous or not\" — it's which rung of the ladder you stand on.",
+      "The autonomy ladder runs from \"the AI suggests, you do everything\" up to \"the AI does everything and doesn't even tell you.\" For anything that spends money or talks to the public, there's one rung that wins on both speed and trust — and most founders stand on the wrong one. This is how to find the right rung.",
+    ],
+    body: [
+      {
+        heading: "The five rungs",
+        paragraphs: [
+          "1) Suggests — you do all the doing. 2) Does each step, but waits for your yes every time. 3) Does it, then tells you after. 4) Does it unless you stop it in time. 5) Fully autonomous — you're not in the loop at all. Speed rises as you climb; control falls.",
+        ],
+      },
+      {
+        heading: "The winning rung: high work-autonomy, human-approved consequences",
+        paragraphs: [
+          "Let the AI run at near-full autonomy on the work (research, drafts, builds, analysis) but require a human yes on the consequential, hard-to-reverse moves — spending, public messages, deletions. You get ~99% of the leverage and keep both trust and a kill switch. People don't fear an AI that does the work; they fear one that acts irreversibly without asking.",
+        ],
+      },
+      {
+        heading: "Set guardrails before you climb",
+        paragraphs: [
+          "Decide in advance what's pre-authorized (small, reversible) versus what's gated (spend caps, anything public), and keep a plain-language log of every action so you can undo it. Autonomy without an audit trail isn't leverage — it's risk.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "win-a-niche-first",
+    title: "Win a niche before you go wide",
+    summary: "Why the fastest path to a big market is owning one small, specific group first — and how to pick it.",
+    readMins: 5,
+    freeIntro: [
+      "Every ambitious founder wants the huge market — \"anyone could use this.\" But \"everyone\" is the hardest first customer to win, because no single message lands for all of them at once. The counter-intuitive truth: the fastest path to a big market is to utterly own a small one first.",
+      "A beachhead is a tight group who share one urgent problem and talk to each other. Be the obvious choice for that person, and word-of-mouth plus credibility carry you into the next segment. This is how to pick that beachhead — and avoid the \"boil the ocean\" trap that quietly kills most launches.",
+    ],
+    body: [
+      {
+        heading: "What makes a good beachhead",
+        paragraphs: [
+          "A homogeneous group with one urgent, shared pain; a word-of-mouth network so wins spread; and a place you can reach them cheaply. If a segment has all three, it's a launchpad — not a limitation.",
+        ],
+      },
+      {
+        heading: "Pick the WHO, not the vertical",
+        paragraphs: [
+          "Define your niche by the person and their shared problem, not the industry. That lets you stay broad in what you build while being laser-focused on who you serve first — the same product, aimed at one person who feels truly understood.",
+        ],
+      },
+      {
+        heading: "Dominate, then expand",
+        paragraphs: [
+          "Be 10× better for that one group than any generalist. Their referrals and your proof open the next door — and the next. Trying to be pretty-good for everyone loses to being unmissable for someone.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getPlaybook(slug: string): Playbook | undefined {
