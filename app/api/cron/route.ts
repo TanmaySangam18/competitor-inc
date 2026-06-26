@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { runShift } from "@/lib/engine/server";
 import { insertActivities, insertApprovals, updateCompany, toCompany } from "@/lib/engine/db";
 import { sendEmail } from "@/lib/engine/execution";
+import { remember } from "@/lib/engine/memory";
 
 export const runtime = "nodejs";
 
@@ -51,6 +52,14 @@ export async function GET(req: Request) {
           tasksFailed: company.ledger.tasksFailed + failed.length,
         },
       });
+      // Accumulate private memory for this company (fail-soft; no-op without an embeddings key).
+      await remember(
+        sb,
+        company.id,
+        company.night,
+        "shift",
+        `Night ${company.night + 1}: ${done.length} done, ${failed.length} failed. ${activities.map((a) => a.action).slice(0, 4).join("; ")}`,
+      );
       ran++;
     } catch (err) {
       failed_companies++;
