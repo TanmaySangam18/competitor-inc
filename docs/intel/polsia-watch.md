@@ -7,6 +7,33 @@ revenue share, validate-before-build.
 
 ---
 
+## 2026-06-24 (manual run)
+
+**Polsia — trust is getting *worse*:** Trustpilot now **1.8/5** (35 reviews, ~80% one-star) — *down* from
+2.1. The reliability/trust wound is deepening. Strong tailwind for our wedge.
+
+**Polsia — they're now SEO-fishing in OUR niche.** Their blog (June 2026) is pumping content aimed at
+**non-technical / first-time founders**: "10 Best AI App Builders for Non-Technical Founders," "15 Best
+No-Code AI Tools," "How to Create an App Without Coding or Hiring a Team," "Before You Hire an App
+Developer." So: their *product* pitch stays broad/autonomy, but their *content/SEO* targets first-timers —
+the exact beachhead we just picked. **Our niche is contested on content, but uncontested on the *honesty*
+angle.**
+
+**No new product feature** announced in June (blog = SEO, not releases). The **$30M @ $250M** raise (May)
+remains the headline. ARR still **disputed** across sources ($3.5M / $10M / ~$450k) — treat as unknown.
+
+**Result (result.dev):** no material change this pass.
+
+**Top 3 takeaways:**
+1. **1.8/5 and falling** — lead launch copy with the trust contrast (never-charged-for-failed-work,
+   Glass Box, 0%); their own users are writing our ad copy.
+2. **Don't try to out-*publish* Polsia on first-timer SEO — out-*honest* them.** Our content angle is
+   "validate first / we'll tell you NOT to build it," which their "build-anything-fast" content can't say.
+3. **Niche pick validated *and* contested:** first-timers are the right pond (Polsia agrees, via their
+   content) — so the differentiator must be the wedge, not the topic.
+
+---
+
 ## Result (result.dev) — baseline 2026-06-23
 
 **What:** **Y Combinator-backed** all-in-one "founder OS" — incorporate, open accounts, take payments,
