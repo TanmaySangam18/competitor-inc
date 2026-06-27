@@ -345,7 +345,7 @@ function Capabilities() {
 /* ── Glass Box showcase ──────────────────────────────────────── */
 const logEntries = [
   { icon: Rocket, color: "text-mint", ring: "bg-mint/12", agent: "Engineering", action: "Deployed landing page → bedtime-stories.app", meta: "build passed · 0:42s", cost: "$0.18", status: "done" },
-  { icon: TrendingUp, color: "text-amber", ring: "bg-amber/12", agent: "Marketing", action: "Ran $20 demand test on Meta · 4.6% CTR", meta: "within budget", cost: "$20.00", status: "done" },
+  { icon: TrendingUp, color: "text-amber", ring: "bg-amber/12", agent: "Marketing", action: "Ran a $20 demand test · 4.6% CTR", meta: "on your connected ad account", cost: "$20.00", status: "done" },
   { icon: Send, color: "text-coral", ring: "bg-coral/12", agent: "Growth", action: "Drafted launch post — waiting for your approval", meta: "outbound · needs sign-off", cost: "—", status: "pending" },
 ];
 

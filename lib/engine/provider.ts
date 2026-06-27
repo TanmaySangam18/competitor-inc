@@ -206,7 +206,7 @@ class SimulatedProvider implements EngineProvider {
       approvals.push({
         id: uid(), night, agent: "marketing", kind: "spend",
         title: `Scale ad spend to $${big}/day`,
-        detail: `Last test beat target CAC. Pitch wants to scale — that's above the auto-spend cap.`,
+        detail: `Last test beat target CAC — above the auto-spend cap, so it needs your ok. This runs on YOUR connected ad account; with none connected it stays a simulated plan (nothing is spent).`,
         amount: big,
       });
     }

@@ -50,6 +50,15 @@ export default async function DemandTestPage({ params }: { params: Promise<{ slu
         <p className="mt-10 text-xs text-muted-2">
           Be the first to know when it launches. No spam — just one email when it&apos;s ready.
         </p>
+        <a
+          href="/"
+          className="mt-8 inline-flex items-center gap-1.5 text-xs text-muted-2 transition hover:text-muted"
+        >
+          Powered by{" "}
+          <span className="font-mono font-semibold text-muted">
+            competitor<span className="text-coral">.inc</span>
+          </span>
+        </a>
       </div>
     </div>
   );

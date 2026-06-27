@@ -433,6 +433,11 @@ export function useEngine() {
       };
       if (!approve) return { ...s, approvals };
       const cost = item.amount ?? 0;
+      // Ad spend runs on the user's OWN connected ad account (off-platform) — it is NOT competitor.inc's
+      // money, and with no account connected NOTHING is actually spent. So a spend approval must never
+      // inflate our ledger or claim "$X spent"; it's queued honestly. Real connected spend would be
+      // reflected only via executeAction's real proof.
+      const charged = item.kind === "spend" ? 0 : cost;
       const active = s.companies.find((c) => c.id === s.activeId);
       if (!active) return { ...s, approvals };
       const newActivity: Activity = {
@@ -441,7 +446,7 @@ export function useEngine() {
         agent: item.agent,
         action: item.title + " — approved by you",
         meta: "you signed off",
-        cost,
+        cost: charged,
         status: "done",
         // Honest: approving QUEUES the action — it doesn't claim the real-world act happened. The
         // real result (a live URL / send id) is appended by executeAction only when an integration
@@ -452,7 +457,7 @@ export function useEngine() {
             : item.kind === "outreach"
             ? { kind: "metric", value: "approved — drafted, queued to send" }
             : item.kind === "spend"
-            ? { kind: "metric", value: `$${cost} approved` }
+            ? { kind: "metric", value: "approved — queued to your ad account · nothing spent until you connect one" }
             : { kind: "metric", value: "approved" },
       };
       return {
@@ -461,7 +466,7 @@ export function useEngine() {
         activities: { ...s.activities, [active.id]: [newActivity, ...(s.activities[active.id] ?? [])] },
         companies: s.companies.map((c) =>
           c.id === active.id
-            ? { ...c, ledger: { ...c.ledger, spent: round(c.ledger.spent + cost), tasksDone: c.ledger.tasksDone + 1 } }
+            ? { ...c, ledger: { ...c.ledger, spent: round(c.ledger.spent + charged), tasksDone: c.ledger.tasksDone + 1 } }
             : c
         ),
       };
