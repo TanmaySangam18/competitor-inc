@@ -19,7 +19,7 @@ import {
   Lock,
   Bell,
 } from "lucide-react";
-import { useConfig, type ProviderMode } from "@/lib/engine/config";
+import { useConfig } from "@/lib/engine/config";
 import { useAuth } from "@/lib/engine/useAuth";
 import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/engine/types";
 
@@ -139,95 +139,94 @@ function Agents({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
 }
 
 function Engine({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
-  const modes: { id: ProviderMode; label: string; desc: string }[] = [
-    { id: "simulated", label: "Free · Lite engine", desc: "The baseline everyone gets — $0, offline, always on. No key required, no cost to you." },
-    { id: "frontier", label: "Pro · Premium models", desc: "Top-tier Claude / GPT-class reasoning — on a paid plan, funded by your subscription (not your own wallet)." },
-    { id: "private", label: "Private mode", desc: "Self-hosted open-weight model — your data never leaves your infrastructure." },
-  ];
+  // One control, two choices: our engine (default, nothing to set up) or your own key (full privacy /
+  // cost control). "Using your own key" is simply whether a BYOK provider is selected — no separate
+  // mode to keep in sync. providerMode is still recorded for continuity but no longer a 3-way puzzle.
+  const useOwnKey = !!cfg.config.byok.provider;
+  const pickDefault = () => { cfg.setProviderMode("simulated"); cfg.setByok({ provider: "" }); };
+  const pickOwnKey = () => { cfg.setProviderMode("private"); if (!cfg.config.byok.provider) cfg.setByok({ provider: "anthropic" }); };
+  const radio = (on: boolean) => `mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border ${on ? "border-coral bg-coral text-bg" : "border-muted-2"}`;
+  const live = useOwnKey && !!cfg.config.byok.apiKey;
   return (
-    <Card title="Engine" desc="Three tiers: a free Lite engine for everyone, premium models on paid plans, or bring your own key. The live default is set server-side; this records your preference.">
-      <div className="space-y-3">
-        {modes.map((m) => (
-          <button
-            key={m.id}
-            onClick={() => cfg.setProviderMode(m.id)}
-            className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition ${
-              cfg.config.providerMode === m.id ? "border-coral/50 bg-coral/[0.05]" : "border-border bg-bg/40 hover:border-border"
-            }`}
-          >
-            <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border ${cfg.config.providerMode === m.id ? "border-coral bg-coral text-bg" : "border-muted-2"}`}>
-              {cfg.config.providerMode === m.id && <Check size={12} />}
-            </span>
-            <span>
-              <span className="block text-sm font-medium">{m.label}</span>
-              <span className="block text-xs text-muted">{m.desc}</span>
-            </span>
-          </button>
-        ))}
+    <Card title="Choose your AI" desc="Who powers the agents' thinking. Pick one — everything else (validation, your crew, the proof layer) works the same either way. The model is a commodity; competitor.inc is the engine around it.">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button
+          onClick={pickDefault}
+          className={`flex items-start gap-3 rounded-xl border p-4 text-left transition ${!useOwnKey ? "border-coral/50 bg-coral/[0.05]" : "border-border bg-bg/40 hover:border-border"}`}
+        >
+          <span className={radio(!useOwnKey)}>{!useOwnKey && <Check size={12} />}</span>
+          <span>
+            <span className="block text-sm font-medium">competitor.inc engine</span>
+            <span className="mt-0.5 block text-xs text-muted">Recommended — nothing to set up. Free Lite by default; premium models unlock on a paid plan, funded by your subscription (not your own wallet).</span>
+          </span>
+        </button>
+        <button
+          onClick={pickOwnKey}
+          className={`flex items-start gap-3 rounded-xl border p-4 text-left transition ${useOwnKey ? "border-coral/50 bg-coral/[0.05]" : "border-border bg-bg/40 hover:border-border"}`}
+        >
+          <span className={radio(useOwnKey)}>{useOwnKey && <Check size={12} />}</span>
+          <span>
+            <span className="block text-sm font-medium">Bring your own key</span>
+            <span className="mt-0.5 block text-xs text-muted">For full privacy or your own cost control — any provider, including a self-hosted open-weight model. Stays in this browser, sent per-request, never stored by us.</span>
+          </span>
+        </button>
       </div>
-      <div className="mt-6 rounded-xl border border-border bg-bg/40 p-4">
-        <div className="text-sm font-medium">Bring your own key — use any provider, you pay them directly (optional)</div>
-        <p className="mt-1 text-xs text-muted">
-          competitor.inc is the validation engine, the agent team, and the proof layer — the model is
-          just the brain we plug into it. Most people use the default; bring a key only if you want full
-          privacy or your own cost control. It stays in this browser, is sent per-request, and is never
-          persisted by us.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="block text-xs text-muted-2">
-            Provider
-            <select
-              value={cfg.config.byok.provider}
-              onChange={(e) => cfg.setByok({ provider: e.target.value as ByokConfig["provider"] })}
-              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
-            >
-              <option value="">None (simulated)</option>
-              <option value="anthropic">Anthropic</option>
-              <option value="openai-compatible">OpenAI-compatible (OpenAI / Groq / OpenRouter / local)</option>
-            </select>
-          </label>
-          <label className="block text-xs text-muted-2">
-            Model
-            <input
-              value={cfg.config.byok.model}
-              onChange={(e) => cfg.setByok({ model: e.target.value })}
-              placeholder="claude-opus-4-8 / gpt-4o-mini / …"
-              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
-            />
-          </label>
-        </div>
-        {cfg.config.byok.provider === "openai-compatible" && (
-          <label className="mt-3 block text-xs text-muted-2">
-            Base URL
-            <input
-              value={cfg.config.byok.baseUrl}
-              onChange={(e) => cfg.setByok({ baseUrl: e.target.value })}
-              placeholder="https://api.groq.com/openai/v1"
-              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
-            />
-          </label>
-        )}
-        <label className="mt-3 block text-xs text-muted-2">
-          API key
-          <input
-            type="password"
-            autoComplete="off"
-            value={cfg.config.byok.apiKey}
-            onChange={(e) => cfg.setByok({ apiKey: e.target.value })}
-            placeholder="sk-…"
-            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
-          />
-        </label>
-        <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-2">
-          {cfg.config.byok.provider && cfg.config.byok.apiKey ? (
-            <>
-              <span className="h-1.5 w-1.5 rounded-full bg-mint" /> Live — running on your key
-            </>
-          ) : (
-            <>Simulated — add a key to go live (free tiers work: Groq, OpenRouter).</>
+
+      {useOwnKey && (
+        <div className="mt-4 rounded-xl border border-border bg-bg/40 p-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block text-xs text-muted-2">
+              Provider
+              <select
+                value={cfg.config.byok.provider}
+                onChange={(e) => cfg.setByok({ provider: e.target.value as ByokConfig["provider"] })}
+                className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
+              >
+                <option value="anthropic">Anthropic (Claude)</option>
+                <option value="openai-compatible">OpenAI-compatible — OpenAI / Groq / OpenRouter / self-hosted</option>
+              </select>
+            </label>
+            <label className="block text-xs text-muted-2">
+              Model
+              <input
+                value={cfg.config.byok.model}
+                onChange={(e) => cfg.setByok({ model: e.target.value })}
+                placeholder="claude-opus-4-8 / gpt-4o-mini / …"
+                className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
+              />
+            </label>
+          </div>
+          {cfg.config.byok.provider === "openai-compatible" && (
+            <label className="mt-3 block text-xs text-muted-2">
+              Base URL <span className="text-muted-2/70">— your provider or self-hosted endpoint</span>
+              <input
+                value={cfg.config.byok.baseUrl}
+                onChange={(e) => cfg.setByok({ baseUrl: e.target.value })}
+                placeholder="https://api.groq.com/openai/v1"
+                className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
+              />
+            </label>
           )}
-        </p>
-      </div>
+          <label className="mt-3 block text-xs text-muted-2">
+            API key
+            <input
+              type="password"
+              autoComplete="off"
+              value={cfg.config.byok.apiKey}
+              onChange={(e) => cfg.setByok({ apiKey: e.target.value })}
+              placeholder="sk-…"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
+            />
+          </label>
+          <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-2">
+            {live ? (
+              <><span className="h-1.5 w-1.5 rounded-full bg-mint" /> Live — running on your key.</>
+            ) : (
+              <>Add the API key to go live (free tiers work: Groq, OpenRouter).</>
+            )}
+          </p>
+        </div>
+      )}
     </Card>
   );
 }
