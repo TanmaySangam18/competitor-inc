@@ -26,7 +26,7 @@ and the market/ICP selectors. **Don't answer "Yes" unless it's true.** Your two 
 - **Company name:** competitor.inc
 - **In one sentence (≤120):** `The AI co-founder that validates your idea before you build — then runs the company with an agent crew you approve.`
 - **City:** Boston · **State:** Massachusetts
-- **Company URL:** https://competitor-inc.vercel.app `[CONFIRM the link you want shown]`
+- **Company URL:** https://competitor-inc-zeta.vercel.app `[CONFIRM the link you want shown]`
 - **Founding year:** `[CONFIRM — 2026?]` · **Stage:** Pre-seed / MVP `[CONFIRM dropdown wording]`
 - **Pitch deck:** optional — skip, or link the trailer (launch/trailer-animatic.html). `[CONFIRM]`
 
@@ -54,7 +54,7 @@ and the market/ICP selectors. **Don't answer "Yes" unless it's true.** Your two 
 ## Page 7–8 — Technology & product
 - **What is your product? (≤500):** `An AI co-founder for your first company. You describe an idea; a tailored crew of agents (strategy, engineering, marketing, support, growth + domain specialists) validates demand, then — on your approval — builds and runs the product. Model-agnostic: Anthropic, any OpenAI-compatible or open-weight model, or on-device inference, with a Private Mode so your data never leaves your infrastructure. The wedge is trust: proof-first Glass Box, human-in-control Approval Inbox, verify-before-done, 0% revenue share.`
 - **Status / prototype or MVP? (≤500):** `Full product built and QA-green — validation gate, agent crew, Glass Box, Approval Inbox, gated real-execution layer, real demand-test instrumentation, persistent (pgvector) agent memory. It runs end-to-end today in a simulated mode that flips to real the moment a model key + database are set (every integration is off until its own key is added — nothing live runs without credentials). Live demo deployed. Pre-launch, targeting a measured, instrumented launch.`
-- **Demo URL:** https://competitor-inc.vercel.app `[CONFIRM]`
+- **Demo URL:** https://competitor-inc-zeta.vercel.app `[CONFIRM]`
 - **Demo description (≤50):** `Live demo — runs in simulated mode.`
 - **How are you using ML/AI in the core product? (≤500):** `A multi-agent orchestration layer on LLMs: an orchestrator generates a bespoke specialist crew per company, routes each agent to an appropriate model (stronger for strategy/engineering, cheaper for routine work), and runs approval-gated actions through a tool layer (real GitHub/email/deploy/payments/social). Model-agnostic — Anthropic, any OpenAI-compatible/open-weight/self-hosted model, or in-browser inference. Persistent per-company memory (pgvector embeddings) sharpens the crew over time. We do NOT train our own models.`
 
