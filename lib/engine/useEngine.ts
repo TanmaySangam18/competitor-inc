@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, OperateData, ValidationResult } from "./types";
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
-import { getByok, getConnections } from "./config";
+import { getByok, getConnections, pingCustomerUpdate } from "./config";
 import { draftBlitz } from "./blitz";
 import { canRun, recordRun, FREE_CAPS } from "./usage";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
@@ -189,6 +189,10 @@ export function useEngine() {
             : x
         ),
       }));
+      // Opt-in customer update (no-op unless they connected a channel) — fires on validation.
+      pingCustomerUpdate(
+        `${name}: validation in — ${validation.verdict} signal (${validation.confidence}% confidence). Open competitor.inc to decide your next move.`
+      );
       setWorking(null);
     })();
   }, []);
@@ -396,6 +400,10 @@ export function useEngine() {
             approvals: { ...s.approvals, [c.id]: [...apps, ...(s.approvals[c.id] ?? [])] },
           };
         });
+        // Opt-in customer update (no-op unless they connected a channel) — fires on every shift.
+        pingCustomerUpdate(
+          `${active.name}: night ${active.night + 1} wrapped — ${done.length} task${done.length === 1 ? "" : "s"} shipped${apps.length ? `, ${apps.length} waiting for your ok` : ""}. See the Glass Box.`
+        );
       } finally {
         inFlightRef.current = false;
         setWorking(null);

@@ -17,6 +17,7 @@ import {
   Mail,
   Globe,
   Lock,
+  Bell,
 } from "lucide-react";
 import { useConfig, type ProviderMode } from "@/lib/engine/config";
 import { useAuth } from "@/lib/engine/useAuth";
@@ -364,7 +365,60 @@ function Integrations({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
         </label>
       </div>
       <p className="mt-4 text-xs text-muted-2">&ldquo;Live&rdquo; = the operator set that key · &ldquo;Yours&rdquo; = running on your own connection · &ldquo;Off&rdquo; = safe simulation. Turning one on authorizes real-world actions; consequential ones still wait in your Approval Inbox.</p>
+
+      <NotifyOptIn cfg={cfg} />
     </Card>
+  );
+}
+
+function NotifyOptIn({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
+  const chatId = cfg.config.notify.telegramChatId;
+  const [status, setStatus] = useState<null | "sending" | "ok" | "off" | "err">(null);
+  const sendTest = async () => {
+    if (!chatId) return;
+    setStatus("sending");
+    try {
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ chatId, text: "✅ competitor.inc test — you'll get pings like this when your crew validates an idea or finishes a shift." }),
+      });
+      const d = await res.json().catch(() => ({}));
+      setStatus(d.disabled ? "off" : d.ok ? "ok" : "err");
+    } catch {
+      setStatus("err");
+    }
+  };
+  return (
+    <div className="mt-6 rounded-xl border border-border bg-bg/40 p-4">
+      <div className="flex items-center gap-2 text-sm font-medium"><Bell size={15} className="text-violet" /> Get build updates (optional)</div>
+      <p className="mt-1 text-xs text-muted">
+        A ping when your crew finishes validating an idea or running a shift — on Telegram now, iMessage
+        later. We can&apos;t pull a handle from your sign-in, so it&apos;s opt-in: message{" "}
+        <span className="text-text">our bot</span> first, then paste the chat id it replies with.
+      </p>
+      <label className="mt-3 block text-xs text-muted-2">
+        Telegram chat id
+        <input
+          value={chatId}
+          onChange={(e) => { cfg.setNotify({ telegramChatId: e.target.value.trim() }); setStatus(null); }}
+          placeholder="e.g. 123456789"
+          className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
+        />
+      </label>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button
+          onClick={sendTest}
+          disabled={!chatId || status === "sending"}
+          className="rounded-lg border border-border px-3 py-1.5 text-xs text-text transition hover:border-white/30 disabled:opacity-40"
+        >
+          {status === "sending" ? "Sending…" : "Send a test"}
+        </button>
+        {status === "ok" && <span className="text-xs text-mint">Sent ✓</span>}
+        {status === "off" && <span className="text-xs text-muted-2">Saved — delivery turns on once the bot token is set on the deploy.</span>}
+        {status === "err" && <span className="text-xs text-coral">Couldn&apos;t send — double-check the chat id.</span>}
+      </div>
+    </div>
   );
 }
 
