@@ -40,6 +40,19 @@ Everything is **gated + fail-soft**: with no bot token / webhook secret / Supaba
    Settings → Integrations → *Get build updates*. (Telegram bots can't DM someone who hasn't messaged them
    first — that's why it's opt-in, and why we never auto-pull a handle from your sign-in.)
 
+## Typed replies (not just buttons)
+
+You can also just **type** to the bot — a suggestion or a question, not only Approve/Reject:
+- The crew reads it and replies in-character (`runChat`, gated → simulated when no model is set).
+- If your message implies a consequential move (spend, post, deploy), the reply flags it: *"I'll queue that
+  in your Approval Inbox for your yes"* — it never claims it shipped.
+- **`/start`** (or `/id`) makes the bot reply with your **chat id**, so opt-in is one step: message the bot →
+  copy the id → paste it in Settings.
+
+Context today defaults to **competitor.inc** (the House / customer-zero), which is right for the founder
+directing their own crew. Routing a *customer's* typed reply to *their* company needs a `chat_id → company`
+mapping — that's the next step (it also unlocks "approve the action I just suggested, from this same chat").
+
 ## Honest limits (today)
 
 - Works for **signed-in users with Supabase on** (the House/Operators) — the round-trip needs a server
