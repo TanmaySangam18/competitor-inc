@@ -29,7 +29,7 @@ const BY_ROLE = Object.fromEntries(DELEGATION.map((a) => [a.role, a])) as Record
 // Founder allow-list. Defaults to the two founder addresses so access is locked-down even before the
 // NEXT_PUBLIC_FOUNDER_EMAILS env var is set on a deployment; env (comma-separated) overrides/extends it.
 const FOUNDER_EMAILS = (
-  process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "sangam.d@northeastern.edu,tanmaysangam018@gmail.com"
+  process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "projecttattva1@gmail.com,sangam.d@northeastern.edu,tanmaysangam018@gmail.com"
 )
   .split(",")
   .map((s) => s.trim().toLowerCase())

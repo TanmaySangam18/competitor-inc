@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { MessageSquarePlus, X, Check, Loader2, Send } from "lucide-react";
-import { isSupabaseConfigured, getBrowserSupabase } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/engine/useAuth";
 
 // Beta feedback widget — a small floating button on every page. Writes to the Supabase `feedback`
@@ -27,16 +27,13 @@ export function FeedbackWidget() {
     if (!message) return;
     setState("sending");
     try {
-      const sb = getBrowserSupabase();
-      if (!sb) throw new Error("no client");
       const who = email.trim() || (user && !user.guest ? user.email : null);
-      const { error } = await sb.from("feedback").insert({
-        message,
-        email: who || null,
-        path: pathname || null,
-        user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ message, email: who, path: pathname }),
       });
-      if (error) throw error;
+      if (!res.ok) throw new Error("send failed");
       setState("done");
       setMsg("");
       setTimeout(() => { setOpen(false); setState("idle"); }, 1800);

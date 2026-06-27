@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { codeFrom } from "@/lib/engine/refcode";
+import { notifyFounder } from "@/lib/engine/notify-founder";
 
 export const runtime = "nodejs";
 
@@ -39,6 +40,10 @@ export async function POST(req: Request) {
   try {
     const sb = createClient(url, serviceKey, { auth: { persistSession: false } });
 
+    // Is this a brand-new signup? (so we only email the founder once, not on every returning-visitor sync)
+    const prior = await sb.from("waitlist").select("email").eq("email", email).maybeSingle();
+    const isNew = !prior.data;
+
     // Idempotent: re-joining with the same email is a no-op insert (lets returning visitors refresh
     // their position without creating duplicates).
     const { error: insErr } = await sb
@@ -47,6 +52,12 @@ export async function POST(req: Request) {
     if (insErr) {
       console.error("[/api/waitlist] insert failed:", insErr.message);
       return Response.json({ ok: true, code, persisted: false });
+    }
+    if (isNew) {
+      void notifyFounder(
+        "competitor.inc — new waitlist signup 🎉",
+        `<p><b>${email}</b> just joined the waitlist${ref ? ` (referred by ${ref})` : ""}.</p>`
+      ).catch(() => {});
     }
 
     // Service role bypasses RLS, so these counts are safe server-side (never exposed to the client API).

@@ -541,6 +541,7 @@ function Footer() {
           <a href="/live" className="transition hover:text-text">Live board</a>
           <a href="/#pricing" className="transition hover:text-text">Pricing</a>
           <a href="/join" className="transition hover:text-text">Founding</a>
+          <a href="mailto:projecttattva1@gmail.com" className="transition hover:text-text">Contact</a>
         </nav>
         <div className="flex items-center gap-1.5">
           <ShieldCheck size={14} className="text-mint" /> Your data, your call
