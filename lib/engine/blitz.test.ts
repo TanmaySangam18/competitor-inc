@@ -6,7 +6,7 @@ describe("draftBlitz — Surge's launch-blitz drafts", () => {
 
   it("produces a draft per launch channel", () => {
     expect(drafts.length).toBeGreaterThanOrEqual(3);
-    expect(drafts.map((d) => d.channel)).toEqual(expect.arrayContaining(["X thread", "Show HN", "Indie Hackers"]));
+    expect(drafts.map((d) => d.channel)).toEqual(expect.arrayContaining(["Bluesky thread", "Show HN", "Indie Hackers"]));
   });
 
   it("personalizes each draft with the company name and a non-empty body + title", () => {

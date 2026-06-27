@@ -32,7 +32,7 @@ const jetBrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-// Canonical site URL for absolute OG/Twitter image URLs (link-preview scrapers reject relative ones).
+// Canonical site URL for absolute Open Graph image URLs (link-preview scrapers reject relative ones).
 // Defaults to the Vercel URL; set NEXT_PUBLIC_SITE_URL to the custom domain at launch.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://competitor-inc.vercel.app";
 const TITLE = "competitor.inc — Prove it before you build it";
@@ -59,7 +59,8 @@ export const metadata: Metadata = {
     siteName: "competitor.inc",
     url: SITE_URL,
   },
-  // The launch leans on X — a large-image card is the difference between a rich preview and a bare link.
+  // The `twitter:` card tags are a cross-platform link-preview standard (Bluesky, Slack, iMessage, etc.
+  // read them too) — kept for rich previews. We do NOT market on X; distribution is Bluesky / AT Protocol.
   twitter: {
     card: "summary_large_image",
     title: TITLE,

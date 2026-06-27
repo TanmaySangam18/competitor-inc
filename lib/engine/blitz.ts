@@ -20,8 +20,8 @@ export function draftBlitz(company: { name: string; idea: string }): BlitzDraft[
   const p = problem(company.idea);
   return [
     {
-      channel: "X thread",
-      title: "Post the launch thread on X",
+      channel: "Bluesky thread",
+      title: "Post the launch thread on Bluesky",
       body:
         `Every AI tool wants to build your startup. ${name} is the one that tells you NOT to — until it proves people want it.\n\n` +
         `We pressure-tested "${p}" with a real demand test before writing a line of product code. Here's what came back 🧵`,
