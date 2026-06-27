@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, OperateData, ValidationResult } from "./types";
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
-import { getByok, getConnections, pingCustomerUpdate } from "./config";
+import { getByok, getConnections, pingCustomerUpdate, pingApprovalRequest, fetchApprovalDecisions } from "./config";
 import { draftBlitz } from "./blitz";
 import { canRun, recordRun, FREE_CAPS } from "./usage";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
@@ -404,6 +404,10 @@ export function useEngine() {
         pingCustomerUpdate(
           `${active.name}: night ${active.night + 1} wrapped — ${done.length} task${done.length === 1 ? "" : "s"} shipped${apps.length ? `, ${apps.length} waiting for your ok` : ""}. See the Glass Box.`
         );
+        // ChatOps: push each consequential approval to the phone with Approve/Reject buttons.
+        for (const ap of apps) {
+          pingApprovalRequest({ id: ap.id, title: ap.title, agent: ap.agent, kind: ap.kind, detail: ap.detail, amount: ap.amount, company: active.name });
+        }
       } finally {
         inFlightRef.current = false;
         setWorking(null);
@@ -489,6 +493,25 @@ export function useEngine() {
       });
     }
   }, [executeAction, appendRealResult]);
+
+  // ChatOps reconcile: if the founder tapped Approve/Reject in Telegram, apply it here so effects run
+  // exactly once through the normal path (resolveApproval is idempotent). Polls only while the active
+  // company has pending approvals AND a channel is connected (fetchApprovalDecisions is a no-op otherwise).
+  const pendingIds = (company ? store.approvals[company.id] ?? [] : []).filter((a) => !a.resolved).map((a) => a.id);
+  const pendingKey = pendingIds.join(",");
+  useEffect(() => {
+    if (!hydrated || pendingIds.length === 0) return;
+    let on = true;
+    const check = async () => {
+      const decisions = await fetchApprovalDecisions(pendingIds);
+      if (!on) return;
+      for (const [id, decision] of Object.entries(decisions)) resolveApproval(id, decision === "approved");
+    };
+    void check();
+    const iv = setInterval(() => void check(), 8000);
+    return () => { on = false; clearInterval(iv); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, pendingKey]);
 
   // Surge's launch blitz: draft demand-capture posts for the active company and queue each as an
   // OUTREACH approval — so the blitz is ready to fire but nothing posts without the founder's yes

@@ -178,3 +178,35 @@ export function pingCustomerUpdate(text: string): void {
     /* ignore */
   }
 }
+
+// ChatOps: push a consequential approval to the opted-in channel with Approve/Reject buttons. No-op
+// unless a channel is connected; the server route is gated on the bot token. Fire-and-forget.
+export function pingApprovalRequest(approval: {
+  id: string; title: string; agent?: string; kind?: string; detail?: string; amount?: number; company?: string;
+}): void {
+  const n = getNotify();
+  if (!n) return;
+  try {
+    void fetch("/api/notify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chatId: n.telegramChatId, approval }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
+// Poll which of these approval ids were decided out-of-band (e.g. tapped in Telegram). Returns id →
+// "approved"|"rejected". Empty unless the user opted in; the caller applies each via resolveApproval.
+export async function fetchApprovalDecisions(ids: string[]): Promise<Record<string, string>> {
+  if (!getNotify() || ids.length === 0) return {};
+  try {
+    const res = await fetch(`/api/telegram/decisions?ids=${encodeURIComponent(ids.join(","))}`);
+    const d = await res.json().catch(() => ({}));
+    return (d?.decisions as Record<string, string>) ?? {};
+  } catch {
+    return {};
+  }
+}
