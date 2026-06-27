@@ -430,6 +430,36 @@ export const PLAYBOOKS: Playbook[] = [
       },
     ],
   },
+  {
+    slug: "cold-outreach-that-isnt-spam",
+    title: "Cold outreach that books meetings (not spam)",
+    summary: "Why blasting thousands of emails fails — and the targeted, personalized way to do cold outreach that actually gets replies and doesn't torch your domain.",
+    readMins: 6,
+    freeIntro: [
+      "Cold outreach has a terrible reputation, and most of it is earned: people buy a list of 10,000 addresses, blast a generic pitch, get a 0.1% reply rate, and watch their domain land on a blocklist. But done the other way — targeted, personal, and small — cold outreach is still one of the most reliable ways for a B2B company to find its first customers. The difference isn't the channel; it's the discipline.",
+      "The rule of thumb: every email should look like you wrote it to one specific person, because you did. That means a tight list of the *right* companies, a real reason you're reaching out, one clear ask, and an easy way to say no. Volume is the enemy of replies and the enemy of deliverability. Here's how to do it without becoming the thing everyone hates.",
+    ],
+    body: [
+      {
+        heading: "Target tight, personalize for real",
+        paragraphs: [
+          "Pick a narrow ideal-customer profile and a small list — dozens, not thousands. Open with a specific, true reason you're contacting *this* person (something they did, shipped, or said). Generic 'I hope this finds you well' is invisible; 'I saw you just launched X' gets read. One email that's clearly for them beats a thousand that could be for anyone.",
+        ],
+      },
+      {
+        heading: "Protect your deliverability like it's the business",
+        paragraphs: [
+          "Send from a separate domain (never your main one), authenticate it (SPF, DKIM, DMARC), warm it up slowly, and keep daily volume low per inbox. The moment you spike volume from your real domain, you risk every email you send — including the ones to customers. Treat your sending reputation as a non-renewable resource.",
+        ],
+      },
+      {
+        heading: "One ask, easy out, and stop means stop",
+        paragraphs: [
+          "Keep it short and plain — one clear ask, no walls of text or attachments. Always include a real way to opt out and honor it instantly; in the US that's the law (CAN-SPAM), and everywhere it's just decent. If someone says no, you're done. The goal is a conversation with the right person, not a transaction with a stranger — and that mindset is exactly what keeps you off the blocklists.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getPlaybook(slug: string): Playbook | undefined {
