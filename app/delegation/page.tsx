@@ -100,7 +100,7 @@ export default function DelegationPage() {
   return (
     <main id="main" className="relative h-[100dvh] w-full overflow-hidden bg-bg mesh">
       <div className="absolute inset-0">
-        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} faces />
+        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} faces vivid />
       </div>
 
       {/* Top bar */}
