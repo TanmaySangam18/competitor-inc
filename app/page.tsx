@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { useAuth } from "@/lib/engine/useAuth";
+import { CHECKOUT_URL, checkoutUrlFor } from "@/lib/engine/billing";
 import { AgentWelcome } from "@/components/AgentWelcome";
 import { SecretHouseDoor } from "@/components/SecretHouseDoor";
 
@@ -442,6 +443,16 @@ const plans = [
 ];
 
 function Pricing() {
+  const { user } = useAuth();
+  const email = user && !user.guest ? user.email : "";
+  // Paid plans route to the LemonSqueezy checkout when billing is live (email prefilled if signed in);
+  // otherwise they keep the free in-app path so the demo still works.
+  const planHref = (p: { name: string; href: string }) =>
+    (p.name === "Operator" || p.name === "Founding") && CHECKOUT_URL
+      ? email
+        ? checkoutUrlFor(email)
+        : CHECKOUT_URL
+      : p.href;
   return (
     <section id="pricing" className="border-t border-border bg-surface/20">
       <div className="mx-auto max-w-5xl px-6 py-28">
@@ -480,7 +491,7 @@ function Pricing() {
                   ))}
                 </ul>
                 <a
-                  href={p.href}
+                  href={planHref(p)}
                   className={`mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition ${
                     p.highlight
                       ? "bg-coral text-bg hover:brightness-110"
