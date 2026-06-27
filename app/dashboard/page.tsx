@@ -40,6 +40,8 @@ import { LogoMark } from "@/components/Logo";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
+import { useAuth } from "@/lib/engine/useAuth";
+import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
 
 const agentStyle: Record<AgentRole, { icon: typeof Gauge; color: string; ring: string }> = {
   ceo: { icon: Gauge, color: "text-violet", ring: "bg-violet/12" },
@@ -77,11 +79,25 @@ type Tab = "operations" | "history" | "chat" | "operate";
 export default function Dashboard() {
   const r = useEngine();
   const router = useRouter();
+  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("operations");
 
   // Approving a build is consequential and should be *visible*: ship the MVP, then take the
   // founder straight to the live agent floor so they watch the crew go to work (Nielsen H1).
-  const goBuild = () => {
+  // Pay-to-build: validating is free; building & running requires an active Operator subscription —
+  // enforced ONLY when billing is configured (so the demo stays open until LemonSqueezy is live).
+  const goBuild = async () => {
+    if (billingLive()) {
+      if (!user || user.guest) {
+        router.push("/login"); // must sign in so we can tie the subscription to them
+        return;
+      }
+      const entitled = await checkEntitled(user.email);
+      if (!entitled) {
+        window.location.href = checkoutUrlFor(user.email); // → Operator $39/mo checkout (email prefilled)
+        return;
+      }
+    }
     r.decideBuild(true);
     router.push("/delegation");
   };
