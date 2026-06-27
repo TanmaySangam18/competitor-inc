@@ -322,6 +322,42 @@ export const PLAYBOOKS: Playbook[] = [
       },
     ],
   },
+  {
+    slug: "talk-to-users-without-fooling-yourself",
+    title: "Talk to users without fooling yourself",
+    summary: "How to run interviews that change a decision — the questions that get the truth, how many people you actually need, and the trap that ruins most research.",
+    readMins: 6,
+    freeIntro: [
+      "Most founder 'research' is theatre: you describe your idea, your friends say 'cool, I'd use that,' and you walk away with false confidence. Then you build it and nobody shows up. The problem isn't that you asked — it's that you asked in a way that could only flatter you. Good research is designed to be able to tell you you're wrong.",
+      "The fix is mostly discipline, not skill. Anchor every study to a real decision, ask about the past instead of the hypothetical future, and stop interviewing once you stop hearing new things. Do that and a handful of honest conversations will out-predict any number of polite thumbs-up. Here's the method.",
+    ],
+    body: [
+      {
+        heading: "Anchor to a decision, or don't bother",
+        paragraphs: [
+          "Before you talk to anyone, write down the specific decision the answers will change — a feature to add, a message to lead with, a price to set. If no decision rides on it, the research is a sideshow. And frame the goal with a finite verb — identify, compare, describe — not 'understand' or 'explore,' so you know when you're done.",
+        ],
+      },
+      {
+        heading: "Ask about the past, not the hypothetical",
+        paragraphs: [
+          "'Would you use this?' invites a lie. 'Tell me about the last time you faced this problem — what did you actually do?' surfaces the truth, because behavior already happened. Open with an experience-near prompt and let them narrate; never feed them the answer with leading 'wouldn't it be great if…' questions.",
+        ],
+      },
+      {
+        heading: "How many people — and when to stop",
+        paragraphs: [
+          "For usability problems, ~5 people per segment surface roughly 80% of the issues. For generative interviews, 8–12 usually reach saturation — the point where new conversations stop producing new themes; past ~15, returns drop fast. Five relevant people beat a thousand irrelevant ones — representativeness matters far more than raw count.",
+        ],
+      },
+      {
+        heading: "The one number that tells you if you have something",
+        paragraphs: [
+          "Once people have actually used it, ask: 'How would you feel if you could no longer use this?' If at least ~40% say 'very disappointed,' you likely have product-market fit worth pushing on. Below that, change the product or the audience before you pour fuel on growth.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getPlaybook(slug: string): Playbook | undefined {
