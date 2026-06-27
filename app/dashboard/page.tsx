@@ -40,6 +40,7 @@ import { LogoMark } from "@/components/Logo";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
+import CampaignPanel from "@/components/CampaignPanel";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
 
@@ -564,6 +565,8 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
           </div>
         ))}
       </div>
+
+      <CampaignPanel company={c} />
 
       {c.product && (
         <a
