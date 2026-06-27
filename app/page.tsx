@@ -331,6 +331,7 @@ const capabilities = [
   { icon: CheckCircle2, title: "Proof-of-Work", body: "A task counts as done only with a verifiable artifact — a live URL, a passing build, a real metric.", color: "text-mint", ring: "bg-mint/12" },
   { icon: Eye, title: "The Glass Box", body: "A human-readable log of every action, every dollar, every decision — with one-click undo.", color: "text-violet", ring: "bg-violet/12" },
   { icon: Inbox, title: "Approval Inbox", body: "Consequential actions wait for your yes/no. Safe autonomy by design — and the right way to handle prompt injection.", color: "text-coral", ring: "bg-coral/12" },
+  { icon: Send, title: "Autopilot growth", body: "Approve one campaign and the crew drafts launch posts that market your product — to Bluesky and Mastodon, from competitor.inc's own accounts. Each post is policy-checked before it goes out; you never touch a login. Unlocked on Operator.", color: "text-amber", ring: "bg-amber/12" },
   { icon: Lock, title: "Private Mode", body: "Swap in a self-hosted open-weight model so sensitive business data never leaves your own infrastructure.", color: "text-violet", ring: "bg-violet/12" },
   { icon: Wallet, title: "Fair pricing", body: "A flat subscription with no revenue share. Failed work is credited back — you only pay for work that lands. Export and eject anytime.", color: "text-mint", ring: "bg-mint/12" },
 ];

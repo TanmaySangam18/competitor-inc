@@ -29,6 +29,6 @@ export function initialsOf(name: string): string {
 export function monogram(name: string): Monogram {
   const h = hash((name || "company").trim().toLowerCase());
   const hue = h % 360;
-  const hue2 = (hue + 40 + ((h >> 9) % 60)) % 360; // a related-but-distinct second stop
+  const hue2 = (hue + 40 + ((h >>> 9) % 60)) % 360; // unsigned shift — `>>` would go negative for high-bit hashes
   return { initials: initialsOf(name), hue, hue2 };
 }

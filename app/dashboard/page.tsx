@@ -682,23 +682,53 @@ function OperationsTab({ r }: { r: ReturnType<typeof useEngine> }) {
         )}
         <div>
           <h2 className="text-sm font-semibold text-muted">Your team</h2>
+          <p className="mt-1 text-[11px] text-muted-2">Tap anyone to see their job description.</p>
           <div className="mt-3 space-y-2">
             {roles.map((role) => {
               const A = AGENTS[role];
               const S = agentStyle[role];
               return (
-                <div key={role} className="flex items-center gap-3 rounded-xl glass-panel px-3 py-2.5">
-                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${S.ring} ${S.color}`}>
-                    <S.icon size={16} />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium">
-                      {A.name} <span className="text-muted-2">· {A.label}</span>
+                <details key={role} className="group rounded-xl glass-panel px-3 py-2.5">
+                  <summary className="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                    <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${S.ring} ${S.color}`}>
+                      <S.icon size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium">
+                        {A.name} <span className="text-muted-2">· {A.label}</span>
+                      </div>
+                      <div className="truncate text-xs text-muted-2">{A.blurb}</div>
+                      <div className="mt-0.5 truncate text-[10px] text-muted-2">Plays <span className="text-muted">{A.playbook}</span></div>
                     </div>
-                    <div className="truncate text-xs text-muted-2">{A.blurb}</div>
-                    <div className="mt-0.5 truncate text-[10px] text-muted-2">Plays <span className="text-muted">{A.playbook}</span></div>
+                    <ChevronDown size={14} className="shrink-0 text-muted-2 transition group-open:rotate-180" />
+                  </summary>
+                  <div className="mt-3 space-y-3 border-t border-border pt-3 text-xs">
+                    <div>
+                      <div className="font-semibold uppercase tracking-wide text-muted-2">Owns</div>
+                      <ul className="mt-1.5 space-y-1">
+                        {A.responsibilities.map((x, i) => (
+                          <li key={i} className="flex gap-1.5 text-muted"><span className="text-muted-2">·</span><span>{x}</span></li>
+                        ))}
+                      </ul>
+                    </div>
+                    {A.icp && (
+                      <div>
+                        <span className="font-semibold uppercase tracking-wide text-muted-2">Talks to </span>
+                        <span className="text-muted">{A.icp}</span>
+                      </div>
+                    )}
+                    {A.objections && A.objections.length > 0 && (
+                      <div>
+                        <div className="font-semibold uppercase tracking-wide text-muted-2">Answers the worry</div>
+                        <ul className="mt-1.5 space-y-1">
+                          {A.objections.map((x, i) => (
+                            <li key={i} className="flex gap-1.5 text-muted"><span className="text-muted-2">·</span><span>{x}</span></li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                </div>
+                </details>
               );
             })}
           </div>
