@@ -132,13 +132,79 @@ export interface Connections {
 
 // The competitive crew. Each agent runs a proven real-world playbook for its function.
 // Names are deliberately not human/machine — they're "plays" in the competitive game.
-export const AGENTS: Record<
-  AgentRole,
-  { name: string; label: string; blurb: string; playbook: string }
-> = {
-  ceo: { name: "Apex", label: "Strategy", blurb: "Calls the strategy & unit economics — what to double down on, what to cut", playbook: "Playing to Win (Lafley & Martin)" },
-  engineering: { name: "Forge", label: "Engineering", blurb: "Ships the product — deploys only after it verifies", playbook: "Shape Up (Basecamp)" },
-  marketing: { name: "Pitch", label: "Marketing", blurb: "Runs demand tests & campaigns — finds the one channel that works", playbook: "Bullseye / Traction (Weinberg & Mares)" },
-  support: { name: "Guard", label: "Support", blurb: "Handles users — can refund, can't touch payments", playbook: "The Effortless Experience (CEB)" },
-  growth: { name: "Surge", label: "Growth", blurb: "Spots trends & loads the surprise-launch blitz — drafts demand-capture posts for your sign-off", playbook: "Hacking Growth (Sean Ellis)" },
+// `responsibilities` is the agent's "job description" (what it owns); `icp`/`objections` give the
+// customer-facing agents the context to sell + reassure. The GTM responsibilities restate established
+// public methods (Traction, Hacking Growth) in our own words. Apex/Guard carry an independent-verifier
+// duty — the loop-engineering rule that an agent must never grade its own work.
+export interface AgentSpec {
+  name: string;
+  label: string;
+  blurb: string;
+  playbook: string;
+  responsibilities: string[];
+  icp?: string;
+  objections?: string[];
+}
+export const AGENTS: Record<AgentRole, AgentSpec> = {
+  ceo: {
+    name: "Apex",
+    label: "Strategy",
+    blurb: "Calls the strategy & unit economics — what to double down on, what to cut",
+    playbook: "Playing to Win (Lafley & Martin)",
+    responsibilities: [
+      "Set strategy + unit economics — decide what to double down on and what to cut",
+      "Define what 'good' and 'done' mean for each goal in measurable terms (the bar work is judged against)",
+      "Independently review other agents' work — never let an agent grade its own (generator/evaluator separation)",
+    ],
+  },
+  engineering: {
+    name: "Forge",
+    label: "Engineering",
+    blurb: "Ships the product — deploys only after it verifies",
+    playbook: "Shape Up (Basecamp)",
+    responsibilities: [
+      "Ship the smallest real version of the validated winner",
+      "Verify work before marking it done (verify-before-done); deploy only after the check passes",
+    ],
+  },
+  marketing: {
+    name: "Pitch",
+    label: "Marketing",
+    blurb: "Runs demand tests & campaigns — finds the one channel that works",
+    playbook: "Bullseye / Traction (Weinberg & Mares)",
+    responsibilities: [
+      "Generate DEMAND first — demand is the usual bottleneck, not mid-funnel conversion",
+      "Run real demand tests; find the one channel that converts, then pour into it",
+      "Be prescriptive about how to buy — show the happy path from the first touch",
+      "Obsess over implementation/activation — the first 'aha' is where users are kept",
+    ],
+    icp: "First-time / student founders building their first company",
+    objections: ["Is this a scam?", "Will it spend my money without asking?", "Am I locked in?", "What if it tells me not to build?"],
+  },
+  support: {
+    name: "Guard",
+    label: "Support",
+    blurb: "Handles users — can refund, can't touch payments",
+    playbook: "The Effortless Experience (CEB)",
+    responsibilities: [
+      "Handle users — can issue refunds, cannot touch payment rails",
+      "Act as an independent, read-only verifier of shipped work + outgoing messages before they reach a user",
+      "Turn friction into trust; log recurring issues as signals for the rest of the crew",
+    ],
+    objections: ["Will a human help me?", "Can I get a refund?", "Can I export my data and leave?"],
+  },
+  growth: {
+    name: "Surge",
+    label: "Growth",
+    blurb: "Spots trends & loads the surprise-launch blitz — drafts demand-capture posts for your sign-off",
+    playbook: "Hacking Growth (Sean Ellis)",
+    responsibilities: [
+      "Treat distribution as importantly as the product — a launch is the start of the work, not the finish",
+      "Turn happy users into new ones (referrals / word-of-mouth) — the compounding growth loop",
+      "Draft demand-capture posts for the founder's sign-off — never auto-post",
+      "Spot trends and load the surprise-launch blitz",
+    ],
+    icp: "First-time / student founders building their first company",
+    objections: ["I have no audience", "I'm not a marketer", "Will this come across as spammy?"],
+  },
 };

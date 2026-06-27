@@ -394,6 +394,42 @@ export const PLAYBOOKS: Playbook[] = [
       },
     ],
   },
+  {
+    slug: "demand-is-the-bottleneck",
+    title: "Demand is the bottleneck — win your first customers yourself",
+    summary: "Most early startups don't have a conversion problem, they have a demand problem. Why generating demand and selling the first customers yourself beat hiring reps and tweaking funnels.",
+    readMins: 6,
+    freeIntro: [
+      "When sales are slow, the instinct is to tweak the funnel — change the button, the subject line, the demo flow. But for most early startups the shortfall isn't conversion, it's demand: not enough of the right people are showing up at all. Optimizing the middle of a funnel nobody's entering is motion without progress. Generate demand first; the funnel math only matters once there's flow through it.",
+      "And the uncomfortable truth: at the start, you are the sales team. Hiring reps before you've personally sold the thing just spreads thin demand across more people and hides what's actually broken. Close your first customers yourself, learn exactly why they buy, and only then hand a proven motion to someone else. This is the demand-first, founder-led path.",
+    ],
+    body: [
+      {
+        heading: "Demand first, funnel second",
+        paragraphs: [
+          "For most early teams the binding constraint is demand, not conversion rate. Don't add more sellers into a demand-poor environment — it lowers everyone's productivity and masks the real problem. The honest signal that it's time to scale is the opposite: you can't keep up with the demand you already have.",
+        ],
+      },
+      {
+        heading: "Win the first 10–20 customers yourself",
+        paragraphs: [
+          "Founder-led selling isn't a stopgap — it's where you learn the message from real reactions, hear objections live, and find out within days whether a buyer is a true fit. No one can outsource this part early, and that's fine: it's temporary, and it's the most valuable learning you'll get. Even after you hire help, don't disappear from selling.",
+        ],
+      },
+      {
+        heading: "Distribution is as important as the thing you made",
+        paragraphs: [
+          "A launch is the start of the work, not the finish. Pick the one channel that actually reaches your people and pour into it rather than spraying five. And do something that stands out — generic gets ignored, and being ignored is the real failure mode, not being criticized.",
+        ],
+      },
+      {
+        heading: "Be prescriptive, then obsess over getting them live",
+        paragraphs: [
+          "Tell the buyer the happy path to buy — don't make them assemble it. Then treat onboarding and first-value as sacred: the sale isn't real until they've actually succeeded once. Turn each genuinely happy customer into the next one; word-of-mouth from a delighted user out-converts any ad.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getPlaybook(slug: string): Playbook | undefined {
