@@ -16,8 +16,10 @@ import {
   Send,
   Rocket,
   TrendingUp,
+  LogOut,
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import { useAuth } from "@/lib/engine/useAuth";
 import { AgentWelcome } from "@/components/AgentWelcome";
 import { SecretHouseDoor } from "@/components/SecretHouseDoor";
 
@@ -51,6 +53,8 @@ function Reveal({
 
 /* ── Nav ─────────────────────────────────────────────────────── */
 function Nav() {
+  const { user, ready, signOut } = useAuth();
+  const signedIn = !!user && !user.guest;
   return (
     <nav className="fixed top-0 inset-x-0 z-50 border-b border-border bg-bg/60 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -69,12 +73,28 @@ function Nav() {
           <a href="#trust" className="transition hover:text-text">Glass Box</a>
           <a href="#pricing" className="transition hover:text-text">Pricing</a>
         </div>
-        <a
-          href="/dashboard"
-          className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl bg-text px-4 py-2 text-sm font-semibold text-bg transition hover:opacity-90"
-        >
-          Meet your co-founder <ArrowRight size={15} />
-        </a>
+        <div className="flex items-center gap-3">
+          {ready &&
+            (signedIn ? (
+              <button
+                onClick={() => void signOut()}
+                title={`Signed in as ${user!.email}`}
+                className="hidden items-center gap-1.5 text-sm text-muted transition hover:text-text sm:inline-flex"
+              >
+                <LogOut size={14} /> Sign out
+              </button>
+            ) : (
+              <a href="/login" className="hidden text-sm text-muted transition hover:text-text sm:inline-block">
+                Sign in
+              </a>
+            ))}
+          <a
+            href="/dashboard"
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl bg-text px-4 py-2 text-sm font-semibold text-bg transition hover:opacity-90"
+          >
+            Meet your co-founder <ArrowRight size={15} />
+          </a>
+        </div>
       </div>
     </nav>
   );

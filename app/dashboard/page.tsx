@@ -142,6 +142,7 @@ export default function Dashboard() {
 
 /* ── Top bar ─────────────────────────────────────────────────── */
 function TopBar({ r }: { r: ReturnType<typeof useEngine> }) {
+  const { user, signOut } = useAuth();
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -162,6 +163,15 @@ function TopBar({ r }: { r: ReturnType<typeof useEngine> }) {
           >
             <Rocket size={14} /> The Delegation
           </Link>
+          {user && !user.guest && (
+            <button
+              onClick={() => void signOut()}
+              title={`Signed in as ${user.email}`}
+              className="hidden h-9 items-center rounded-lg border border-border px-3 text-xs text-muted transition hover:text-text sm:flex"
+            >
+              Sign out
+            </button>
+          )}
           <Link
             href="/dashboard/settings"
             className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted transition hover:text-text"
@@ -240,18 +250,18 @@ function AutopilotToggle({ on, onToggle, paused }: { on: boolean; onToggle: () =
   return (
     <button
       onClick={onToggle}
-      title={paused ? "Autopilot paused — clear your Approval Inbox to resume" : undefined}
+      title={paused ? "Autopilot paused — clear your Approval Inbox to resume" : on ? "Autopilot on — tap to take over and drive manually" : "You're driving — tap to hand back to autopilot"}
       className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
         paused
           ? "border-amber/40 bg-amber/10 text-amber"
           : on
           ? "border-mint/40 bg-mint/10 text-mint"
-          : "border-border text-muted hover:text-text"
+          : "border-coral/40 bg-coral/10 text-coral"
       }`}
       aria-pressed={on}
     >
       <Zap size={13} className={paused ? "" : on ? "fill-mint" : ""} />
-      {paused ? "Autopilot paused" : on ? "Autopilot on" : "Autopilot"}
+      {paused ? "Autopilot paused" : on ? "Autopilot on" : "You're driving"}
     </button>
   );
 }

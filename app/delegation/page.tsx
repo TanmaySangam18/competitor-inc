@@ -164,13 +164,13 @@ export default function DelegationPage() {
             </button>
             <button
               onClick={() => r.setAutopilot(!r.autopilot)}
-              title={r.autopilotPaused ? "Autopilot paused — clear your Approval Inbox to resume" : undefined}
+              title={r.autopilotPaused ? "Autopilot paused — clear your Approval Inbox to resume" : r.autopilot ? "Tap to take over and drive the crew manually" : "You're driving — tap to hand back to autopilot"}
               className={`glass-panel pointer-events-auto flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-medium transition hover:border-white/30 ${
-                r.autopilotPaused ? "text-amber" : r.autopilot ? "text-text" : "text-muted-2"
+                r.autopilotPaused ? "text-amber" : r.autopilot ? "text-text" : "text-coral"
               }`}
             >
               <Power size={13} className={r.autopilot ? "" : "opacity-60"} />
-              {r.autopilotPaused ? "Autopilot paused" : `Autopilot ${r.autopilot ? "on" : "off"}`}
+              {r.autopilotPaused ? "Autopilot paused" : r.autopilot ? "Autopilot on · take over" : "You're driving (manual)"}
             </button>
             {r.pendingApprovals.length > 0 && (
               <Link
