@@ -1,48 +1,45 @@
-# competitor.inc — FINAL master checklist (2026-06-26)
+# competitor.inc — FINAL master checklist (updated 2026-06-26)
 
 Single source of truth. **[YOU]** = your action · **[ME]** = I do it · **[DECIDE]** = your call.
 
 ---
 
-## A. ✅ DONE (the foundation — built, QA-green, pushed)
-- [x] All product code — **9 blocks** on branch `build-to-keys` (PR #2), QA-green at every commit
-  - waitlist+referral capture · behavioral conversion pass · real demand-test · dynamic per-company crew ·
-    pgvector agent memory · evals/observability · SEO surface · GO-LIVE checklist · founder KPI board
-- [x] **Your own live deploy** (your Vercel account, sim mode): **https://competitor-inc-zeta.vercel.app** — crawlers blocked (surprise-launch safe)
-- [x] **11 public playbooks** in the tab (incl. human-decision set + Rory Sutherland psycho-logic)
-- [x] Strategy docs: GROWTH-MODEL · VOC-RESEARCH · USER-RESEARCH-PLAN · GO-LIVE · LAUNCH-NOW · PLAN-framework-roster · PLAN-deep-tech-autonomy · TOA-application-filled
+## A. ✅ DONE (foundation — built, QA-green, pushed to `build-to-keys` / PR #2)
+- [x] All product code — **9 blocks** (waitlist+referral · behavioral pass · real demand-test · dynamic crew · pgvector memory · evals · SEO · GO-LIVE · founder KPI board)
+- [x] **Your own live deploy** (your Vercel, sim mode, crawlers blocked): **https://competitor-inc-zeta.vercel.app**
+- [x] **14 public playbooks** (incl. human-decision set, psycho-logic, demand-is-the-bottleneck)
+- [x] **Agents' job descriptions upgraded** — responsibilities / ICP / objections + restated GTM methods (Pitch/Surge) + an independent-verifier duty (Apex/Guard, loop-engineering); root `AGENTS.md`
+- [x] **Intel + strategy library:** GROWTH-MODEL · VOC-RESEARCH · USER-RESEARCH-PLAN · sam-blond-profile · monaco-profile · loop-engineering · free-ai-stack · PLAN-framework-roster · PLAN-deep-tech-autonomy · GO-LIVE · LAUNCH-NOW · TOA-application(-filled)
 
-## B. 🔴 TO GO LIVE + MEASURABLE (critical path — do this to start marketing)
-*Without it, marketing drives traffic but signups vanish (localStorage only).*
-- [ ] **[YOU]** Create a free **Supabase** project
-- [ ] **[YOU]** Run migrations `0001 → 0005` in order (SQL editor)
-- [ ] **[YOU]** Add Vercel env vars (dashboard): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` *(secret — dashboard only)*, optional `METRICS_SECRET`
+## B. 🔴 TO GO LIVE + MEASURABLE (the critical path — still #1)
+*Without this, marketing drives traffic but signups vanish (localStorage only).*
+- [ ] **[YOU]** Create free **Supabase** project
+- [ ] **[YOU]** Run migrations `0001 → 0005` (in order)
+- [ ] **[YOU]** Add Vercel env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` *(secret — dashboard only)*, optional `METRICS_SECRET`
 - [ ] **[ME]** Redeploy + verify a test signup persists end-to-end
-- → unlocks: **signup capture, referrals, demand tests, auth, KPI board**
+→ unlocks signup capture, referrals, demand tests, auth, the KPI board
 
 ## C. 🟡 OPTIONAL NOW — defer (stay $0 / keep the surprise)
-- [ ] **[DECIDE]** Model key for **real AI** (`MODEL_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`) — add when you want the demo to reason; not needed for a waitlist-first push
-- [ ] **[DECIDE]** Custom domain (~$12) — Vercel URL works for now
-- [ ] Keep `NEXT_PUBLIC_SITE_PUBLIC` **OFF** — market by sharing the link; flip only at the real public launch
+- [ ] **[DECIDE]** Real AI: a model key (`MODEL_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`) **or** a free provider (Groq/Cerebras/OpenRouter) — add when you want the demo to reason; not needed for a waitlist-first push
+- [ ] **[DECIDE]** Custom domain (~$12)
+- [ ] Keep `NEXT_PUBLIC_SITE_PUBLIC` **off** — share the link; don't get indexed until the real launch
 
 ## D. 🟢 BEFORE YOU APPLY / RAISE (not blockers to start marketing)
-- [ ] **[YOU]** Friend's (Srikar / `Srikarmk`) **IP assignment** signed → clean 100% ownership
-- [ ] Real **traction numbers** from the board → the proof you apply/raise with
+- [ ] **[YOU]** Friend's (Srikar / `Srikarmk`) **IP assignment** signed → 100% ownership
+- [ ] Real **traction numbers** from the board → your proof
 - [ ] **[YOU]** Founder **video** (3–4 min; outline in TOA-application-filled.md)
-- [ ] **[ME]** Housekeeping: merge `build-to-keys` → `main` when you say so
+- [ ] **TOA application** — fully drafted, **paused on purpose** (apply later, with traction)
+- [ ] **[ME]** Merge `build-to-keys` → `main` when you say so
 
 ## E. ⚖️ DECISIONS PENDING (yours)
-- [ ] **TOA application** — paused by you (apply later with traction). Filled draft is in Downloads + repo.
-- [ ] **Enterprise vs prosumer framing** (only matters when you apply to enterprise programs like TOA)
-- [ ] **Launch shape:** waitlist-first ($0, capture demand) **vs** full real-AI launch (needs model key)
-- [ ] **Next focus:** (i) Supabase + start marketing · (ii) seed the framework-roster · (iii) something else
+- **Launch shape:** waitlist-first ($0, capture demand) **vs** full real-AI launch (needs a model key)
+- **Next focus:** (i) do the Supabase step + start marketing · (ii) build the self-marketing plan · (iii) something else
 
 ## F. ▶ FUTURE BUILDS (mine, mostly post-keys)
-- [ ] Self-marketing plan for the first-time-founder niche (the "AI that tells you *not* to build" hook)
-- [ ] In-product **PMF survey capture** → makes the board's PMF score live (the 40% line)
-- [ ] **Framework roster** (PLAN-framework-roster.md) — agents draw on a growing library of documented frameworks
-- [ ] ChatOps ("text-your-agents") on Telegram (free) · the real demand-test traffic loop · the outcome-learning moat
+- Self-marketing plan for the niche (demand-first, founder-led — the "AI that tells you *not* to build" hook)
+- In-product **PMF survey** → makes the board's PMF score live (the 40% line)
+- **Framework roster** (agents cite documented frameworks) · **JD-mining pipeline** · compounding "signals" multi-loop · Telegram ChatOps · real demand-test traffic loop · the outcome-learning moat
 
 ---
-**Live link:** https://competitor-inc-zeta.vercel.app · **Branch/PR:** build-to-keys / #2 ·
-**Friend's STALE link (not yours):** competitor-inc.vercel.app
+**Live link (yours):** https://competitor-inc-zeta.vercel.app · **Branch/PR:** build-to-keys / #2 ·
+**Friend's STALE link (not yours):** competitor-inc.vercel.app · **Watch:** Monaco ($85M, real ARR) + Polsia (1.8★)
