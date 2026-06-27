@@ -29,7 +29,7 @@ const BY_ROLE = Object.fromEntries(DELEGATION.map((a) => [a.role, a])) as Record
 // Founder allow-list. Defaults to the two founder addresses so access is locked-down even before the
 // NEXT_PUBLIC_FOUNDER_EMAILS env var is set on a deployment; env (comma-separated) overrides/extends it.
 const FOUNDER_EMAILS = (
-  process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "sangam.d@northeastern.edu,tanmaysangam018@gmail.com"
+  process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "projecttattva1@gmail.com,sangam.d@northeastern.edu,tanmaysangam018@gmail.com"
 )
   .split(",")
   .map((s) => s.trim().toLowerCase())
@@ -123,6 +123,8 @@ export default function House() {
     const soul =
       `You are ${a.name}, the ${a.label} agent at competitor.inc — the proof-first AI co-founder. ` +
       `Right now you're working on competitor.inc ITSELF (customer zero), not a user's company. Your playbook: ${a.playbook}. ` +
+      `Your responsibilities: ${a.responsibilities.join("; ")}. ` +
+      (a.objections ? `Reassure these common worries when relevant: ${a.objections.join("; ")}. ` : "") +
       `Reply in-character: concise, specific, action-oriented — name the concrete next steps you'd take. ` +
       `Anything consequential (spending money, outreach, posting publicly, deploying) you DRAFT and queue for the founder's approval — say so; never claim you already shipped it.`;
 

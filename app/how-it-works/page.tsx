@@ -36,7 +36,7 @@ const steps = [
   {
     icon: FlaskConical,
     title: "It checks if people actually want it — before building anything",
-    body: "Instead of building first and hoping, it runs small, real demand tests: a live page people can react to, a “sign me up” button, a tiny ad, and a look at how many people are already searching for this. It measures genuine interest with real signals.",
+    body: "Instead of building first and hoping, it gives you a fast, honest read on the idea — then helps you stand up small, real demand tests: a live page people can react to, a “sign me up” button, a tiny ad, and a look at how many people are already searching for this. It measures genuine interest with real signals.",
     like: "Like a chef who has you taste the sauce before cooking the whole meal.",
   },
   {

@@ -19,6 +19,10 @@ export interface EngineConfig {
   providerMode: ProviderMode;
   byok: ByokConfig;
   connections: Connections;
+  // Opt-in customer updates. We can't auto-pull a handle from Google sign-in (honest limit), so the
+  // user pastes their Telegram chat id after messaging our bot. Provider-agnostic store — phone/iMessage
+  // (Linqapp) drops in later. See lib/engine/notify.ts.
+  notify: { telegramChatId: string };
 }
 
 const ROLES = Object.keys(AGENTS) as AgentRole[];
@@ -39,6 +43,7 @@ export const DEFAULT_CONFIG: EngineConfig = {
   providerMode: "simulated",
   byok: { provider: "", apiKey: "", baseUrl: "", model: "" },
   connections: { githubToken: "", resendApiKey: "", resendFrom: "", adsWebhookUrl: "" },
+  notify: { telegramChatId: "" },
 };
 
 const KEY = "cofounder:config:v1";
@@ -89,6 +94,7 @@ export function useConfig() {
             agents: parsed.agents && typeof parsed.agents === "object" ? parsed.agents : DEFAULT_CONFIG.agents,
             byok: parsed.byok && typeof parsed.byok === "object" ? { ...DEFAULT_CONFIG.byok, ...parsed.byok } : DEFAULT_CONFIG.byok,
             connections: parsed.connections && typeof parsed.connections === "object" ? { ...DEFAULT_CONFIG.connections, ...parsed.connections } : DEFAULT_CONFIG.connections,
+            notify: parsed.notify && typeof parsed.notify === "object" ? { ...DEFAULT_CONFIG.notify, ...parsed.notify } : DEFAULT_CONFIG.notify,
           });
         }
       }
@@ -133,7 +139,74 @@ export function useConfig() {
     (patch: Partial<Connections>) => setConfig((c) => ({ ...c, connections: { ...c.connections, ...patch } })),
     []
   );
+  const setNotify = useCallback(
+    (patch: Partial<EngineConfig["notify"]>) => setConfig((c) => ({ ...c, notify: { ...c.notify, ...patch } })),
+    []
+  );
   const reset = useCallback(() => setConfig(DEFAULT_CONFIG), []);
 
-  return { config, hydrated, setSoul, setProviderMode, toggleAgent, setAgentScope, setByok, setConnections, reset };
+  return { config, hydrated, setSoul, setProviderMode, toggleAgent, setAgentScope, setByok, setConnections, setNotify, reset };
+}
+
+// Read the opt-in customer-notify target (used outside React). Returns the chat id or null.
+export function getNotify(): { telegramChatId: string } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return null;
+    const n = (JSON.parse(raw) as EngineConfig).notify;
+    if (n && n.telegramChatId) return { telegramChatId: n.telegramChatId };
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+// Fire-and-forget customer update. No-op unless the user opted in (a chat id is stored). The server
+// route is itself gated on the bot token, so this is doubly safe + never throws into the caller.
+export function pingCustomerUpdate(text: string): void {
+  const n = getNotify();
+  if (!n) return;
+  try {
+    void fetch("/api/notify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chatId: n.telegramChatId, text }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
+// ChatOps: push a consequential approval to the opted-in channel with Approve/Reject buttons. No-op
+// unless a channel is connected; the server route is gated on the bot token. Fire-and-forget.
+export function pingApprovalRequest(approval: {
+  id: string; title: string; agent?: string; kind?: string; detail?: string; amount?: number; company?: string;
+}): void {
+  const n = getNotify();
+  if (!n) return;
+  try {
+    void fetch("/api/notify", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chatId: n.telegramChatId, approval }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* ignore */
+  }
+}
+
+// Poll which of these approval ids were decided out-of-band (e.g. tapped in Telegram). Returns id →
+// "approved"|"rejected". Empty unless the user opted in; the caller applies each via resolveApproval.
+export async function fetchApprovalDecisions(ids: string[]): Promise<Record<string, string>> {
+  if (!getNotify() || ids.length === 0) return {};
+  try {
+    const res = await fetch(`/api/telegram/decisions?ids=${encodeURIComponent(ids.join(","))}`);
+    const d = await res.json().catch(() => ({}));
+    return (d?.decisions as Record<string, string>) ?? {};
+  } catch {
+    return {};
+  }
 }

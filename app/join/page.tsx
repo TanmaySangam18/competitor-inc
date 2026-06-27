@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, Copy, ArrowLeft, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import { codeFrom } from "@/lib/engine/refcode";
 
 // Checkout activates when the founder sets NEXT_PUBLIC_CHECKOUT_URL (LemonSqueezy/Gumroad).
 // Until then, the Founding CTA routes to the waitlist.
@@ -17,13 +18,12 @@ interface Entry {
   ref: string | null;
 }
 
-function codeFrom(email: string): string {
-  let h = 2166136261;
-  for (let i = 0; i < email.length; i++) {
-    h ^= email.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0).toString(36).slice(0, 6);
+// Server-side standing on the list, when Supabase is configured (Block 0). Optimistic localStorage
+// still drives the confirmation, so the page works even when the waitlist isn't persisted yet.
+interface ServerInfo {
+  persisted: boolean;
+  position?: number;
+  referrals?: number;
 }
 
 const foundingPoints = [
@@ -38,11 +38,33 @@ export default function Join() {
   const [entry, setEntry] = useState<Entry | null>(null);
   const [referredBy, setReferredBy] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [server, setServer] = useState<ServerInfo | null>(null);
+
+  // Persist the signup server-side (no-op if Supabase isn't configured) and pull back position +
+  // referral count. Fire-and-forget: never blocks the confirmation UI.
+  function syncWaitlist(emailLower: string, ref: string | null) {
+    fetch("/api/waitlist", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: emailLower, ref }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.ok) setServer({ persisted: !!d.persisted, position: d.position, referrals: d.referrals });
+      })
+      .catch(() => {
+        /* offline / not configured — localStorage copy still shows */
+      });
+  }
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(WL_KEY);
-      if (raw) setEntry(JSON.parse(raw) as Entry);
+      if (raw) {
+        const e = JSON.parse(raw) as Entry;
+        setEntry(e);
+        syncWaitlist(e.email, e.ref); // refresh a returning visitor's position
+      }
       const ref = new URLSearchParams(window.location.search).get("ref");
       if (ref) setReferredBy(ref);
     } catch {
@@ -60,6 +82,7 @@ export default function Join() {
       /* ignore */
     }
     setEntry(rec);
+    syncWaitlist(e, referredBy);
   }
 
   const refLink = entry && typeof window !== "undefined" ? `${window.location.origin}/join?ref=${entry.code}` : "";
@@ -112,6 +135,9 @@ export default function Join() {
           >
             {CHECKOUT_URL ? "Claim a Founding seat — $99" : "Notify me when seats open"}
           </a>
+          <p className="mt-3 text-xs text-muted-2">
+            Pay once. No subscription, no revenue share, no surprises — that&apos;s the whole point.
+          </p>
         </div>
 
         <div id="waitlist" className="mt-12">
@@ -124,7 +150,16 @@ export default function Join() {
                 <Check size={16} /> You&apos;re on the list
               </div>
               <p className="mt-1 text-sm text-muted">We&apos;ll email {entry.email} at launch.</p>
-              <div className="mt-4 text-xs text-muted-2">Your invite link — every friend who joins moves you up:</div>
+              {server?.persisted && server.position ? (
+                <p className="mt-1 text-sm text-text">
+                  You&apos;re <span className="font-semibold">#{server.position}</span> on the list
+                  {server.referrals
+                    ? ` · ${server.referrals} ${server.referrals === 1 ? "friend has" : "friends have"} joined through you`
+                    : ""}
+                  .
+                </p>
+              ) : null}
+              <div className="mt-4 text-xs text-muted-2">Your invite link — every friend who joins moves you up 5 spots:</div>
               <div className="mt-2 flex items-center gap-2">
                 <input
                   readOnly

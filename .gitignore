@@ -32,3 +32,6 @@ next-env.d.ts
 
 # local-only notes (e.g. internal economics) — never pushed
 *.local.md
+
+# founder's private research drops (e.g. competitor screenshots) — never commit
+p/

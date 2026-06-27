@@ -49,6 +49,7 @@ export function capabilities(conn?: Connections) {
     payments: !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),
     ads: !!(conn?.adsWebhookUrl || process.env.ADS_WEBHOOK_URL),
     bluesky: !!(process.env.BLUESKY_HANDLE && process.env.BLUESKY_APP_PASSWORD),
+    mastodon: !!(process.env.MASTODON_BASE_URL && process.env.MASTODON_ACCESS_TOKEN),
   };
 }
 export function realExecutionEnabled(): boolean {
@@ -222,6 +223,28 @@ export async function postToBluesky(opts: { text: string }): Promise<ExecOutcome
   }
 }
 
+// ── Mastodon — free, bot-friendly, approval-gated organic posting ─────────────
+// Posts to competitor.inc's OWN Mastodon account (a "roomie" bot) marketing a user's company. OFF until
+// MASTODON_BASE_URL + MASTODON_ACCESS_TOKEN are set. Only fires for posts approved under a campaign policy.
+export async function postToMastodon(opts: { text: string }): Promise<ExecOutcome> {
+  const base = process.env.MASTODON_BASE_URL;
+  const token = process.env.MASTODON_ACCESS_TOKEN;
+  const text = (opts.text || "").slice(0, 500);
+  if (!base || !token || !text) return disabled();
+  try {
+    const res = await timed(`${base.replace(/\/$/, "")}/api/v1/statuses`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ status: text, visibility: "public" }),
+    });
+    if (!res.ok) return { ok: false, error: `mastodon ${res.status}` };
+    const data = (await res.json().catch(() => ({}))) as { url?: string };
+    return { ok: true, proof: data.url ? { kind: "url", value: data.url } : { kind: "metric", value: "posted to Mastodon" } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 // ── Dispatcher: map an agent action / approved item to its real executor ──────
 export interface ActionPayload {
   company: { name: string; idea: string };
@@ -254,6 +277,8 @@ export async function runAction(action: string, p: ActionPayload): Promise<ExecO
     }
     case "bluesky":
       return postToBluesky({ text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
+    case "mastodon":
+      return postToMastodon({ text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
     case "spend":
       return placeAd(
         { objective: p.item?.title || "demand test", budget: p.item?.amount ?? 50, copy: p.item?.detail || p.company.idea },

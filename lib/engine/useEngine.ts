@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, OperateData, ValidationResult } from "./types";
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
-import { getByok, getConnections } from "./config";
+import { getByok, getConnections, pingCustomerUpdate, pingApprovalRequest, fetchApprovalDecisions } from "./config";
 import { draftBlitz } from "./blitz";
 import { canRun, recordRun, FREE_CAPS } from "./usage";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
@@ -189,6 +189,10 @@ export function useEngine() {
             : x
         ),
       }));
+      // Opt-in customer update (no-op unless they connected a channel) — fires on validation.
+      pingCustomerUpdate(
+        `${name}: validation in — ${validation.verdict} signal (${validation.confidence}% confidence). Open competitor.inc to decide your next move.`
+      );
       setWorking(null);
     })();
   }, []);
@@ -396,6 +400,14 @@ export function useEngine() {
             approvals: { ...s.approvals, [c.id]: [...apps, ...(s.approvals[c.id] ?? [])] },
           };
         });
+        // Opt-in customer update (no-op unless they connected a channel) — fires on every shift.
+        pingCustomerUpdate(
+          `${active.name}: night ${active.night + 1} wrapped — ${done.length} task${done.length === 1 ? "" : "s"} shipped${apps.length ? `, ${apps.length} waiting for your ok` : ""}. See the Glass Box.`
+        );
+        // ChatOps: push each consequential approval to the phone with Approve/Reject buttons.
+        for (const ap of apps) {
+          pingApprovalRequest({ id: ap.id, title: ap.title, agent: ap.agent, kind: ap.kind, detail: ap.detail, amount: ap.amount, company: active.name });
+        }
       } finally {
         inFlightRef.current = false;
         setWorking(null);
@@ -433,6 +445,11 @@ export function useEngine() {
       };
       if (!approve) return { ...s, approvals };
       const cost = item.amount ?? 0;
+      // Ad spend runs on the user's OWN connected ad account (off-platform) — it is NOT competitor.inc's
+      // money, and with no account connected NOTHING is actually spent. So a spend approval must never
+      // inflate our ledger or claim "$X spent"; it's queued honestly. Real connected spend would be
+      // reflected only via executeAction's real proof.
+      const charged = item.kind === "spend" ? 0 : cost;
       const active = s.companies.find((c) => c.id === s.activeId);
       if (!active) return { ...s, approvals };
       const newActivity: Activity = {
@@ -441,7 +458,7 @@ export function useEngine() {
         agent: item.agent,
         action: item.title + " — approved by you",
         meta: "you signed off",
-        cost,
+        cost: charged,
         status: "done",
         // Honest: approving QUEUES the action — it doesn't claim the real-world act happened. The
         // real result (a live URL / send id) is appended by executeAction only when an integration
@@ -452,7 +469,7 @@ export function useEngine() {
             : item.kind === "outreach"
             ? { kind: "metric", value: "approved — drafted, queued to send" }
             : item.kind === "spend"
-            ? { kind: "metric", value: `$${cost} approved` }
+            ? { kind: "metric", value: "approved — queued to your ad account · nothing spent until you connect one" }
             : { kind: "metric", value: "approved" },
       };
       return {
@@ -461,7 +478,7 @@ export function useEngine() {
         activities: { ...s.activities, [active.id]: [newActivity, ...(s.activities[active.id] ?? [])] },
         companies: s.companies.map((c) =>
           c.id === active.id
-            ? { ...c, ledger: { ...c.ledger, spent: round(c.ledger.spent + cost), tasksDone: c.ledger.tasksDone + 1 } }
+            ? { ...c, ledger: { ...c.ledger, spent: round(c.ledger.spent + charged), tasksDone: c.ledger.tasksDone + 1 } }
             : c
         ),
       };
@@ -476,6 +493,25 @@ export function useEngine() {
       });
     }
   }, [executeAction, appendRealResult]);
+
+  // ChatOps reconcile: if the founder tapped Approve/Reject in Telegram, apply it here so effects run
+  // exactly once through the normal path (resolveApproval is idempotent). Polls only while the active
+  // company has pending approvals AND a channel is connected (fetchApprovalDecisions is a no-op otherwise).
+  const pendingIds = (company ? store.approvals[company.id] ?? [] : []).filter((a) => !a.resolved).map((a) => a.id);
+  const pendingKey = pendingIds.join(",");
+  useEffect(() => {
+    if (!hydrated || pendingIds.length === 0) return;
+    let on = true;
+    const check = async () => {
+      const decisions = await fetchApprovalDecisions(pendingIds);
+      if (!on) return;
+      for (const [id, decision] of Object.entries(decisions)) resolveApproval(id, decision === "approved");
+    };
+    void check();
+    const iv = setInterval(() => void check(), 8000);
+    return () => { on = false; clearInterval(iv); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, pendingKey]);
 
   // Surge's launch blitz: draft demand-capture posts for the active company and queue each as an
   // OUTREACH approval — so the blitz is ready to fire but nothing posts without the founder's yes

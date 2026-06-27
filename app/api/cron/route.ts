@@ -1,7 +1,10 @@
+import crypto from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { runShift } from "@/lib/engine/server";
 import { insertActivities, insertApprovals, updateCompany, toCompany } from "@/lib/engine/db";
 import { sendEmail } from "@/lib/engine/execution";
+import { remember } from "@/lib/engine/memory";
+import { withTrace } from "@/lib/engine/observability";
 
 export const runtime = "nodejs";
 
@@ -9,12 +12,19 @@ const round = (n: number) => Math.round(n * 100) / 100;
 
 // Nightly heartbeat. Vercel Cron calls this (see vercel.json). It runs one autonomous shift for
 // every operating company and persists the results. Idle until Supabase (service role) is set.
+// Constant-time bearer check (avoids timing leaks; matches the billing-webhook posture).
+function bearerOk(req: Request, secret: string): boolean {
+  const got = Buffer.from(req.headers.get("authorization") || "", "utf8");
+  const want = Buffer.from(`Bearer ${secret}`, "utf8");
+  return got.length === want.length && crypto.timingSafeEqual(got, want);
+}
+
 export async function GET(req: Request) {
+  // Fail-CLOSED: the heartbeat triggers real spend/deploys, so it never runs unauthenticated.
+  // Set CRON_SECRET (Vercel Cron sends it automatically) to enable it; absent ⇒ 401, not open.
   const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const auth = req.headers.get("authorization");
-    if (auth !== `Bearer ${secret}`) return new Response("Unauthorized", { status: 401 });
-  }
+  if (!secret) return new Response("Cron disabled — set CRON_SECRET to enable.", { status: 401 });
+  if (!bearerOk(req, secret)) return new Response("Unauthorized", { status: 401 });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -35,7 +45,7 @@ export async function GET(req: Request) {
     try {
       const company = toCompany(row);
       if (!company.ledger || typeof company.ledger !== "object") company.ledger = { ...EMPTY };
-      const { activities, approvals } = await runShift(company);
+      const { activities, approvals } = await withTrace("shift", () => runShift(company), { companyId: company.id, night: company.night });
       await insertActivities(sb, company.id, activities);
       await insertApprovals(sb, company.id, approvals);
 
@@ -51,6 +61,14 @@ export async function GET(req: Request) {
           tasksFailed: company.ledger.tasksFailed + failed.length,
         },
       });
+      // Accumulate private memory for this company (fail-soft; no-op without an embeddings key).
+      await remember(
+        sb,
+        company.id,
+        company.night,
+        "shift",
+        `Night ${company.night + 1}: ${done.length} done, ${failed.length} failed. ${activities.map((a) => a.action).slice(0, 4).join("; ")}`,
+      );
       ran++;
     } catch (err) {
       failed_companies++;

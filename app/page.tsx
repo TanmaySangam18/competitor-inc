@@ -16,8 +16,11 @@ import {
   Send,
   Rocket,
   TrendingUp,
+  LogOut,
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import { useAuth } from "@/lib/engine/useAuth";
+import { CHECKOUT_URL, checkoutUrlFor } from "@/lib/engine/billing";
 import { AgentWelcome } from "@/components/AgentWelcome";
 import { SecretHouseDoor } from "@/components/SecretHouseDoor";
 
@@ -51,6 +54,8 @@ function Reveal({
 
 /* ── Nav ─────────────────────────────────────────────────────── */
 function Nav() {
+  const { user, ready, signOut } = useAuth();
+  const signedIn = !!user && !user.guest;
   return (
     <nav className="fixed top-0 inset-x-0 z-50 border-b border-border bg-bg/60 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -69,12 +74,28 @@ function Nav() {
           <a href="#trust" className="transition hover:text-text">Glass Box</a>
           <a href="#pricing" className="transition hover:text-text">Pricing</a>
         </div>
-        <a
-          href="/dashboard"
-          className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl bg-text px-4 py-2 text-sm font-semibold text-bg transition hover:opacity-90"
-        >
-          Meet your co-founder <ArrowRight size={15} />
-        </a>
+        <div className="flex items-center gap-3">
+          {ready &&
+            (signedIn ? (
+              <button
+                onClick={() => void signOut()}
+                title={`Signed in as ${user!.email}`}
+                className="hidden items-center gap-1.5 text-sm text-muted transition hover:text-text sm:inline-flex"
+              >
+                <LogOut size={14} /> Sign out
+              </button>
+            ) : (
+              <a href="/login" className="hidden text-sm text-muted transition hover:text-text sm:inline-block">
+                Sign in
+              </a>
+            ))}
+          <a
+            href="/dashboard"
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl bg-text px-4 py-2 text-sm font-semibold text-bg transition hover:opacity-90"
+          >
+            Meet your co-founder <ArrowRight size={15} />
+          </a>
+        </div>
       </div>
     </nav>
   );
@@ -269,7 +290,7 @@ function Ethos() {
 
 /* ── How it works ────────────────────────────────────────────── */
 const steps = [
-  { n: "01", title: "Validate before you build", body: "Every company starts at the Validation Gate — a real landing page, a waitlist, and a small demand test. competitor.inc won't build the product until the signal is there.", icon: FlaskConical, color: "text-amber", ring: "bg-amber/12" },
+  { n: "01", title: "Validate before you build", body: "Every company starts at the Validation Gate — a fast, honest read on your idea, then a real demand test you can stand up: a live landing page, a waitlist, a small ad. competitor.inc won't build the product until the signal is there.", icon: FlaskConical, color: "text-amber", ring: "bg-amber/12" },
   { n: "02", title: "Build in the open", body: "Once validated, the agents ship. A task is only “done” when there's proof — a live URL, a passing build, a real metric. Nothing is marked complete on a hunch.", icon: CheckCircle2, color: "text-mint", ring: "bg-mint/12" },
   { n: "03", title: "Approve the moves that matter", body: "Spend, outbound messages, deploys, and deletions land in your Approval Inbox. You bring the taste and the final call; competitor.inc handles the rest.", icon: Inbox, color: "text-coral", ring: "bg-coral/12" },
   { n: "04", title: "Own everything", body: "Flat price, no revenue share. One-click export of all your code and data. Run it on your own infra anytime — or flip on Private Mode so nothing leaves your box.", icon: Lock, color: "text-violet", ring: "bg-violet/12" },
@@ -306,10 +327,11 @@ function HowItWorks() {
 
 /* ── Capabilities ────────────────────────────────────────────── */
 const capabilities = [
-  { icon: FlaskConical, title: "Validation Gate", body: "Tests real demand with a landing page, waitlist, and smoke-test before a single line of product code.", color: "text-amber", ring: "bg-amber/12" },
+  { icon: FlaskConical, title: "Validation Gate", body: "A fast, honest read on demand first — then a real test you can stand up (landing page, waitlist, smoke-test ad) to confirm, before a single line of product code.", color: "text-amber", ring: "bg-amber/12" },
   { icon: CheckCircle2, title: "Proof-of-Work", body: "A task counts as done only with a verifiable artifact — a live URL, a passing build, a real metric.", color: "text-mint", ring: "bg-mint/12" },
   { icon: Eye, title: "The Glass Box", body: "A human-readable log of every action, every dollar, every decision — with one-click undo.", color: "text-violet", ring: "bg-violet/12" },
   { icon: Inbox, title: "Approval Inbox", body: "Consequential actions wait for your yes/no. Safe autonomy by design — and the right way to handle prompt injection.", color: "text-coral", ring: "bg-coral/12" },
+  { icon: Send, title: "Autopilot growth", body: "Approve one campaign and the crew drafts launch posts that market your product — to Bluesky and Mastodon, from competitor.inc's own accounts. Each post is policy-checked before it goes out; you never touch a login. Unlocked on Operator.", color: "text-amber", ring: "bg-amber/12" },
   { icon: Lock, title: "Private Mode", body: "Swap in a self-hosted open-weight model so sensitive business data never leaves your own infrastructure.", color: "text-violet", ring: "bg-violet/12" },
   { icon: Wallet, title: "Fair pricing", body: "A flat subscription with no revenue share. Failed work is credited back — you only pay for work that lands. Export and eject anytime.", color: "text-mint", ring: "bg-mint/12" },
 ];
@@ -345,7 +367,7 @@ function Capabilities() {
 /* ── Glass Box showcase ──────────────────────────────────────── */
 const logEntries = [
   { icon: Rocket, color: "text-mint", ring: "bg-mint/12", agent: "Engineering", action: "Deployed landing page → bedtime-stories.app", meta: "build passed · 0:42s", cost: "$0.18", status: "done" },
-  { icon: TrendingUp, color: "text-amber", ring: "bg-amber/12", agent: "Marketing", action: "Ran $20 demand test on Meta · 4.6% CTR", meta: "within budget", cost: "$20.00", status: "done" },
+  { icon: TrendingUp, color: "text-amber", ring: "bg-amber/12", agent: "Marketing", action: "Ran a $20 demand test · 4.6% CTR", meta: "on your connected ad account", cost: "$20.00", status: "done" },
   { icon: Send, color: "text-coral", ring: "bg-coral/12", agent: "Growth", action: "Drafted launch post — waiting for your approval", meta: "outbound · needs sign-off", cost: "—", status: "pending" },
 ];
 
@@ -418,10 +440,20 @@ function GlassBox() {
 const plans = [
   { name: "Validate", price: "$0", tag: "free forever", points: ["Run the Validation Gate", "Real landing page + waitlist", "Honest go / tweak / kill verdict", "No card required"], cta: "Start free", href: "/dashboard", highlight: false },
   { name: "Operator", price: "$39", tag: "/ month", points: ["Everything in Validate", "Build-the-winner agent team", "Glass Box + Approval Inbox", "Never charged for failed work", "BYOK + Private Mode · export anytime"], cta: "Hire your co-founder", href: "/dashboard", highlight: true },
-  { name: "Founding", price: "$99", tag: "once · launch only", points: ["Everything in Operator — for life", "Founding-member badge", "Shape the roadmap", "Lock today's price forever"], cta: "Claim a seat", href: "/join", highlight: false },
+  { name: "Founding", price: "$99", tag: "once · launch only", points: ["Everything in Operator — for life", "Founding-member badge", "Shape the roadmap", "Lock today's price forever", "First 150 founders — then it's gone"], cta: "Claim a seat", href: "/join", highlight: false },
 ];
 
 function Pricing() {
+  const { user } = useAuth();
+  const email = user && !user.guest ? user.email : "";
+  // Paid plans route to the LemonSqueezy checkout when billing is live (email prefilled if signed in);
+  // otherwise they keep the free in-app path so the demo still works.
+  const planHref = (p: { name: string; href: string }) =>
+    (p.name === "Operator" || p.name === "Founding") && CHECKOUT_URL
+      ? email
+        ? checkoutUrlFor(email)
+        : CHECKOUT_URL
+      : p.href;
   return (
     <section id="pricing" className="border-t border-border bg-surface/20">
       <div className="mx-auto max-w-5xl px-6 py-28">
@@ -429,6 +461,9 @@ function Pricing() {
           <h2 className="display text-3xl md:text-[2.6rem]">Honest pricing</h2>
           <p className="mt-4 text-lg text-muted">
             Pay for the work. Keep your upside. No revenue share, no lock-in.
+          </p>
+          <p className="mt-2 text-sm text-muted-2">
+            Start free — you only pay once there&apos;s a winner worth building.
           </p>
         </Reveal>
         <div className="mt-14 grid gap-6 md:grid-cols-3">
@@ -457,7 +492,7 @@ function Pricing() {
                   ))}
                 </ul>
                 <a
-                  href={p.href}
+                  href={planHref(p)}
                   className={`mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition ${
                     p.highlight
                       ? "bg-coral text-bg hover:brightness-110"
@@ -518,6 +553,7 @@ function Footer() {
           <a href="/live" className="transition hover:text-text">Live board</a>
           <a href="/#pricing" className="transition hover:text-text">Pricing</a>
           <a href="/join" className="transition hover:text-text">Founding</a>
+          <a href="mailto:projecttattva1@gmail.com" className="transition hover:text-text">Contact</a>
         </nav>
         <div className="flex items-center gap-1.5">
           <ShieldCheck size={14} className="text-mint" /> Your data, your call

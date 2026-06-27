@@ -1,6 +1,7 @@
 import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply } from "@/lib/engine/server";
 import { capabilities } from "@/lib/engine/execution";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { withTrace } from "@/lib/engine/observability";
 import type { ByokConfig, Company } from "@/lib/engine/types";
 
 export const runtime = "nodejs";
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
         return Response.json({ error: "`idea` (non-empty string) is required" }, { status: 400 });
       }
       const salt = typeof body.nonce === "number" && Number.isFinite(body.nonce) ? String(body.nonce) : undefined;
-      const validation = await runValidate(body.idea.trim(), body.byok, salt);
+      const validation = await withTrace("validate", () => runValidate(body.idea.trim(), body.byok, salt), { len: body.idea.length });
       return Response.json({ validation });
     }
 
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
       ) {
         return Response.json({ error: "`company` (id, idea, night, ledger) is required" }, { status: 400 });
       }
-      const result = await runShift(c, body.byok);
+      const result = await withTrace("shift", () => runShift(c, body.byok), { companyId: c.id, night: c.night });
       return Response.json(result);
     }
 

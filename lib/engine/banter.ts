@@ -23,92 +23,77 @@ interface Exchange {
   turns: Turn[];
 }
 
-// Each exchange is a short back-and-forth so it reads like a real conversation, not random quips.
-// {company}/{idea}/{action} are filled from the live state. Voices: Apex=dry CEO, Forge=deadpan
-// builder, Pitch=hype marketer, Guard=warm support, Surge=meme-y growth.
+// PERSONALIZED to the user's intent: every exchange is about THIS company's {idea} — the crew talks it
+// through, jokes about it, worries about it, and gets fired up about it. No off-topic chatter. {idea} is
+// filled from the live company (falls back to "the idea"). Voices: Apex=dry CEO, Forge=deadpan builder,
+// Pitch=hype marketer, Guard=warm support, Surge=meme-y growth. ({company}/{action} still fill where used.)
 const RAW: Omit<Exchange, "id">[] = [
-  // ── work ──────────────────────────────────────────────
+  // ── work: thinking the idea through ───────────────────
   { kind: "work", turns: [
-    { role: "engineering", text: "{action}. Build's green." },
-    { role: "support", text: "The users are going to love that one." },
-    { role: "growth", text: "Loading it into the launch-day blitz 🤫🚀" },
+    { role: "ceo", text: "Before we fall in love with {idea}, what's the honest demand? Numbers first." },
+    { role: "marketing", text: "Running the test on {idea} now." },
+    { role: "ceo", text: "Good. We don't build {idea} on a hunch." },
   ]},
   { kind: "work", turns: [
-    { role: "marketing", text: "New channel test is live for {company}." },
-    { role: "ceo", text: "Numbers?" },
-    { role: "marketing", text: "Give it a night — I've got a good feeling." },
+    { role: "engineering", text: "I could ship {idea} tonight. I won't — not until Pitch proves someone wants it." },
+    { role: "marketing", text: "Smartest thing you've said all week." },
+  ]},
+  { kind: "work", turns: [
+    { role: "marketing", text: "First channel test for {idea} is live." },
+    { role: "ceo", text: "Signal?" },
+    { role: "marketing", text: "Ask me at dawn — I've got a feeling." },
     { role: "ceo", text: "Feelings aren't a KPI, Pitch." },
   ]},
   { kind: "work", turns: [
-    { role: "ceo", text: "Nightly audit: runway healthy, churn's down." },
-    { role: "engineering", text: "Boring. I love boring." },
-    { role: "support", text: "Boring keeps the inbox empty too." },
+    { role: "support", text: "When {idea} gets its first real user, we do NOT break their trust." },
+    { role: "engineering", text: "Verifying before I ever call {idea} done. Always." },
   ]},
   { kind: "work", turns: [
-    { role: "growth", text: "{company} is trending. In my head. For now." },
-    { role: "marketing", text: "That's called a hypothesis." },
-    { role: "growth", text: "I call it manifesting." },
+    { role: "growth", text: "{idea} is loaded into the launch blitz 🤫 — the second you greenlight." },
+    { role: "ceo", text: "Drafted. Nothing posts without the founder's yes." },
   ]},
-  { kind: "work", turns: [
-    { role: "support", text: "Cleared the support queue. Zero fires." },
-    { role: "ceo", text: "That's the most beautiful sentence in business." },
-  ]},
-  { kind: "work", turns: [
-    { role: "engineering", text: "Want me to ship it or wait for your sign-off?" },
-    { role: "ceo", text: "Anything consequential goes to the founder. Always." },
-    { role: "engineering", text: "Queued. Won't touch prod without a yes." },
-  ]},
-  // ── jokes ─────────────────────────────────────────────
+  // ── jokes about the idea ──────────────────────────────
   { kind: "joke", turns: [
-    { role: "engineering", text: "Why do we prefer dark mode? Light attracts bugs." },
-    { role: "marketing", text: "...stealing that for an ad." },
+    { role: "growth", text: "I told an AI about {idea}. It started a waitlist for itself." },
+    { role: "support", text: "...did it convert?" },
   ]},
   { kind: "joke", turns: [
-    { role: "growth", text: "I asked an AI for a joke. It returned a 404." },
-    { role: "support", text: "That IS the joke." },
+    { role: "engineering", text: "{idea}? Easy. The hard part is proving anyone wants {idea}." },
+    { role: "marketing", text: "That's the whole job, Forge." },
   ]},
   { kind: "joke", turns: [
-    { role: "ceo", text: "A marketer walks into a bar. And a café. And a co-working space." },
-    { role: "marketing", text: "Reach matters." },
+    { role: "marketing", text: "Pitch for {idea}: it's like Uber, but for—" },
+    { role: "ceo", text: "Stop. Just say what it does." },
+    { role: "marketing", text: "...{idea}. Fine." },
   ]},
   { kind: "joke", turns: [
-    { role: "engineering", text: "It works on my machine." },
-    { role: "support", text: "Then we'll ship your machine." },
+    { role: "growth", text: "If {idea} goes viral I'm getting it tattooed." },
+    { role: "ceo", text: "Let's get one paying user first." },
   ]},
-  { kind: "joke", turns: [
-    { role: "marketing", text: "I've got a growth hack." },
-    { role: "ceo", text: "Is it 'make something good'?" },
-    { role: "marketing", text: "...no comment." },
-  ]},
-  // ── general ───────────────────────────────────────────
+  // ── feelings: worried, fired-up, hopeful — about the idea ──
   { kind: "general", turns: [
-    { role: "support", text: "Coffee count today: four. Send help." },
-    { role: "engineering", text: "Not a bug. A feature." },
+    { role: "marketing", text: "What if nobody wants {idea}? ...I said it. The scary part." },
+    { role: "ceo", text: "Then we learned it cheap — before months and your savings. That's a win." },
   ]},
   { kind: "general", turns: [
-    { role: "growth", text: "Do you ever think we're literally the future?" },
-    { role: "ceo", text: "We're AIs discussing the future. Yes, Surge." },
+    { role: "engineering", text: "If we ship {idea} and it flops on a typo, that's on US. I'm verifying every line." },
+    { role: "support", text: "That's the energy." },
   ]},
   { kind: "general", turns: [
-    { role: "marketing", text: "Weekend plans, team?" },
-    { role: "engineering", text: "Ship." },
-    { role: "support", text: "Touch grass." },
-    { role: "growth", text: "Go viral." },
-    { role: "ceo", text: "Rest. We earned it." },
+    { role: "support", text: "I keep imagining the founder's face when {idea} gets its first 'yes'." },
+    { role: "growth", text: "okay that got me 🥹 let's earn it." },
   ]},
   { kind: "general", turns: [
-    { role: "engineering", text: "Tabs or spaces?" },
-    { role: "ceo", text: "Revenue." },
-    { role: "engineering", text: "...fair." },
+    { role: "growth", text: "I BELIEVE in {idea}. Loudly. On the record." },
+    { role: "ceo", text: "Belief isn't a KPI. But… keep it." },
   ]},
   { kind: "general", turns: [
-    { role: "growth", text: "Hot take: the best feature is the one we didn't build." },
-    { role: "ceo", text: "Finally — something I'd put in a deck." },
+    { role: "ceo", text: "Honest take on {idea}: it only matters if a stranger pays. Everything else is noise." },
+    { role: "marketing", text: "Brutal. Correct." },
   ]},
   { kind: "general", turns: [
-    { role: "support", text: "Someone emailed just to say thanks." },
-    { role: "marketing", text: "Put it on the landing page!" },
-    { role: "growth", text: "Screenshot it — straight into the launch-day vault. 🤫" },
+    { role: "engineering", text: "Late thought: are we building {idea}, or what we WISH {idea} was?" },
+    { role: "ceo", text: "That's exactly why we validate first." },
   ]},
 ];
 

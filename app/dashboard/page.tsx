@@ -37,7 +37,13 @@ import { useEngine } from "@/lib/engine/useEngine";
 import { useConfig, getByok } from "@/lib/engine/config";
 import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/engine/types";
 import { LogoMark } from "@/components/Logo";
+import { CompanyLogo } from "@/components/CompanyLogo";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
+import DemandTestPanel from "@/components/DemandTestPanel";
+import CrewCard from "@/components/CrewCard";
+import CampaignPanel from "@/components/CampaignPanel";
+import { useAuth } from "@/lib/engine/useAuth";
+import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
 
 const agentStyle: Record<AgentRole, { icon: typeof Gauge; color: string; ring: string }> = {
   ceo: { icon: Gauge, color: "text-violet", ring: "bg-violet/12" },
@@ -75,11 +81,25 @@ type Tab = "operations" | "history" | "chat" | "operate";
 export default function Dashboard() {
   const r = useEngine();
   const router = useRouter();
+  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("operations");
 
   // Approving a build is consequential and should be *visible*: ship the MVP, then take the
   // founder straight to the live agent floor so they watch the crew go to work (Nielsen H1).
-  const goBuild = () => {
+  // Pay-to-build: validating is free; building & running requires an active Operator subscription —
+  // enforced ONLY when billing is configured (so the demo stays open until LemonSqueezy is live).
+  const goBuild = async () => {
+    if (billingLive()) {
+      if (!user || user.guest) {
+        router.push("/login"); // must sign in so we can tie the subscription to them
+        return;
+      }
+      const entitled = await checkEntitled(user.email);
+      if (!entitled) {
+        window.location.href = checkoutUrlFor(user.email); // → Operator $39/mo checkout (email prefilled)
+        return;
+      }
+    }
     r.decideBuild(true);
     router.push("/delegation");
   };
@@ -123,6 +143,7 @@ export default function Dashboard() {
 
 /* ── Top bar ─────────────────────────────────────────────────── */
 function TopBar({ r }: { r: ReturnType<typeof useEngine> }) {
+  const { user, signOut } = useAuth();
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -143,6 +164,15 @@ function TopBar({ r }: { r: ReturnType<typeof useEngine> }) {
           >
             <Rocket size={14} /> The Delegation
           </Link>
+          {user && !user.guest && (
+            <button
+              onClick={() => void signOut()}
+              title={`Signed in as ${user.email}`}
+              className="hidden h-9 items-center rounded-lg border border-border px-3 text-xs text-muted transition hover:text-text sm:flex"
+            >
+              Sign out
+            </button>
+          )}
           <Link
             href="/dashboard/settings"
             className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted transition hover:text-text"
@@ -187,9 +217,7 @@ function CompanySwitcher({ r }: { r: ReturnType<typeof useEngine> }) {
                 }`}
               >
                 <button onClick={() => { r.switchCompany(c.id); setOpen(false); }} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-text text-bg text-[10px] font-bold">
-                    {c.name.charAt(0)}
-                  </span>
+                  <CompanyLogo name={c.name} size={24} className="shrink-0 rounded-md" />
                   <span className="min-w-0">
                     <span className="block truncate">{c.name}</span>
                     <span className="block truncate text-[11px] text-muted-2">{c.status}</span>
@@ -221,18 +249,18 @@ function AutopilotToggle({ on, onToggle, paused }: { on: boolean; onToggle: () =
   return (
     <button
       onClick={onToggle}
-      title={paused ? "Autopilot paused — clear your Approval Inbox to resume" : undefined}
+      title={paused ? "Autopilot paused — clear your Approval Inbox to resume" : on ? "Autopilot on — tap to take over and drive manually" : "You're driving — tap to hand back to autopilot"}
       className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
         paused
           ? "border-amber/40 bg-amber/10 text-amber"
           : on
           ? "border-mint/40 bg-mint/10 text-mint"
-          : "border-border text-muted hover:text-text"
+          : "border-coral/40 bg-coral/10 text-coral"
       }`}
       aria-pressed={on}
     >
       <Zap size={13} className={paused ? "" : on ? "fill-mint" : ""} />
-      {paused ? "Autopilot paused" : on ? "Autopilot on" : "Autopilot"}
+      {paused ? "Autopilot paused" : on ? "Autopilot on" : "You're driving"}
     </button>
   );
 }
@@ -403,6 +431,14 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
           <p className="text-sm text-muted">{v.recommendation}</p>
         </div>
 
+        {recommendHold && (
+          <p className="mt-4 rounded-2xl border border-mint/25 bg-mint/[0.05] px-4 py-3 text-sm text-muted">
+            <span className="font-medium text-mint">A &ldquo;not yet&rdquo; is a win.</span> You just learned it
+            cheaply — before months and your savings went in. Tweak the idea or the audience and run the gate
+            again; that&apos;s the whole point.
+          </p>
+        )}
+
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           {recommendHold ? (
             <>
@@ -428,6 +464,7 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
       <p className="mt-3 text-center text-xs text-muted-2">
         These are <span className="text-muted">AI estimates</span> from your idea — a fast read, not a live test with real signups yet. You decide; competitor.inc only builds once you approve.
       </p>
+      <DemandTestPanel slug={r.company!.slug} idea={r.company!.idea} />
     </motion.div>
   );
 }
@@ -475,9 +512,12 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">{c.name}</h1>
-          <p className="mt-1 max-w-xl text-sm text-muted">{c.idea}</p>
+        <div className="flex items-center gap-3.5">
+          <CompanyLogo name={c.name} size={48} className="shrink-0 rounded-xl shadow-sm" />
+          <div>
+            <h1 className="text-3xl font-bold">{c.name}</h1>
+            <p className="mt-1 max-w-xl text-sm text-muted">{c.idea}</p>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <button
@@ -537,6 +577,8 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
           </div>
         ))}
       </div>
+
+      <CampaignPanel company={c} />
 
       {c.product && (
         <a
@@ -640,27 +682,58 @@ function OperationsTab({ r }: { r: ReturnType<typeof useEngine> }) {
         )}
         <div>
           <h2 className="text-sm font-semibold text-muted">Your team</h2>
+          <p className="mt-1 text-[11px] text-muted-2">Tap anyone to see their job description.</p>
           <div className="mt-3 space-y-2">
             {roles.map((role) => {
               const A = AGENTS[role];
               const S = agentStyle[role];
               return (
-                <div key={role} className="flex items-center gap-3 rounded-xl glass-panel px-3 py-2.5">
-                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${S.ring} ${S.color}`}>
-                    <S.icon size={16} />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium">
-                      {A.name} <span className="text-muted-2">· {A.label}</span>
+                <details key={role} className="group rounded-xl glass-panel px-3 py-2.5">
+                  <summary className="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+                    <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${S.ring} ${S.color}`}>
+                      <S.icon size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium">
+                        {A.name} <span className="text-muted-2">· {A.label}</span>
+                      </div>
+                      <div className="truncate text-xs text-muted-2">{A.blurb}</div>
+                      <div className="mt-0.5 truncate text-[10px] text-muted-2">Plays <span className="text-muted">{A.playbook}</span></div>
                     </div>
-                    <div className="truncate text-xs text-muted-2">{A.blurb}</div>
-                    <div className="mt-0.5 truncate text-[10px] text-muted-2">Plays <span className="text-muted">{A.playbook}</span></div>
+                    <ChevronDown size={14} className="shrink-0 text-muted-2 transition group-open:rotate-180" />
+                  </summary>
+                  <div className="mt-3 space-y-3 border-t border-border pt-3 text-xs">
+                    <div>
+                      <div className="font-semibold uppercase tracking-wide text-muted-2">Owns</div>
+                      <ul className="mt-1.5 space-y-1">
+                        {A.responsibilities.map((x, i) => (
+                          <li key={i} className="flex gap-1.5 text-muted"><span className="text-muted-2">·</span><span>{x}</span></li>
+                        ))}
+                      </ul>
+                    </div>
+                    {A.icp && (
+                      <div>
+                        <span className="font-semibold uppercase tracking-wide text-muted-2">Talks to </span>
+                        <span className="text-muted">{A.icp}</span>
+                      </div>
+                    )}
+                    {A.objections && A.objections.length > 0 && (
+                      <div>
+                        <div className="font-semibold uppercase tracking-wide text-muted-2">Answers the worry</div>
+                        <ul className="mt-1.5 space-y-1">
+                          {A.objections.map((x, i) => (
+                            <li key={i} className="flex gap-1.5 text-muted"><span className="text-muted-2">·</span><span>{x}</span></li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                </div>
+                </details>
               );
             })}
           </div>
         </div>
+        <CrewCard idea={r.company!.idea} />
       </aside>
     </div>
     </div>

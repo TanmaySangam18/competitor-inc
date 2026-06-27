@@ -9,12 +9,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ArrowLeft, ExternalLink, Inbox, Loader2, MessagesSquare, Play, Power, Sparkles } from "lucide-react";
+import { ArrowLeft, ExternalLink, Inbox, Loader2, MessagesSquare, Play, Power, Send, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { useEngine } from "@/lib/engine/useEngine";
 import { DELEGATION, toneHex } from "@/lib/engine/delegation";
 import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
-import type { AgentRole } from "@/lib/engine/types";
+import { AGENTS, type AgentRole } from "@/lib/engine/types";
+import { getByok } from "@/lib/engine/config";
 
 const DelegationScene = dynamic(() => import("./DelegationScene"), {
   ssr: false,
@@ -60,6 +61,69 @@ export default function DelegationPage() {
   // ── Ambient conversation ───────────────────────────────────────
   const [speaker, setSpeaker] = useState<Turn | null>(null);
   const [transcript, setTranscript] = useState<Turn[]>([]);
+
+  // ── Talk to the crew (customer → the active company's agents) ──
+  const [directive, setDirective] = useState("");
+  const [target, setTarget] = useState<AgentRole>("ceo");
+  const [chatBusy, setChatBusy] = useState(false);
+  const chatBusyRef = useRef(false);
+  const sendToCrew = async () => {
+    const text = directive.trim();
+    const co = r.company;
+    if (!text || chatBusyRef.current || !co) return;
+    const role = target;
+    setDirective("");
+    chatBusyRef.current = true;
+    setChatBusy(true);
+
+    // The addressed agent answers for real (via /api/engine) in its own voice + playbook, about THIS
+    // customer's company — never competitor.inc. Consequential moves are drafted + queued, never shipped.
+    const a = AGENTS[role];
+    const soul =
+      `You are ${a.name}, the ${a.label} agent at competitor.inc, working on ${co.name} — "${co.idea}". ` +
+      `Your playbook: ${a.playbook}. Your responsibilities: ${a.responsibilities.join("; ")}. ` +
+      (a.objections ? `Reassure these common worries when relevant: ${a.objections.join("; ")}. ` : "") +
+      `Reply in-character: concise, specific, action-oriented — name the concrete next steps you'd take for ${co.name}. ` +
+      `Anything consequential (spending money, outreach, posting publicly, deploying) you DRAFT and queue for the founder's approval — say so; never claim you already shipped it.`;
+
+    // Streaming bubble: append one floor entry for this agent and update it live as tokens arrive.
+    setTranscript((t) => [...t, { role, text: "…" }].slice(-40));
+    const update = (txt: string) => {
+      setSpeaker({ role, text: txt });
+      setTranscript((t) => { const copy = t.slice(); copy[copy.length - 1] = { role, text: txt }; return copy; });
+    };
+    try {
+      const res = await fetch("/api/engine", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ kind: "chat", company: { name: co.name, idea: co.idea }, message: text, soul, byok: getByok() ?? undefined }),
+      });
+      const consequential = !!res.headers.get("x-approval");
+      let acc = "";
+      if (!res.body) {
+        const d = await res.json().catch(() => ({} as { reply?: string }));
+        update((acc = d.reply ?? "On it."));
+      } else {
+        const reader = res.body.getReader();
+        const dec = new TextDecoder();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          acc += dec.decode(value, { stream: true });
+          update(acc);
+        }
+      }
+      if (consequential) {
+        setTranscript((t) => [...t, { role, text: "🔔 Queued for your approval — nothing consequential ships without your yes." }].slice(-40));
+      }
+    } catch {
+      update("I couldn't reach the engine just now — try again?");
+    } finally {
+      chatBusyRef.current = false;
+      setChatBusy(false);
+    }
+  };
+
   const ctxRef = useRef<BanterCtx>({ working: false });
   ctxRef.current = {
     company: r.company?.name,
@@ -72,6 +136,7 @@ export default function DelegationPage() {
   useEffect(() => {
     if (!r.hydrated) return;
     const tick = () => {
+      if (chatBusyRef.current) return; // don't talk over a live reply to the customer
       if (queueRef.current.length === 0) {
         const ex = pickExchange(ctxRef.current, lastIdRef.current);
         lastIdRef.current = ex.id;
@@ -100,7 +165,7 @@ export default function DelegationPage() {
   return (
     <main id="main" className="relative h-[100dvh] w-full overflow-hidden bg-bg mesh">
       <div className="absolute inset-0">
-        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} faces />
+        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} faces vivid />
       </div>
 
       {/* Top bar */}
@@ -164,13 +229,13 @@ export default function DelegationPage() {
             </button>
             <button
               onClick={() => r.setAutopilot(!r.autopilot)}
-              title={r.autopilotPaused ? "Autopilot paused — clear your Approval Inbox to resume" : undefined}
+              title={r.autopilotPaused ? "Autopilot paused — clear your Approval Inbox to resume" : r.autopilot ? "Tap to take over and drive the crew manually" : "You're driving — tap to hand back to autopilot"}
               className={`glass-panel pointer-events-auto flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-medium transition hover:border-white/30 ${
-                r.autopilotPaused ? "text-amber" : r.autopilot ? "text-text" : "text-muted-2"
+                r.autopilotPaused ? "text-amber" : r.autopilot ? "text-text" : "text-coral"
               }`}
             >
               <Power size={13} className={r.autopilot ? "" : "opacity-60"} />
-              {r.autopilotPaused ? "Autopilot paused" : `Autopilot ${r.autopilot ? "on" : "off"}`}
+              {r.autopilotPaused ? "Autopilot paused" : r.autopilot ? "Autopilot on · take over" : "You're driving (manual)"}
             </button>
             {r.pendingApprovals.length > 0 && (
               <Link
@@ -279,6 +344,39 @@ export default function DelegationPage() {
               })
             )}
           </div>
+
+          {/* Talk to the crew — scoped to the active company */}
+          {r.company && (
+            <div className="mt-3 flex items-center gap-1.5 border-t border-border pt-3">
+              <select
+                value={target}
+                onChange={(e) => setTarget(e.target.value as AgentRole)}
+                aria-label="Pick which agent to ask"
+                className="w-[5.2rem] shrink-0 truncate rounded-lg border border-border bg-surface px-1.5 py-1.5 text-[11px] outline-none"
+              >
+                {DELEGATION.map((a) => (
+                  <option key={a.role} value={a.role}>{a.name}</option>
+                ))}
+              </select>
+              <input
+                value={directive}
+                onChange={(e) => setDirective(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendToCrew()}
+                disabled={chatBusy}
+                placeholder={chatBusy ? `${AGENTS[target].name} is thinking…` : `Ask ${r.company.name}'s crew…`}
+                aria-label="Talk to the crew"
+                className="w-full rounded-lg bg-bg/60 px-2.5 py-1.5 text-[12px] outline-none placeholder:text-muted-2 disabled:opacity-60"
+              />
+              <button
+                onClick={sendToCrew}
+                disabled={!directive.trim() || chatBusy}
+                aria-label="Send to the crew"
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-text text-bg transition hover:brightness-110 disabled:opacity-40"
+              >
+                {chatBusy ? <Loader2 className="animate-spin" size={13} /> : <Send size={13} />}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </main>
