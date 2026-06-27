@@ -358,6 +358,42 @@ export const PLAYBOOKS: Playbook[] = [
       },
     ],
   },
+  {
+    slug: "sell-to-the-irrational-mind",
+    title: "Sell to the irrational mind (psycho-logic)",
+    summary: "People decide on feeling and context, then justify it with logic. How to persuade by changing perception — often cheaper and more powerful than changing the product.",
+    readMins: 6,
+    freeIntro: [
+      "We like to think buyers weigh features and pick the rational best. They don't. Most decisions run on 'psycho-logic' — fast, emotional, context-driven rules — and the reasons come afterward, to justify a feeling. So the highest-leverage move often isn't a better product; it's a better frame. The best ideas frequently don't make narrow rational sense — they make people feel something.",
+      "This is the marketer's edge a spreadsheet misses: change the context and you change the meaning, with zero change to the thing itself. A famous example — a store fielding complaints that a potato peeler scratched potatoes simply renamed it a carrot peeler; complaints stopped. Nothing about the product changed; the expectation did. This playbook is how to use perception, emotion, and the unexpected to win attention and trust honestly.",
+    ],
+    body: [
+      {
+        heading: "Psycho-logic beats logic",
+        paragraphs: [
+          "People judge with the fast, emotional system first; the slow, rational one mostly rationalizes afterward. So lead with how it feels and what it signals, not a feature matrix. Appeal to the gut (is this safe, is this for someone like me, what do I lose by waiting) before you argue with the head.",
+        ],
+      },
+      {
+        heading: "Reframe, don't always rebuild",
+        paragraphs: [
+          "Before you spend months adding a feature, ask whether a reframe solves it cheaper. Change the words, the context, the comparison, or the default, and you change the perceived value without touching the product. A small psychological tweak routinely beats an expensive functional one — and it ships today.",
+        ],
+      },
+      {
+        heading: "Solve for the emotion, not just the function",
+        paragraphs: [
+          "Often the real problem isn't functional — it's a feeling (the fear, the wait, the uncertainty). Fixing the feeling can matter more than fixing the function: make the wait feel shorter, the risk feel smaller, the choice feel safer. Name the emotion your customer actually has and design straight at it.",
+        ],
+      },
+      {
+        heading: "Be remarkably, counter-intuitively honest",
+        paragraphs: [
+          "The opposite of a good idea can be another good idea. When everyone in your category shouts the same promise, doing the unexpected — openly admitting a limitation, or telling a customer the truth that costs you a sale — is both more memorable and more trusted. Honesty isn't just ethics; it's a signal too costly to fake, which is exactly why it persuades.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getPlaybook(slug: string): Playbook | undefined {
