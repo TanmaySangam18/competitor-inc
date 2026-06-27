@@ -1,6 +1,14 @@
+import crypto from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
+
+// Constant-time bearer check (avoids timing leaks on the founder secret).
+function bearerOk(req: Request, secret: string): boolean {
+  const got = Buffer.from(req.headers.get("authorization") || "", "utf8");
+  const want = Buffer.from(`Bearer ${secret}`, "utf8");
+  return got.length === want.length && crypto.timingSafeEqual(got, want);
+}
 
 // Founder-only KPI counts (aggregate, no PII). Guarded by METRICS_SECRET so pre-launch numbers can't
 // be scraped. Fail-soft: no Supabase → zeros; no secret set → { locked:true } (the board shows how to
@@ -10,7 +18,7 @@ export async function GET(req: Request) {
   if (!secret) {
     return Response.json({ ok: true, locked: true, note: "Set METRICS_SECRET (env) to enable the board." });
   }
-  if (req.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!bearerOk(req, secret)) {
     return new Response("Unauthorized", { status: 401 });
   }
 

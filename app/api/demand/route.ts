@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -52,6 +53,12 @@ export async function POST(req: Request) {
   }
 
   if (b.action === "create") {
+    // create stands up a PUBLIC landing page at /t/<slug>, so it's the abuse-sensitive path. There's
+    // no auth on the client (the dashboard panel calls it unauthenticated), so guard it per-IP to stop
+    // a stranger from spraying junk tests on the domain. Real auth is a Block-0 follow-up.
+    if (rateLimited(`demand:${clientIp(req)}`)) {
+      return Response.json({ error: "rate limited" }, { status: 429 });
+    }
     const slug = typeof b.slug === "string" ? slugify(b.slug) : "";
     const headline = typeof b.headline === "string" ? b.headline.slice(0, 140).trim() : "";
     const subhead = typeof b.subhead === "string" ? b.subhead.slice(0, 280).trim() : "";
@@ -62,7 +69,7 @@ export async function POST(req: Request) {
       const { error } = await client.from("demand_tests").upsert({ slug, headline, subhead, goal }, { onConflict: "slug" });
       if (error) {
         console.error("[/api/demand] create failed:", error.message);
-        return Response.json({ ok: false, persisted: false, error: error.message });
+        return Response.json({ ok: false, persisted: false, slug });
       }
       return Response.json({ ok: true, persisted: true, slug });
     } catch (e) {
