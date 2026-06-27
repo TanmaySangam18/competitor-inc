@@ -37,6 +37,7 @@ import { useEngine } from "@/lib/engine/useEngine";
 import { useConfig, getByok } from "@/lib/engine/config";
 import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/engine/types";
 import { LogoMark } from "@/components/Logo";
+import { CompanyLogo } from "@/components/CompanyLogo";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
@@ -216,9 +217,7 @@ function CompanySwitcher({ r }: { r: ReturnType<typeof useEngine> }) {
                 }`}
               >
                 <button onClick={() => { r.switchCompany(c.id); setOpen(false); }} className="flex min-w-0 flex-1 items-center gap-2 text-left">
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-text text-bg text-[10px] font-bold">
-                    {c.name.charAt(0)}
-                  </span>
+                  <CompanyLogo name={c.name} size={24} className="shrink-0 rounded-md" />
                   <span className="min-w-0">
                     <span className="block truncate">{c.name}</span>
                     <span className="block truncate text-[11px] text-muted-2">{c.status}</span>
@@ -513,9 +512,12 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">{c.name}</h1>
-          <p className="mt-1 max-w-xl text-sm text-muted">{c.idea}</p>
+        <div className="flex items-center gap-3.5">
+          <CompanyLogo name={c.name} size={48} className="shrink-0 rounded-xl shadow-sm" />
+          <div>
+            <h1 className="text-3xl font-bold">{c.name}</h1>
+            <p className="mt-1 max-w-xl text-sm text-muted">{c.idea}</p>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <button
