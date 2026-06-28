@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { useAuth } from "@/lib/engine/useAuth";
-import { CHECKOUT_URL, checkoutUrlFor } from "@/lib/engine/billing";
+import { CHECKOUT_URL, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { AgentWelcome } from "@/components/AgentWelcome";
 import { SecretHouseDoor } from "@/components/SecretHouseDoor";
 
@@ -443,32 +443,28 @@ function GlassBox() {
 
 /* ── Pricing ─────────────────────────────────────────────────── */
 const plans = [
-  { name: "Validate", price: "$0", tag: "free forever", points: ["Run the Validation Gate", "Real landing page + waitlist", "Honest go / tweak / kill verdict", "No card required"], cta: "Start free", href: "/dashboard", highlight: false },
-  { name: "Operator", price: "$39", tag: "/ month", points: ["Everything in Validate", "Build-the-winner agent team", "Glass Box + Approval Inbox", "Never charged for failed work", "BYOK + Private Mode · export anytime"], cta: "Hire your co-founder", href: "/dashboard", highlight: true },
-  { name: "Founding", price: "$99", tag: "once · launch only", points: ["Everything in Operator — for life", "Founding-member badge", "Shape the roadmap", "Lock today's price forever", "First 150 founders — then it's gone"], cta: "Claim a seat", href: "/join", highlight: false },
+  { name: "Validate", price: "$0", tag: "free forever", audience: "For first-time & student founders", tier: "", points: ["Prove demand before you build", "Real commitment test, not a vanity signup", "Honest go / tweak / kill verdict", "No card required"], cta: "Start free", href: "/dashboard", highlight: false },
+  { name: "Operator", price: "$39", tag: "/ month", audience: "Build it yourself, with the crew", tier: "operator", points: ["Everything in Validate", "Build-the-winner agent team", "Glass Box + Approval Inbox", "Never charged for failed work", "BYOK + Private Mode · export anytime"], cta: "Hire your co-founder", href: "/dashboard", highlight: false },
+  { name: "Founder", price: "$299", tag: "/ month", audience: "Done WITH you — for founders who'd rather not DIY", tier: "founder", points: ["Everything in Operator", "We validate, build & launch alongside you", "A weekly working session with the crew", "Direct line + priority on everything", "Only a handful of slots at a time"], cta: "Work with us", href: "/join", highlight: true },
 ];
 
 function Pricing() {
   const { user } = useAuth();
   const email = user && !user.guest ? user.email : "";
-  // Paid plans route to the LemonSqueezy checkout when billing is live (email prefilled if signed in);
-  // otherwise they keep the free in-app path so the demo still works.
-  const planHref = (p: { name: string; href: string }) =>
-    (p.name === "Operator" || p.name === "Founding") && CHECKOUT_URL
-      ? email
-        ? checkoutUrlFor(email)
-        : CHECKOUT_URL
-      : p.href;
+  // Each paid tier routes to its OWN LemonSqueezy checkout when that tier's link is live (email prefilled
+  // if signed in); otherwise it falls back to the in-app/apply path so the page always works.
+  const planHref = (p: { tier: string; href: string }) =>
+    p.tier && checkoutLiveFor(p.tier) ? checkoutUrlFor(email, p.tier) : p.href;
   return (
     <section id="pricing" className="border-t border-border bg-surface/20">
       <div className="mx-auto max-w-5xl px-6 py-28">
         <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="display text-3xl md:text-[2.6rem]">Honest pricing</h2>
           <p className="mt-4 text-lg text-muted">
-            Pay for the work. Keep your upside. No revenue share, no lock-in.
+            Validate free. Build it yourself, or have us do it with you. No revenue share, no lock-in.
           </p>
           <p className="mt-2 text-sm text-muted-2">
-            Start free — you only pay once there&apos;s a winner worth building.
+            Free to prove the idea — you only pay once there&apos;s a winner worth building.
           </p>
         </Reveal>
         <div className="mt-14 grid gap-6 md:grid-cols-3">
@@ -481,7 +477,7 @@ function Pricing() {
               >
                 {p.highlight && (
                   <span className="absolute -top-3 left-7 rounded-full bg-coral px-3 py-1 text-xs font-semibold text-bg">
-                    Most popular
+                    Done with you
                   </span>
                 )}
                 <h3 className="text-lg font-semibold">{p.name}</h3>
@@ -489,6 +485,7 @@ function Pricing() {
                   <span className="font-display text-4xl font-bold">{p.price}</span>
                   <span className="mb-1 text-sm text-muted-2">{p.tag}</span>
                 </div>
+                <p className="mt-2 text-xs text-muted-2">{p.audience}</p>
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-muted">
                   {p.points.map((pt) => (
                     <li key={pt} className="flex items-start gap-2">
@@ -510,6 +507,25 @@ function Pricing() {
             </Reveal>
           ))}
         </div>
+
+        {/* One-time option — cash-now foot in the door that upsells to Founder. */}
+        <Reveal className="mx-auto mt-8 max-w-3xl">
+          <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-border bg-surface/40 px-6 py-5 text-center sm:flex-row sm:text-left">
+            <div>
+              <div className="text-sm font-semibold">Not ready for a monthly commitment?</div>
+              <p className="mt-1 text-sm text-muted">
+                Start with a one-time <span className="text-text">Validation Sprint — $499</span>: we run the full
+                commitment-based validation with you in a week. It credits toward Founder if you continue.
+              </p>
+            </div>
+            <a
+              href={checkoutLiveFor("sprint") ? checkoutUrlFor(email, "sprint") : "/join"}
+              className="shrink-0 rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition hover:bg-surface-2"
+            >
+              Book a Sprint
+            </a>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

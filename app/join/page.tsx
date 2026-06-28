@@ -6,9 +6,9 @@ import { Check, Copy, ArrowLeft, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { codeFrom } from "@/lib/engine/refcode";
 
-// Checkout activates when the founder sets NEXT_PUBLIC_CHECKOUT_URL (LemonSqueezy/Gumroad).
-// Until then, the Founding CTA routes to the waitlist.
-const CHECKOUT_URL = process.env.NEXT_PUBLIC_CHECKOUT_URL || "";
+// This page sells the FOUNDER tier (concierge / done-with-you). Its checkout activates when the founder
+// sets NEXT_PUBLIC_CHECKOUT_URL_FOUNDER (LemonSqueezy). Until then, the CTA routes to the apply/waitlist.
+const CHECKOUT_URL = process.env.NEXT_PUBLIC_CHECKOUT_URL_FOUNDER || "";
 const WL_KEY = "cofounder:waitlist:v1";
 
 interface Entry {
@@ -26,11 +26,11 @@ interface ServerInfo {
   referrals?: number;
 }
 
-const foundingPoints = [
-  "Everything in Operator — for life",
-  "Founding-member badge",
-  "Shape the roadmap directly",
-  "Lock today's price forever",
+const founderPoints = [
+  "We validate, build & launch it alongside you",
+  "A weekly working session with the crew",
+  "Direct line + priority on everything",
+  "Cancel anytime · own everything · 0% revenue share",
 ];
 
 export default function Join() {
@@ -114,16 +114,17 @@ export default function Join() {
         )}
 
         <div className="rounded-3xl border border-coral/40 bg-surface p-8">
-          <div className="text-xs font-semibold uppercase tracking-wider text-coral">Founding members · first 150 only</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-coral">Founder tier · a few slots at a time</div>
           <h1 className="mt-3 text-3xl font-bold md:text-4xl">
-            Get competitor.inc for life — <span className="gradient-text">$99 once</span>.
+            Don&apos;t build it alone — <span className="gradient-text">we build it with you</span>.
           </h1>
           <p className="mt-3 text-muted">
-            Back it before launch. Lifetime Operator access, a founding-member badge, and a direct line
-            on the roadmap — at a price that never goes up.
+            The hands-on tier for founders who&apos;d rather not DIY. We validate, build, and launch your
+            company alongside you — <span className="text-text">$299/mo</span>, cancel anytime. We only take a
+            handful at a time so each one gets real attention.
           </p>
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {foundingPoints.map((p) => (
+            {founderPoints.map((p) => (
               <li key={p} className="flex items-start gap-2 text-sm text-muted">
                 <Check size={16} className="mt-0.5 shrink-0 text-mint" /> {p}
               </li>
@@ -133,10 +134,10 @@ export default function Join() {
             href={CHECKOUT_URL || "#waitlist"}
             className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-coral px-6 py-3.5 font-semibold text-bg transition hover:brightness-110 sm:w-auto"
           >
-            {CHECKOUT_URL ? "Claim a Founding seat — $99" : "Notify me when seats open"}
+            {CHECKOUT_URL ? "Start with the Founder tier — $299/mo" : "Apply for a slot"}
           </a>
           <p className="mt-3 text-xs text-muted-2">
-            Pay once. No subscription, no revenue share, no surprises — that&apos;s the whole point.
+            No revenue share, no lock-in, export anytime — that&apos;s the whole point.
           </p>
         </div>
 
