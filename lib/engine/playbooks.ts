@@ -35,10 +35,10 @@ export const PLAYBOOKS: Playbook[] = [
         ],
       },
       {
-        heading: "The 48-hour demand test",
+        heading: "Run the cheapest real test (no audience needed)",
         paragraphs: [
-          "Stand up a single honest landing page that states the promise and asks for one action. Drive a tiny, targeted slice of real traffic to it. Measure the conversion to your strongest signal. Read the verdict against your pre-set threshold.",
-          "The point isn't a beautiful page — it's a true one. Overselling inflates your signal and poisons the result you're paying to learn.",
+          "You don't need traffic or an ad budget to validate — those are the hardest things to get and the weakest signals anyway (nobody hands their email to a thing that doesn't exist). Start with conversations: talk to 5–10 real potential users about what they do today and what it costs them — their last real experience, never \"would you use my idea?\". Then look for evidence demand already exists: what people pay for now, the workarounds they hack together, the complaints in their communities.",
+          "Only then make a costly ask — a pre-order, a deposit, a \"reserve your spot\" with a card, a signed letter of intent. Someone giving you $5 or 30 minutes is worth a hundred free signups. A landing page is just one place to host that ask; the ask is the test, not the page. Read every result against the threshold you wrote down first.",
         ],
       },
       {
