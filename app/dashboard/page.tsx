@@ -38,6 +38,7 @@ import { useConfig, getByok } from "@/lib/engine/config";
 import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/engine/types";
 import { LogoMark } from "@/components/Logo";
 import { CompanyLogo } from "@/components/CompanyLogo";
+import ActionBell from "@/components/ActionBell";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
@@ -173,6 +174,11 @@ function TopBar({ r }: { r: ReturnType<typeof useEngine> }) {
               Sign out
             </button>
           )}
+          <ActionBell
+            pendingApprovals={r.pendingApprovals.length}
+            companyStatus={r.company?.status}
+            companyName={r.company?.name}
+          />
           <Link
             href="/dashboard/settings"
             className="grid h-9 w-9 place-items-center rounded-lg border border-border text-muted transition hover:text-text"
