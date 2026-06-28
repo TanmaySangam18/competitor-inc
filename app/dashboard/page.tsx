@@ -40,6 +40,7 @@ import { LogoMark } from "@/components/Logo";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import ActionBell from "@/components/ActionBell";
 import EntitlementNotice from "@/components/EntitlementNotice";
+import GuestSavePrompt from "@/components/GuestSavePrompt";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
@@ -469,6 +470,7 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
           )}
         </div>
       </div>
+      <GuestSavePrompt context="save this validation" />
       <p className="mt-3 text-center text-xs text-muted-2">
         These are <span className="text-muted">AI estimates</span> from your idea — a fast read, not a live test with real signups yet. You decide; competitor.inc only builds once you approve.
       </p>
