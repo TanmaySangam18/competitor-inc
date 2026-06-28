@@ -58,15 +58,15 @@ function Nav() {
   const signedIn = !!user && !user.guest;
   return (
     <nav className="fixed top-0 inset-x-0 z-50 border-b border-border bg-bg/60 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <a href="#" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
+        <a href="#" className="flex shrink-0 items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
           <LogoMark size={34} />
           competitor.inc
           <span className="ml-1 hidden rounded-full border border-border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-2 sm:inline-block">
             beta
           </span>
         </a>
-        <div className="mx-4 hidden min-w-0 flex-1 items-center justify-center gap-x-5 gap-y-1 whitespace-nowrap text-sm text-muted lg:flex">
+        <div className="hidden items-center gap-5 whitespace-nowrap text-sm text-muted xl:flex">
           <a href="/how-it-works" className="transition hover:text-text">How it works</a>
           <a href="/playbooks" className="transition hover:text-text">Playbooks</a>
           <a href="#capabilities" className="transition hover:text-text">Capabilities</a>
