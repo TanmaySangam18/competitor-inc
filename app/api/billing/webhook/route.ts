@@ -8,13 +8,13 @@ export const runtime = "nodejs";
 // REAL subscription status via the service role (access is derived from status + period end — see
 // lib/engine/entitlement.ts). Handles the full lifecycle uniformly: created, updated (upgrade/downgrade),
 // renewed (payment_success), payment_failed (past_due grace), cancelled, paused/unpaused, expired.
-// Gated + fail-soft:
-//  - No LEMONSQUEEZY_WEBHOOK_SECRET → acks (billing not configured).   - No Supabase → acks.
-//  - Bad signature → 401.   - Non-subscription events (orders, etc.) → ack, no write.   Never throws.
+// Gated + fail-closed:
+//  - No LEMONSQUEEZY_WEBHOOK_SECRET → 503 (fail-closed — never ack an unverified event).
+//  - No Supabase → acks.   - Bad signature → 401.   - Non-subscription events → ack, no write.   Never throws.
 export async function POST(req: Request) {
   const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET;
   const raw = await req.text();
-  if (!secret) return Response.json({ ok: true, note: "billing not configured" });
+  if (!secret) return new Response("billing not configured", { status: 503 });
 
   // Verify X-Signature = hex HMAC-SHA256(rawBody, secret), constant-time.
   const sig = req.headers.get("x-signature") || "";

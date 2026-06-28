@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { codeFrom } from "@/lib/engine/refcode";
 import { notifyFounder } from "@/lib/engine/notify-founder";
+import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,9 @@ export const runtime = "nodejs";
 const REFERRAL_BUMP = 5; // every friend who joins moves you up this many spots (honest, fixed)
 
 export async function POST(req: Request) {
+  if (rateLimited(`waitlist:${clientIp(req)}`)) {
+    return Response.json({ error: "rate limited" }, { status: 429 });
+  }
   let body: unknown;
   try {
     body = await req.json();

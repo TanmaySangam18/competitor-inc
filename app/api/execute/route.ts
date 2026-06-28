@@ -1,10 +1,14 @@
 import { runAction, capabilities } from "@/lib/engine/execution";
+import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import type { Connections } from "@/lib/engine/types";
 
 // Runs a real, gated agent action (build / deploy / outreach / spend / payments / delete) server-side.
 // Every executor is OFF unless its key is set, in which case it returns { disabled: true } and the
 // client keeps its simulated behavior. Defensive: never throws a 5xx at the client.
 export async function POST(req: Request) {
+  if (rateLimited(`execute:${clientIp(req)}`)) {
+    return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
+  }
   let body: unknown;
   try {
     body = await req.json();
