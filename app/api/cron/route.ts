@@ -34,7 +34,10 @@ export async function GET(req: Request) {
 
   const sb: SupabaseClient = createClient(url, serviceKey, { auth: { persistSession: false } });
   const { data, error } = await sb.from("companies").select("*").eq("status", "operating");
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[/api/cron] companies fetch:", error.message);
+    return Response.json({ error: "database error" }, { status: 500 });
+  }
 
   const EMPTY = { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 };
   let ran = 0;
