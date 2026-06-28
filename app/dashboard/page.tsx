@@ -39,6 +39,7 @@ import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company 
 import { LogoMark } from "@/components/Logo";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import ActionBell from "@/components/ActionBell";
+import EntitlementNotice from "@/components/EntitlementNotice";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
@@ -132,6 +133,7 @@ export default function Dashboard() {
         </div>
       )}
       <div className="mx-auto max-w-6xl px-6 py-10">
+        <EntitlementNotice email={user?.email} />
         {!r.company && <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} onDemo={r.loadDemo} />}
         {r.company?.status === "validating" && <ValidationRunning idea={r.company.idea} />}
         {r.company?.status === "validated" && <ValidationGate r={r} onBuild={goBuild} />}
