@@ -1,6 +1,6 @@
 # Professional full-codebase audit — competitor.inc
 
-**Date:** 2026-06-27 · **Scope:** every live route, API handler, and engine module on `build-to-keys`.
+**Date:** 2026-06-28 · **Scope:** every live route, API handler, and engine module — full pass including second-round deep security review.
 **Method:** a "council" of three independent read-only review agents (the [llm-council](https://github.com/aiwithremy/claude-skills-llm-council)
 pattern — that exact skill can't run in this harness, so the same effect is reproduced with three
 specialized auditors), each given a different lens:
@@ -35,20 +35,32 @@ prioritized backlog below, split by "code I can do" vs "needs your Block-0 keys.
 | 3 | **HIGH** | Honesty | Landing + how-it-works implied a **real demand test runs on every validation**, when the default first pass is an AI estimate (the real test is the opt-in confirm step). | ✅ **Fixed** — copy now says "fast read, then a real test you can stand up" |
 | 4 | **MED** | Security | `/api/metrics` used `!==` string compare on the secret (timing-leak shape). | ✅ **Fixed** — constant-time, matches the webhook |
 | 5 | **MED** | Quality | `/api/demand` `create` leaked the raw DB `error.message` to the client; `signup`/`create` had inconsistent response shapes. | ✅ **Fixed** — no DB message leak, shapes aligned |
-| 6 | **HIGH** | Tests | No tests on the newest revenue/core routes: `billing/webhook`, `cron`, `demand`, `feedback`, `metrics`. Smoke hits them, but no unit assertions on HMAC, entitlement flip, or per-company shift isolation. | ⏳ **Backlog (code)** |
-| 7 | **HIGH** | Security | `/api/engine` passes user `byok` (provider/apiKey/baseUrl) into model calls without shape validation. Fuzz shows **no 5xx** (fail-soft holds), so it's hardening, not a live bug. | ⏳ **Backlog (code)** |
-| 8 | **MED** | UX/Money | Build paywall does a **hard redirect** to checkout with no "this needs Operator ($39/mo)" confirm step — a surprise for someone who validated free. | ⏳ **Backlog (code)** |
-| 9 | **MED** | Honesty | `/live` "public live board" reads **localStorage only** — a new visitor sees an empty/demo board, not real companies. Copy says "public, real-time." | ⏳ **Backlog (code)** — relabel "Demo workspace" until backed by the DB |
-| 10 | **MED** | UX | Sign-in / sign-out are hidden on mobile (`sm:` only) in the landing nav. | ⏳ **Backlog (code)** |
-| 11 | **MED** | Honesty | Autopilot "pauses on approval" isn't explained — someone could leave it on overnight and find it stalled. | ⏳ **Backlog (copy)** |
-| 12 | **MED** | UX | Founding "first 150 — then it's gone" scarcity has **no seats-left counter** to back it. | ⏳ **Backlog (code)** |
-| 13 | **MED** | Security | Free-tier caps (validate 3/day, shift 12/day) are **client-side** and bypassable via the BYOK toggle. Documented as best-effort; hard cap is server-side per-user. | ⏳ **Backlog (code)** — gate paid model to authed users |
-| 14 | **MED** | Honesty | "Proof" badge renders any `proof.value` string — not enforced to be a clickable URL / real metric. Copy promises "a live URL, a passing build, a real metric." | ⏳ **Backlog (code)** — type-tag proof, render verifiable vs narrative differently |
-| 15 | **LOW** | Quality | ~13 engine modules lack unit tests (`db.ts` mappers + `useEngine.ts` store are the ones that matter). | ⏳ **Backlog (code)** |
-| 16 | **LOW** | Quality | `buildOnGitHub(spec, token = process.env.GITHUB_TOKEN)` default could silently fall back to the operator's token if a caller forgets to pass the user's. | ⏳ **Backlog (code)** — make `token` required |
-| 17 | — | Security | Hardcoded contact/founder emails in source (`page.tsx` footer, `house/page.tsx` allow-list, `notify-founder.ts` fallback). | ✅ **Accepted by design** — see note |
-| 18 | — | Quality | Two auditors flagged "cron `toCompany()` not in try-catch." | ✅ **False positive** — it *is* inside the per-company try-catch; one bad row can't abort the run |
-| 19 | — | Security | SSRF guard "incomplete." | ✅ **Verified correct** — the 4-octet regex + private-range check is sound |
+| 6 | **CRIT** | Security | Billing webhook **fail-open**: no `LEMONSQUEEZY_WEBHOOK_SECRET` → acked any POST with 200, allowing fake subscription events to grant entitlements. | ✅ **Fixed** — fail-closed 503 on missing secret |
+| 7 | **HIGH** | Security | `/api/execute`, `/api/waitlist`, `/api/feedback` had no rate limiting — open to abuse flooding. | ✅ **Fixed** — per-IP rate limit added to all three |
+| 8 | **HIGH** | Security | No HTTP security headers: no X-Frame-Options, HSTS, nosniff, Referrer-Policy. | ✅ **Fixed** — all four added in next.config.ts |
+| 9 | **MED** | Security | Cron error response leaked raw `error.message` from Supabase (table/column names). | ✅ **Fixed** — generic "database error" only |
+| 10 | **MED** | Security | `approval_decisions` RLS used `USING (true)` — any authenticated user could read any row. | ✅ **Fixed (migration 0008)** — owner-only reads |
+| 11 | **HIGH** | Tests | No tests on the newest revenue/core routes: `billing/webhook`, `cron`, `demand`, `feedback`, `metrics`. | ⏳ **Backlog (code)** |
+| 12 | **HIGH** | Security | `/api/engine` passes user `byok` into model calls without shape validation. | ⏳ **Backlog (code)** |
+| 13 | **MED** | UX/Money | Build paywall does a **hard redirect** to checkout with no confirm step. | ⏳ **Backlog (code)** |
+| 14 | **MED** | Honesty | `/live` board reads localStorage only — empty for new visitors despite "public, real-time" copy. | ⏳ **Backlog (code)** — relabel "Demo workspace" |
+| 15 | **MED** | Security | In-memory rate limiter isn't shared across Vercel instances — resets on cold start. | ⏳ **Backlog** — Upstash/KV before heavy load |
+| 16 | **MED** | UX | Sign-in / sign-out hidden on mobile. | ⏳ **Backlog (code)** |
+| 17 | **MED** | Security | `NEXT_PUBLIC_FOUNDER_EMAILS` was hardcoded in component — exposed in JS bundle. | ✅ **Fixed** — set as proper Vercel env var |
+| 18 | — | Security | Hardcoded contact emails in source. | ✅ **Accepted by design** |
+| 19 | — | Quality | Two auditors flagged "cron `toCompany()` not in try-catch." | ✅ **False positive** |
+| 20 | — | Security | SSRF guard "incomplete." | ✅ **Verified correct** |
+
+### Env vars set on Vercel (2026-06-28)
+| Key | Status |
+|-----|--------|
+| `CRON_SECRET` | ✅ Set (generated) |
+| `NEXT_PUBLIC_FOUNDER_EMAILS` | ✅ Set |
+| `MODEL_PROVIDER`, `MODEL_BASE_URL`, `MODEL_ID`, `MODEL_CHEAP`, `MODEL_API_KEY` | ✅ Set |
+| `SUPABASE_*`, `POSTGRES_*` | ✅ Set |
+| `METRICS_SECRET` | ✅ Set |
+| `LEMONSQUEEZY_WEBHOOK_SECRET` | ❌ Needs LemonSqueezy product + webhook |
+| `TELEGRAM_BOT_TOKEN` + `TELEGRAM_WEBHOOK_SECRET` | ❌ Needs Telegram bot |
 
 ---
 
