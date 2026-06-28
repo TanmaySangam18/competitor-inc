@@ -6,6 +6,29 @@ resource; this is for you). Newest notes on top. Each is practical and rooted in
 
 ---
 
+**Founder Playbook Note — Kill setup friction, but never trade the trust wedge for it.** (2026-06-27)
+The question "when a customer enters an idea, do we auto-provision their Vercel/Supabase, or guide them
+once?" is really a strategy question in disguise. For *first-time founders*, setup friction is the #1 killer
+of activation — every account they have to create is a place they quit. So the default must be **zero-setup:
+validation needs nothing (we host the demand test on our domain), and to build, we host their app on our
+infra so it "just works."** BUT our wedge is *own everything / 0% rev share* — so we preserve it with
+**one-click eject + a one-time OAuth "connect your own Vercel/Supabase"** for those who want ownership from
+day one. The hard line: **never silently create accounts in a user's name or enter their credentials** —
+that's a ToS + trust violation, and it's the exact thing our own product refuses to do. So the honest answer
+is "automated *after* a one-time Authorize *you* click," and the product guides that one step, once. Lesson:
+when "make it effortless" collides with a core promise, don't pick one — find the design (host-by-default +
+eject) that delivers both. The moat is the promise; the growth is the friction you remove around it.
+
+**Founder Playbook Note — Plan in blocks before you build (shape the work).** (2026-06-27)
+The founder's instinct — "decide and plan things into blocks before proceeding" — is the **Shape Up**
+discipline, and it's right. Before touching code: shape each piece into a fixed-appetite bet with a clear
+"done," slice it vertically (ship something usable, not a half-built layer), and set a circuit-breaker so no
+block balloons. It keeps the C-suite honest: every block must name the metric it moves (activation / revenue
+/ ROI / retention / defensibility) or it doesn't get built. Planning first isn't bureaucracy — it's how you
+avoid building the wrong thing well.
+
+---
+
 **Founder Playbook Note — Build the cash register before the showroom.** (2026-06-27)
 We had a polished product — validation, the crew, the Glass Box, ChatOps — and **$0 of revenue plumbing**
 that actually worked end-to-end. The charter was right to make LemonSqueezy priority #1. Lesson: revenue
