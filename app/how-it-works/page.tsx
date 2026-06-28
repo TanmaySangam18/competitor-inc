@@ -36,8 +36,8 @@ const steps = [
   {
     icon: FlaskConical,
     title: "It checks if people actually want it — before building anything",
-    body: "Instead of building first and hoping, it gives you a fast, honest read on the idea — then helps you stand up small, real demand tests: a live page people can react to, a “sign me up” button, a tiny ad, and a look at how many people are already searching for this. It measures genuine interest with real signals.",
-    like: "Like a chef who has you taste the sauce before cooking the whole meal.",
+    body: "Not by counting free email signups (nobody signs up for a thing that doesn't exist — you know you wouldn't). It runs the honest version: it preps you to talk to a handful of real potential users, digs up where people already pay to solve this, and helps you set up one costly ask — a pre-order, a deposit, a “hold my spot.” It measures commitment, because money and time are the only signals that don't lie.",
+    like: "Like a chef who has you taste the sauce — and put money down for a bowl — before cooking the whole meal.",
   },
   {
     icon: ShieldCheck,

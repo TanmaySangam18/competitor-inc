@@ -295,7 +295,7 @@ function Ethos() {
 
 /* ── How it works ────────────────────────────────────────────── */
 const steps = [
-  { n: "01", title: "Validate before you build", body: "Every company starts at the Validation Gate — a fast, honest read on your idea, then a real demand test you can stand up: a live landing page, a waitlist, a small ad. competitor.inc won't build the product until the signal is there.", icon: FlaskConical, color: "text-amber", ring: "bg-amber/12" },
+  { n: "01", title: "Validate before you build", body: "Every company starts at the Validation Gate — a fast, honest read on your idea, then a real plan to prove it: talk to a few real users, find where people already pay, and make one costly ask (a pre-order, a deposit). Commitment, not free signups. competitor.inc won't build until the signal is there.", icon: FlaskConical, color: "text-amber", ring: "bg-amber/12" },
   { n: "02", title: "Build in the open", body: "Once validated, the agents ship. A task is only “done” when there's proof — a live URL, a passing build, a real metric. Nothing is marked complete on a hunch.", icon: CheckCircle2, color: "text-mint", ring: "bg-mint/12" },
   { n: "03", title: "Approve the moves that matter", body: "Spend, outbound messages, deploys, and deletions land in your Approval Inbox. You bring the taste and the final call; competitor.inc handles the rest.", icon: Inbox, color: "text-coral", ring: "bg-coral/12" },
   { n: "04", title: "Own everything", body: "Flat price, no revenue share. One-click export of all your code and data. Run it on your own infra anytime — or flip on Private Mode so nothing leaves your box.", icon: Lock, color: "text-violet", ring: "bg-violet/12" },
@@ -332,7 +332,7 @@ function HowItWorks() {
 
 /* ── Capabilities ────────────────────────────────────────────── */
 const capabilities = [
-  { icon: FlaskConical, title: "Validation Gate", body: "A fast, honest read on demand first — then a real test you can stand up (landing page, waitlist, smoke-test ad) to confirm, before a single line of product code.", color: "text-amber", ring: "bg-amber/12" },
+  { icon: FlaskConical, title: "Validation Gate", body: "A fast, honest read first — then a commitment test that actually proves demand: real conversations, evidence people already pay, and one costly ask. Not vanity signups, and never a line of product code on a hunch.", color: "text-amber", ring: "bg-amber/12" },
   { icon: CheckCircle2, title: "Proof-of-Work", body: "A task counts as done only with a verifiable artifact — a live URL, a passing build, a real metric.", color: "text-mint", ring: "bg-mint/12" },
   { icon: Eye, title: "The Glass Box", body: "A human-readable log of every action, every dollar, every decision — with one-click undo.", color: "text-violet", ring: "bg-violet/12" },
   { icon: Inbox, title: "Approval Inbox", body: "Consequential actions wait for your yes/no. Safe autonomy by design — and the right way to handle prompt injection.", color: "text-coral", ring: "bg-coral/12" },
