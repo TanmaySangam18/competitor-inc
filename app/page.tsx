@@ -85,9 +85,14 @@ function Nav() {
                 <LogOut size={14} /> Sign out
               </button>
             ) : (
-              <a href="/login" className="hidden text-sm text-muted transition hover:text-text sm:inline-block">
-                Sign in
-              </a>
+              <>
+                <a href="/signup" className="hidden text-sm font-medium text-text transition hover:opacity-80 sm:inline-block">
+                  Sign up free
+                </a>
+                <a href="/login" className="hidden text-sm text-muted transition hover:text-text sm:inline-block">
+                  Sign in
+                </a>
+              </>
             ))}
           <a
             href="/dashboard"
