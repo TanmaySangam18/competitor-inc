@@ -66,7 +66,7 @@ function Nav() {
             beta
           </span>
         </a>
-        <div className="hidden items-center gap-9 text-sm text-muted md:flex">
+        <div className="mx-4 hidden min-w-0 flex-1 items-center justify-center gap-x-5 gap-y-1 whitespace-nowrap text-sm text-muted lg:flex">
           <a href="/how-it-works" className="transition hover:text-text">How it works</a>
           <a href="/playbooks" className="transition hover:text-text">Playbooks</a>
           <a href="#capabilities" className="transition hover:text-text">Capabilities</a>
@@ -74,7 +74,7 @@ function Nav() {
           <a href="#trust" className="transition hover:text-text">Glass Box</a>
           <a href="#pricing" className="transition hover:text-text">Pricing</a>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           {ready &&
             (signedIn ? (
               <button
