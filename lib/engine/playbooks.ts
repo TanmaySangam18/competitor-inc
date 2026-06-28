@@ -460,6 +460,97 @@ export const PLAYBOOKS: Playbook[] = [
       },
     ],
   },
+  {
+    slug: "run-a-discovery-call",
+    title: "Run a discovery call that closes itself",
+    summary: "Stop pitching on the first call. The questions that surface real pain, real budget, and real urgency — so the sale makes itself.",
+    readMins: 6,
+    freeIntro: [
+      "First-time founders treat the first call like a demo: they talk for 30 minutes, show every feature, and end with 'so… what do you think?' — and then wonder why the deal stalls. A good discovery call is the opposite. You talk maybe 30% of the time. Your job isn't to convince; it's to diagnose. A prospect who articulates their own pain out loud is a prospect halfway to buying.",
+      "The frame to hold: you're a doctor, not a salesperson. A doctor who prescribes before diagnosing is committing malpractice — and a founder who pitches before understanding is doing the same. This playbook is the question sequence we use to find out, fast, whether there's a real problem worth real money — and whether this is even the right person to be talking to.",
+    ],
+    body: [
+      {
+        heading: "Find the pain, the cost of the pain, and the deadline",
+        paragraphs: [
+          "Three things turn interest into a deal: a problem they feel, a number attached to it, and a reason it matters now. Ask 'what made you take this call today?' then 'how are you handling it currently?' then 'what's that costing you — in time, money, or stress?' If they can't quantify the pain, there's no budget; if there's no deadline, there's no urgency. You're not selling yet — you're checking whether a sale is even possible.",
+          "Listen for the words they use and write them down verbatim. You'll sell it back to them in their language later, and 'you said X is eating 10 hours a week' lands far harder than your feature list.",
+        ],
+      },
+      {
+        heading: "Qualify out fast — a fast no is a gift",
+        paragraphs: [
+          "The amateur tries to win every call. The pro tries to disqualify quickly, because their time is the scarce resource. If they have no budget, no authority to buy, or no real urgency, name it kindly and move on. Chasing a dead deal for three weeks costs more than ten clean nos. 'It sounds like this isn't a priority this quarter — should we reconnect when it is?' protects your pipeline and your sanity.",
+        ],
+      },
+      {
+        heading: "End with a next step, never with 'let me know'",
+        paragraphs: [
+          "Every call closes with a specific, scheduled next action — a follow-up booked on the calendar, a trial start date, a doc you'll send by Friday. 'Let me know your thoughts' is where deals go to die. Summarize the pain they described, confirm you can help with it, and propose the concrete next step. Silence after a call is almost always a process failure, not a 'no.'",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "answer-the-real-objection",
+    title: "Answer the objection behind the objection",
+    summary: "'It's too expensive' almost never means the price. How to hear the real hesitation and resolve it without discounting your way to a bad deal.",
+    readMins: 5,
+    freeIntro: [
+      "Objections feel like rejection, so founders panic and do the worst thing: they discount, over-explain, or argue. But an objection is usually a *question in disguise* — and the words on the surface rarely name the real worry. 'It's too expensive' often means 'I'm not yet convinced it's worth it.' 'I need to think about it' often means 'I have a concern I haven't said out loud.' Your job is to find the real one.",
+      "The move is almost always the same: slow down, get curious, and ask one more question instead of launching a rebuttal. The prospect isn't your opponent — the unspoken worry is. This playbook covers the handful of objections you'll hear over and over and how to get underneath each one.",
+    ],
+    body: [
+      {
+        heading: "Acknowledge, then ask — don't rebut",
+        paragraphs: [
+          "When you hear an objection, your reflex will be to defend. Resist it. Acknowledge ('that's fair') and ask one calm question to surface the real issue: 'When you say expensive — is it more than you expected, or are you not yet sure it'll pay off?' Those are two completely different problems with two different answers. You can't solve the objection until you know which one it is.",
+        ],
+      },
+      {
+        heading: "Price objections are usually value objections",
+        paragraphs: [
+          "If it's genuinely about budget, a payment plan or smaller starting scope can work. But far more often, 'too expensive' means the value isn't obvious yet — so the fix is to re-anchor on the cost of their problem (the number you got in discovery), not to slash your price. Discounting to win a deal trains the customer that your price is fake and starts the relationship on a loss. Defend the price by making the value undeniable.",
+        ],
+      },
+      {
+        heading: "'I need to think about it' = a hidden concern or a missing person",
+        paragraphs: [
+          "This usually means one of two things: there's a worry they didn't voice, or there's a decision-maker who isn't in the room. Flush it out gently: 'Totally — what's the main thing you'd want to be sure of before deciding?' or 'Who else would weigh in on this?' Then resolve the actual blocker. Vague stalls are almost always specific, unspoken concerns wearing a polite mask.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "close-without-being-pushy",
+    title: "Close without being pushy",
+    summary: "The close isn't a high-pressure moment — it's the natural last step of a well-run process. How to ask for the decision cleanly and make 'yes' easy.",
+    readMins: 5,
+    freeIntro: [
+      "First-time founders dread the close because they picture the sleazy hard sell. But if discovery was honest and the value is real, closing is just… asking. The discomfort usually comes from not having earned the right yet — pitching too early, or never surfacing real pain — so the ask feels like a leap. Fix the process and the close stops being scary.",
+      "Two failure modes to avoid: never asking (the deal drifts until it dies), and asking with pressure (which poisons trust — exactly the thing we sell against). The goal is a clean, confident, low-pressure ask that makes saying yes the easy and obvious next step. Here's how.",
+    ],
+    body: [
+      {
+        heading: "Earn the right, then actually ask",
+        paragraphs: [
+          "You've earned the right to close when the prospect has named a real pain, a cost, and a deadline, and agreed you can help. Then ask plainly: 'Based on what you've told me, this solves X — do you want to move forward?' Most stalled deals aren't lost on price; they're lost because nobody ever directly asked for the decision. Silence is not a strategy.",
+        ],
+      },
+      {
+        heading: "Make yes the path of least resistance",
+        paragraphs: [
+          "Reduce the friction and the risk of saying yes. A clear next step, a short starting scope, a guarantee or an easy exit ('cancel anytime, export your data') all lower the perceived cost of committing. The easier and safer you make the first yes, the more first yeses you get — and a small yes that delivers becomes a bigger one later.",
+        ],
+      },
+      {
+        heading: "Handle 'no' and 'not now' like a professional",
+        paragraphs: [
+          "A 'no' with a reason is data — thank them and ask what would have to be true for it to be a yes. A 'not now' gets a specific follow-up date, not a vague 'I'll check back.' Pushiness is trying to overturn a real no; professionalism is making the decision easy and then respecting it. You want customers who chose you, not ones you cornered — those are the ones who renew and refer.",
+        ],
+      },
+    ],
+  },
 ];
 
 export function getPlaybook(slug: string): Playbook | undefined {
