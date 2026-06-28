@@ -5,8 +5,11 @@
 create table if not exists public.entitlements (
   email               text primary key,
   plan                text not null default 'operator',
-  status              text not null default 'inactive',   -- 'active' | 'inactive'
-  current_period_end  timestamptz,
+  -- The subscription's REAL LemonSqueezy status, stored verbatim: active | on_trial | past_due | paused |
+  -- unpaid | cancelled | expired (default inactive before any event). Access is DERIVED from status +
+  -- current_period_end in lib/engine/entitlement.ts (isEntitled) — not a collapsed boolean.
+  status              text not null default 'inactive',
+  current_period_end  timestamptz,   -- renews_at while active; ends_at once cancelled
   updated_at          timestamptz not null default now()
 );
 
