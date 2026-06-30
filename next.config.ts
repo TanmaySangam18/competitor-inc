@@ -12,6 +12,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
+  // Clean URLs for the standalone static apps we launch (served from public/<app>/index.html).
+  async rewrites() {
+    return [
+      { source: "/lockin", destination: "/lockin/index.html" },
+      { source: "/lockin/", destination: "/lockin/index.html" },
+    ];
+  },
 };
 
 export default nextConfig;
