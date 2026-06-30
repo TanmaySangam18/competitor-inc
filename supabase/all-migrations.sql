@@ -1,6 +1,7 @@
 -- competitor.inc — ALL migrations bundled into one file.
 -- HOW TO RUN: Supabase dashboard (project nfxqlyidxrncfawakhuw) -> SQL Editor -> New query -> paste ALL of this -> Run.
--- Safe to re-run: tables use IF NOT EXISTS and functions use OR REPLACE. Re-running may show harmless "already exists" notices.
+-- Safe to re-run: tables use IF NOT EXISTS, functions use OR REPLACE, and every policy/trigger is
+-- preceded by DROP ... IF EXISTS — so running this start-to-finish always succeeds, even partially-applied.
 
 -- ====================================================================
 -- 0001_init.sql
@@ -64,16 +65,21 @@ alter table public.activities enable row level security;
 alter table public.approvals  enable row level security;
 
 -- Companies: a user sees and mutates only their own.
+drop policy if exists "own companies - select" on public.companies;
 create policy "own companies - select" on public.companies
   for select using (auth.uid() = user_id);
+drop policy if exists "own companies - insert" on public.companies;
 create policy "own companies - insert" on public.companies
   for insert with check (auth.uid() = user_id);
+drop policy if exists "own companies - update" on public.companies;
 create policy "own companies - update" on public.companies
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "own companies - delete" on public.companies;
 create policy "own companies - delete" on public.companies
   for delete using (auth.uid() = user_id);
 
 -- Activities / approvals: access gated through ownership of the parent company.
+drop policy if exists "own activities - all" on public.activities;
 create policy "own activities - all" on public.activities
   for all using (
     exists (select 1 from public.companies c where c.id = activities.company_id and c.user_id = auth.uid())
@@ -81,6 +87,7 @@ create policy "own activities - all" on public.activities
     exists (select 1 from public.companies c where c.id = activities.company_id and c.user_id = auth.uid())
   );
 
+drop policy if exists "own approvals - all" on public.approvals;
 create policy "own approvals - all" on public.approvals
   for all using (
     exists (select 1 from public.companies c where c.id = approvals.company_id and c.user_id = auth.uid())
@@ -111,6 +118,7 @@ alter table public.rocks  enable row level security;
 alter table public.issues enable row level security;
 
 -- Rocks / issues: access gated through ownership of the parent company (same as activities/approvals).
+drop policy if exists "own rocks - all" on public.rocks;
 create policy "own rocks - all" on public.rocks
   for all using (
     exists (select 1 from public.companies c where c.id = rocks.company_id and c.user_id = auth.uid())
@@ -118,6 +126,7 @@ create policy "own rocks - all" on public.rocks
     exists (select 1 from public.companies c where c.id = rocks.company_id and c.user_id = auth.uid())
   );
 
+drop policy if exists "own issues - all" on public.issues;
 create policy "own issues - all" on public.issues
   for all using (
     exists (select 1 from public.companies c where c.id = issues.company_id and c.user_id = auth.uid())
@@ -130,6 +139,7 @@ create or replace function public.touch_updated_at() returns trigger as $$
 begin new.updated_at = now(); return new; end;
 $$ language plpgsql;
 
+drop trigger if exists companies_touch on public.companies;
 drop trigger if exists companies_touch on public.companies;
 create trigger companies_touch before update on public.companies
   for each row execute function public.touch_updated_at();
@@ -155,6 +165,7 @@ alter table public.feedback enable row level security;
 
 -- Insert-only for everyone. (No select/update/delete policies → reads/writes beyond insert are denied
 -- through the API; the dashboard still sees everything.)
+drop policy if exists "anyone can submit feedback" on public.feedback;
 create policy "anyone can submit feedback" on public.feedback
   for insert to anon, authenticated
   with check (char_length(message) between 1 and 4000);
@@ -180,6 +191,7 @@ alter table public.waitlist enable row level security;
 
 -- Insert-only for everyone. (No select/update/delete policies → the list can't be read or altered
 -- through the public API; the server route uses the service role for position math.)
+drop policy if exists "anyone can join the waitlist" on public.waitlist;
 create policy "anyone can join the waitlist" on public.waitlist
   for insert to anon, authenticated
   with check (char_length(email) between 3 and 200 and position('@' in email) > 1);
@@ -212,6 +224,7 @@ alter table public.demand_tests enable row level security;
 
 -- Public read (the landing page must render for anonymous visitors). No anon insert/update policy →
 -- only the service role can create or edit a test.
+drop policy if exists "demand tests are publicly readable" on public.demand_tests;
 create policy "demand tests are publicly readable" on public.demand_tests
   for select to anon, authenticated using (true);
 
@@ -227,6 +240,7 @@ alter table public.demand_signups enable row level security;
 
 -- Anyone may sign up to an existing test (the FK guarantees the test is real). No select policy →
 -- the signup list is read only via the service role (position/count math) or the Table Editor.
+drop policy if exists "anyone can sign up to a demand test" on public.demand_signups;
 create policy "anyone can sign up to a demand test" on public.demand_signups
   for insert to anon, authenticated
   with check (char_length(email) between 3 and 200 and position('@' in email) > 1);
@@ -260,6 +274,7 @@ alter table public.agent_memory enable row level security;
 
 -- Owner can read their own company's memory; nobody else can. (No insert/update policy → writes are
 -- service-role only.)
+drop policy if exists "owner reads own agent memory" on public.agent_memory;
 create policy "owner reads own agent memory" on public.agent_memory
   for select to authenticated using (
     exists (select 1 from public.companies c where c.id = company_id and c.user_id = auth.uid())
@@ -303,6 +318,7 @@ alter table public.entitlements enable row level security;
 
 -- A signed-in user reads only their own entitlement (to unlock Build). No insert/update policy →
 -- writes are service-role only (the billing webhook); nobody can grant themselves access via the API.
+drop policy if exists "owner reads own entitlement" on public.entitlements;
 create policy "owner reads own entitlement" on public.entitlements
   for select to authenticated using (email = (auth.jwt() ->> 'email'));
 
@@ -327,6 +343,7 @@ alter table public.approval_decisions enable row level security;
 
 -- Approval ids are unguessable uuids and the row holds no PII, so any signed-in user may read (they can
 -- only act on ids they already hold). Writes are service-role only (the webhook) — no client policy.
+drop policy if exists "approval_decisions - select" on public.approval_decisions;
 create policy "approval_decisions - select" on public.approval_decisions
   for select to authenticated using (true);
 
@@ -340,6 +357,7 @@ create policy "approval_decisions - select" on public.approval_decisions
 
 drop policy if exists "approval_decisions - select" on public.approval_decisions;
 
+drop policy if exists "approval_decisions - select" on public.approval_decisions;
 create policy "approval_decisions - select" on public.approval_decisions
   for select to authenticated using (
     exists (
