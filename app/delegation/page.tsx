@@ -239,7 +239,7 @@ export default function DelegationPage() {
             </button>
             {r.pendingApprovals.length > 0 && (
               <Link
-                href="/dashboard"
+                href="/dashboard#approval-inbox"
                 className="glass-panel pointer-events-auto flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-medium text-text transition hover:border-white/30"
               >
                 <Inbox size={13} />

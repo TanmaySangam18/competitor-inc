@@ -100,9 +100,12 @@ export function FeedbackWidget() {
         <button
           onClick={() => setOpen(true)}
           aria-label="Send beta feedback"
-          className="flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2.5 text-sm font-medium shadow-lg transition hover:border-text/30"
+          title="Send beta feedback"
+          className="group flex items-center gap-2 rounded-full border border-border bg-surface p-3 shadow-lg transition hover:border-text/30 hover:px-4"
         >
-          <MessageSquarePlus size={16} className="text-coral" /> Feedback
+          <MessageSquarePlus size={16} className="text-coral" />
+          {/* Label reveals on hover so the resting state is just an icon (less visual noise). */}
+          <span className="hidden text-sm font-medium group-hover:inline">Feedback</span>
         </button>
       )}
     </div>

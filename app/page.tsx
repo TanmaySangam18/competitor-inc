@@ -95,14 +95,11 @@ function Nav() {
                 <LogOut size={14} /> Sign out
               </button>
             ) : (
-              <>
-                <a href="/signup" className="hidden text-sm font-medium text-text transition hover:opacity-80 sm:inline-block">
-                  Sign up free
-                </a>
-                <a href="/login" className="hidden text-sm text-muted transition hover:text-text sm:inline-block">
-                  Sign in
-                </a>
-              </>
+              // One returning-user link only — the "Meet your co-founder" pill is the primary CTA, so a
+              // separate "Sign up free" link here just competes with it (Hick's Law).
+              <a href="/login" className="hidden text-sm text-muted transition hover:text-text sm:inline-block">
+                Sign in
+              </a>
             ))}
           <a
             href="/dashboard"
@@ -169,6 +166,7 @@ function Nav() {
 
 /* ── Co-founder companion mockup (hero visual) ───────────────── */
 function CofounderPreview() {
+  const [demo, setDemo] = useState<"idle" | "approved" | "held">("idle");
   return (
     <div className="ring-soft relative rounded-3xl border border-border bg-surface/80 p-3 backdrop-blur-xl">
       {/* window chrome */}
@@ -217,16 +215,31 @@ function CofounderPreview() {
             </div>
           </div>
           <p className="mt-3 text-xs text-muted">
-            Strong signal. Want me to start building the MVP?
+            {demo === "approved"
+              ? "On it — building the MVP now. You'll get a real, openable link the moment it ships."
+              : demo === "held"
+              ? "Held. Nothing happens without your yes — I'll wait."
+              : "Strong signal. Want me to start building the MVP?"}
           </p>
-          <div className="mt-3 flex gap-2">
-            <button className="flex-1 rounded-lg bg-coral py-2 text-xs font-semibold text-bg">
-              Approve build
-            </button>
-            <button className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-muted">
-              Hold
-            </button>
-          </div>
+          {demo === "idle" ? (
+            <div className="mt-3 flex gap-2">
+              <button onClick={() => setDemo("approved")} className="flex-1 rounded-lg bg-coral py-2 text-xs font-semibold text-bg transition hover:brightness-110">
+                Approve build
+              </button>
+              <button onClick={() => setDemo("held")} className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-muted transition hover:text-text">
+                Hold
+              </button>
+            </div>
+          ) : (
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${demo === "approved" ? "text-mint" : "text-muted"}`}>
+                {demo === "approved" ? <><Check size={13} /> Build approved</> : "On hold"}
+              </span>
+              <button onClick={() => setDemo("idle")} className="text-[11px] text-muted-2 underline-offset-2 transition hover:text-text hover:underline">
+                reset demo
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

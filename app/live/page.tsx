@@ -102,14 +102,34 @@ export default function Live() {
               ) : (
                 recent.map((a) => {
                   const A = AGENTS[a.agent as AgentRole];
-                  return (
-                    <div key={a.id} className="flex items-center gap-3 rounded-xl glass-panel px-4 py-3">
+                  // "Don't trust us. Click it." — when an action's proof is a real, resolvable URL, the whole
+                  // row links straight to it. Metric/build proofs stay honest text (we never fake a link).
+                  const proofUrl =
+                    a.proof && (a.proof.kind === "url" || a.proof.kind === "build") && /^https?:\/\//.test(a.proof.value)
+                      ? a.proof.value
+                      : null;
+                  const inner = (
+                    <>
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-2 text-[10px] font-bold">{A.name.charAt(0)}</span>
                       <div className="min-w-0 flex-1 text-sm">
                         <span className="text-text">{a.action}</span>
                         <span className="ml-2 text-xs text-muted-2">{A.name} · night {a.night}</span>
                       </div>
-                      {a.proof && <span className="hidden text-[11px] text-mint sm:inline">{a.proof.value}</span>}
+                      {a.proof && (
+                        <span className={`hidden text-[11px] sm:inline ${proofUrl ? "text-coral underline-offset-2 group-hover:underline" : "text-mint"}`}>
+                          {proofUrl ? "Open proof ↗" : a.proof.value}
+                        </span>
+                      )}
+                    </>
+                  );
+                  return proofUrl ? (
+                    <a key={a.id} href={proofUrl} target="_blank" rel="noopener noreferrer"
+                      className="group flex items-center gap-3 rounded-xl glass-panel px-4 py-3 transition hover:border-coral/40">
+                      {inner}
+                    </a>
+                  ) : (
+                    <div key={a.id} className="flex items-center gap-3 rounded-xl glass-panel px-4 py-3">
+                      {inner}
                     </div>
                   );
                 })

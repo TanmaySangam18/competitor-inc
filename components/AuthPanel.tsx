@@ -25,8 +25,20 @@ export default function AuthPanel({ mode }: { mode: "signin" | "signup" }) {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState<"google" | "github" | "email" | null>(null);
   const [err, setErr] = useState("");
+  const [emailErr, setEmailErr] = useState("");
 
   const signup = mode === "signup";
+
+  // Inline, field-level validation so a bad address fails LOUDLY next to the field (not below the
+  // button, not only on submit). Mirrors the server's format check; the server still owns the final
+  // word on blocked domains (e.g. example.com) and surfaces that in `err`.
+  const validEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  function checkEmail() {
+    const e = email.trim();
+    if (!e) { setEmailErr(""); return false; }
+    if (!validEmail(e)) { setEmailErr("That doesn't look like a complete email (e.g. you@company.com)."); return false; }
+    setEmailErr(""); return true;
+  }
 
   async function oauth(provider: "google" | "github") {
     setErr(""); setBusy(provider);
@@ -38,11 +50,15 @@ export default function AuthPanel({ mode }: { mode: "signin" | "signup" }) {
     }
   }
   async function emailLink() {
-    setErr(""); setBusy("email");
+    setErr("");
+    if (!email.trim()) { setEmailErr("Enter your email to get a magic link."); return; }
+    if (!checkEmail()) return;
+    setBusy("email");
     try {
       await signInWithEmail(email);
       setSent(true);
     } catch (e) {
+      // Server rejections (e.g. a blocked test domain) surface here in plain language.
       setErr(e instanceof Error ? e.message : "Couldn't send the link.");
     } finally {
       setBusy(null);
@@ -81,13 +97,17 @@ export default function AuthPanel({ mode }: { mode: "signin" | "signup" }) {
               <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
             </div>
 
-            <label className="flex items-center gap-2 rounded-xl glass-panel px-3 py-2.5">
+            <label className={`flex items-center gap-2 rounded-xl glass-panel px-3 py-2.5 ${emailErr ? "border border-coral/60" : ""}`}>
               <Mail size={16} className="text-muted-2" />
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com" aria-label="Email address"
+              <input type="email" value={email}
+                onChange={(e) => { setEmail(e.target.value); if (emailErr) setEmailErr(""); }}
+                onBlur={checkEmail}
+                onKeyDown={(e) => e.key === "Enter" && emailLink()}
+                placeholder="you@company.com" aria-label="Email address" aria-invalid={!!emailErr}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-2" />
             </label>
-            <button onClick={emailLink} disabled={!email.includes("@") || !!busy}
+            {emailErr && <p className="text-xs font-medium text-coral" role="alert">{emailErr}</p>}
+            <button onClick={emailLink} disabled={!!busy}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-coral py-3 text-sm font-semibold text-bg transition hover:brightness-110 disabled:opacity-40">
               {busy === "email" ? <Loader2 size={16} className="animate-spin" /> : null} Email me a magic link
             </button>

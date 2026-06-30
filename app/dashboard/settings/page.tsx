@@ -299,13 +299,14 @@ function Integrations({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
     ads: !!conn.adsWebhookUrl,
   };
 
-  const items: { key: string; icon: typeof Github; name: string; desc: string }[] = [
-    { key: "model", icon: Cpu, name: "AI model", desc: "Real reasoning — Claude, GPT, gateway, or your own key." },
-    { key: "github", icon: Github, name: "GitHub build", desc: "Forge creates real repos & commits (verified before done)." },
+  // `self` = the user can connect it themselves below; otherwise it's operator-level (set via deploy env).
+  const items: { key: string; icon: typeof Github; name: string; desc: string; self?: boolean }[] = [
+    { key: "model", icon: Cpu, name: "AI model", desc: "Real reasoning — Claude, GPT, gateway, or your own key.", self: true },
+    { key: "github", icon: Github, name: "GitHub build", desc: "Forge creates real repos & commits (verified before done).", self: true },
     { key: "deploy", icon: Globe, name: "Deploy", desc: "Real Vercel deploys — a live product URL." },
-    { key: "email", icon: Mail, name: "Email", desc: "Outreach, support & the nightly morning summary." },
+    { key: "email", icon: Mail, name: "Email", desc: "Outreach, support & the nightly morning summary.", self: true },
     { key: "payments", icon: CreditCard, name: "Payments", desc: "Stripe payment links — you keep 100%." },
-    { key: "ads", icon: Megaphone, name: "Ads", desc: "Approved ad spend routed to your own pipeline." },
+    { key: "ads", icon: Megaphone, name: "Ads", desc: "Approved ad spend routed to your own pipeline.", self: true },
   ];
 
   return (
@@ -325,15 +326,17 @@ function Integrations({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
                 <span className="text-[11px] text-muted-2">…</span>
               ) : live ? (
                 <span className="inline-flex items-center gap-1 rounded-lg bg-mint/12 px-2.5 py-1.5 text-xs font-medium text-mint"><Check size={11} /> {byYou ? "Yours" : "Live"}</span>
+              ) : i.self ? (
+                <a href="#connect-accounts" className="inline-flex items-center gap-1 rounded-lg border border-coral/40 px-2.5 py-1.5 text-xs font-medium text-coral transition hover:bg-coral/10">Connect ↓</a>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-2"><Lock size={11} /> Off</span>
+                <span title="Operator-level — activates when the deploy's key is set. Hosted plans turn this on for you." className="inline-flex cursor-help items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-2"><Lock size={11} /> Off</span>
               )}
             </div>
           );
         })}
       </div>
 
-      <div className="mt-6 rounded-xl border border-border bg-bg/40 p-4">
+      <div id="connect-accounts" className="mt-6 scroll-mt-24 rounded-xl border border-border bg-bg/40 p-4">
         <div className="text-sm font-medium">Connect your own accounts (optional)</div>
         <p className="mt-1 text-xs text-muted">
           Run real actions on <span className="text-text">your own</span> accounts — build in your GitHub,

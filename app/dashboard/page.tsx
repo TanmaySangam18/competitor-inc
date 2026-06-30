@@ -782,7 +782,7 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
 
       <aside className="space-y-6">
         {r.pendingApprovals.length > 0 && (
-          <div>
+          <div id="approval-inbox" className="scroll-mt-24">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-coral">
               <Sparkles size={15} /> Approval Inbox · {r.pendingApprovals.length}
             </h2>
