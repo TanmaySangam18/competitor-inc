@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Loader2, Check, AlertTriangle } from "lucide-react";
+import { Search, Loader2, Check, AlertTriangle, Rocket } from "lucide-react";
 
-// 2.8 Import on-ramp (PDR §5) — the "revive a dead project" wedge. Paste a URL → public-page audit
-// (read-only, no ownership needed). Operating it later is gated on ownership verification.
+// Import-and-sell on-ramp (the wedge): paste an ALREADY-BUILT product → public-page audit (read-only,
+// no ownership needed) → "grow this with my crew", which adopts it as a company focused on distribution.
+// Operating it for real is gated on ownership verification later.
 interface Audit {
   summary: string;
   strengths: string[];
@@ -12,8 +13,7 @@ interface Audit {
   opportunities: string[];
 }
 
-export function ImportPanel() {
-  const [open, setOpen] = useState(false);
+export function ImportPanel({ onGrow }: { onGrow?: (url: string, title: string) => void }) {
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState<{ title?: string; audit?: Audit; error?: string } | null>(null);
@@ -36,22 +36,15 @@ export function ImportPanel() {
     }
   }
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="mt-2 text-xs text-muted-2 underline-offset-4 transition hover:text-text hover:underline"
-      >
-        Or audit an existing project — a live site, or a dead Replit/Bolt build →
-      </button>
-    );
-  }
-
   return (
-    <div className="mt-4 w-full max-w-xl rounded-2xl border border-border bg-surface/70 p-4 text-left">
-      <div className="text-sm font-medium">Audit an existing project</div>
-      <p className="mt-1 text-xs text-muted-2">
-        Paste a URL — we read the public page and give you an honest read. To have the agents grow it, we verify you own it first.
+    <div className="w-full rounded-2xl border border-coral/25 bg-coral/[0.03] p-5 text-left">
+      <div className="flex items-center gap-2 text-sm font-semibold">
+        <Rocket size={15} className="text-coral" /> Already built something that isn&apos;t selling?
+      </div>
+      <p className="mt-1.5 text-xs leading-relaxed text-muted-2">
+        Paste it — a live site, or a dead Replit / Bolt / Lovable build. We read the public page and give you
+        an honest read; then the crew&apos;s whole job is getting it customers. (To run it for real, we verify
+        you own it first.)
       </p>
       <div className="mt-3 flex gap-2">
         <input
@@ -60,6 +53,7 @@ export function ImportPanel() {
           onKeyDown={(e) => e.key === "Enter" && run()}
           placeholder="yourproject.com"
           className="flex-1 rounded-xl glass-panel px-3 py-2.5 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40"
+          aria-label="Your existing project URL"
         />
         <button
           onClick={run}
@@ -69,13 +63,15 @@ export function ImportPanel() {
           {busy ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />} Audit
         </button>
       </div>
+
       {res?.error && (
         <div className="mt-3 flex items-center gap-2 text-xs text-amber">
           <AlertTriangle size={13} /> {res.error}
         </div>
       )}
+
       {res?.audit && (
-        <div className="mt-3 space-y-2 text-sm">
+        <div className="mt-4 space-y-2.5 text-sm">
           <div className="text-text">{res.audit.summary}</div>
           {(
             [
@@ -96,6 +92,15 @@ export function ImportPanel() {
                 </ul>
               </div>
             ) : null
+          )}
+          {onGrow && (
+            <button
+              onClick={() => onGrow(url, res.title || url)}
+              className="group mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110"
+            >
+              <Rocket size={15} /> Grow this with my crew
+              <span className="transition group-hover:translate-x-0.5">→</span>
+            </button>
           )}
         </div>
       )}

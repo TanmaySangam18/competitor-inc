@@ -13,6 +13,48 @@ export interface SiteText {
   error?: string;
 }
 
+export interface SiteAudit {
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+}
+
+// Deterministic, model-free audit — an honest heuristic read of the fetched page so the import on-ramp
+// WORKS WITHOUT AN API KEY (same posture as the simulated validation engine; the on-ramp must never
+// dead-end). When a model is configured, auditSite() in server.ts produces a richer read and this is the
+// fallback. The "opportunities" are grounded in proven first-customer tactics (positioning, trigger-based
+// outreach, programmatic SEO, honest community posts, do-things-that-don't-scale) — not generic filler.
+export function simulatedAudit(title: string, text: string): SiteAudit {
+  const t = (text || "").toLowerCase();
+  const words = t.split(/\s+/).filter(Boolean).length;
+  const has = (re: RegExp) => re.test(t);
+  const hasPricing = has(/\$\d|\bpricing\b|\bper month\b|\/mo\b|\bsubscribe\b|\bplans?\b/);
+  const hasCTA = has(/sign ?up|get started|try (it|free)|\bbuy\b|book a|\bjoin\b|download|start free|request|waitlist|early access/);
+  const hasContact = has(/contact|@[a-z0-9.-]+\.[a-z]{2,}/);
+  const hasProof = has(/testimonial|loved by|trusted by|reviews?|case stud|\d[\d,]*\s*(users|customers|downloads|signups)/);
+
+  const strengths: string[] = [];
+  const weaknesses: string[] = [];
+  if (hasCTA) strengths.push("There's a clear call-to-action — visitors know the next step."); else weaknesses.push("No obvious call-to-action — visitors don't know what to do next.");
+  if (hasPricing) strengths.push("Pricing/an offer is visible, so buyers can self-qualify."); else weaknesses.push("No visible pricing — friction for anyone ready to pay (charge from day one).");
+  if (hasProof) strengths.push("Some social proof is present to build trust."); else weaknesses.push("No social proof (testimonials, customer counts) — hard for a cold visitor to trust.");
+  if (hasContact) strengths.push("There's a way to get in touch."); else weaknesses.push("No easy way to reach you — warm leads slip away.");
+  if (words >= 120) strengths.push("Enough copy to explain the offer and start ranking in search."); else weaknesses.push("The page is thin — too little to explain the value or rank.");
+
+  const opportunities = [
+    "Narrow the headline to ONE user and ONE job — vague positioning is the #1 reason first sales stall (April Dunford). It's free and multiplies everything else.",
+    "Send 10–20 hand-written, trigger-based outreach notes to people with the exact problem — one pain, one ask. Trigger-based emails reply at ~20% vs ~4% cold.",
+    "Spin up a few programmatic SEO pages ('[tool] alternative', integration & use-case pages) — a top channel for a no-audience maker's first 1,000 customers.",
+    "Post one honest 'I built this but couldn't sell it — here's what I learned' story in r/SideProject and Indie Hackers. Real numbers, no link-drop; let people ask.",
+    "Do things that don't scale (Paul Graham): onboard your first 5 users 1:1 and set them up on the spot — the documented retention unlock.",
+  ];
+
+  const summary = `${title || "This project"} reads as ${words < 120 ? "an early, thin" : "a real"} landing page${hasPricing ? " with a visible offer" : " with no clear offer"}. Building was never the hard part — getting the first paying customers is. Here's an honest read and where the demand likely is.`;
+
+  return { summary, strengths: strengths.slice(0, 4), weaknesses: weaknesses.slice(0, 4), opportunities: opportunities.slice(0, 4) };
+}
+
 export async function fetchSiteText(url: string): Promise<SiteText> {
   let u: URL;
   try {

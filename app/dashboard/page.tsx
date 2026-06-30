@@ -158,7 +158,7 @@ export default function Dashboard() {
       )}
       <div className="mx-auto max-w-6xl px-6 py-10">
         <EntitlementNotice email={user?.email} />
-        {!r.company && <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} onDemo={r.loadDemo} />}
+        {!r.company && <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} onDemo={r.loadDemo} onImport={r.importCompany} />}
         {r.company?.status === "validating" && <ValidationRunning idea={r.company.idea} />}
         {r.company?.status === "validated" && <ValidationGate r={r} onBuild={goBuild} />}
         {r.company?.status === "rejected" && <Rejected r={r} onBuild={goBuild} />}
@@ -298,7 +298,7 @@ function AutopilotToggle({ on, onToggle, paused }: { on: boolean; onToggle: () =
 }
 
 /* ── Onboarding ──────────────────────────────────────────────── */
-function Onboarding({ onSubmit, hasOthers, onDemo }: { onSubmit: (idea: string) => void; hasOthers: boolean; onDemo: () => void }) {
+function Onboarding({ onSubmit, hasOthers, onDemo, onImport }: { onSubmit: (idea: string) => void; hasOthers: boolean; onDemo: () => void; onImport: (url: string, title: string) => void }) {
   const [idea, setIdea] = useState("");
   return (
     <motion.div
@@ -360,7 +360,14 @@ function Onboarding({ onSubmit, hasOthers, onDemo }: { onSubmit: (idea: string) 
         Or load a demo company to explore the full workflow →
       </button>
 
-      <ImportPanel />
+      <div className="mt-10 flex items-center gap-4">
+        <div className="h-px flex-1 bg-border" />
+        <span className="whitespace-nowrap text-xs uppercase tracking-wide text-muted-2">or grow what you&apos;ve already built</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+      <div className="mt-6">
+        <ImportPanel onGrow={onImport} />
+      </div>
     </motion.div>
   );
 }
@@ -443,6 +450,8 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
   const v = r.company!.validation!;
   const vs = verdictStyle[v.verdict];
   const recommendHold = v.verdict === "weak";
+  // Imported products are already built — the next move is distribution, not a build.
+  const imported = r.company!.product?.status === "live";
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mx-auto mt-6 max-w-2xl">
       <div className={`rounded-3xl border p-7 ${vs.ring}`}>
@@ -493,13 +502,13 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
                 Hold — I agree
               </button>
               <button onClick={onBuild} className="rounded-xl border border-border px-5 py-3 font-medium text-muted transition hover:text-text">
-                Build anyway
+                {imported ? "Grow it anyway" : "Build anyway"}
               </button>
             </>
           ) : (
             <>
               <button onClick={onBuild} className="flex-1 rounded-xl bg-coral px-5 py-3 font-semibold text-bg transition hover:brightness-110">
-                Approve build
+                {imported ? "Start getting customers" : "Approve build"}
               </button>
               <button onClick={() => r.decideBuild(false)} className="rounded-xl border border-border px-5 py-3 font-medium text-muted transition hover:text-text">
                 Hold for now

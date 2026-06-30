@@ -197,6 +197,59 @@ export function useEngine() {
     })();
   }, []);
 
+  // Import-and-sell on-ramp: adopt an ALREADY-BUILT product (a pasted URL). The product exists and is
+  // live, so we skip "build" entirely — we read demand, then the crew's whole job is getting it
+  // customers. The wedge: the internet is full of built-but-unsold projects; we sell them, not rebuild them.
+  const importCompany = useCallback((url: string, title: string) => {
+    const cleanUrl = (url || "").trim();
+    if (!cleanUrl) return;
+    if (!canRun("validate")) {
+      setBlocked(`That's today's ${FREE_CAPS.validate} free reads. Add your own model key in Settings to keep going — or come back tomorrow.`);
+      return;
+    }
+    recordRun("validate");
+    const name = companyNameFrom((title || cleanUrl).trim());
+    const idea = `${name} — an existing, already-built product (${cleanUrl}). The goal isn't to build it; it's to get it real customers.`;
+    const c: Company = {
+      id: rid(),
+      name,
+      slug: slugify(name),
+      idea,
+      createdAt: Date.now(),
+      status: "validating",
+      night: 0,
+      ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
+      product: { url: cleanUrl, status: "live" }, // already built + live — born with proof-of-work
+    };
+    setStore((s) => ({
+      companies: [c, ...s.companies],
+      activities: { ...s.activities, [c.id]: [] },
+      approvals: { ...s.approvals, [c.id]: [] },
+      operate: { ...s.operate, [c.id]: { rocks: [], issues: [] } },
+      activeId: c.id,
+    }));
+    setWorking("validating");
+    (async () => {
+      const started = Date.now();
+      const res = (await callEngine({ kind: "validate", idea })) as { validation?: ValidationResult };
+      const validation = res?.validation ?? getProvider().validate(idea);
+      const remaining = 1900 - (Date.now() - started);
+      if (remaining > 0) await sleep(remaining);
+      setStore((s) => ({
+        ...s,
+        companies: s.companies.map((x) =>
+          x.id === c.id
+            ? { ...x, status: "validated", validation, ledger: { ...x.ledger, spent: validation.spend } }
+            : x
+        ),
+      }));
+      pingCustomerUpdate(
+        `${name}: demand read in — ${validation.verdict} signal (${validation.confidence}% confidence). Open competitor.inc to put your crew on getting it customers.`
+      );
+      setWorking(null);
+    })();
+  }, []);
+
   const switchCompany = useCallback((id: string | null) => setStore((s) => ({ ...s, activeId: id })), []);
 
   const deleteCompany = useCallback((id: string) => {
@@ -262,20 +315,33 @@ export function useEngine() {
       if (!approve) {
         return { ...s, companies: s.companies.map((x) => (x.id === c.id ? { ...x, status: "rejected" } : x)) };
       }
-      // Build the winner. We do NOT fabricate a "live" URL — the real, openable site link is set by
-      // appendRealResult once the build executor actually ships it (real repo + GitHub Pages). Until then
-      // the product is honestly "building". In pure simulation (no keys) it stays building — never a fake link.
-      const mvpCost = 0.42;
-      const mvp: Activity = {
-        id: rid(),
-        night: 1,
-        agent: "engineering",
-        action: "Started shipping the validated MVP",
-        meta: "build in progress",
-        cost: mvpCost,
-        status: "done",
-        proof: { kind: "metric", value: "build started — shipping your site" },
-      };
+      // Two ways in. IMPORTED product (already live) → we never rebuild it; we adopt it and the crew's
+      // whole job becomes distribution. NEW idea → build the validated MVP (the real, openable link is set
+      // by appendRealResult once the build executor ships it; until then it's honestly "building" — never
+      // a fabricated link, even in pure simulation).
+      const isImported = c.product?.status === "live";
+      const cost = isImported ? 0 : 0.42;
+      const first: Activity = isImported
+        ? {
+            id: rid(),
+            night: 1,
+            agent: "growth",
+            action: `Adopted ${c.name} — the crew is now focused on getting it customers`,
+            meta: "already built · distribution first",
+            cost: 0,
+            status: "done",
+            proof: { kind: "url", value: c.product!.url },
+          }
+        : {
+            id: rid(),
+            night: 1,
+            agent: "engineering",
+            action: "Started shipping the validated MVP",
+            meta: "build in progress",
+            cost: 0.42,
+            status: "done",
+            proof: { kind: "metric", value: "build started — shipping your site" },
+          };
       return {
         ...s,
         companies: s.companies.map((x) =>
@@ -284,17 +350,18 @@ export function useEngine() {
                 ...x,
                 status: "operating",
                 night: 1,
-                product: { url: "", status: "building" },
-                ledger: { ...x.ledger, spent: round(x.ledger.spent + mvpCost), tasksDone: x.ledger.tasksDone + 1 },
+                product: isImported ? x.product : { url: "", status: "building" },
+                ledger: { ...x.ledger, spent: round(x.ledger.spent + cost), tasksDone: x.ledger.tasksDone + 1 },
               }
             : x
         ),
-        activities: { ...s.activities, [c.id]: [mvp, ...(s.activities[c.id] ?? [])] },
+        activities: { ...s.activities, [c.id]: [first, ...(s.activities[c.id] ?? [])] },
       };
     });
-    // Real execution (gated): when keys are set, actually build the MVP on GitHub and log the
-    // verified proof. With no keys, /api/execute returns disabled and nothing extra happens.
-    if (approve && active && active.status !== "operating") {
+    // Real execution (gated): when keys are set, actually build the MVP on GitHub and log the verified
+    // proof. Skipped for imported products (already live — nothing to build). With no keys, /api/execute
+    // returns disabled and nothing extra happens.
+    if (approve && active && active.status !== "operating" && active.product?.status !== "live") {
       void executeAction("build", { company: { name: active.name, idea: active.idea }, companyId: active.id, agent: "engineering" }).then((r) => {
         if (r?.ok && r.proof) {
           appendRealResult(active.id, {
@@ -686,6 +753,7 @@ export function useEngine() {
     clearBlocked,
     pendingApprovals,
     createCompany,
+    importCompany,
     loadDemo,
     switchCompany,
     deleteCompany,

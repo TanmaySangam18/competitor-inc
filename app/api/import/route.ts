@@ -1,5 +1,5 @@
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
-import { fetchSiteText } from "@/lib/engine/importer";
+import { fetchSiteText, simulatedAudit } from "@/lib/engine/importer";
 import { auditSite } from "@/lib/engine/server";
 
 export const runtime = "nodejs";
@@ -23,8 +23,9 @@ export async function POST(req: Request) {
   const site = await fetchSiteText(url);
   if (!site.ok || !site.text) return Response.json({ ok: false, error: site.error || "couldn't read that page" });
 
-  const audit = await auditSite(site.title || url, site.text);
-  if (!audit) return Response.json({ ok: false, error: "audit needs a model — connect one in Settings" });
+  // Prefer a model-powered audit; fall back to a deterministic heuristic read so the on-ramp NEVER
+  // dead-ends without a key (consistent with the simulated validation engine).
+  const audit = (await auditSite(site.title || url, site.text).catch(() => null)) || simulatedAudit(site.title || url, site.text);
 
   return Response.json({ ok: true, title: site.title || url, audit });
 }
