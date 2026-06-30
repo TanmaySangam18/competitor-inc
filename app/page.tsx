@@ -66,6 +66,7 @@ function Nav() {
     { href: "#capabilities", label: "Capabilities" },
     { href: "/delegation", label: "The Delegation" },
     { href: "#trust", label: "Glass Box" },
+    { href: "/proof", label: "Proof" },
     { href: "#pricing", label: "Pricing" },
   ];
   return (
