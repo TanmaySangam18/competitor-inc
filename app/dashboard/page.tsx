@@ -52,6 +52,7 @@ import { CoachCard } from "@/components/CoachCard";
 import { ImportPanel } from "@/components/ImportPanel";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
+import { isFounderEmail } from "@/lib/engine/founders";
 
 const agentStyle: Record<AgentRole, { icon: typeof Gauge; color: string; ring: string }> = {
   ceo: { icon: Gauge, color: "text-violet", ring: "bg-violet/12" },
@@ -99,6 +100,13 @@ export default function Dashboard() {
   // + the endowment effect — it's already theirs, they just can't open it yet).
   const [entitled, setEntitled] = useState(false);
   useEffect(() => {
+    // Founder full access: an allow-listed founder dogfoods the full paid product (build + reveal +
+    // operate) at $0 — "customer #1". Bypasses the paywall regardless of billing state. (Client-side is
+    // fine: it only unmasks a link the founder already owns; nothing chargeable rides on it.)
+    if (isFounderEmail(user?.email)) {
+      setEntitled(true);
+      return;
+    }
     // Reveal the live link to anyone who already pays — and, until billing is live, to everyone (so
     // the pre-launch demo shows real, openable sites). When billing is live, gate on real entitlement.
     if (!billingLive()) {

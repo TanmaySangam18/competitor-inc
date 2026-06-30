@@ -14,6 +14,7 @@ import { DELEGATION, type DelegationAgent } from "@/lib/engine/delegation";
 import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
 import { getByok } from "@/lib/engine/config";
+import { FOUNDER_EMAILS } from "@/lib/engine/founders";
 
 const DelegationScene = dynamic(() => import("../delegation/DelegationScene"), {
   ssr: false,
@@ -26,14 +27,7 @@ const DelegationScene = dynamic(() => import("../delegation/DelegationScene"), {
 
 const BY_ROLE = Object.fromEntries(DELEGATION.map((a) => [a.role, a])) as Record<AgentRole, DelegationAgent>;
 
-// Founder allow-list. Defaults to the two founder addresses so access is locked-down even before the
-// NEXT_PUBLIC_FOUNDER_EMAILS env var is set on a deployment; env (comma-separated) overrides/extends it.
-const FOUNDER_EMAILS = (
-  process.env.NEXT_PUBLIC_FOUNDER_EMAILS || "projecttattva1@gmail.com,sangam.d@northeastern.edu,tanmaysangam018@gmail.com"
-)
-  .split(",")
-  .map((s) => s.trim().toLowerCase())
-  .filter(Boolean);
+// Founder allow-list lives in lib/engine/founders.ts (shared with the dashboard's full-access gate).
 
 // The on-device unlock is a dev convenience and must NEVER work on a public URL. Only true localhost.
 function hostIsLocalhost(): boolean {
