@@ -44,6 +44,7 @@ import ActionBell from "@/components/ActionBell";
 import EntitlementNotice from "@/components/EntitlementNotice";
 import GuestSavePrompt from "@/components/GuestSavePrompt";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
+import GTMPanel from "@/components/GTMPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
 import CampaignPanel from "@/components/CampaignPanel";
@@ -804,6 +805,7 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
             </div>
           </div>
         )}
+        {r.company && <GTMPanel company={r.company} activities={r.activities} />}
         <div>
           <h2 className="text-sm font-semibold text-muted">Your team</h2>
           <p className="mt-1 text-[11px] text-muted-2">Tap anyone to see their job description.</p>
