@@ -217,7 +217,10 @@ export function useEngine() {
   const executeAction = useCallback(
     async (
       action: string,
-      payload: { company: { name: string; idea: string }; item?: { kind: string; title?: string; detail?: string; amount?: number } }
+      // companyId + approvalId let /api/execute enforce the approval gate server-side: a real executor
+      // only fires for the authenticated owner of this company, tied to this approved inbox item. agent
+      // drives the per-agent policy matrix (which actions that role may take).
+      payload: { company: { name: string; idea: string }; item?: { kind: string; title?: string; detail?: string; amount?: number }; companyId?: string; approvalId?: string; agent?: AgentRole }
     ) => {
       try {
         const res = await fetch("/api/execute", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, ...payload, connections: getConnections() ?? undefined }) });
@@ -259,18 +262,19 @@ export function useEngine() {
       if (!approve) {
         return { ...s, companies: s.companies.map((x) => (x.id === c.id ? { ...x, status: "rejected" } : x)) };
       }
-      // build the winner — ship an initial MVP with a real artifact (proof-of-work)
-      const url = `https://${c.slug}.competitor.inc`;
+      // Build the winner. We do NOT fabricate a "live" URL — the real, openable site link is set by
+      // appendRealResult once the build executor actually ships it (real repo + GitHub Pages). Until then
+      // the product is honestly "building". In pure simulation (no keys) it stays building — never a fake link.
       const mvpCost = 0.42;
       const mvp: Activity = {
         id: rid(),
         night: 1,
         agent: "engineering",
-        action: "Shipped the validated MVP",
-        meta: "build passed",
+        action: "Started shipping the validated MVP",
+        meta: "build in progress",
         cost: mvpCost,
         status: "done",
-        proof: { kind: "url", value: url },
+        proof: { kind: "metric", value: "build started — shipping your site" },
       };
       return {
         ...s,
@@ -280,7 +284,7 @@ export function useEngine() {
                 ...x,
                 status: "operating",
                 night: 1,
-                product: { url, status: "live" },
+                product: { url: "", status: "building" },
                 ledger: { ...x.ledger, spent: round(x.ledger.spent + mvpCost), tasksDone: x.ledger.tasksDone + 1 },
               }
             : x
@@ -291,7 +295,7 @@ export function useEngine() {
     // Real execution (gated): when keys are set, actually build the MVP on GitHub and log the
     // verified proof. With no keys, /api/execute returns disabled and nothing extra happens.
     if (approve && active && active.status !== "operating") {
-      void executeAction("build", { company: { name: active.name, idea: active.idea } }).then((r) => {
+      void executeAction("build", { company: { name: active.name, idea: active.idea }, companyId: active.id, agent: "engineering" }).then((r) => {
         if (r?.ok && r.proof) {
           appendRealResult(active.id, {
             action: "Shipped the MVP to GitHub",
@@ -488,6 +492,9 @@ export function useEngine() {
       void executeAction(seed.kind, {
         company: { name: activeCo.name, idea: activeCo.idea },
         item: { kind: seed.kind, title: seed.title, detail: seed.detail, amount: seed.amount },
+        companyId: activeCo.id,
+        approvalId: seed.id,
+        agent: seed.agent,
       }).then((r) => {
         if (r?.ok && r.proof) appendRealResult(activeCo.id, { action: `Executed: ${seed.title}`, agent: seed.agent, proof: r.proof, meta: "real action ✓" });
       });
@@ -625,7 +632,8 @@ export function useEngine() {
       night: 0,
       validation: getProvider().validate(idea),
       ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
-      product: { url: `https://${slugify(name)}.demo.competitor.inc`, status: "live" },
+      // Demo company: no fabricated "live" URL — a real link only appears from a real build (honest).
+      product: { url: "", status: "building" },
     };
     let acts: Activity[] = [];
     let apprs: ApprovalItem[] = [];

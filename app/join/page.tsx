@@ -143,7 +143,7 @@ export default function Join() {
 
         <div id="waitlist" className="mt-12">
           <h2 className="text-xl font-bold">Or join the waitlist</h2>
-          <p className="mt-2 text-sm text-muted">We launch June 28. Get in early — and share your link to move up the line.</p>
+          <p className="mt-2 text-sm text-muted">We&apos;re launching soon. Get in early — and share your link to move up the line.</p>
 
           {entry ? (
             <div className="mt-5 rounded-2xl border border-mint/30 bg-mint/[0.05] p-5">
@@ -176,23 +176,31 @@ export default function Join() {
               </div>
             </div>
           ) : (
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && join()}
-                placeholder="you@company.com"
-                className="w-full rounded-xl glass-panel px-4 py-3 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40"
-                aria-label="Email for the waitlist"
-              />
-              <button
-                onClick={join}
-                disabled={!email.includes("@")}
-                className="shrink-0 rounded-xl bg-text px-6 py-3 text-sm font-semibold text-bg transition hover:opacity-90 disabled:opacity-40"
-              >
-                Join the waitlist
-              </button>
+            <div className="mt-5 flex flex-col gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && join()}
+                  placeholder="you@company.com"
+                  className="w-full rounded-xl glass-panel px-4 py-3 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40"
+                  aria-label="Email for the waitlist"
+                />
+                <button
+                  onClick={join}
+                  disabled={!email.includes("@")}
+                  className="shrink-0 rounded-xl bg-text px-6 py-3 text-sm font-semibold text-bg transition hover:opacity-90 disabled:opacity-40"
+                >
+                  Join the waitlist
+                </button>
+              </div>
+              {/* Consent basis (CAN-SPAM/GDPR): explicit opt-in, named purpose, opt-out promised. */}
+              <p className="text-xs text-muted-2">
+                By joining you agree to our{" "}
+                <Link href="/privacy" className="underline underline-offset-2 hover:text-text">Privacy Policy</Link>{" "}
+                and to get launch + product updates by email. No spam; unsubscribe anytime.
+              </p>
             </div>
           )}
         </div>

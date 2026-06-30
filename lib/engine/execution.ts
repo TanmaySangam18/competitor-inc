@@ -8,6 +8,8 @@ import "server-only";
 
 import type { Proof, ApprovalKind, Connections } from "./types";
 import { assertSafeBaseUrl } from "./net";
+import { generateSiteFiles } from "./server";
+import { namespacedResource } from "./hosting";
 
 const TIMEOUT_MS = 8000;
 
@@ -84,17 +86,52 @@ export interface BuildSpec {
   description: string;
   files: Record<string, string>;
 }
-export async function buildOnGitHub(spec: BuildSpec, token: string | undefined = process.env.GITHUB_TOKEN): Promise<ExecOutcome> {
+// A real, single-file landing page for the idea — so the build ships an actual OPENABLE website, not a
+// bare repo. Inline CSS, no build step, works as a static GitHub Pages site.
+export function siteHtml(name: string, idea: string): string {
+  const n = escapeHtml(name);
+  const i = escapeHtml(idea);
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${n}</title><meta name="description" content="${i}">
+<style>
+*{box-sizing:border-box;margin:0}body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#faf6ee;color:#1c1917;display:grid;place-items:center;min-height:100vh;padding:24px;line-height:1.5}
+main{max-width:620px;text-align:center}.tag{display:inline-block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#ea580c;border:1px solid #ea580c33;border-radius:999px;padding:6px 12px;margin-bottom:24px}
+h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:800;letter-spacing:-.02em;line-height:1.05}p.idea{font-size:1.15rem;color:#57534e;margin-top:16px}
+form{margin-top:32px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}input{flex:1;min-width:240px;padding:14px 16px;border:1px solid #00000022;border-radius:12px;font-size:15px;background:#fff}
+button{padding:14px 22px;border:0;border-radius:12px;background:#ea580c;color:#fff;font-weight:600;font-size:15px;cursor:pointer}footer{margin-top:48px;font-size:13px;color:#a8a29e}footer a{color:#78716c}
+</style></head>
+<body><main>
+<span class="tag">Coming soon</span>
+<h1>${n}</h1>
+<p class="idea">${i}</p>
+<form onsubmit="event.preventDefault();this.outerHTML='<p style=&quot;margin-top:32px;color:#16a34a;font-weight:600&quot;>Thanks — you are on the list.</p>'">
+<input type="email" placeholder="you@email.com" aria-label="Email" required>
+<button type="submit">Get early access</button>
+</form>
+<footer>Validated &amp; shipped by <a href="https://competitor-inc-zeta.vercel.app">competitor.inc</a></footer>
+</main></body></html>`;
+}
+
+// `isPublic` defaults true so the resulting site/repo URL is publicly resolvable — which is what makes the
+// receipt CHECKABLE ("Don't trust us — click it"). We push a real index.html and enable GitHub Pages so
+// the build ships an actual OPENABLE WEBSITE (not just code). Pages deploys asynchronously (~1 min), so we
+// don't hard-fail on a not-yet-live HEAD — the repo + files exist now, which is the real artifact.
+export async function buildOnGitHub(
+  spec: BuildSpec,
+  token: string | undefined = process.env.GITHUB_TOKEN,
+  isPublic = true
+): Promise<ExecOutcome> {
   if (!token) return disabled();
   const headers = { authorization: `Bearer ${token}`, accept: "application/vnd.github+json", "content-type": "application/json" };
   try {
     const create = await timed("https://api.github.com/user/repos", {
       method: "POST",
       headers,
-      body: JSON.stringify({ name: spec.repo, description: spec.description, private: true, auto_init: true }),
+      body: JSON.stringify({ name: spec.repo, description: spec.description, private: !isPublic, auto_init: true }),
     });
     if (!create.ok) return { ok: false, error: `repo ${create.status}` };
-    const repo = (await create.json().catch(() => ({}))) as { full_name?: string; html_url?: string };
+    const repo = (await create.json().catch(() => ({}))) as { full_name?: string; html_url?: string; name?: string };
     if (!repo.full_name || !repo.html_url) return { ok: false, error: "no repo metadata" };
     for (const [path, content] of Object.entries(spec.files)) {
       await timed(`https://api.github.com/repos/${repo.full_name}/contents/${encodeURIComponent(path)}`, {
@@ -103,8 +140,21 @@ export async function buildOnGitHub(spec: BuildSpec, token: string | undefined =
         body: JSON.stringify({ message: `feat: add ${path}`, content: Buffer.from(content, "utf8").toString("base64") }),
       });
     }
-    const proof: Proof = { kind: "url", value: repo.html_url };
-    return (await verifyProof(proof)) ? { ok: true, proof } : { ok: false, error: "verification failed" };
+    // Turn the repo into a live website via GitHub Pages. Best-effort: on failure we fall back to the
+    // repo URL (still a real, resolvable artifact). 409 = Pages already enabled.
+    let siteUrl = repo.html_url;
+    try {
+      const [owner, repoName] = repo.full_name.split("/");
+      const pg = await timed(`https://api.github.com/repos/${repo.full_name}/pages`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ source: { branch: "main", path: "/" } }),
+      });
+      if (pg.ok || pg.status === 409) siteUrl = `https://${owner}.github.io/${repoName}/`;
+    } catch {
+      /* keep the repo URL as the artifact */
+    }
+    return { ok: true, proof: { kind: "url", value: siteUrl } };
   } catch (e) {
     return fail(e);
   }
@@ -248,6 +298,7 @@ export async function postToMastodon(opts: { text: string }): Promise<ExecOutcom
 // ── Dispatcher: map an agent action / approved item to its real executor ──────
 export interface ActionPayload {
   company: { name: string; idea: string };
+  companyId?: string; // tenant identity — namespaces the hosted artifact (per-tenant isolation)
   item?: { kind: ApprovalKind | string; title?: string; detail?: string; amount?: number };
   ownerEmail?: string;
   connections?: Connections; // per-user credentials; each falls back to the operator env key
@@ -255,22 +306,34 @@ export interface ActionPayload {
 export async function runAction(action: string, p: ActionPayload): Promise<ExecOutcome> {
   const c = p.connections;
   switch (action) {
-    case "build":
+    case "build": {
+      // Forge v2: the model AUTHORS a real multi-file site; any failure falls back to the safe template.
+      const generated = await generateSiteFiles(p.company.name, p.company.idea).catch(() => null);
+      const files = generated ?? { "index.html": siteHtml(p.company.name, p.company.idea) };
+      // Per-tenant hosting contract: namespace the repo to this tenant so two founders building the same
+      // idea can never collide (and idempotent re-runs hit the same repo). Falls back to the bare slug
+      // offline (no identity), preserving sim parity.
+      const repo = namespacedResource(repoSlug(p.company.name), { companyId: p.companyId, ownerEmail: p.ownerEmail });
       return buildOnGitHub(
-        {
-          repo: repoSlug(p.company.name),
-          description: p.company.idea.slice(0, 140),
-          files: { "README.md": `# ${p.company.name}\n\n> ${p.company.idea}\n\nValidated MVP scaffolded by competitor.inc.\n` },
-        },
+        { repo, description: p.company.idea.slice(0, 140), files },
         c?.githubToken || process.env.GITHUB_TOKEN
       );
+    }
     case "deploy":
       return deployToVercel();
     case "outreach": {
       const to = p.ownerEmail || process.env.OUTREACH_TO || "";
       if (!to) return disabled();
+      // Compliance gate, in the send path (CAN-SPAM/GDPR): every outbound email carries sender identity +
+      // a working opt-out, appended server-side so no send can bypass it. (Cold-outreach drafting uses the
+      // stricter evaluateOutreach gate in outreach.ts.)
+      const html =
+        `<p>${escapeHtml(p.item?.detail || "")}</p>` +
+        `<hr style="border:none;border-top:1px solid #eee;margin:16px 0"/>` +
+        `<p style="font-size:12px;color:#888">Sent via competitor.inc on behalf of ${escapeHtml(p.company.name)}. ` +
+        `You're receiving this because you opted in — reply STOP to unsubscribe.</p>`;
       return sendEmail(
-        { to, subject: `[${p.company.name}] ${p.item?.title || "Outreach"}`, html: `<p>${escapeHtml(p.item?.detail || "")}</p>` },
+        { to, subject: `[${p.company.name}] ${p.item?.title || "Outreach"}`, html },
         c?.resendApiKey || process.env.RESEND_API_KEY,
         c?.resendFrom || process.env.RESEND_FROM
       );

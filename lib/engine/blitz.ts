@@ -1,7 +1,7 @@
-// Surge's "surprise-launch blitz" — drafts demand-capture posts for the active company, echoing the
-// contrarian hook ("the AI that refuses to build until it proves demand"). These are DRAFTS only:
-// the caller queues each as an outreach approval, so nothing posts without the founder's sign-off.
-// Fully simulated (offline), personalized to the company; mirrors the launch/ kit copy.
+// Surge's "surprise-launch blitz" — drafts launch posts for the active CUSTOMER company, about THAT
+// company's product (name + idea) — never competitor.inc's own pitch. These are DRAFTS only: the caller
+// queues each as an outreach approval, so nothing posts without the founder's sign-off. Fully simulated
+// (offline), personalized to the company.
 
 export interface BlitzDraft {
   channel: string;
@@ -23,21 +23,21 @@ export function draftBlitz(company: { name: string; idea: string }): BlitzDraft[
       channel: "Bluesky thread",
       title: "Post the launch thread on Bluesky",
       body:
-        `Every AI tool wants to build your startup. ${name} is the one that tells you NOT to — until it proves people want it.\n\n` +
-        `We pressure-tested "${p}" with a real demand test before writing a line of product code. Here's what came back 🧵`,
+        `Introducing ${name} — ${p}.\n\n` +
+        `We validated that people actually want this before building it. It's now live in early access — here's the story 🧵`,
     },
     {
       channel: "Show HN",
       title: "Submit to Show HN",
       body:
-        `Show HN: ${name} – an AI co-founder that validates demand before it builds\n\n` +
-        `I kept watching "AI builds your company" tools burn weeks (and money) on things nobody wanted. So ${name} runs a real demand test first — landing page, fake-door, a small ad smoke-test, search demand — and will tell you "don't build this." Only after you approve does it build, in a Glass Box with approvals on anything consequential. Built around "${p}". Brutal feedback welcome.`,
+        `Show HN: ${name} – ${p}\n\n` +
+        `${name} tackles ${p}. We ran real demand tests before building, and it's now live in early access. Brutal feedback welcome — what would make this a must-have for you?`,
     },
     {
       channel: "Indie Hackers",
       title: "Post to Indie Hackers / r/SaaS",
       body:
-        `Burned by an autonomous AI builder that marked work "done" without shipping? ${name} is the proof-first alternative: it validates "${p}" before building, shows every action with proof, asks before it spends, and takes 0% of your revenue. Would love your read on whether the validation signal feels real.`,
+        `Just launched ${name} — ${p}. Early access is open and I'd love your honest read: would you use this, and what's missing?`,
     },
   ];
 }

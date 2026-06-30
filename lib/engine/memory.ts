@@ -75,7 +75,21 @@ export async function recall(
 ): Promise<string[]> {
   if (!sb || !companyId) return [];
   const v = await embed(query);
-  if (!v) return []; // no embeddings key → no semantic recall
+  if (!v) {
+    // No embeddings key → fall back to the most RECENT memories. Less precise than semantic recall, but
+    // it still gives the agents night-to-night continuity with just Supabase (no embeddings key needed).
+    try {
+      const { data } = await sb
+        .from("agent_memory")
+        .select("content")
+        .eq("company_id", companyId)
+        .order("night", { ascending: false })
+        .limit(k);
+      return (data ?? []).map((row: { content: string }) => row.content).filter(Boolean);
+    } catch {
+      return [];
+    }
+  }
   try {
     const { data, error } = await sb.rpc("match_agent_memory", { p_company: companyId, p_query: v, p_count: k });
     if (error) {

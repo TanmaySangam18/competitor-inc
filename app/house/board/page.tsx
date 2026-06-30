@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, KeyRound, BarChart3 } from "lucide-react";
+import { ArrowLeft, RefreshCw, KeyRound, BarChart3, ShieldCheck } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 
 // Founder KPI board (Block 9). Reads aggregate funnel counts from /api/metrics (bearer-guarded by
@@ -10,15 +10,31 @@ import { LogoMark } from "@/components/Logo";
 // the founder's token (kept on-device). Steer with live data instead of the GROWTH-MODEL.md priors.
 const TOKEN_KEY = "cofounder:metrics:token";
 
+interface Ppu {
+  value: number;
+  paidUsers: number;
+  provenOutcomes: number;
+  activatedCompanies: number;
+  totalCompanies: number;
+  signedUpUsers: number;
+  activationRate: number; // 0–1
+  freeToPaid: number; // 0–1
+  costPerPpu: number | null;
+  retention14d: number | null;
+}
+
 interface Metrics {
   locked?: boolean;
   persisted?: boolean;
+  ppu?: Ppu;
   waitlist?: number;
   waitlistReferred?: number;
   demandTests?: number;
   demandSignups?: number;
   note?: string;
 }
+
+const pct = (n: number | undefined) => `${Math.round((n ?? 0) * 100)}%`;
 
 function Stat({ label, value, target, hint }: { label: string; value: string; target?: string; hint?: string }) {
   return (
@@ -87,15 +103,20 @@ export default function Board() {
           <Link href="/house" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
             <LogoMark size={32} /> Founder board
           </Link>
-          <Link href="/house" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
-            <ArrowLeft size={15} /> House
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/house/proof" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
+              <ShieldCheck size={15} /> Proof ledger
+            </Link>
+            <Link href="/house" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
+              <ArrowLeft size={15} /> House
+            </Link>
+          </div>
         </div>
       </header>
 
       <div className="mx-auto max-w-4xl px-6 py-10">
         <div className="flex items-center gap-2 text-sm font-semibold">
-          <BarChart3 size={16} className="text-coral" /> Live funnel — vs the growth model
+          <BarChart3 size={16} className="text-coral" /> North Star — Proven Paying Users
         </div>
 
         {locked && (
@@ -131,24 +152,57 @@ export default function Board() {
           <p className="mt-2 text-xs text-muted-2">Connected, but no database yet — numbers light up once Supabase is set.</p>
         )}
 
-        {/* The numbers we actually capture today */}
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <Stat label="Waitlist signups" value={String(m?.waitlist ?? 0)} target="2,000" hint="Pre-launch goal · P(reach) 25–45%" />
-          <Stat label="Referred signups" value={String(m?.waitlistReferred ?? 0)} hint="Viral loop working when this share climbs" />
-          <Stat label="Live demand tests" value={String(m?.demandTests ?? 0)} hint="Make the gate real, not an estimate" />
-          <Stat label="Demand-test signups" value={String(m?.demandSignups ?? 0)} hint="Real interest in users' ideas" />
+        {/* The North Star — Proven Paying Users (paid AND ≥1 verified, receipted outcome). */}
+        <div className="mt-6 rounded-3xl border border-coral/30 bg-coral/[0.05] p-6">
+          <div className="text-xs uppercase tracking-wide text-coral">Proven Paying Users · the only number we chase</div>
+          <div className="mt-1 flex items-end gap-3">
+            <span className="font-display text-6xl font-bold">{m?.ppu?.value ?? 0}</span>
+            <span className="mb-2 text-sm text-muted-2">/ 50–150 · 4-week target</span>
+          </div>
+          <p className="mt-2 max-w-xl text-sm text-muted">
+            On a paid plan <span className="text-muted-2">(demand)</span> · with a verified, receipted Glass-Box outcome{" "}
+            <span className="text-muted-2">(delivery + trust)</span>. Signups test none of these.
+          </p>
         </div>
 
-        {/* KPIs that need a key/feature before they read live — shown with their thresholds (honest) */}
-        <div className="mt-6 text-xs font-semibold uppercase tracking-wide text-muted-2">Wire these up next</div>
-        <div className="mt-2 grid gap-4 sm:grid-cols-3">
-          <Stat label="Free → paid" value="—" target="≥4%" hint="Needs Stripe (OpenView median 2–5%)" />
+        {/* Input funnel — the diagnostics beneath the North Star. */}
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat label="Paid users" value={String(m?.ppu?.paidUsers ?? 0)} hint="Active Operator subscriptions" />
+          <Stat label="Proven outcomes" value={String(m?.ppu?.provenOutcomes ?? 0)} hint="Real, receipted agent actions" />
+          <Stat label="Activation" value={pct(m?.ppu?.activationRate)} target="rising" hint="Companies with a first verified action" />
+          <Stat label="Free → paid" value={pct(m?.ppu?.freeToPaid)} target="≥4%" hint="OpenView median 2–5%" />
+        </div>
+
+        {/* Diagnostics — watch to debug the funnel; NEVER a goal. */}
+        <div className="mt-8 text-xs font-semibold uppercase tracking-wide text-muted-2">Diagnostics — watch, don&apos;t chase</div>
+        <div className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat label="Waitlist signups" value={String(m?.waitlist ?? 0)} hint="A funnel input, not a goal" />
+          <Stat label="Referred signups" value={String(m?.waitlistReferred ?? 0)} hint="Viral loop working when this climbs" />
+          <Stat label="Live demand tests" value={String(m?.demandTests ?? 0)} hint="Real demand reads, not estimates" />
+          <Stat label="Demand-test signups" value={String(m?.demandSignups ?? 0)} hint="Interest in users' ideas" />
+        </div>
+
+        {/* KPIs still awaiting instrumentation — shown honestly so we don't fake them. */}
+        <div className="mt-6 text-xs font-semibold uppercase tracking-wide text-muted-2">Unit economics &amp; retention</div>
+        <div className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Stat
+            label="14-day retention"
+            value={m?.ppu?.retention14d != null ? pct(m.ppu.retention14d) : "—"}
+            target="rising"
+            hint="Share of paid users committed >14 days out (forward proxy)"
+          />
+          <Stat
+            label="Cost per PPU"
+            value={m?.ppu?.costPerPpu != null ? `$${m.ppu.costPerPpu.toFixed(2)}` : "—"}
+            target="bounded"
+            hint="Net spend ÷ PPU — keep under your cap"
+          />
           <Stat label="PMF score" value="—" target="≥40%" hint="Needs the Sean-Ellis survey" />
-          <Stat label="Monthly churn" value="—" target="<5%" hint="Needs ≥1 paid cohort" />
         </div>
 
         <p className="mt-8 text-xs text-muted-2">
-          Thresholds from <span className="text-muted">docs/GROWTH-MODEL.md</span>. Update the model once these read live.
+          North Star + thresholds: kill signups as a goal; chase Proven Paying Users (50–150 in 4 weeks). A hundred
+          paying, proven, retained users beats ten thousand dead emails.
         </p>
       </div>
     </div>

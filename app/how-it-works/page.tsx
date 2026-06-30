@@ -60,7 +60,7 @@ const steps = [
   {
     icon: Eye,
     title: "You see everything it does — the Glass Box",
-    body: "Every action is written down with what it cost and proof it really happened. Nothing is hidden behind the curtain. Don't like something it did? Undo it with one click.",
+    body: "Every action is written down with what it cost and proof it really happened. Nothing is hidden behind the curtain. Anything still reversible, you can undo in one click — and nothing risky happens without your yes in the first place.",
     like: "Like a glass-walled kitchen where you watch every dish being made.",
   },
   {

@@ -3,8 +3,10 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { runShift } from "@/lib/engine/server";
 import { insertActivities, insertApprovals, updateCompany, toCompany } from "@/lib/engine/db";
 import { sendEmail } from "@/lib/engine/execution";
-import { remember } from "@/lib/engine/memory";
+import { remember, recall } from "@/lib/engine/memory";
+import { buildGraph, summarizeGraph } from "@/lib/engine/bkg";
 import { withTrace } from "@/lib/engine/observability";
+import { raiseAlert } from "@/lib/engine/alerts";
 
 export const runtime = "nodejs";
 
@@ -48,7 +50,19 @@ export async function GET(req: Request) {
     try {
       const company = toCompany(row);
       if (!company.ledger || typeof company.ledger !== "object") company.ledger = { ...EMPTY };
-      const { activities, approvals } = await withTrace("shift", () => runShift(company), { companyId: company.id, night: company.night });
+      // Read-back: recall what earlier nights did so this shift builds on it (coherence over time)…
+      const recalled = (await recall(sb, company.id, company.idea, 5).catch(() => [])).join(" • ");
+      // …and the BKG: a structured summary of what this company already knows about itself, derived
+      // on-read from its own activity history (no new table). Both feed the next shift's context.
+      const history = await sb
+        .from("activities")
+        .select("action,meta,agent")
+        .eq("company_id", company.id)
+        .order("created_at", { ascending: false })
+        .limit(60);
+      const graphSummary = summarizeGraph(buildGraph((history.data ?? []) as { action?: string; meta?: string; agent?: string }[]));
+      const priorContext = [recalled, graphSummary].filter(Boolean).join(" • ");
+      const { activities, approvals } = await withTrace("shift", () => runShift(company, undefined, priorContext), { companyId: company.id, night: company.night });
       await insertActivities(sb, company.id, activities);
       await insertApprovals(sb, company.id, approvals);
 
@@ -77,6 +91,11 @@ export async function GET(req: Request) {
       failed_companies++;
       console.error("[/api/cron] company shift failed:", err instanceof Error ? err.message : "unknown");
     }
+  }
+
+  // 3.3: a failure spike pages the founder in real time (observability that REACTS, not just logs).
+  if (failed_companies > 0) {
+    raiseAlert("failure", `Nightly run: ${failed_companies} company shift(s) failed`, { ran, failed: failed_companies });
   }
 
   // Morning summary (gated): emails the operator what happened overnight — the incumbent's most-loved

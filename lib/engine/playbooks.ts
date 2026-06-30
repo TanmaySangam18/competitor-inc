@@ -51,12 +51,12 @@ export const PLAYBOOKS: Playbook[] = [
   },
   {
     slug: "the-honesty-wedge",
-    title: "The honesty wedge — and why 0%",
-    summary: "Why being the trustworthy, transparent, 0%-cut option beats out-featuring a funded incumbent.",
+    title: "Out-position a funded rival — don't out-feature them",
+    summary: "How a smaller, more trustworthy player beats a bigger, funded competitor by counter-positioning — not by matching features.",
     readMins: 5,
     freeIntro: [
       "When a category gets hot and funded, the obvious move is to compete on features — match them module for module. For a small team, that's a losing race. The winning move is the opposite: find the thing the funded incumbent can't copy without breaking their own model, and own it completely.",
-      "In the \"AI that runs your company\" space, the incumbents spend your money behind a curtain, take a cut of your revenue, and act before they ask. Their own users say so. That's not a feature gap — it's a trust gap. And trust is a wedge you can drive straight through, because they literally can't follow you without dismantling how they make money.",
+      "Look for the trust gap. Big, funded incumbents often grow in ways their own users quietly resent — hidden fees, opacity, taking a cut, acting before they ask. Each of those is a position you can counter, because they can't follow you without dismantling how they make money. Whatever your category, the move is the same: find where the leader is structurally stuck, and plant your flag there.",
     ],
     body: [
       {
@@ -547,6 +547,112 @@ export const PLAYBOOKS: Playbook[] = [
         heading: "Handle 'no' and 'not now' like a professional",
         paragraphs: [
           "A 'no' with a reason is data — thank them and ask what would have to be true for it to be a yes. A 'not now' gets a specific follow-up date, not a vague 'I'll check back.' Pushiness is trying to overturn a real no; professionalism is making the decision easy and then respecting it. You want customers who chose you, not ones you cornered — those are the ones who renew and refer.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "follow-up-that-closes",
+    title: "Follow-up that closes — without being annoying",
+    summary: "Most deals die in the follow-up, not the pitch. The cadence that stays persistent without turning into a pest.",
+    readMins: 5,
+    freeIntro: [
+      "Founders obsess over the pitch and neglect the follow-up — which is backwards, because most deals are won or lost in the silence after the first conversation. A prospect who said \"interesting, let me think\" isn't a no; they're busy, and the person who stays helpfully present is the one who gets the yes. Disappearing after one email is the most common way first-time founders leave money on the table.",
+      "The trick is that good follow-up doesn't feel like chasing — it feels like being useful. Every \"just checking in\" is a withdrawal from the relationship; every touch that adds something (a relevant example, an answer to their real objection, a small win) is a deposit. This is the cadence to stay in front of someone for weeks without becoming the founder they start ignoring.",
+    ],
+    body: [
+      {
+        heading: "Add value on every touch",
+        paragraphs: [
+          "Replace \"just following up\" with a reason to be in their inbox: a case that maps to their situation, a one-line answer to the objection they raised, a teardown of their current setup. If you can't think of a value-add, you don't have a reason to send yet — so create one. Each message should leave them slightly better off for having opened it, whether or not they buy today.",
+        ],
+      },
+      {
+        heading: "A cadence, not a guess",
+        paragraphs: [
+          "Space touches so you stay present without crowding: a day after the conversation, then ~3 days, then a week, then taper to a monthly value-only check. Vary the channel and the angle — never just resend the same ask louder. Track who's at which step so nobody falls through and nobody gets hit twice; a written cadence beats a busy founder's memory every time.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "referrals-that-compound",
+    title: "Turn happy customers into a referral engine",
+    summary: "Referrals are the cheapest, highest-trust growth there is — but only if you engineer the ask instead of hoping for it.",
+    readMins: 5,
+    freeIntro: [
+      "Every founder knows referrals are gold — a warm intro converts many times better than a cold lead and costs nothing — yet almost no one asks for them systematically. They wait for referrals to happen and a few trickle in by luck. The founders who grow on word of mouth aren't luckier; they've made the referral a deliberate, repeatable step instead of an accident.",
+      "Most asks fall flat for two reasons: timing and effort. Founders ask too early (before the customer has felt the value) or make it work (\"know anyone who…?\" forces the customer to do your thinking). Engineer both and referrals stop being random — landing at the moment of delight and costing the customer almost nothing.",
+    ],
+    body: [
+      {
+        heading: "Ask at the moment of delight",
+        paragraphs: [
+          "The right time is right after a win — they hit a result, they praise you, they renew. That peak is when they'll put their name on the line. Build a trigger around those moments instead of a calendar reminder: the ask should ride the wave of a real success, not interrupt a random Tuesday.",
+        ],
+      },
+      {
+        heading: "Make it effortless",
+        paragraphs: [
+          "Don't ask \"know anyone who'd like this?\" — that makes them search their memory. Ask for a specific, easy action: \"could you forward this to the one person on your team who deals with X?\" and hand them a ready-to-send blurb. The lower the effort, the higher the conversion — you trade a little of your time writing the intro for a much better chance they make it.",
+        ],
+      },
+      {
+        heading: "On incentives — careful",
+        paragraphs: [
+          "A reward can boost referrals, but the wrong one cheapens the trust that makes them work. Reward the friend (a discount for the new user) more than the referrer, so the intro still feels generous rather than bought. And never incentivize before the customer has real value to vouch for — paying for endorsements you haven't earned poisons the well.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "keep-them-then-grow-them",
+    title: "Keep customers, then grow them — renewals & expansion",
+    summary: "New logos are the expensive way to grow. The cheapest revenue you'll ever earn is the customer you already have — if you keep them and expand them.",
+    readMins: 5,
+    freeIntro: [
+      "First-time founders fixate on getting new customers and quietly let the ones they have leak away. It's backwards: acquiring a new customer costs many times more than keeping an existing one, and a customer who's already paying has already cleared the hardest bar — trust. The fastest-growing small companies aren't the ones adding the most logos; they're the ones losing the fewest and growing the accounts they keep.",
+      "The number that captures this is net revenue retention: of the money your customers paid you last period, how much did that same group pay you this period — after churn, downgrades, and any upgrades? If it's above 100%, your existing base grows on its own even before you add a single new customer. That's the quiet engine behind most durable businesses, and it's almost entirely within your control.",
+    ],
+    body: [
+      {
+        heading: "Earn the renewal long before it's due",
+        paragraphs: [
+          "A renewal isn't a moment at the end of the term — it's the sum of every week before it. The customers who leave usually went quiet first: they never got to the 'aha', stopped logging in, or hit a problem you never saw. Track a simple health signal (are they actually using the thing? did they hit their first real outcome?) and reach out when it dips, not when the invoice is overdue. The renewal conversation should be a formality because the value was obvious all along.",
+          "When churn does happen, treat it as data, not defeat. Ask one honest question — 'what would've had to be true for you to stay?' — and log the answer. A handful of those exit reasons will name the same gap, and fixing it saves the next ten customers.",
+        ],
+      },
+      {
+        heading: "Expand on a real outcome, never just to upsell",
+        paragraphs: [
+          "Expansion revenue — a customer paying you more over time — only sticks when it follows value they've already felt. Land with the thing they need today, then grow the account when they hit a ceiling worth paying past: more seats because the team adopted it, a higher tier because they outgrew the limits, an add-on that solves the next problem they told you about. The trigger is their success, not your quota.",
+          "Price expansion to a metric that grows with their value, not yours: seats they actually use, volume they actually process, outcomes they actually get. When the customer wins more and naturally pays a little more, expansion feels fair and renews itself. When you raise the bill faster than they grow, you've just scheduled a churn.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "price-without-leaving-money",
+    title: "Price on value — and hold the line in the negotiation",
+    summary: "Most first-time founders price on cost or gut, charge far too little, and then discount under the first push. Price to the value you create, and defend it.",
+    readMins: 6,
+    freeIntro: [
+      "Pricing is the highest-leverage number in your business and the one founders think about last. The instinct is to price off your costs ('it costs me $4, I'll charge $10') or off a nervous gut-check ('$9 feels safe'). Both ignore the only thing that actually sets price: the value the customer gets. A tool that saves a business $2,000 a month is cheap at $200 and expensive at nothing — because if it's free, they assume it's worth nothing.",
+      "The discipline is to figure out willingness-to-pay before you build the price page, not after — by asking customers about value and money early, the same way you validated the idea. Get this roughly right and everything downstream gets easier: you can afford to acquire customers, support them well, and survive a few mistakes. Get it wrong on the low side — the default error — and you grind through twice the customers for half the runway.",
+    ],
+    body: [
+      {
+        heading: "Anchor to value, then to a number",
+        paragraphs: [
+          "Before you name a price, name the value in the customer's terms: time saved, money made, risk avoided, headcount they don't have to hire. That figure is your anchor — the price should be a comfortable fraction of it, so the math is obviously in their favor. Tiers help here: a good/better/best structure lets the customer self-select by how much value they need, and a higher tier makes the middle one look reasonable (most people pick the middle on purpose).",
+          "Charge for the value metric, not for your effort. The best pricing scales with what the customer gets — per outcome, per seat that's actually used, per unit of the thing they care about — so your revenue grows as their success does. Flat 'all you can eat' pricing leaves money on the table with your biggest customers and overcharges your smallest.",
+        ],
+      },
+      {
+        heading: "Hold the line when they push",
+        paragraphs: [
+          "A prospect saying 'it's too expensive' is rarely about the number — it's about value they haven't seen yet. Don't reflexively discount; that teaches them the real price is lower and quietly insults the customers who paid full. Instead, ask what they're comparing it to and re-anchor on the outcome: 'compared to what it costs you to keep doing this by hand, what would make it worth it?' Often the objection dissolves once the value is back in frame.",
+          "If you do flex on price, never give the discount for free — trade it. A lower price in exchange for an annual commitment, a case study, a referral, or a narrower scope keeps the value exchange honest and protects your anchor. And set a walk-away in advance: the floor below which the deal costs you more than it's worth. Being willing to lose a bad deal is what lets you win the good ones at a price you can survive.",
         ],
       },
     ],

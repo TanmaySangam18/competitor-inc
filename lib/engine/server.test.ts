@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runValidate, runShift, runChat, realModelConfigured, detectChatApproval, assertSafeBaseUrl, modelForAgent, streamChatReply } from "./server";
+import { runValidate, runShift, runChat, realModelConfigured, detectChatApproval, assertSafeBaseUrl, modelForAgent, streamChatReply, generateSiteFiles, auditSite } from "./server";
 import type { Company } from "./types";
 
 const company: Company = {
@@ -102,5 +102,14 @@ describe("modelForAgent — per-agent model routing", () => {
     for (const role of ["engineering", "ceo", "growth", "marketing", "support"] as const) {
       expect(modelForAgent(role)).toBe("claude-sonnet-4-6");
     }
+  });
+});
+
+describe("Forge v2 + auditSite — gated on a model (null when none)", () => {
+  it("generateSiteFiles returns null without a configured model", async () => {
+    expect(await generateSiteFiles("Acme", "a hiring platform")).toBeNull();
+  });
+  it("auditSite returns null without a configured model", async () => {
+    expect(await auditSite("Acme", "some landing page text")).toBeNull();
   });
 });

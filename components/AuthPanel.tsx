@@ -96,6 +96,15 @@ export default function AuthPanel({ mode }: { mode: "signin" | "signup" }) {
 
         {err && <p className="mt-3 text-center text-xs text-coral">{err}</p>}
 
+        {signup && (
+          <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-2">
+            By continuing you agree to our{" "}
+            <Link href="/terms" className="underline underline-offset-2 hover:text-muted">Terms</Link> and{" "}
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-muted">Privacy Policy</Link>.
+            We&apos;ll only email you about your account — no marketing without your okay.
+          </p>
+        )}
+
         <button onClick={() => router.push("/dashboard")}
           className="group mt-5 flex w-full items-center justify-center gap-2 text-sm text-muted transition hover:text-text">
           Continue as guest <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />

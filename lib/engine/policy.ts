@@ -1,0 +1,248 @@
+// Operating Policy & Enforcement Engine — the deterministic rule every real action passes through.
+//
+// The Autonomy Audit found WHERE the line is. This makes the machine HOLD it: "is this risky?" stops
+// being a judgment call and becomes a rule. Every proposed action runs through decide() and gets one of
+// three verdicts — AUTO (run unattended), QUEUE (park in the Approval Inbox for a human), or BLOCK
+// (refuse and log). AUTO requires passing ALL FIVE gates; forbidden actions never run even if every
+// gate is green.
+//
+// Pure + deterministic on purpose (no I/O, no secrets) so it's unit-tested and reused everywhere — the
+// engine can classify proposals with it, and /api/execute enforces it before any executor fires.
+
+import type { AgentRole, ApprovalItem } from "./types";
+
+// Real-world executor actions the system can actually dispatch (see lib/engine/execution.ts runAction).
+export type ExecAction = "build" | "deploy" | "outreach" | "spend" | "payments" | "bluesky" | "mastodon" | "delete";
+
+export type Bucket = "AUTO" | "APPROVE" | "NEVER"; // a cell in the per-agent matrix
+export type Verdict = "AUTO" | "QUEUE" | "BLOCK"; // decide()'s output
+
+// The events the Glass Box reacts to in real time (not just logs) — see lib/engine/alerts.ts.
+export type AlertEvent = "cap_breach" | "failure" | "forbidden_attempt";
+
+export interface PolicyDecision {
+  verdict: Verdict;
+  reason: string;
+}
+
+export interface Policy {
+  version: number;
+  defaultDecision: Bucket; // (agent, action) not in the matrix → this. APPROVE = "ask a human", never auto.
+  spend: {
+    perTransactionCapUsd: number;
+    dailyCapUsd: number;
+    monthlyCapUsd: number;
+    killSwitch: boolean; // one switch halts ALL real actions instantly
+  };
+  // The hard floor — these never run, even with approval and every gate green.
+  forbiddenActions: ReadonlySet<string>;
+  gates: {
+    requireCredential: boolean;
+    requireCompliance: boolean;
+    requireWithinCaps: boolean;
+    requireObservable: boolean;
+    requireReversible: boolean;
+  };
+  // Per-agent powers over executor actions. AUTO is "think, draft, test in safe sandboxes" (handled in
+  // the engine, never here) — so every real executor action is APPROVE (touches real money/people/
+  // production) or NEVER (out of the agent's lane). Tune to taste; start strict.
+  matrix: Record<AgentRole, Partial<Record<ExecAction, Bucket>>>;
+  // Per-channel rules (compliance + whether the channel may ever fire without a human).
+  channels: {
+    email: { allowed: "opted_in_only" | "any"; compliance: string[]; autoSend: boolean };
+    ads: { allowedAccounts: "connected_only" | "any"; autoLaunch: boolean };
+    social: { massDm: "forbidden" | "allowed"; autoPost: boolean };
+  };
+  // What the system does on its own when something breaks while you're asleep. NOTE: for side-effecting
+  // POSTs (email/spend/deploy) we deliberately do NOT blind-retry (double-send risk) — apiDown is handled
+  // as alert+pause. agentLoop applies once an agentic step-loop exists (today shifts are a single call).
+  failurePolicy: {
+    apiDown: { retries: number; backoff: "exponential" | "linear"; then: "alert_and_pause" };
+    agentLoop: { maxSteps: number; onExceed: "halt_and_alert" };
+    badOutput: { requireValidation: boolean; onFail: "rollback_and_queue" };
+  };
+  // The Glass Box made ACTIVE — log everything, and alert in real time on the events that matter.
+  observability: {
+    logEveryAction: boolean;
+    alertChannel: "required" | "optional";
+    realTimeAlertsOn: AlertEvent[];
+  };
+  // Promote-on-evidence: an APPROVE action earns AUTO only after running clean for this many nights.
+  rollout: { promoteAfterCleanNights: number };
+}
+
+// ── The policy config — the knobs you'll actually argue about (and that's the point) ──────────────
+// These values make "how autonomous are we?" a number you set, not a vibe. Start strict; widen on
+// evidence (see the rollout note at the bottom of this file).
+export const POLICY: Policy = {
+  version: 1,
+  defaultDecision: "APPROVE",
+  spend: {
+    perTransactionCapUsd: 50,
+    dailyCapUsd: 200,
+    monthlyCapUsd: 2000,
+    killSwitch: false,
+  },
+  forbiddenActions: new Set([
+    "move_funds_out",
+    "sign_contract",
+    "delete_production_data",
+    "disable_security_control",
+    "email_unconsented_list",
+    "mass_automated_dm",
+  ]),
+  gates: {
+    requireCredential: true,
+    requireCompliance: true,
+    requireWithinCaps: true,
+    requireObservable: true,
+    requireReversible: true,
+  },
+  matrix: {
+    // CEO — watches the money. May set up payments + approve ad budget; never ships or posts.
+    ceo: { spend: "APPROVE", payments: "APPROVE", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    // Engineer — ships. May build + deploy (with sign-off); never touches money or public channels.
+    engineering: { build: "APPROVE", deploy: "APPROVE", spend: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    // Marketer — finds customers. Owns outreach, ad spend, and social; never ships or moves money out.
+    marketing: { outreach: "APPROVE", spend: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", build: "NEVER", deploy: "NEVER", payments: "NEVER", delete: "NEVER" },
+    // Support — helps users. May send approved replies; never spends, ships, or posts publicly.
+    support: { outreach: "APPROVE", build: "NEVER", deploy: "NEVER", spend: "NEVER", payments: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    // Growth — spots opportunities. May run experiments (spend/social/payments) with sign-off; never ships.
+    growth: { spend: "APPROVE", payments: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", build: "NEVER", deploy: "NEVER", outreach: "NEVER", delete: "NEVER" },
+  },
+  channels: {
+    email: { allowed: "opted_in_only", compliance: ["unsubscribe_link", "sender_identity", "consent_basis"], autoSend: false },
+    ads: { allowedAccounts: "connected_only", autoLaunch: false },
+    social: { massDm: "forbidden", autoPost: false },
+  },
+  failurePolicy: {
+    apiDown: { retries: 3, backoff: "exponential", then: "alert_and_pause" },
+    agentLoop: { maxSteps: 25, onExceed: "halt_and_alert" },
+    badOutput: { requireValidation: true, onFail: "rollback_and_queue" },
+  },
+  observability: {
+    logEveryAction: true,
+    alertChannel: "required",
+    realTimeAlertsOn: ["cap_breach", "failure", "forbidden_attempt"],
+  },
+  rollout: { promoteAfterCleanNights: 14 },
+};
+
+// What we know about a proposed action at decision time. Optional gate inputs default to the safe value
+// for the kind of action: executor actions are APPROVE in the matrix, so they QUEUE before the gates
+// 3–5 even matter — those gates only ever gate an AUTO action.
+export interface ActionContext {
+  type: ExecAction | string;
+  agent: AgentRole;
+  amountUsd?: number; // for spend
+  spentTodayUsd?: number; // running total, for the daily cap
+  spentMonthUsd?: number; // running total, for the monthly cap
+  hasCredential?: boolean; // Gate 1 — a scoped credential exists for this action
+  compliancePass?: boolean; // Gate 2 — passes the channel's compliance checklist
+  observable?: boolean; // Gate 4 — can be monitored in real time
+  reversible?: boolean; // Gate 5 — can be undone in one step
+}
+
+// Gate 3 — bounded? Spend must sit under every cap (per-transaction, today, this month).
+export function withinCaps(ctx: ActionContext, policy: Policy = POLICY): boolean {
+  if (ctx.type !== "spend") return true; // only spend has dollar caps today
+  const amt = ctx.amountUsd ?? 0;
+  if (amt > policy.spend.perTransactionCapUsd) return false;
+  if ((ctx.spentTodayUsd ?? 0) + amt > policy.spend.dailyCapUsd) return false;
+  if ((ctx.spentMonthUsd ?? 0) + amt > policy.spend.monthlyCapUsd) return false;
+  return true;
+}
+
+// The enforcement engine. One function, one verdict — the whole governance model in 25 lines.
+export function decide(ctx: ActionContext, policy: Policy = POLICY): PolicyDecision {
+  const block = (reason: string): PolicyDecision => ({ verdict: "BLOCK", reason });
+  const queue = (reason: string): PolicyDecision => ({ verdict: "QUEUE", reason });
+
+  // Hard floor — the kill switch halts everything, instantly.
+  if (policy.spend.killSwitch) return block("kill switch engaged — all actions halted");
+
+  // Gate 1 — Can it act? (a scoped credential exists)
+  if (policy.gates.requireCredential && ctx.hasCredential === false) return block("no credential or scope for this action");
+
+  // Hard floor — explicitly forbidden actions never run, even if every gate would pass.
+  if (policy.forbiddenActions.has(ctx.type)) return block("forbidden by policy");
+
+  // Gate 2 — Is it lawful? (passes the compliance gate)
+  if (policy.gates.requireCompliance && ctx.compliancePass === false) return block("failed compliance gate");
+
+  // Per-agent permission.
+  const bucket = policy.matrix[ctx.agent]?.[ctx.type as ExecAction] ?? policy.defaultDecision;
+  if (bucket === "NEVER") return block(`not permitted for the ${ctx.agent} agent`);
+  if (bucket === "APPROVE") return queue("requires human approval");
+
+  // bucket === AUTO — must still clear the remaining gates to run unattended.
+  // Gate 3 — Bounded?
+  if (policy.gates.requireWithinCaps && !withinCaps(ctx, policy)) return queue("exceeds a spend or reach limit");
+  // Gate 4 — Observable?
+  if (policy.gates.requireObservable && ctx.observable === false) return queue("can't be monitored in real time");
+  // Gate 5 — Reversible?
+  if (policy.gates.requireReversible && ctx.reversible === false) return queue("can't be undone");
+
+  return { verdict: "AUTO", reason: "safe to run unattended" };
+}
+
+export interface Refusal {
+  reason: string;
+  event: AlertEvent; // so the caller can raise the right real-time alert
+}
+
+// Execution-time guard for /api/execute. Runs AFTER the human-approval keystone (auth + ownership +
+// approved item), so a QUEUE verdict here is fine — a human already signed off. This catches what a
+// human sign-off must NOT be able to wave through: a BLOCK verdict (kill switch, forbidden, wrong
+// agent → forbidden_attempt), and a hard spend ceiling enforced even on approved spend (cap_breach;
+// start strict — raise the cap in POLICY to allow more). Returns a Refusal, or null to allow. (At
+// execute time hasCredential/compliancePass are passed true, so the only BLOCKs reachable here are the
+// governance ones, which is why every BLOCK maps to forbidden_attempt.)
+export function executionRefusal(ctx: ActionContext, policy: Policy = POLICY): Refusal | null {
+  const d = decide(ctx, policy);
+  if (d.verdict === "BLOCK") return { reason: d.reason, event: "forbidden_attempt" };
+  if (ctx.type === "spend") {
+    const amt = ctx.amountUsd ?? 0;
+    if (amt > policy.spend.perTransactionCapUsd) {
+      return { reason: `spend $${amt} exceeds the $${policy.spend.perTransactionCapUsd} per-transaction cap`, event: "cap_breach" };
+    }
+  }
+  return null;
+}
+
+// Govern an autonomous shift's PROPOSED approvals through decide(): drop any the policy BLOCKs (a
+// forbidden action, an action not permitted for that agent, or the kill switch). Keeps the QUEUE items
+// (consequential → needs a human). This applies the five-gate filter to the Approval Inbox itself,
+// deterministically, on every nightly shift — so the autonomous loop can't even PROPOSE something the
+// policy forbids (Operating Policy §1; closes Autonomy Audit System 3).
+export function governApprovals(approvals: ApprovalItem[], policy: Policy = POLICY): ApprovalItem[] {
+  return approvals.filter((a) => {
+    const ctx: ActionContext = { type: a.kind, agent: a.agent, amountUsd: a.amount, hasCredential: true, compliancePass: true };
+    return decide(ctx, policy).verdict !== "BLOCK";
+  });
+}
+
+// Should this event page the founder right now? (observability.realTimeAlertsOn is the knob.)
+export function shouldAlert(event: AlertEvent, policy: Policy = POLICY): boolean {
+  return policy.observability.realTimeAlertsOn.includes(event);
+}
+
+// Promote-on-evidence (§5 rollout): an APPROVE action type earns AUTO only after running clean — approved
+// every time, zero incidents — for promoteAfterCleanNights. Any incident resets eligibility. The
+// forbidden floor is never promotable. Pure + deterministic; the night-by-night counting that feeds
+// `record` is the remaining wiring (needs a per-action-type log).
+export interface PromotionRecord {
+  action: ExecAction | string;
+  cleanNights: number; // consecutive nights approved-unchanged with no incident
+  incidents: number;
+}
+export function promotionEligible(record: PromotionRecord, policy: Policy = POLICY): boolean {
+  if (policy.forbiddenActions.has(record.action)) return false; // never promote the floor
+  return record.incidents === 0 && record.cleanNights >= policy.rollout.promoteAfterCleanNights;
+}
+
+// Rollout (encoded as policy, not hope): start with defaultDecision APPROVE and an AUTO bucket of only
+// read-only/staging actions (Level 2). Watch the Approval Inbox; when an action type runs clean for N
+// nights — approved every time, zero incidents — promote it APPROVE → AUTO (Level 3). Never promote the
+// forbiddenActions floor. You're not chasing Level 4 on money/legal/irreversible actions — that's the
+// liability, not the prize.

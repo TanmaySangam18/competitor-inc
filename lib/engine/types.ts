@@ -50,6 +50,10 @@ export interface Activity {
   status: ActivityStatus;
   proof?: Proof;
   undone?: boolean;
+  // The Rationale Stream (PDR §6): the "why" behind an action. Optional + usually DERIVED for display
+  // (see lib/engine/rationale.ts) so it works for every action without storage; a real engine may attach
+  // a richer one. The Glass Box, the founder/customer views, and the proof board all read this.
+  rationale?: { why: string; principle: string };
 }
 
 export type ApprovalKind = "spend" | "outreach" | "deploy" | "delete" | "bluesky" | "mastodon";
@@ -170,7 +174,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
   marketing: {
     name: "Pitch",
     label: "Marketing",
-    blurb: "Runs demand tests & campaigns — finds the one channel that works",
+    blurb: "Runs pre-launch demand — finds the one channel that converts and gets you to launch",
     playbook: "Bullseye / Traction (Weinberg & Mares)",
     responsibilities: [
       "Generate DEMAND first — demand is the usual bottleneck, not mid-funnel conversion",
@@ -196,7 +200,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
   growth: {
     name: "Surge",
     label: "Growth",
-    blurb: "Spots trends & loads the surprise-launch blitz — drafts demand-capture posts for your sign-off",
+    blurb: "Runs post-launch growth loops — referrals, retention, the compounding flywheel (drafts posts for your sign-off)",
     playbook: "Hacking Growth (Sean Ellis)",
     responsibilities: [
       "Treat distribution as importantly as the product — a launch is the start of the work, not the finish",

@@ -45,6 +45,10 @@ import { LiveGlassBox } from "@/components/LiveGlassBox";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
 import CampaignPanel from "@/components/CampaignPanel";
+import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
+import { rationaleFor } from "@/lib/engine/rationale";
+import { CoachCard } from "@/components/CoachCard";
+import { ImportPanel } from "@/components/ImportPanel";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
 
@@ -118,6 +122,7 @@ export default function Dashboard() {
   return (
     <div id="main" className="min-h-screen">
       <TopBar r={r} />
+      <SelfEnrichPanel />
       {r.blocked && (
         <div className="mx-auto max-w-6xl px-6 pt-4">
           <div className="flex items-center justify-between gap-3 rounded-xl border border-amber/30 bg-amber/[0.06] px-4 py-3 text-sm">
@@ -336,6 +341,8 @@ function Onboarding({ onSubmit, hasOthers, onDemo }: { onSubmit: (idea: string) 
       >
         Or load a demo company to explore the full workflow →
       </button>
+
+      <ImportPanel />
     </motion.div>
   );
 }
@@ -572,6 +579,8 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
         </div>
       </div>
 
+      <CoachCard company={c} />
+
       {r.autopilotPaused && (
         <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-amber/30 bg-amber/[0.06] px-4 py-3 text-sm text-amber">
           <AlertTriangle size={15} className="shrink-0" />
@@ -588,9 +597,20 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
         ))}
       </div>
 
-      <CampaignPanel company={c} />
+      {/* Anti-crowding (Hick's Law): autonomous marketing is advanced — collapsed by default so a
+          first-time founder isn't hit with it; one tap reveals it. */}
+      <details className="mt-6">
+        <summary className="cursor-pointer list-none rounded-2xl border border-border bg-bg/40 px-4 py-3 text-sm font-medium text-muted transition hover:text-text">
+          Advanced · autonomous marketing
+        </summary>
+        <div className="mt-3">
+          <CampaignPanel company={c} />
+        </div>
+      </details>
 
-      {c.product && (
+      {/* Only show a clickable "live" card when there's a REAL, resolvable URL (set by the real build).
+          Otherwise show an honest "shipping" state — never a fabricated link that won't open. */}
+      {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
         <a
           href={c.product.url}
           target="_blank"
@@ -608,7 +628,17 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
           </div>
           <span className="ml-3 shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-muted">View site ↗</span>
         </a>
-      )}
+      ) : c.product ? (
+        <div className="mt-6 flex items-center gap-3 rounded-2xl border border-amber/25 bg-amber/[0.05] p-4">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber/12 text-amber">
+            <Rocket size={18} />
+          </span>
+          <div className="min-w-0">
+            <div className="text-sm font-medium">Shipping your site…</div>
+            <div className="text-xs text-muted-2">A real, openable link appears here the moment the build finishes (≈1 min once your keys are live).</div>
+          </div>
+        </div>
+      ) : null}
 
       {/* tabs */}
       <div className="mt-8 flex gap-1 border-b border-border">
@@ -1052,6 +1082,21 @@ function ActivityRow({ a, onUndo }: { a: Activity; onUndo: () => void }) {
             <Check size={11} />
             {a.proof.value}
           </div>
+        )}
+        {/* Rationale Stream (PDR §6): the "why" behind the action — one tap, tiered (Education view). */}
+        {!a.undone && (
+          <details className="mt-1.5 text-[11px] text-muted-2">
+            <summary className="cursor-pointer list-none transition hover:text-muted">Why?</summary>
+            {(() => {
+              const r = a.rationale ?? rationaleFor(a.agent, a.action, a.meta);
+              return (
+                <div className="mt-1 space-y-0.5">
+                  <div className="text-muted">{r.why}</div>
+                  <div>Principle: {r.principle}</div>
+                </div>
+              );
+            })()}
+          </details>
         )}
       </div>
       <div className="flex flex-col items-end gap-1.5">

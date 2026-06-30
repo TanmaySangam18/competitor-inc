@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Sparkles,
@@ -17,6 +18,8 @@ import {
   Rocket,
   TrendingUp,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { useAuth } from "@/lib/engine/useAuth";
@@ -56,9 +59,18 @@ function Reveal({
 function Nav() {
   const { user, ready, signOut } = useAuth();
   const signedIn = !!user && !user.guest;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const links = [
+    { href: "/how-it-works", label: "How it works" },
+    { href: "/playbooks", label: "Playbooks" },
+    { href: "#capabilities", label: "Capabilities" },
+    { href: "/delegation", label: "The Delegation" },
+    { href: "#trust", label: "Glass Box" },
+    { href: "#pricing", label: "Pricing" },
+  ];
   return (
     <nav className="fixed top-0 inset-x-0 z-50 border-b border-border bg-bg/60 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-6">
         <a href="#" className="flex shrink-0 items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
           <LogoMark size={34} />
           competitor.inc
@@ -67,14 +79,11 @@ function Nav() {
           </span>
         </a>
         <div className="hidden items-center gap-5 whitespace-nowrap text-sm text-muted xl:flex">
-          <a href="/how-it-works" className="transition hover:text-text">How it works</a>
-          <a href="/playbooks" className="transition hover:text-text">Playbooks</a>
-          <a href="#capabilities" className="transition hover:text-text">Capabilities</a>
-          <a href="/delegation" className="transition hover:text-text">The Delegation</a>
-          <a href="#trust" className="transition hover:text-text">Glass Box</a>
-          <a href="#pricing" className="transition hover:text-text">Pricing</a>
+          {links.map((l) => (
+            <a key={l.href} href={l.href} className="transition hover:text-text">{l.label}</a>
+          ))}
         </div>
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2">
           {ready &&
             (signedIn ? (
               <button
@@ -96,12 +105,63 @@ function Nav() {
             ))}
           <a
             href="/dashboard"
-            className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl bg-text px-4 py-2 text-sm font-semibold text-bg transition hover:opacity-90"
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-xl bg-text px-3.5 py-2 text-sm font-semibold text-bg transition hover:opacity-90 sm:px-4"
           >
-            Meet your co-founder <ArrowRight size={15} />
+            <span className="hidden sm:inline">Meet your co-founder</span>
+            <span className="sm:hidden">Start</span>
+            <ArrowRight size={15} />
           </a>
+          {/* Mobile menu toggle — below xl, where the inline links/auth are hidden. */}
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-label="Menu"
+            aria-expanded={menuOpen}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-muted transition hover:text-text xl:hidden"
+          >
+            {menuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile dropdown — everything reachable on a phone (links + auth). */}
+      {menuOpen && (
+        <div className="border-t border-border bg-bg/95 backdrop-blur-xl xl:hidden">
+          <div className="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-3">
+            {links.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg px-2 py-2.5 text-sm text-muted transition hover:bg-surface hover:text-text"
+              >
+                {l.label}
+              </a>
+            ))}
+            <div className="my-1 border-t border-border" />
+            {ready &&
+              (signedIn ? (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    void signOut();
+                  }}
+                  className="flex items-center gap-2 rounded-lg px-2 py-2.5 text-left text-sm text-muted transition hover:bg-surface hover:text-text sm:hidden"
+                >
+                  <LogOut size={14} /> Sign out
+                </button>
+              ) : (
+                <div className="flex flex-col gap-1 sm:hidden">
+                  <a href="/signup" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium text-text transition hover:bg-surface">
+                    Sign up free
+                  </a>
+                  <a href="/login" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm text-muted transition hover:bg-surface hover:text-text">
+                    Sign in
+                  </a>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
@@ -188,7 +248,7 @@ function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-3.5 py-1.5 text-xs text-muted backdrop-blur"
           >
             <Sparkles size={13} className="text-amber" />
-            For first-time founders · honest by design
+            Verifiable. Governed. · for first-time founders
           </motion.div>
 
           <motion.h1
@@ -257,6 +317,20 @@ function Hero() {
         >
           <CofounderPreview />
         </motion.div>
+      </div>
+
+      {/* The position in three lines — the messaging pillars (Verifiable. Governed.) */}
+      <div className="mx-auto mt-14 grid max-w-5xl gap-4 px-6 sm:grid-cols-3">
+        {[
+          { h: "Watch it work — then check the receipts.", s: "Every action is logged with proof you can click." },
+          { h: "It asks before anything risky.", s: "Spend, sends, and deploys wait for your yes — and you can undo." },
+          { h: "We run on our own product, in public.", s: "The company that sells the company-runner is the demo." },
+        ].map((p) => (
+          <div key={p.h} className="rounded-2xl border border-border bg-surface/50 p-5">
+            <div className="text-sm font-semibold text-text">{p.h}</div>
+            <div className="mt-1 text-sm text-muted">{p.s}</div>
+          </div>
+        ))}
       </div>
 
       {/* welcome agent + huge wordmark */}
@@ -384,13 +458,14 @@ function GlassBox() {
           <div className="inline-flex items-center gap-2 rounded-full border border-violet/25 bg-violet/[0.06] px-3 py-1 text-xs text-violet">
             <Eye size={13} /> The Glass Box
           </div>
-          <h2 className="display mt-5 text-3xl md:text-[2.6rem]">See everything. Undo anything.</h2>
+          <h2 className="display mt-5 text-3xl md:text-[2.6rem]">See every move. Nothing risky without your yes.</h2>
           <p className="mt-4 text-lg leading-relaxed text-muted">
             competitor.inc logs every action, dollar, and decision it makes — in plain language. Nothing
-            consequential happens without your sign-off, and you can reverse any step in one click.
+            consequential — real spend, outreach, a deploy — fires without your sign-off, and any step
+            that&apos;s still reversible can be undone in one click.
           </p>
           <ul className="mt-7 space-y-3 text-sm text-muted">
-            {["Plain-language audit trail of every overnight action", "Approval required for spend, outreach & deploys", "One-click undo on anything the agents did"].map((t) => (
+            {["Plain-language audit trail of every overnight action", "Approval required for spend, outreach & deploys", "One-click undo on any reversible step"].map((t) => (
               <li key={t} className="flex items-start gap-2.5">
                 <ShieldCheck size={17} className="mt-0.5 shrink-0 text-mint" /> {t}
               </li>

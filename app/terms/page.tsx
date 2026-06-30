@@ -55,6 +55,21 @@ export default function Terms() {
             ends. We may rate-limit or suspend access to keep it healthy for everyone.
           </p>
         </section>
+        <section>
+          <h2 className="text-base font-semibold text-text">Billing</h2>
+          <p className="mt-2">
+            Paid plans are processed by <span className="text-text">LemonSqueezy</span>, our merchant of record — they
+            handle payment and any applicable sales tax/VAT. We never see or store your card details.
+          </p>
+        </section>
+        <section>
+          <h2 className="text-base font-semibold text-text">Governing law</h2>
+          <p className="mt-2">
+            We operate from the <span className="text-text">Commonwealth of Massachusetts, USA</span>, and these terms
+            are governed by Massachusetts law (without regard to conflict-of-laws rules). This is plain-language beta
+            terms — not a substitute for legal advice.
+          </p>
+        </section>
       </div>
 
       <p className="mt-10 text-xs text-muted-2">

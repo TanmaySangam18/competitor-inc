@@ -19,7 +19,8 @@ import {
   Lock,
   Bell,
 } from "lucide-react";
-import { useConfig } from "@/lib/engine/config";
+import { useConfig, validateByok } from "@/lib/engine/config";
+import { seatsRemaining, FOUNDING_SEATS_CAP } from "@/lib/engine/seats";
 import { useAuth } from "@/lib/engine/useAuth";
 import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/engine/types";
 
@@ -146,7 +147,8 @@ function Engine({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
   const pickDefault = () => { cfg.setProviderMode("simulated"); cfg.setByok({ provider: "" }); };
   const pickOwnKey = () => { cfg.setProviderMode("private"); if (!cfg.config.byok.provider) cfg.setByok({ provider: "anthropic" }); };
   const radio = (on: boolean) => `mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border ${on ? "border-coral bg-coral text-bg" : "border-muted-2"}`;
-  const live = useOwnKey && !!cfg.config.byok.apiKey;
+  const shape = validateByok(cfg.config.byok);
+  const live = useOwnKey && !!cfg.config.byok.apiKey && shape.ok;
   return (
     <Card title="Choose your AI" desc="Who powers the agents' thinking. Pick one — everything else (validation, your crew, the proof layer) works the same either way. The model is a commodity; competitor.inc is the engine around it.">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -218,9 +220,16 @@ function Engine({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
               className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-coral/40"
             />
           </label>
+          {cfg.config.byok.apiKey && !shape.ok && (
+            <ul className="mt-3 space-y-1 rounded-lg border border-coral/30 bg-coral/[0.05] px-3 py-2 text-[11px] text-coral">
+              {shape.errors.map((e) => <li key={e}>• {e}</li>)}
+            </ul>
+          )}
           <p className="mt-3 flex items-center gap-1.5 text-[11px] text-muted-2">
             {live ? (
               <><span className="h-1.5 w-1.5 rounded-full bg-mint" /> Live — running on your key.</>
+            ) : cfg.config.byok.apiKey && !shape.ok ? (
+              <>Key won't be used until the fields above are fixed — falling back to the default engine.</>
             ) : (
               <>Add the API key to go live (free tiers work: Groq, OpenRouter).</>
             )}
@@ -232,10 +241,14 @@ function Engine({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
 }
 
 function Billing() {
+  // Founding-seat scarcity is REAL: a hard cap minus seats actually claimed (0 until billing is live —
+  // we never fake a countdown). Wires to live billing data when it lands; honest by default today.
+  const foundingClaimed = 0;
+  const foundingLeft = seatsRemaining(foundingClaimed);
   const plans = [
-    { name: "Validate", price: "$0", tag: "free forever", current: true },
-    { name: "Operator", price: "$39", tag: "/ month", current: false },
-    { name: "Founding", price: "$99", tag: "once · launch", current: false },
+    { name: "Validate", price: "$0", tag: "free forever", current: true, note: "" },
+    { name: "Operator", price: "$39", tag: "/ month", current: false, note: "" },
+    { name: "Founding", price: "$99", tag: "once · launch", current: false, note: `${foundingLeft} of ${FOUNDING_SEATS_CAP} seats left` },
   ];
   return (
     <Card title="Billing" desc="Flat pricing, no revenue share. Failed work is credited back to your allowance — never charged.">
@@ -244,6 +257,7 @@ function Billing() {
           <div key={p.name} className={`rounded-xl border p-4 ${p.current ? "border-coral/50 bg-coral/[0.05]" : "border-border bg-bg/40"}`}>
             <div className="text-sm font-semibold">{p.name}</div>
             <div className="mt-1 font-display text-2xl font-bold">{p.price}<span className="ml-1 text-xs font-normal text-muted-2">{p.tag}</span></div>
+            {p.note && <div className="mt-1 text-[11px] font-medium text-coral">{p.note}</div>}
             {p.current ? (
               <span className="mt-3 inline-block rounded-md bg-mint/12 px-2 py-1 text-[11px] text-mint">Current plan</span>
             ) : (
@@ -252,7 +266,7 @@ function Billing() {
           </div>
         ))}
       </div>
-      <p className="mt-4 text-xs text-muted-2">Checkout activates with a Stripe key (Vercel Marketplace). No charges until configured.</p>
+      <p className="mt-4 text-xs text-muted-2">Founding is capped at {FOUNDING_SEATS_CAP} seats — a real limit, not a countdown. Checkout activates with a Stripe key (Vercel Marketplace). No charges until configured.</p>
     </Card>
   );
 }

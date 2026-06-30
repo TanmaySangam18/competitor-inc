@@ -6,6 +6,7 @@ import "server-only";
 // never reaches the client because this module is server-only.
 
 import { getProvider, scoreIdea, type ShiftResult } from "./provider";
+import { governApprovals } from "./policy";
 import type { Activity, ActivityStatus, AgentRole, ApprovalItem, ApprovalKind, ByokConfig, Company, ValidationResult } from "./types";
 import { AGENTS } from "./types";
 
@@ -70,12 +71,12 @@ const num = (v: unknown, d = 0) => (typeof v === "number" && Number.isFinite(v) 
 const str = (v: unknown, d = "") => (typeof v === "string" ? v : d);
 const role = (v: unknown): AgentRole => (ROLES.includes(v as AgentRole) ? (v as AgentRole) : "engineering");
 
-async function callAnthropic(system: string, user: string, key: string = KEY ?? "", model: string = MODEL): Promise<string> {
+async function callAnthropic(system: string, user: string, key: string = KEY ?? "", model: string = MODEL, maxTokens = 1500): Promise<string> {
   const res = await fetchWithTimeout("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model, max_tokens: 1500, system, messages: [{ role: "user", content: user }] }),
-  });
+    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
+  }, maxTokens > 4000 ? 60_000 : MODEL_TIMEOUT_MS);
   if (!res.ok) throw new Error(`anthropic ${res.status}`);
   const data = await res.json();
   return data?.content?.[0]?.text ?? "";
@@ -89,13 +90,13 @@ import { assertSafeBaseUrl } from "./net";
 // Any OpenAI-compatible endpoint: OpenAI, Groq, OpenRouter, Together, the Vercel AI Gateway, local
 // servers, … `enforceSsrf` is true ONLY for user-supplied (BYOK) URLs; operator-set env URLs are
 // trusted and may legitimately point at an internal/self-hosted host.
-async function callOpenAICompat(baseUrl: string, key: string, model: string, system: string, user: string, enforceSsrf: boolean): Promise<string> {
+async function callOpenAICompat(baseUrl: string, key: string, model: string, system: string, user: string, enforceSsrf: boolean, maxTokens = 1500): Promise<string> {
   if (enforceSsrf) assertSafeBaseUrl(baseUrl);
   const res = await fetchWithTimeout(`${baseUrl.replace(/\/$/, "")}/chat/completions`, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
-    body: JSON.stringify({ model, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
-  });
+    body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
+  }, maxTokens > 4000 ? 60_000 : MODEL_TIMEOUT_MS);
   if (!res.ok) throw new Error(`model ${res.status}`);
   const data = await res.json();
   return data?.choices?.[0]?.message?.content ?? "";
@@ -177,18 +178,18 @@ function modelAvailable(byok?: ByokConfig): boolean {
 
 // Routes to the user's BYOK provider first (their key, their bill — our marginal cost ~$0),
 // then a server env model, else throws so callers fall back to the simulated engine.
-async function callModel(system: string, user: string, byok?: ByokConfig, model?: string): Promise<string> {
+async function callModel(system: string, user: string, byok?: ByokConfig, model?: string, maxTokens = 1500): Promise<string> {
   // 1) User's BYOK key (their bill — SSRF-guarded because the URL is user-supplied; user's model wins).
   if (byok?.apiKey && byok.provider === "openai-compatible" && byok.baseUrl) {
-    return callOpenAICompat(byok.baseUrl, byok.apiKey, byok.model || "gpt-4o-mini", system, user, true);
+    return callOpenAICompat(byok.baseUrl, byok.apiKey, byok.model || "gpt-4o-mini", system, user, true, maxTokens);
   }
   if (byok?.apiKey && byok.provider === "anthropic") {
-    return callAnthropic(system, user, byok.apiKey, byok.model || MODEL);
+    return callAnthropic(system, user, byok.apiKey, byok.model || MODEL, maxTokens);
   }
   // 2) Managed (operator-configured) engine: per-agent `model` override → else the managed default.
   const managed = managedModel();
-  if (managed?.kind === "anthropic") return callAnthropic(system, user, managed.key, model ?? managed.model);
-  if (managed?.kind === "openai") return callOpenAICompat(managed.baseUrl, managed.key, model ?? managed.model, system, user, false);
+  if (managed?.kind === "anthropic") return callAnthropic(system, user, managed.key, model ?? managed.model, maxTokens);
+  if (managed?.kind === "openai") return callOpenAICompat(managed.baseUrl, managed.key, model ?? managed.model, system, user, false, maxTokens);
   throw new Error("no model configured");
 }
 
@@ -211,6 +212,76 @@ function extractJson<T>(text: string): T {
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error("no json in model output");
   return JSON.parse(match[0]) as T;
+}
+
+// Forge v2 (PDR §6 / agent-architecture-roadmap) — the model AUTHORS a small, real, multi-file static
+// site for the idea (vs a fixed one-page template). Defensive on every axis so it can't ship junk:
+// validates JSON, requires a real index.html, caps file count/size, blocks path traversal. Returns null
+// on ANY problem so the caller falls back to the safe single-file template (verify-before-done). Static
+// only — no build step, no external deps — so GitHub Pages serves it directly. Lights up with any model
+// (Groq today); a Claude key makes it markedly better.
+export async function generateSiteFiles(
+  name: string,
+  idea: string,
+  byok?: ByokConfig,
+): Promise<Record<string, string> | null> {
+  if (!modelAvailable(byok)) return null;
+  const system =
+    "You are a senior front-end engineer. Output ONLY raw JSON, no markdown, no prose. Build a small, real, " +
+    "static marketing site — no build step, no external JS/CDN deps, CSS linked or inline. It must look modern and be genuinely usable.";
+  const user =
+    `Company: ${name}\nWhat it does: ${idea}\n\n` +
+    `Return JSON exactly like {"files":{"index.html":"<!doctype html>…","styles.css":"…"}}. ` +
+    `Requirements: include index.html (required) that <link>s styles.css; a hero (name + what it does), 3 feature points, ` +
+    `and an email capture form; clean responsive CSS; 2–4 files max; each file under 12000 characters; absolutely no external scripts or CDNs.`;
+  try {
+    const raw = await callModel(system, user, byok, undefined, 8000);
+    const parsed = extractJson<{ files?: Record<string, unknown> }>(raw);
+    const files = parsed?.files;
+    if (!files || typeof files !== "object") return null;
+    const out: Record<string, string> = {};
+    let count = 0;
+    for (const [path, content] of Object.entries(files)) {
+      if (count >= 6) break;
+      if (typeof path !== "string" || typeof content !== "string") continue;
+      if (path.includes("..") || path.startsWith("/") || path.length > 80) continue; // no traversal/abs paths
+      if (content.length < 1 || content.length > 14000) continue;
+      out[path] = content;
+      count++;
+    }
+    // Must be a genuine page, or we don't trust it — fall back.
+    if (!out["index.html"] || !/<html|<!doctype/i.test(out["index.html"])) return null;
+    return out;
+  } catch {
+    return null;
+  }
+}
+
+export interface SiteAudit {
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+}
+
+// 2.8 import on-ramp (PDR §5) — audit an EXISTING product from its landing-page text. Gated on a model
+// (null when off); defensive parse. Read-only/public — operating the project is gated on ownership.
+export async function auditSite(title: string, text: string, byok?: ByokConfig): Promise<SiteAudit | null> {
+  if (!modelAvailable(byok)) return null;
+  const system =
+    "You are a sharp startup operator auditing an EXISTING product from its landing page. Output ONLY raw JSON, no prose. Be specific to THIS product — no generic platitudes.";
+  const user =
+    `Title: ${title}\n\nLanding-page text:\n${text}\n\n` +
+    `Return JSON {"summary":"1–2 sentences on what this is","strengths":["…"],"weaknesses":["…"],"opportunities":["a concrete growth move","…"]} — 2–4 specific items per list.`;
+  try {
+    const a = extractJson<Partial<SiteAudit>>(await callModel(system, user, byok, undefined, 1500));
+    if (!a || typeof a.summary !== "string") return null;
+    const arr = (x: unknown): string[] =>
+      Array.isArray(x) ? x.filter((s): s is string => typeof s === "string" && s.trim().length > 0).slice(0, 5) : [];
+    return { summary: a.summary.slice(0, 400), strengths: arr(a.strengths), weaknesses: arr(a.weaknesses), opportunities: arr(a.opportunities) };
+  } catch {
+    return null;
+  }
 }
 
 export async function runValidate(idea: string, byok?: ByokConfig, salt?: string): Promise<ValidationResult> {
@@ -357,15 +428,22 @@ interface ModelShift {
   approvals?: Array<{ agent?: string; kind?: string; title?: string; detail?: string; amount?: number }>;
 }
 
-export async function runShift(company: Company, byok?: ByokConfig): Promise<ShiftResult> {
-  if (!modelAvailable(byok)) return getProvider().shift(company);
+// Every shift's PROPOSED approvals pass through the policy engine before anyone sees them — the
+// autonomous loop can't even propose what the policy forbids (Operating Policy §1).
+function governShift(s: ShiftResult): ShiftResult {
+  return { ...s, approvals: governApprovals(s.approvals) };
+}
+
+export async function runShift(company: Company, byok?: ByokConfig, context?: string): Promise<ShiftResult> {
+  if (!modelAvailable(byok)) return governShift(getProvider().shift(company));
   const night = company.night + 1;
   try {
     const text = await callModel(
       `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${ROLES.join(", ")}. ` +
-        "Produce 3-5 realistic actions taken overnight. Consequential actions (spend>$100, outreach, deploy, delete) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
+        "Produce 3-5 realistic actions taken overnight. Build on priorContext (what earlier nights did) — stay consistent; don't repeat or contradict past decisions. " +
+        "Consequential actions (spend>$100, outreach, deploy, delete) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
         '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-credited","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete","title":string,"detail":string,"amount":number}]}',
-      JSON.stringify({ idea: company.idea, night }),
+      JSON.stringify({ idea: company.idea, night, priorContext: context || "(none yet)" }),
       byok,
       modelForAgent("engineering")
     );
@@ -390,8 +468,8 @@ export async function runShift(company: Company, byok?: ByokConfig): Promise<Shi
       amount: p.amount != null ? Math.max(0, num(p.amount)) : undefined,
     }));
     if (activities.length === 0 && approvals.length === 0) throw new Error("empty");
-    return { activities, approvals };
+    return governShift({ activities, approvals });
   } catch {
-    return getProvider().shift(company); // graceful degradation
+    return governShift(getProvider().shift(company)); // graceful degradation
   }
 }

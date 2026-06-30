@@ -32,23 +32,31 @@ export default function DemandCapture({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && submit()}
-        placeholder="you@email.com"
-        aria-label="Email"
-        className="w-full rounded-xl glass-panel px-4 py-3 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40"
-      />
-      <button
-        onClick={submit}
-        disabled={!email.includes("@")}
-        className="shrink-0 rounded-xl bg-coral px-6 py-3 text-sm font-semibold text-bg transition hover:brightness-110 disabled:opacity-40"
-      >
-        Notify me
-      </button>
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="you@email.com"
+          aria-label="Email"
+          className="w-full rounded-xl glass-panel px-4 py-3 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40"
+        />
+        <button
+          onClick={submit}
+          disabled={!email.includes("@")}
+          className="shrink-0 rounded-xl bg-coral px-6 py-3 text-sm font-semibold text-bg transition hover:brightness-110 disabled:opacity-40"
+        >
+          Notify me
+        </button>
+      </div>
+      {/* Consent basis (CAN-SPAM/GDPR): opt-in is explicit, sender + purpose named, opt-out promised. */}
+      <p className="text-xs text-muted-2">
+        By joining you agree to our{" "}
+        <a href="/privacy" className="underline underline-offset-2 hover:text-text">Privacy Policy</a>{" "}
+        and to get occasional updates about this idea. No spam; unsubscribe anytime.
+      </p>
     </div>
   );
 }

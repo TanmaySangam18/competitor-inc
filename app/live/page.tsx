@@ -65,13 +65,14 @@ export default function Live() {
       </header>
 
       <div className="mx-auto max-w-6xl px-6 py-16">
-        <div className="flex items-center gap-2 text-sm text-mint">
-          <span className="live-dot inline-block h-2 w-2 rounded-full bg-mint" /> LIVE WORKSPACE
+        <div className="flex items-center gap-2 text-sm text-muted-2">
+          <span className="inline-block h-2 w-2 rounded-full bg-muted-2" /> THE GLASS BOX · YOUR WORKSPACE
         </div>
-        <h1 className="mt-3 text-4xl font-bold md:text-5xl">What competitor.inc is doing</h1>
+        <h1 className="mt-3 text-4xl font-bold md:text-5xl">See the work, in the open</h1>
         <p className="mt-3 max-w-xl text-muted">
-          A public, real-time view of every company competitor.inc has validated and is building — the
-          Glass Box, out in the open.
+          A live view of the companies in <span className="text-text">your</span> workspace — every action,
+          dollar, and decision, logged. Public, receipted proof of competitor.inc&apos;s own companies
+          arrives at launch on the proof board.
         </p>
 
         <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-5">

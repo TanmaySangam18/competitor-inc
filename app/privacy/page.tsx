@@ -27,6 +27,16 @@ export default function Privacy() {
           </p>
         </section>
         <section>
+          <h2 className="text-base font-semibold text-text">What&apos;s public about you (enrichment)</h2>
+          <p className="mt-2">
+            When you sign in, we look up what&apos;s <span className="text-text">already public</span> about you from{" "}
+            <span className="text-text">Gravatar</span> and <span className="text-text">GitHub</span> (using your email)
+            and show it to you so you can confirm or remove it — a convenience, never a trick. We only ever do this for{" "}
+            <span className="text-text">you, about you</span> — never third parties — and we don&apos;t use sensitive
+            categories or scrape sites that forbid it. Don&apos;t want it? Dismiss the panel and we drop it.
+          </p>
+        </section>
+        <section>
           <h2 className="text-base font-semibold text-text">What we don&apos;t do</h2>
           <p className="mt-2">
             We don&apos;t sell your data, we don&apos;t run ad-tracking on you, and we don&apos;t train models on your
@@ -48,6 +58,15 @@ export default function Privacy() {
           <p className="mt-2">
             Export everything as JSON anytime from <span className="text-text">Settings → Account</span>. Ask us to
             delete your account data and we will. No lock-in, ever.
+          </p>
+        </section>
+        <section>
+          <h2 className="text-base font-semibold text-text">Your rights</h2>
+          <p className="mt-2">
+            You can ask us to <span className="text-text">access, correct, or delete</span> your personal data, and we
+            don&apos;t sell it. Send a privacy request to the founder address in the footer and we&apos;ll act on it. We
+            operate from <span className="text-text">Massachusetts, USA</span>; these are plain-language disclosures, not
+            legal advice.
           </p>
         </section>
         <section>

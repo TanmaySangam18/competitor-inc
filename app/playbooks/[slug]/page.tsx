@@ -9,11 +9,21 @@ export function generateStaticParams() {
   return PLAYBOOKS.map((p) => ({ slug: p.slug }));
 }
 
+// Playbooks are the long-tail SEO engine — give each rich metadata + a canonical URL so it ranks.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://competitor-inc-zeta.vercel.app";
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const pb = getPlaybook(slug);
   if (!pb) return { title: "Playbook not found — competitor.inc" };
-  return { title: `${pb.title} — competitor.inc`, description: pb.summary };
+  const url = `${SITE_URL}/playbooks/${slug}`;
+  return {
+    title: `${pb.title} — competitor.inc`,
+    description: pb.summary,
+    alternates: { canonical: url },
+    openGraph: { title: pb.title, description: pb.summary, url, type: "article", siteName: "competitor.inc" },
+    twitter: { card: "summary_large_image", title: pb.title, description: pb.summary },
+  };
 }
 
 export default async function PlaybookDetail({ params }: { params: Promise<{ slug: string }> }) {
@@ -23,6 +33,21 @@ export default async function PlaybookDetail({ params }: { params: Promise<{ slu
 
   return (
     <div id="main" className="min-h-screen">
+      {/* Article structured data → rich results in search (the SEO engine). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: pb.title,
+            description: pb.summary,
+            author: { "@type": "Organization", name: "competitor.inc" },
+            publisher: { "@type": "Organization", name: "competitor.inc" },
+            mainEntityOfPage: `${SITE_URL}/playbooks/${slug}`,
+          }),
+        }}
+      />
       <header className="glass-nav sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">

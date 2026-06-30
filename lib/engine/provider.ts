@@ -154,7 +154,6 @@ class SimulatedProvider implements EngineProvider {
   shift(company: Company): ShiftResult {
     const night = company.night + 1;
     const rng = mulberry32(hash(company.id + ":night:" + night));
-    const slug = company.slug;
     const activities: Activity[] = [];
     const approvals: ApprovalItem[] = [];
 
@@ -179,7 +178,9 @@ class SimulatedProvider implements EngineProvider {
       const feat = pick(rng, ["onboarding flow", "billing screen", "search", "share links", "dark mode"]);
       add("engineering", `Shipped the ${feat}`, {
         cost: round(between(rng, 0.18, 0.7)),
-        proof: { kind: "url", value: `https://${slug}.competitor.inc` },
+        // Simulated shift → a metric, never a fabricated clickable URL. Real builds attach a real,
+        // resolvable link (see execution.ts buildOnGitHub); this is the offline preview.
+        proof: { kind: "metric", value: "build passed (preview)" },
         meta: "build passed",
       });
     }
@@ -232,7 +233,8 @@ class SimulatedProvider implements EngineProvider {
       approvals.push({
         id: uid(), night, agent: "growth", kind: "bluesky",
         title: "Post a launch update on Bluesky",
-        detail: `${company.name} — the honest AI co-founder that validates your idea before it builds it, and takes 0% of your revenue. Soft launch is live.`,
+        // Markets the CUSTOMER's product (name + idea) — not competitor.inc's pitch.
+        detail: `${company.name} is live in early access — ${company.idea}. Be one of the first to try it 👇`,
       });
     } else if (rng() > 0.4) {
       add("growth", "Spotted a trend worth riding & drafted notes", {

@@ -48,15 +48,41 @@ export const DEFAULT_CONFIG: EngineConfig = {
 
 const KEY = "cofounder:config:v1";
 
+// Validate the SHAPE of a BYOK config before it's trusted or sent. Pure + testable. This is a
+// client-side guard so a half-filled or malformed key never reaches the engine — the SERVER still
+// re-checks the URL with an SSRF guard (assertSafeBaseUrl), so this is defense-in-depth, not a
+// substitute. An unset config (provider: "") is "valid" in the sense of "no BYOK" — callers treat
+// that as simulated, not as an error.
+export function validateByok(b: Partial<ByokConfig> | null | undefined): { ok: boolean; errors: string[] } {
+  const errors: string[] = [];
+  if (!b || !b.provider) return { ok: true, errors }; // unset = no BYOK, not an error
+  if (b.provider !== "anthropic" && b.provider !== "openai-compatible") errors.push("Unknown provider.");
+  if (!b.apiKey || !b.apiKey.trim()) errors.push("API key is required.");
+  if (b.provider === "openai-compatible") {
+    if (!b.baseUrl || !b.baseUrl.trim()) {
+      errors.push("Base URL is required for an OpenAI-compatible provider.");
+    } else {
+      try {
+        const u = new URL(b.baseUrl.trim());
+        if (u.protocol !== "https:") errors.push("Base URL must use https://.");
+      } catch {
+        errors.push("Base URL isn't a valid URL.");
+      }
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
 // Read the user's BYOK config from local storage (used by request senders outside React).
-// Returns null unless a provider + key are set, so requests fall back to simulated.
+// Returns null unless a provider + key are set AND the shape is valid, so a malformed key falls
+// back to simulated rather than getting sent to the engine.
 export function getByok(): ByokConfig | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return null;
     const b = (JSON.parse(raw) as EngineConfig).byok;
-    if (b && b.provider && b.apiKey) return b;
+    if (b && b.provider && b.apiKey && validateByok(b).ok) return b;
   } catch {
     /* ignore */
   }
