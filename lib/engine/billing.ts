@@ -1,11 +1,12 @@
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { isEntitled, entitlementNotice } from "@/lib/engine/entitlement";
 
-// Pay-to-build billing (client side). Validating is free; Build/run requires an active Operator
-// subscription via LemonSqueezy (Merchant-of-Record — handles tax). The paywall is only ENFORCED when
-// a checkout URL is configured; until then Build stays open so the demo works (gated, fail-soft).
+// Pay-to-reveal billing (client side). Validating AND building are free; OPENING the live deployed site
+// requires an active Operator subscription via Polar (Merchant-of-Record — handles tax/VAT). The
+// paywall is only ENFORCED when a checkout URL is configured; until then everything stays open so the
+// pre-launch demo works (gated, fail-soft).
 //
-// Multi-tier: each paid offer is its own LemonSqueezy product/variant = its own checkout link.
+// Multi-tier: each paid offer is its own Polar product = its own checkout link.
 //   operator → $39/mo self-serve · founder → concierge done-with-you recurring · sprint → one-time.
 export const CHECKOUT_URLS: Record<string, string> = {
   operator: process.env.NEXT_PUBLIC_CHECKOUT_URL || "",
@@ -52,12 +53,13 @@ export async function getEntitlement(
   }
 }
 
-// LemonSqueezy checkout for a given tier (default operator), with the buyer's email prefilled so the
-// webhook can match them on return. Empty string if that tier's link isn't configured.
+// Polar checkout for a given tier (default operator), with the buyer's email prefilled so the webhook
+// can match them on return. Empty string if that tier's link isn't configured. Polar prefills via
+// `customer_email` (LemonSqueezy used `checkout[email]` — we migrated to Polar as Merchant-of-Record).
 export function checkoutUrlFor(email: string, tier: string = "operator"): string {
   const base = CHECKOUT_URLS[tier] || "";
   if (!base) return "";
   if (!email) return base;
   const sep = base.includes("?") ? "&" : "?";
-  return `${base}${sep}checkout[email]=${encodeURIComponent(email)}`;
+  return `${base}${sep}customer_email=${encodeURIComponent(email)}`;
 }

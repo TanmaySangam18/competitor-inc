@@ -30,6 +30,7 @@ import {
   MessagesSquare,
   Zap,
   Rocket,
+  Lock,
   Target,
   AlertTriangle,
 } from "lucide-react";
@@ -91,22 +92,31 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("operations");
 
-  // Approving a build is consequential and should be *visible*: ship the MVP, then take the
-  // founder straight to the live agent floor so they watch the crew go to work (Nielsen H1).
-  // Pay-to-build: validating is free; building & running requires an active Operator subscription —
-  // enforced ONLY when billing is configured (so the demo stays open until LemonSqueezy is live).
-  const goBuild = async () => {
-    if (billingLive()) {
-      if (!user || user.guest) {
-        router.push("/login"); // must sign in so we can tie the subscription to them
-        return;
-      }
-      const entitled = await checkEntitled(user.email);
-      if (!entitled) {
-        window.location.href = checkoutUrlFor(user.email); // → Operator $39/mo checkout (email prefilled)
-        return;
-      }
+  // Value-first funnel: building & watching the crew work is FREE for everyone. The paywall moves
+  // DOWNSTREAM — to revealing the live site (the "product is live" card in Operating). A founder
+  // watches their idea get validated, sees the crew ship a REAL deployed site, *then* unlocks the
+  // link by paying. That's a far stronger "pay now" moment than a cold checkout (Cialdini: commitment
+  // + the endowment effect — it's already theirs, they just can't open it yet).
+  const [entitled, setEntitled] = useState(false);
+  useEffect(() => {
+    // Reveal the live link to anyone who already pays — and, until billing is live, to everyone (so
+    // the pre-launch demo shows real, openable sites). When billing is live, gate on real entitlement.
+    if (!billingLive()) {
+      setEntitled(true);
+      return;
     }
+    let alive = true;
+    checkEntitled(user?.email).then((e) => {
+      if (alive) setEntitled(e);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [user?.email]);
+
+  // Approving a build ships the MVP, then takes the founder straight to the live agent floor so they
+  // watch the crew go to work (Nielsen H1). No paywall here — the reveal is where they pay.
+  const goBuild = async () => {
     r.decideBuild(true);
     router.push("/delegation");
   };
@@ -144,7 +154,7 @@ export default function Dashboard() {
         {r.company?.status === "validating" && <ValidationRunning idea={r.company.idea} />}
         {r.company?.status === "validated" && <ValidationGate r={r} onBuild={goBuild} />}
         {r.company?.status === "rejected" && <Rejected r={r} onBuild={goBuild} />}
-        {r.company?.status === "operating" && <Operating r={r} tab={tab} setTab={setTab} />}
+        {r.company?.status === "operating" && <Operating r={r} tab={tab} setTab={setTab} entitled={entitled} userEmail={user?.email} />}
       </div>
     </div>
   );
@@ -510,7 +520,7 @@ function Rejected({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBuild: ()
 }
 
 /* ── Operating ───────────────────────────────────────────────── */
-function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: Tab; setTab: (t: Tab) => void }) {
+function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<typeof useEngine>; tab: Tab; setTab: (t: Tab) => void; entitled: boolean; userEmail?: string }) {
   const c = r.company!;
   const net = Math.round((c.ledger.spent - (c.ledger.credited ?? 0)) * 100) / 100;
   const stats = [
@@ -604,30 +614,62 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
           Advanced · autonomous marketing
         </summary>
         <div className="mt-3">
-          <CampaignPanel company={c} />
+          <CampaignPanel company={c} locked={!entitled} />
         </div>
       </details>
 
-      {/* Only show a clickable "live" card when there's a REAL, resolvable URL (set by the real build).
-          Otherwise show an honest "shipping" state — never a fabricated link that won't open. */}
+      {/* The conversion moment. A REAL, resolvable site exists — but the link only OPENS once they pay
+          (value-first: they've already watched the crew build it). Until billing is live, `entitled` is
+          true for everyone, so this stays an open clickable card (pre-launch demo). Never a fake link. */}
       {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
-        <a
-          href={c.product.url}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-6 flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] p-4 transition hover:border-mint/40"
-        >
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mint/12 text-mint">
-              <Rocket size={18} />
-            </span>
-            <div className="min-w-0">
-              <div className="text-sm font-medium">Your product is live</div>
-              <div className="truncate text-xs text-mint">{c.product.url}</div>
+        entitled ? (
+          <a
+            href={c.product.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-6 flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] p-4 transition hover:border-mint/40"
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mint/12 text-mint">
+                <Rocket size={18} />
+              </span>
+              <div className="min-w-0">
+                <div className="text-sm font-medium">Your product is live</div>
+                <div className="truncate text-xs text-mint">{c.product.url}</div>
+              </div>
             </div>
+            <span className="ml-3 shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-muted">View site ↗</span>
+          </a>
+        ) : (
+          <div className="mt-6 overflow-hidden rounded-2xl border border-coral/30 bg-coral/[0.05] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-coral/12 text-coral">
+                  <Rocket size={18} />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium">Your product is built &amp; live</div>
+                  {/* The real URL exists but is NEVER emitted to a locked client (CSS blur is cosmetic —
+                      the value would still sit in the DOM). We render a masked decoy so it LOOKS like a
+                      real link is right there, while the actual URL stays server-side until they unlock. */}
+                  <div className="mt-0.5 select-none truncate font-mono text-xs text-coral blur-[5px]" aria-hidden>
+                    https://{"•".repeat(16)}.live
+                  </div>
+                </div>
+              </div>
+              <Lock size={16} className="shrink-0 text-coral" aria-label="Locked" />
+            </div>
+            <a
+              href={userEmail ? checkoutUrlFor(userEmail) : "/login"}
+              className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-coral px-4 py-2.5 text-sm font-semibold text-bg transition hover:opacity-90"
+            >
+              Unlock your live site — Operator $39/mo <ArrowRight size={15} />
+            </a>
+            <p className="mt-2 text-center text-[11px] text-muted-2">
+              It&apos;s real and already deployed — paying just opens it. Cancel anytime, own the repo, no lock-in.
+            </p>
           </div>
-          <span className="ml-3 shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-muted">View site ↗</span>
-        </a>
+        )
       ) : c.product ? (
         <div className="mt-6 flex items-center gap-3 rounded-2xl border border-amber/25 bg-amber/[0.05] p-4">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber/12 text-amber">
@@ -661,7 +703,7 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
       </div>
 
       <div className="mt-6">
-        {tab === "operations" && <OperationsTab r={r} />}
+        {tab === "operations" && <OperationsTab r={r} lockedUrl={!entitled && c.product?.status === "live" ? c.product?.url : undefined} />}
         {tab === "history" && <HistoryTab activities={r.activities} company={c} />}
         {tab === "chat" && <ChatTab company={c} r={r} />}
         {tab === "operate" && OPERATE_ENABLED && <OperateTab r={r} c={c} />}
@@ -670,7 +712,7 @@ function Operating({ r, tab, setTab }: { r: ReturnType<typeof useEngine>; tab: T
   );
 }
 
-function OperationsTab({ r }: { r: ReturnType<typeof useEngine> }) {
+function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lockedUrl?: string }) {
   const { config } = useConfig();
   const roles = (Object.keys(AGENTS) as AgentRole[]).filter((role) => config.agents[role]?.enabled ?? true);
   return (
@@ -692,7 +734,7 @@ function OperationsTab({ r }: { r: ReturnType<typeof useEngine> }) {
             <div className="max-h-[60vh] space-y-2.5 overflow-y-auto pr-1">
               <AnimatePresence initial={false}>
                 {r.activities.map((a) => (
-                  <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} />
+                  <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} lockedUrl={lockedUrl} />
                 ))}
               </AnimatePresence>
             </div>
@@ -1056,7 +1098,7 @@ function OperateTab({ r, c }: { r: ReturnType<typeof useEngine>; c: Company }) {
 }
 
 /* ── shared rows ─────────────────────────────────────────────── */
-function ActivityRow({ a, onUndo }: { a: Activity; onUndo: () => void }) {
+function ActivityRow({ a, onUndo, lockedUrl }: { a: Activity; onUndo: () => void; lockedUrl?: string }) {
   const S = agentStyle[a.agent];
   const A = AGENTS[a.agent];
   const failed = a.status === "failed-credited";
@@ -1077,12 +1119,19 @@ function ActivityRow({ a, onUndo }: { a: Activity; onUndo: () => void }) {
           {a.meta && <span className="normal-case tracking-normal">· {a.meta}</span>}
         </div>
         <div className={`mt-0.5 text-sm ${a.undone ? "text-muted line-through" : "text-text"}`}>{a.action}</div>
-        {a.proof && !a.undone && (
-          <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-bg/60 px-2 py-1 text-[11px] text-mint">
-            <Check size={11} />
-            {a.proof.value}
-          </div>
-        )}
+        {a.proof && !a.undone &&
+          (lockedUrl && a.proof.value === lockedUrl ? (
+            // Paywall integrity: the build's proof IS the live URL. Mask it here too so a non-paying
+            // user can't just read the link out of the Glass Box (the reveal card is the only door).
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-coral/10 px-2 py-1 text-[11px] text-coral">
+              <Lock size={11} /> live site — unlock to view
+            </div>
+          ) : (
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-bg/60 px-2 py-1 text-[11px] text-mint">
+              <Check size={11} />
+              {a.proof.value}
+            </div>
+          ))}
         {/* Rationale Stream (PDR §6): the "why" behind the action — one tap, tiered (Education view). */}
         {!a.undone && (
           <details className="mt-1.5 text-[11px] text-muted-2">

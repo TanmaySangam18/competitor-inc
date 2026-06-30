@@ -13,7 +13,7 @@ type Status = { pass: boolean; reason: string };
 
 const PLATFORM_LABEL: Record<CampaignPlatform, string> = { bluesky: "Bluesky", mastodon: "Mastodon" };
 
-export default function CampaignPanel({ company }: { company: { name: string; idea: string; slug: string; product?: { url: string } } }) {
+export default function CampaignPanel({ company, locked }: { company: { name: string; idea: string; slug: string; product?: { url: string } }; locked?: boolean }) {
   const [platforms, setPlatforms] = useState<CampaignPlatform[]>(["bluesky", "mastodon"]);
   const [maxPosts, setMaxPosts] = useState(2);
   const [posts, setPosts] = useState<(CampaignPost & { status: Status })[]>([]);
@@ -21,8 +21,10 @@ export default function CampaignPanel({ company }: { company: { name: string; id
   const [launched, setLaunched] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Paywall integrity: while the live site is locked, campaign drafts must NOT embed the real product
+  // URL (it would leak the gated link). Fall back to the public demand-test page until they unlock.
   const link =
-    company.product?.url ||
+    (!locked && company.product?.url) ||
     (typeof window !== "undefined" ? `${window.location.origin}/t/${company.slug}` : `/t/${company.slug}`);
 
   useEffect(() => () => { if (timer.current) clearInterval(timer.current); }, []);
