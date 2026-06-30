@@ -256,9 +256,10 @@ real features, copy `.env.example` → `.env.local` and fill in what you want �
 | `ANTHROPIC_API_KEY` + `MODEL_PROVIDER=anthropic` | A real frontier‑model engine (server‑side) |
 | `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Real auth + persistent multi‑company store |
 | `SUPABASE_SERVICE_ROLE_KEY` (+ `CRON_SECRET`) | The nightly heartbeat cron |
-| `NEXT_PUBLIC_CHECKOUT_URL` | The "Claim a Founding seat" checkout link |
+| `NEXT_PUBLIC_CHECKOUT_URL` | The "Claim a Founding seat" checkout link (Polar) |
+| `POLAR_WEBHOOK_SECRET` | Polar billing webhooks → subscription entitlements |
 
-> `ROOMIE_*` are internal env‑var *names* (the codebase namespace), unrelated to the product brand.
+See `.env.example` for the full annotated list (model routing, Telegram/ChatOps, Resend, observability, feature flags).
 
 ---
 
@@ -285,7 +286,8 @@ below) before launch hardening.
   **counter‑position** as the proof‑first, human‑in‑control, 0%‑cut alternative — full analysis +
   roadmap in [`docs/COMPETITIVE-polsia.md`](docs/COMPETITIVE-polsia.md) (internal).
 - **Pricing** — **Validate $0** (free forever) · **Operator $39/mo** · **Founding $99 once** (launch‑only,
-  ~150 seats). No revenue share, no lock‑in.
+  ~100 seats). No revenue share, no lock‑in. Payments via **Polar** (Merchant‑of‑Record — handles
+  VAT/tax globally, GitHub‑login checkout, free at our scale).
 - **Money model** — keep total project spend low (BYOK + free model tiers + free hosting tiers).
   Go/no‑go: **~$10K in month 2, or kill it.**
 - **Launch** — a **big‑bang surprise** drop (not build‑in‑public): a polished demo + Show HN / Product
@@ -351,8 +353,10 @@ app/                     Next.js routes
   live/                  Public real-time board
   join/                  Founding-member offer + waitlist
   login/                 Magic-link (Supabase) or guest mode
-  api/roomie/            The engine endpoint (validate | shift | chat)
-  api/cron/              Nightly heartbeat
+  api/engine/            The engine endpoint (validate | shift | chat)
+  api/billing/polar      Polar (MoR) webhook → subscription entitlements (Standard Webhooks)
+  api/billing/webhook    LemonSqueezy webhook (legacy, kept as a no-op until removed)
+  api/cron/              Nightly heartbeat (Vercel Cron, fail-closed without CRON_SECRET)
   opengraph-image.tsx    Social/link-preview image
 lib/engine/              Domain types, simulated provider, server engine, store, config, usage, db
 lib/supabase/            Client/server Supabase wiring (gated)
@@ -386,9 +390,11 @@ For the person deploying this (the "techie friend"):
    With none set, it runs in simulated/local mode — safe to ship a demo immediately.
 3. **Optional services:**
    - **Supabase** for real auth + persistence — see `docs/SUPABASE-SETUP.md` and run
-     `supabase/migrations/0001_init.sql`.
+     `supabase/migrations/all-migrations.sql` (one-paste, idempotent).
    - **Vercel Cron** for the nightly heartbeat (already wired in `vercel.json` → `/api/cron`).
-   - A **Merchant‑of‑Record checkout** (LemonSqueezy/Gumroad/Paddle) → set `NEXT_PUBLIC_CHECKOUT_URL`.
+   - **Polar** (Merchant‑of‑Record) — create products + a checkout link → set `NEXT_PUBLIC_CHECKOUT_URL`.
+     Then add a webhook endpoint (`/api/billing/polar`, events: `subscription.*` + `order.paid`) and
+     paste its signing secret as `POLAR_WEBHOOK_SECRET`.
 4. Gate `npm run qa` in CI before each deploy.
 
 > This repository is **private**. To grant access, add collaborators in GitHub repo settings.
@@ -397,11 +403,13 @@ For the person deploying this (the "techie friend"):
 
 ## 16 · Status & roadmap
 
-- **Status:** feature‑complete and hardened; runs end‑to‑end in simulated/local mode today.
-- **Before launch (needs the owner's credentials):** provision Supabase, set a checkout link, and
-  (optionally) a model key; deploy to Vercel.
-- **Roadmap candidates:** real model token‑streaming, deeper integrations (GitHub/email/ads behind
-  per‑user auth), and turning on the Operate layer.
+- **Status:** feature‑complete, hardened, and deployed to Vercel (`competitor-inc-zeta.vercel.app`).
+  Runs end‑to‑end today — validation, Glass Box, Approvals, ChatOps (Telegram), Polar billing.
+- **Before launch (needs the owner's credentials):** provision Supabase, set the Polar checkout link
+  (`NEXT_PUBLIC_CHECKOUT_URL`) + webhook secret (`POLAR_WEBHOOK_SECRET`), finish Polar KYC.
+- **Post‑launch v2 candidates:** Rationale Stream, Background Knowledge Graph on-demand, import
+  on-ramp (existing-site enrichment), per-agent model routing (Opus/Haiku split), real coding agent
+  (Forge → Claude Agent SDK). See [`docs/ROADMAP-V2.md`](docs/ROADMAP-V2.md).
 
 ---
 
