@@ -443,6 +443,52 @@ function Capabilities() {
   );
 }
 
+/* ── The honest alternative (factual contrast — names no competitor) ── */
+const contrastRows = [
+  { black: "Builds blindly on whatever you type", ours: "Validates real demand first — and tells you the honest truth, even when it’s “don’t build this”" },
+  { black: "Impresses with projections (“growth through 2030”)", ours: "Proof, not projections — a live URL, a passing build, a real metric, or it doesn’t count" },
+  { black: "Acts on your behalf unattended — and sometimes sends the message you’d never have approved", ours: "Approval Inbox — nothing consequential ships without your explicit yes" },
+  { black: "Takes a cut of your revenue", ours: "0% cut — you keep everything, own your code and data, and export anytime" },
+  { black: "A black box you’re asked to trust", ours: "The Glass Box — every action, every dollar, every decision, in the open" },
+];
+
+function HonestAlternative() {
+  return (
+    <section id="why" className="mx-auto max-w-6xl px-6 py-28">
+      <Reveal className="max-w-2xl">
+        <h2 className="display text-3xl md:text-[2.6rem]">Everything the autonomous black box isn’t</h2>
+        <p className="mt-4 text-lg text-muted">
+          The first wave of “AI that runs your company” builds fast and asks for your trust. competitor.inc
+          earns it instead — proof before code, your hand on every consequential move, and none of your revenue.
+        </p>
+      </Reveal>
+      <Reveal delay={0.06}>
+        <div className="mt-14 overflow-hidden rounded-2xl border border-border">
+          <div className="grid grid-cols-2 border-b border-border bg-surface/30 text-sm font-semibold">
+            <div className="flex items-center gap-2 px-5 py-4 text-muted-2"><Lock size={15} /> The autonomous black box</div>
+            <div className="flex items-center gap-2 border-l border-border px-5 py-4 text-text"><LogoMark size={18} /> competitor.inc</div>
+          </div>
+          {contrastRows.map((r, i) => (
+            <div key={i} className={`grid grid-cols-2 ${i < contrastRows.length - 1 ? "border-b border-border" : ""}`}>
+              <div className="flex items-start gap-2.5 px-5 py-5 text-sm text-muted-2">
+                <X size={16} className="mt-0.5 shrink-0 opacity-60" />
+                <span>{r.black}</span>
+              </div>
+              <div className="flex items-start gap-2.5 border-l border-border bg-mint/[0.04] px-5 py-5 text-sm text-text">
+                <Check size={16} className="mt-0.5 shrink-0 text-mint" />
+                <span>{r.ours}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Reveal>
+      <p className="mt-5 text-xs text-muted-2">
+        A factual comparison of two approaches to AI company-building. We name no competitor — we just hold ourselves to a higher standard.
+      </p>
+    </section>
+  );
+}
+
 /* ── Glass Box showcase ──────────────────────────────────────── */
 const logEntries = [
   { icon: Rocket, color: "text-mint", ring: "bg-mint/12", agent: "Engineering", action: "Deployed landing page → bedtime-stories.app", meta: "build passed · 0:42s", cost: "$0.18", status: "done" },
@@ -734,6 +780,7 @@ export default function Home() {
       <Ethos />
       <HowItWorks />
       <Capabilities />
+      <HonestAlternative />
       <GlassBox />
       <ChatOpsTeaser />
       <Pricing />
