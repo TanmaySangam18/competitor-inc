@@ -323,12 +323,12 @@ function Hero() {
       {/* The position in three lines — the messaging pillars (Verifiable. Governed.) */}
       <div className="mx-auto mt-14 grid max-w-5xl gap-4 px-6 sm:grid-cols-3">
         {[
-          { h: "Watch it work — then check the receipts.", s: "Every action is logged with proof you can click." },
-          { h: "It asks before anything risky.", s: "Spend, sends, and deploys wait for your yes — and you can undo." },
+          { h: "Building is no longer the hard part.", s: "Most products make $0. ~5% ever cross $100k/yr. The bottleneck is getting the first 100 paying customers — that's what we're built for.", accent: true },
+          { h: "It asks before anything risky.", s: "Spend, sends, and deploys wait for your yes. Every action is logged with proof you can click. Nothing goes out without your say-so." },
           { h: "We run on our own product, in public.", s: "The company that sells the company-runner is the demo." },
         ].map((p) => (
-          <div key={p.h} className="rounded-2xl border border-border bg-surface/50 p-5">
-            <div className="text-sm font-semibold text-text">{p.h}</div>
+          <div key={p.h} className={`rounded-2xl border p-5 ${"accent" in p && p.accent ? "border-coral/30 bg-coral/[0.04]" : "border-border bg-surface/50"}`}>
+            <div className={`text-sm font-semibold ${"accent" in p && p.accent ? "text-coral" : "text-text"}`}>{p.h}</div>
             <div className="mt-1 text-sm text-muted">{p.s}</div>
           </div>
         ))}
@@ -357,10 +357,9 @@ function Ethos() {
     <section className="border-y border-border bg-surface/30">
       <div className="mx-auto max-w-4xl px-6 py-14 text-center">
         <p className="font-display text-xl leading-relaxed md:text-2xl">
-          <span className="text-text">Most tools build first and hope.</span>{" "}
+          <span className="text-text">Building is easy. Selling is the hard part.</span>{" "}
           <span className="text-muted">
-            competitor.inc proves there&apos;s real demand first — then builds the winner in the open, and
-            never acts on anything consequential without your say-so.
+            competitor.inc proves there&apos;s real demand before you build — then gets the winner its first paying customers, in the open, never acting on anything consequential without your say-so.
           </span>
         </p>
       </div>

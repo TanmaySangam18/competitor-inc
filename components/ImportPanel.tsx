@@ -39,12 +39,12 @@ export function ImportPanel({ onGrow }: { onGrow?: (url: string, title: string) 
   return (
     <div className="w-full rounded-2xl border border-coral/25 bg-coral/[0.03] p-5 text-left">
       <div className="flex items-center gap-2 text-sm font-semibold">
-        <Rocket size={15} className="text-coral" /> Already built something that isn&apos;t selling?
+        <Rocket size={15} className="text-coral" /> Built it. Can&apos;t sell it?
       </div>
       <p className="mt-1.5 text-xs leading-relaxed text-muted-2">
-        Paste it — a live site, or a dead Replit / Bolt / Lovable build. We read the public page and give you
-        an honest read; then the crew&apos;s whole job is getting it customers. (To run it for real, we verify
-        you own it first.)
+        Most products make $0 — not because they&apos;re bad, but because distribution is a different skill than building.
+        Paste your live site or dead Bolt / Lovable / Replit project. We audit it honestly, then the crew&apos;s whole job
+        becomes getting it its first paying customers. (Operating for real requires ownership verification — the audit is free.)
       </p>
       <div className="mt-3 flex gap-2">
         <input
