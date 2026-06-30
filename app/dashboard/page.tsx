@@ -715,7 +715,10 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
           </span>
           <div className="min-w-0">
             <div className="text-sm font-medium">Shipping your site…</div>
-            <div className="text-xs text-muted-2">A real, openable link appears here the moment the build finishes (≈1 min once your keys are live).</div>
+            <div className="text-xs text-muted-2">
+              A real, openable link appears here the moment the build finishes (≈1 min once your keys are live).{" "}
+              <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Add your keys →</Link>
+            </div>
           </div>
         </div>
       ) : null}
