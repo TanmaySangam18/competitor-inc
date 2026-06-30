@@ -369,11 +369,13 @@ function Onboarding({ onSubmit, hasOthers, onDemo }: { onSubmit: (idea: string) 
 // Honest framing: this is a fast AI estimate, not a live test. (A real live test — deploy a page,
 // collect real signups over time — is the separate, opt-in path.)
 const VALIDATION_STEPS = [
-  "Reading your idea",
-  "Modeling landing + waitlist demand",
-  "Estimating ad + search signals",
-  "Weighing the evidence",
-  "Scoring the signal",
+  "Parsing your idea",
+  "Mapping the market & look-alike companies",
+  "Modeling landing-page + waitlist demand",
+  "Estimating paid-ad & search signals",
+  "Pressure-testing the riskiest assumption",
+  "Weighing the evidence — no thumb on the scale",
+  "Scoring the signal & writing the honest verdict",
 ];
 
 function ValidationRunning({ idea }: { idea: string }) {
@@ -387,39 +389,50 @@ function ValidationRunning({ idea }: { idea: string }) {
   }, [completed]);
 
   return (
-    <div className="mx-auto mt-12 max-w-lg text-center">
-      <Loader2 size={32} className="mx-auto animate-spin text-coral" />
-      <h2 className="mt-5 text-2xl font-bold">Checking demand…</h2>
-      <p className="mt-2 text-sm text-muted">&ldquo;{idea}&rdquo;</p>
-      <div className="mt-8 space-y-2.5 text-left">
-        {VALIDATION_STEPS.map((s, i) => {
-          const isDone = i < completed;
-          const isCurrent = i === completed;
-          return (
-            <motion.div
-              key={s}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: i <= completed ? 1 : 0.4, x: 0 }}
-              transition={{ duration: 0.25 }}
-              className="flex items-center gap-3 rounded-xl glass-panel px-4 py-3 text-sm"
-            >
-              <span
-                className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${
-                  isDone ? "bg-mint/15 text-mint" : isCurrent ? "bg-white/10 text-text" : "border border-border"
-                }`}
+    <div className="mx-auto mt-12 max-w-xl">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold">Checking demand — before a line of code</h2>
+        <p className="mt-2 text-sm text-muted">&ldquo;{idea}&rdquo;</p>
+      </div>
+      {/* Live terminal — the crew working in real time. Alive, but honest: the copy describes what the
+          model actually does (estimates the signal), and the footer says plainly we don't fake a number. */}
+      <div className="mt-7 overflow-hidden rounded-2xl border border-border bg-bg/70 font-mono text-[13px] shadow-sm">
+        <div className="flex items-center gap-2 border-b border-border bg-surface/40 px-4 py-2.5">
+          <span className="flex gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-coral/60" />
+            <span className="h-2.5 w-2.5 rounded-full bg-amber/60" />
+            <span className="h-2.5 w-2.5 rounded-full bg-mint/60" />
+          </span>
+          <span className="ml-1 text-[11px] text-muted-2">validation-gate · live</span>
+          <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-mint">
+            <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-mint" /> working
+          </span>
+        </div>
+        <div className="space-y-1.5 px-4 py-4">
+          {VALIDATION_STEPS.map((s, i) => {
+            if (i > completed) return null; // reveal line-by-line, terminal style
+            const isDone = i < completed;
+            const isCurrent = i === completed;
+            return (
+              <motion.div
+                key={s}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-start gap-2.5"
               >
-                {isDone ? (
-                  <Check size={12} />
-                ) : isCurrent ? (
-                  <Loader2 size={11} className="animate-spin" />
-                ) : (
-                  <span className="h-1.5 w-1.5 rounded-full bg-muted-2" />
-                )}
-              </span>
-              <span className={i <= completed ? "" : "text-muted-2"}>{s}</span>
-            </motion.div>
-          );
-        })}
+                <span className={isDone ? "text-mint" : "text-coral"}>{isDone ? "✓" : "›"}</span>
+                <span className={isDone ? "text-muted" : "text-text"}>
+                  {s}
+                  {isCurrent && <span className="ml-1 inline-block animate-pulse">▋</span>}
+                </span>
+              </motion.div>
+            );
+          })}
+        </div>
+        <div className="border-t border-border px-4 py-2.5 text-[11px] text-muted-2">
+          An AI estimate to start — we model the signal honestly and never fabricate a number. The real demand test runs next.
+        </div>
       </div>
     </div>
   );
