@@ -42,6 +42,7 @@ export default function Join() {
   const [copied, setCopied] = useState(false);
   const [server, setServer] = useState<ServerInfo | null>(null);
   const [totalSignups, setTotalSignups] = useState<number | null>(null);
+  const [emailErr, setEmailErr] = useState("");
 
   useEffect(() => {
     fetch("/api/waitlist")
@@ -82,9 +83,14 @@ export default function Join() {
     }
   }, []);
 
+  // Mirror the server's check (app/api/waitlist) so a bad address fails loudly here, never silently.
+  const validEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
   function join() {
     const e = email.trim().toLowerCase();
-    if (!e.includes("@")) return;
+    if (!e) { setEmailErr("Enter your email to join."); return; }
+    if (!validEmail(e)) { setEmailErr("That doesn't look like a valid email."); return; }
+    setEmailErr("");
     const rec: Entry = { email: e, code: codeFrom(e), joinedAt: Date.now(), ref: referredBy };
     try {
       localStorage.setItem(WL_KEY, JSON.stringify(rec));
@@ -93,6 +99,11 @@ export default function Join() {
     }
     setEntry(rec);
     syncWaitlist(e, referredBy);
+    // Refresh the live counter so it reflects this join without a full page reload (BUG-23).
+    fetch("/api/waitlist")
+      .then((r) => r.json())
+      .then((d) => { if (typeof d?.count === "number") setTotalSignups(d.count); })
+      .catch(() => {});
   }
 
   const refLink = entry && typeof window !== "undefined" ? `${window.location.origin}/join?ref=${entry.code}` : "";
@@ -210,20 +221,21 @@ export default function Join() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); if (emailErr) setEmailErr(""); }}
                   onKeyDown={(e) => e.key === "Enter" && join()}
                   placeholder="you@company.com"
-                  className="w-full rounded-xl glass-panel px-4 py-3 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40"
+                  className={`w-full rounded-xl glass-panel px-4 py-3 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40 ${emailErr ? "border-coral/60" : ""}`}
                   aria-label="Email for the waitlist"
+                  aria-invalid={!!emailErr}
                 />
                 <button
                   onClick={join}
-                  disabled={!email.includes("@")}
-                  className="shrink-0 rounded-xl bg-text px-6 py-3 text-sm font-semibold text-bg transition hover:opacity-90 disabled:opacity-40"
+                  className="shrink-0 rounded-xl bg-text px-6 py-3 text-sm font-semibold text-bg transition hover:opacity-90"
                 >
                   Join the waitlist
                 </button>
               </div>
+              {emailErr && <p className="text-xs font-medium text-coral" role="alert">{emailErr}</p>}
               {/* Consent basis (CAN-SPAM/GDPR): explicit opt-in, named purpose, opt-out promised. */}
               <p className="text-xs text-muted-2">
                 By joining you agree to our{" "}

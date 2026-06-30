@@ -553,6 +553,12 @@ function Rejected({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBuild: ()
 /* ── Operating ───────────────────────────────────────────────── */
 function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<typeof useEngine>; tab: Tab; setTab: (t: Tab) => void; entitled: boolean; userEmail?: string }) {
   const c = r.company!;
+  const [blitzDone, setBlitzDone] = useState(false);
+  function doBlitz() {
+    r.launchBlitz();
+    setBlitzDone(true);
+    setTimeout(() => setBlitzDone(false), 2200);
+  }
   const net = Math.round((c.ledger.spent - (c.ledger.credited ?? 0)) * 100) / 100;
   const stats = [
     { label: "Nights run", val: c.night },
@@ -595,12 +601,12 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
             )}
           </button>
           <button
-            onClick={r.launchBlitz}
-            disabled={r.working !== null}
+            onClick={doBlitz}
+            disabled={r.working !== null || blitzDone}
             title="Surge drafts launch posts — queued for your approval, nothing posts without your yes"
-            className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium text-muted transition hover:text-text disabled:opacity-50"
+            className={`inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition disabled:opacity-70 ${blitzDone ? "border-mint/40 text-mint" : "border-border text-muted hover:text-text"}`}
           >
-            <Megaphone size={16} /> Draft launch blitz
+            {blitzDone ? <><Check size={16} /> Drafted — see Approval Inbox</> : <><Megaphone size={16} /> Draft launch blitz</>}
           </button>
           <button
             onClick={r.runShift}
@@ -640,9 +646,10 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
 
       {/* Anti-crowding (Hick's Law): autonomous marketing is advanced — collapsed by default so a
           first-time founder isn't hit with it; one tap reveals it. */}
-      <details className="mt-6">
-        <summary className="cursor-pointer list-none rounded-2xl border border-border bg-bg/40 px-4 py-3 text-sm font-medium text-muted transition hover:text-text">
-          Advanced · autonomous marketing
+      <details className="group mt-6">
+        <summary className="flex cursor-pointer list-none items-center justify-between rounded-2xl border border-border bg-bg/40 px-4 py-3 text-sm font-medium text-muted transition hover:text-text">
+          <span>Advanced · autonomous marketing</span>
+          <ChevronDown size={16} className="shrink-0 text-muted-2 transition group-open:rotate-180" />
         </summary>
         <div className="mt-3">
           <CampaignPanel company={c} locked={!entitled} />

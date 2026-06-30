@@ -20,8 +20,8 @@ import {
   Bell,
 } from "lucide-react";
 import { useConfig, validateByok } from "@/lib/engine/config";
-import { seatsRemaining, FOUNDING_SEATS_CAP } from "@/lib/engine/seats";
 import { useAuth } from "@/lib/engine/useAuth";
+import { checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/engine/types";
 
 type Section = "brand" | "agents" | "engine" | "billing" | "integrations" | "account";
@@ -241,15 +241,18 @@ function Engine({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
 }
 
 function Billing() {
-  // Founding-seat scarcity is REAL: a hard cap minus seats actually claimed (0 until billing is live —
-  // we never fake a countdown). Wires to live billing data when it lands; honest by default today.
-  const foundingClaimed = 0;
-  const foundingLeft = seatsRemaining(foundingClaimed);
+  const { user } = useAuth();
+  const email = user && !user.guest ? (user.email ?? "") : "";
+  // Mirrors the public pricing page exactly (single source of truth) so a buyer never sees one price
+  // here and another there. Operator routes to the live Polar checkout (email prefilled when signed in);
+  // Founder (done-with-you, limited slots) routes to /join to apply.
   const plans = [
-    { name: "Validate", price: "$0", tag: "free forever", current: true, note: "" },
-    { name: "Operator", price: "$39", tag: "/ month", current: false, note: "" },
-    { name: "Founding", price: "$99", tag: "once · launch", current: false, note: `${foundingLeft} of ${FOUNDING_SEATS_CAP} seats left` },
+    { name: "Validate", price: "$0", tag: "free forever", tier: "", current: true, href: "" },
+    { name: "Operator", price: "$39", tag: "/ month", tier: "operator", current: false, href: "/join" },
+    { name: "Founder", price: "$299", tag: "/ month", tier: "founder", current: false, href: "/join" },
   ];
+  const upgradeHref = (p: { tier: string; href: string }) =>
+    p.tier && checkoutLiveFor(p.tier) ? checkoutUrlFor(email, p.tier) : p.href;
   return (
     <Card title="Billing" desc="Flat pricing, no revenue share. Failed work is credited back to your allowance — never charged.">
       <div className="grid gap-3 sm:grid-cols-3">
@@ -257,16 +260,20 @@ function Billing() {
           <div key={p.name} className={`rounded-xl border p-4 ${p.current ? "border-coral/50 bg-coral/[0.05]" : "border-border bg-bg/40"}`}>
             <div className="text-sm font-semibold">{p.name}</div>
             <div className="mt-1 font-display text-2xl font-bold">{p.price}<span className="ml-1 text-xs font-normal text-muted-2">{p.tag}</span></div>
-            {p.note && <div className="mt-1 text-[11px] font-medium text-coral">{p.note}</div>}
             {p.current ? (
               <span className="mt-3 inline-block rounded-md bg-mint/12 px-2 py-1 text-[11px] text-mint">Current plan</span>
             ) : (
-              <button className="mt-3 w-full rounded-lg border border-border py-1.5 text-xs text-muted transition hover:text-text">Upgrade</button>
+              <a
+                href={upgradeHref(p)}
+                className="mt-3 block w-full rounded-lg border border-coral/40 py-1.5 text-center text-xs font-semibold text-coral transition hover:bg-coral/10"
+              >
+                {p.tier === "operator" && checkoutLiveFor("operator") ? "Upgrade →" : "Apply →"}
+              </a>
             )}
           </div>
         ))}
       </div>
-      <p className="mt-4 text-xs text-muted-2">Founding is capped at {FOUNDING_SEATS_CAP} seats — a real limit, not a countdown. Checkout activates with a Stripe key (Vercel Marketplace). No charges until configured.</p>
+      <p className="mt-4 text-xs text-muted-2">Same prices as our public pricing page. Operator checkout is live (Polar — merchant of record, your card is never on our servers). Founder is done-with-you and limited to a handful of slots.</p>
     </Card>
   );
 }
@@ -437,6 +444,7 @@ function NotifyOptIn({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
 
 function Account({ auth, resetAllConfig }: { auth: ReturnType<typeof useAuth>; resetAllConfig: () => void }) {
   const [exported, setExported] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   function exportData() {
     const bundle: Record<string, unknown> = {};
@@ -468,9 +476,17 @@ function Account({ auth, resetAllConfig }: { auth: ReturnType<typeof useAuth>; r
         <div className="flex items-center justify-between">
           <div className="text-sm">
             <div className="text-muted-2">Signed in as</div>
-            <div className="font-medium">{auth.user?.email ?? "—"}{auth.user?.guest && <span className="ml-2 text-xs text-muted-2">(local mode)</span>}</div>
+            <div className="font-medium">
+              {auth.user && !auth.user.guest
+                ? auth.user.email
+                : <span className="text-muted">Guest <span className="ml-1 text-xs text-muted-2">(local mode — sign in to save to the cloud)</span></span>}
+            </div>
           </div>
-          <button onClick={auth.signOut} className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted transition hover:text-text">Sign out</button>
+          {auth.user && !auth.user.guest ? (
+            <button onClick={auth.signOut} className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted transition hover:text-text">Sign out</button>
+          ) : (
+            <Link href="/signup" className="rounded-lg border border-coral/40 px-3 py-1.5 text-sm font-semibold text-coral transition hover:bg-coral/10">Sign in</Link>
+          )}
         </div>
       </Card>
 
@@ -482,12 +498,30 @@ function Account({ auth, resetAllConfig }: { auth: ReturnType<typeof useAuth>; r
       </Card>
 
       <Card title="Danger zone">
-        <button
-          onClick={() => { if (confirm("Reset all settings to defaults?")) resetAllConfig(); }}
-          className="rounded-lg border border-coral/40 px-3 py-1.5 text-sm text-coral transition hover:bg-coral/10"
-        >
-          Reset settings to defaults
-        </button>
+        {confirmReset ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted">This wipes your settings back to defaults. Sure?</span>
+            <button
+              onClick={() => { resetAllConfig(); setConfirmReset(false); }}
+              className="rounded-lg bg-coral px-3 py-1.5 text-sm font-semibold text-bg transition hover:brightness-110"
+            >
+              Yes, reset
+            </button>
+            <button
+              onClick={() => setConfirmReset(false)}
+              className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted transition hover:text-text"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmReset(true)}
+            className="rounded-lg border border-coral/40 px-3 py-1.5 text-sm text-coral transition hover:bg-coral/10"
+          >
+            Reset settings to defaults
+          </button>
+        )}
       </Card>
     </div>
   );

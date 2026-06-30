@@ -18,6 +18,7 @@ export function FeedbackWidget() {
   const [msg, setMsg] = useState("");
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [emailErr, setEmailErr] = useState("");
 
   if (!isSupabaseConfigured()) return null;
   if (HIDE_ON.some((p) => pathname?.startsWith(p))) return null;
@@ -25,6 +26,13 @@ export function FeedbackWidget() {
   async function submit() {
     const message = msg.trim();
     if (!message) return;
+    // Email is optional, but if they typed one, it must be valid — otherwise a reply never reaches them.
+    const typedEmail = email.trim();
+    if (typedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(typedEmail)) {
+      setEmailErr("That email doesn't look right — fix it or leave it blank.");
+      return;
+    }
+    setEmailErr("");
     setState("sending");
     try {
       const who = email.trim() || (user && !user.guest ? user.email : null);
@@ -68,12 +76,14 @@ export function FeedbackWidget() {
               {!(user && !user.guest) && (
                 <input
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); if (emailErr) setEmailErr(""); }}
                   type="email"
                   placeholder="Email (optional — for a reply)"
-                  className="mt-2 w-full rounded-xl border border-border bg-bg/50 px-3 py-2 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40"
+                  aria-invalid={!!emailErr}
+                  className={`mt-2 w-full rounded-xl border bg-bg/50 px-3 py-2 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40 ${emailErr ? "border-coral/60" : "border-border"}`}
                 />
               )}
+              {emailErr && <p className="mt-2 text-xs text-coral" role="alert">{emailErr}</p>}
               {state === "error" && <p className="mt-2 text-xs text-coral">Couldn&apos;t send just now — try again.</p>}
               <button
                 onClick={submit}
