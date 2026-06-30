@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Sparkles,
@@ -655,6 +655,14 @@ function Pricing() {
 
 /* ── Final CTA ───────────────────────────────────────────────── */
 function FinalCTA() {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    fetch("/api/waitlist")
+      .then((r) => r.json())
+      .then((d) => { if (typeof d?.count === "number") setCount(d.count); })
+      .catch(() => {});
+  }, []);
+
   return (
     <section className="relative overflow-hidden mesh">
       <div className="absolute inset-0 grid-bg" />
@@ -667,6 +675,11 @@ function FinalCTA() {
         <p className="mt-5 text-lg text-muted">
           Bring an idea. competitor.inc tells you the honest truth about it — then builds the one that&apos;s worth it.
         </p>
+        {count !== null && count > 0 && (
+          <p className="mt-5 text-sm text-muted-2">
+            <span className="font-semibold text-text">{count.toLocaleString()}</span> founders already on the waitlist
+          </p>
+        )}
         <a
           href="/dashboard"
           className="group mt-9 inline-flex items-center gap-2 rounded-xl bg-coral px-7 py-4 font-semibold text-bg transition hover:brightness-110"

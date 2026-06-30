@@ -157,6 +157,11 @@ class SimulatedProvider implements EngineProvider {
     const activities: Activity[] = [];
     const approvals: ApprovalItem[] = [];
 
+    // Imported (already live) products get a distribution-only shift — no engineering actions.
+    if (company.product?.status === "live") {
+      return this._distributionShift(company, night, rng, activities, approvals);
+    }
+
     const add = (
       agent: AgentRole,
       action: string,
@@ -256,6 +261,94 @@ class SimulatedProvider implements EngineProvider {
         meta: "recommend killing",
       });
     }
+
+    return { activities, approvals };
+  }
+
+  private _distributionShift(
+    company: Company,
+    night: number,
+    rng: () => number,
+    activities: Activity[],
+    approvals: ApprovalItem[]
+  ): ShiftResult {
+    const add = (agent: AgentRole, action: string, opts: Partial<Activity> = {}) => {
+      activities.push({ id: uid(), night, agent, action, cost: 0, status: "done", ...opts });
+    };
+
+    // Surge (Growth) — positioning + outreach each night
+    const outreachCounts = [10, 15, 12, 20, 8];
+    const count = outreachCounts[night % outreachCounts.length];
+    add("growth", `Identified ${count} high-signal leads with the exact pain — trigger-based, not cold blast`, {
+      meta: "trigger-based outreach · reply rate ~20%",
+      proof: { kind: "metric", value: `${count} leads mapped` },
+    });
+
+    if (rng() > 0.45) {
+      const variant = pick(rng, [
+        "narrowed headline to one user + one job",
+        "rewrote CTA from vague to specific outcome",
+        "added a '30-second social proof' block above the fold",
+        "cut the feature list to the single strongest benefit",
+      ]);
+      add("marketing", `Positioning: ${variant}`, {
+        meta: "April Dunford · Obviously Awesome",
+        proof: { kind: "metric", value: "copy variant ready for review" },
+      });
+    }
+
+    if (rng() > 0.5) {
+      const topic = pick(rng, [
+        `'${company.name} alternative' programmatic page`,
+        "use-case landing page for [industry] teams",
+        "'how to solve [problem]' SEO article",
+        "integration page with top 3 adjacent tools",
+      ]);
+      add("marketing", `SEO: drafted ${topic}`, {
+        meta: "programmatic SEO · first-1000-customers channel",
+      });
+    }
+
+    // Approvals — outreach + social drafts (never auto-send)
+    if (rng() > 0.35) {
+      approvals.push({
+        id: uid(), night, agent: "growth", kind: "outreach",
+        title: `Send ${count} personalised outreach notes for ${company.name}`,
+        detail:
+          `Hey [name],\n\nSaw you mentioned [specific pain] — that's exactly what ${company.name} solves.\n\n` +
+          `${company.idea}.\n\nWould a quick call make sense? No deck, just want to hear if this actually fits.\n\n` +
+          `${company.product?.url || ""}`,
+      });
+    }
+    if (rng() > 0.6) {
+      approvals.push({
+        id: uid(), night, agent: "growth", kind: "twitter",
+        title: `X/Twitter post — honest founder story for ${company.name}`,
+        detail:
+          `I built ${company.name} and couldn't sell it for months.\n\n` +
+          `What finally worked: stop pitching features. Start with the pain.\n\n` +
+          `"[describe the specific problem your customer hates]"\n\n` +
+          `If that's your life, it's worth a look. ${company.product?.url || ""}`,
+      });
+    }
+    if (rng() > 0.65) {
+      approvals.push({
+        id: uid(), night, agent: "growth", kind: "linkedin",
+        title: `LinkedIn post for ${company.name}`,
+        detail:
+          `6 months ago I had a working product and zero customers.\n\n` +
+          `The unlock: I spent a week just talking to 20 people with the problem. No pitch — just questions.\n\n` +
+          `Three things I heard that changed everything:\n` +
+          `• [insight 1]\n• [insight 2]\n• [insight 3]\n\n` +
+          `${company.name} is the product that came out of those conversations. ${company.product?.url || ""}`,
+      });
+    }
+
+    // CEO — honest distribution audit each night
+    add("ceo", `Distribution audit night ${night}: tracking outreach reply rate + page conversion`, {
+      meta: "goal: first 10 paying customers",
+      proof: { kind: "metric", value: "audit logged" },
+    });
 
     return { activities, approvals };
   }

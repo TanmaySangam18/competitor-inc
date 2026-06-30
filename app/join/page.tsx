@@ -33,12 +33,22 @@ const founderPoints = [
   "Cancel anytime · own everything · 0% revenue share",
 ];
 
+const GOAL = 10_000;
+
 export default function Join() {
   const [email, setEmail] = useState("");
   const [entry, setEntry] = useState<Entry | null>(null);
   const [referredBy, setReferredBy] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [server, setServer] = useState<ServerInfo | null>(null);
+  const [totalSignups, setTotalSignups] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/waitlist")
+      .then((r) => r.json())
+      .then((d) => { if (typeof d?.count === "number") setTotalSignups(d.count); })
+      .catch(() => {});
+  }, []);
 
   // Persist the signup server-side (no-op if Supabase isn't configured) and pull back position +
   // referral count. Fire-and-forget: never blocks the confirmation UI.
@@ -144,6 +154,25 @@ export default function Join() {
         <div id="waitlist" className="mt-12">
           <h2 className="text-xl font-bold">Or join the waitlist</h2>
           <p className="mt-2 text-sm text-muted">We&apos;re launching soon. Get in early — and share your link to move up the line.</p>
+          {totalSignups !== null && (
+            <div className="mt-4 rounded-2xl border border-border bg-surface p-4">
+              <div className="flex items-baseline justify-between text-sm">
+                <span className="font-semibold text-text">{totalSignups.toLocaleString()} founders</span>
+                <span className="text-xs text-muted-2">goal: {GOAL.toLocaleString()}</span>
+              </div>
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-border">
+                <div
+                  className="h-full rounded-full bg-coral transition-all"
+                  style={{ width: `${Math.min(100, (totalSignups / GOAL) * 100)}%` }}
+                />
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted-2">
+                {GOAL - totalSignups > 0
+                  ? `${(GOAL - totalSignups).toLocaleString()} spots left before we open the gates`
+                  : "Waitlist full — join to stay in the loop"}
+              </p>
+            </div>
+          )}
 
           {entry ? (
             <div className="mt-5 rounded-2xl border border-mint/30 bg-mint/[0.05] p-5">

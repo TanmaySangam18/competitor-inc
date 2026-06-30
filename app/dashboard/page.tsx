@@ -33,6 +33,7 @@ import {
   Lock,
   Target,
   AlertTriangle,
+  Copy,
 } from "lucide-react";
 import { useEngine } from "@/lib/engine/useEngine";
 import { useConfig, getByok } from "@/lib/engine/config";
@@ -785,6 +786,7 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
                   title={ap.title}
                   detail={ap.detail}
                   agent={ap.agent}
+                  kind={ap.kind}
                   onApprove={() => r.resolveApproval(ap.id, true)}
                   onReject={() => r.resolveApproval(ap.id, false)}
                 />
@@ -1192,20 +1194,56 @@ function ActivityRow({ a, onUndo, lockedUrl }: { a: Activity; onUndo: () => void
   );
 }
 
-function ApprovalCard({ title, detail, agent, onApprove, onReject }: { title: string; detail: string; agent: AgentRole; onApprove: () => void; onReject: () => void }) {
+const SOCIAL_KINDS: ApprovalKind[] = ["twitter", "linkedin", "bluesky", "mastodon"];
+
+function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }: { title: string; detail: string; agent: AgentRole; kind?: ApprovalKind; onApprove: () => void; onReject: () => void }) {
   const A = AGENTS[agent];
+  const [copied, setCopied] = useState(false);
+  const isSocial = kind && SOCIAL_KINDS.includes(kind);
+  const kindLabel = kind === "twitter" ? "X / Twitter" : kind === "linkedin" ? "LinkedIn" : kind === "bluesky" ? "Bluesky" : kind === "mastodon" ? "Mastodon" : null;
+
+  function copyPost() {
+    navigator.clipboard.writeText(detail).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
   return (
     <motion.div layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="rounded-2xl border border-coral/30 bg-coral/[0.05] p-4">
-      <div className="text-[11px] uppercase tracking-wide text-muted-2">{A.name} · needs your ok</div>
+      <div className="flex items-center justify-between">
+        <div className="text-[11px] uppercase tracking-wide text-muted-2">{A.name} · needs your ok</div>
+        {kindLabel && <div className="rounded-md bg-coral/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-coral">{kindLabel}</div>}
+      </div>
       <div className="mt-1 text-sm font-semibold">{title}</div>
-      <p className="mt-1 text-xs text-muted">{detail}</p>
+      {isSocial ? (
+        <pre className="mt-2 whitespace-pre-wrap rounded-xl border border-border bg-bg/60 p-3 text-xs text-muted font-sans leading-relaxed">{detail}</pre>
+      ) : (
+        <p className="mt-1 text-xs text-muted">{detail}</p>
+      )}
       <div className="mt-3 flex gap-2">
-        <button onClick={onApprove} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-coral py-2 text-xs font-semibold text-bg transition hover:brightness-110">
-          <Check size={13} /> Approve
-        </button>
-        <button onClick={onReject} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted transition hover:text-text">
-          <X size={13} /> Reject
-        </button>
+        {isSocial ? (
+          <>
+            <button onClick={copyPost} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-coral py-2 text-xs font-semibold text-bg transition hover:brightness-110">
+              {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? "Copied!" : "Copy post"}
+            </button>
+            <button onClick={onApprove} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted transition hover:text-text">
+              <Check size={13} /> Done
+            </button>
+            <button onClick={onReject} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted transition hover:text-text">
+              <X size={13} /> Skip
+            </button>
+          </>
+        ) : (
+          <>
+            <button onClick={onApprove} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-coral py-2 text-xs font-semibold text-bg transition hover:brightness-110">
+              <Check size={13} /> Approve
+            </button>
+            <button onClick={onReject} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted transition hover:text-text">
+              <X size={13} /> Reject
+            </button>
+          </>
+        )}
       </div>
     </motion.div>
   );

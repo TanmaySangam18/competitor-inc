@@ -65,7 +65,7 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms = MODEL_TIMEO
 }
 
 const ROLES = Object.keys(AGENTS) as AgentRole[];
-const APPROVAL_KINDS: ApprovalKind[] = ["spend", "outreach", "deploy", "delete"];
+const APPROVAL_KINDS: ApprovalKind[] = ["spend", "outreach", "deploy", "delete", "twitter", "linkedin"];
 const uid = () => crypto.randomUUID();
 const num = (v: unknown, d = 0) => (typeof v === "number" && Number.isFinite(v) ? v : d);
 const str = (v: unknown, d = "") => (typeof v === "string" ? v : d);
@@ -437,12 +437,16 @@ function governShift(s: ShiftResult): ShiftResult {
 export async function runShift(company: Company, byok?: ByokConfig, context?: string): Promise<ShiftResult> {
   if (!modelAvailable(byok)) return governShift(getProvider().shift(company));
   const night = company.night + 1;
+  const isImported = company.product?.status === "live";
+  const distributionConstraint = isImported
+    ? " CRITICAL: this product is ALREADY BUILT AND LIVE. The crew's ONLY job is getting it customers. DO NOT propose engineering or build activities. Focus exclusively on: outreach drafts, positioning, programmatic SEO, community posts, and referral mechanics."
+    : "";
   try {
     const text = await callModel(
-      `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${ROLES.join(", ")}. ` +
+      `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${ROLES.join(", ")}.${distributionConstraint} ` +
         "Produce 3-5 realistic actions taken overnight. Build on priorContext (what earlier nights did) — stay consistent; don't repeat or contradict past decisions. " +
-        "Consequential actions (spend>$100, outreach, deploy, delete) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
-        '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-credited","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete","title":string,"detail":string,"amount":number}]}',
+        "Consequential actions (spend>$100, outreach, deploy, delete, twitter posts, linkedin posts) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
+        '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-credited","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete"|"twitter"|"linkedin","title":string,"detail":string,"amount":number}]}',
       JSON.stringify({ idea: company.idea, night, priorContext: context || "(none yet)" }),
       byok,
       modelForAgent("engineering")

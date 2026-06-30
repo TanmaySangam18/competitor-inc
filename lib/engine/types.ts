@@ -56,7 +56,7 @@ export interface Activity {
   rationale?: { why: string; principle: string };
 }
 
-export type ApprovalKind = "spend" | "outreach" | "deploy" | "delete" | "bluesky" | "mastodon";
+export type ApprovalKind = "spend" | "outreach" | "deploy" | "delete" | "bluesky" | "mastodon" | "twitter" | "linkedin";
 
 export interface ApprovalItem {
   id: string;

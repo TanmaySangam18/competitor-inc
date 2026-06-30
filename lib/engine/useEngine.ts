@@ -5,6 +5,7 @@ import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, OperateD
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
 import { getByok, getConnections, pingCustomerUpdate, pingApprovalRequest, fetchApprovalDecisions } from "./config";
 import { draftBlitz } from "./blitz";
+import { generateSocialDrafts, generateDistributionActivities } from "./distribution";
 import { canRun, recordRun, FREE_CAPS } from "./usage";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "./useAuth";
@@ -342,6 +343,8 @@ export function useEngine() {
             status: "done",
             proof: { kind: "metric", value: "build started — shipping your site" },
           };
+      const extraActivities = isImported ? generateDistributionActivities(c, 1) : [];
+      const extraApprovals = isImported ? generateSocialDrafts(c, 1) : [];
       return {
         ...s,
         companies: s.companies.map((x) =>
@@ -355,7 +358,8 @@ export function useEngine() {
               }
             : x
         ),
-        activities: { ...s.activities, [c.id]: [first, ...(s.activities[c.id] ?? [])] },
+        activities: { ...s.activities, [c.id]: [...extraActivities, first, ...(s.activities[c.id] ?? [])] },
+        approvals: { ...s.approvals, [c.id]: [...(s.approvals[c.id] ?? []), ...extraApprovals] },
       };
     });
     // Real execution (gated): when keys are set, actually build the MVP on GitHub and log the verified

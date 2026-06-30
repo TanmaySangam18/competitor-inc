@@ -16,6 +16,20 @@ export const runtime = "nodejs";
 
 const REFERRAL_BUMP = 5; // every friend who joins moves you up this many spots (honest, fixed)
 
+// Public count endpoint — no email, just the total. Fail-soft (returns 0 when DB not configured).
+export async function GET() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return Response.json({ count: 0 });
+  try {
+    const sb = createClient(url, serviceKey, { auth: { persistSession: false } });
+    const { count } = await sb.from("waitlist").select("id", { count: "exact", head: true });
+    return Response.json({ count: count ?? 0 });
+  } catch {
+    return Response.json({ count: 0 });
+  }
+}
+
 export async function POST(req: Request) {
   if (rateLimited(`waitlist:${clientIp(req)}`)) {
     return Response.json({ error: "rate limited" }, { status: 429 });
