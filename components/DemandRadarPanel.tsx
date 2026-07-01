@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Radar, Loader2, ExternalLink, TrendingUp, TrendingDown, Minus, AlertTriangle, Search } from "lucide-react";
 
 // Block V — Demand Radar UI. Type an idea → the crew crawls the live web and returns a SOURCE-CITED
@@ -17,14 +17,14 @@ interface Report {
 const verdictColor = (v: Report["verdict"]) =>
   v === "strong" ? "text-mint" : v === "mixed" ? "text-amber" : "text-coral";
 
-export default function DemandRadarPanel({ initialIdea = "" }: { initialIdea?: string }) {
+export default function DemandRadarPanel({ initialIdea = "", autoRun = false }: { initialIdea?: string; autoRun?: boolean }) {
   const [idea, setIdea] = useState(initialIdea);
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
   const [err, setErr] = useState("");
 
-  async function scan() {
-    const q = idea.trim();
+  const scan = useCallback(async (override?: string) => {
+    const q = (override ?? idea).trim();
     if (q.length < 3) { setErr("Describe the idea in a sentence."); return; }
     setErr(""); setBusy(true); setReport(null);
     try {
@@ -39,7 +39,13 @@ export default function DemandRadarPanel({ initialIdea = "" }: { initialIdea?: s
     } finally {
       setBusy(false);
     }
-  }
+  }, [idea]);
+
+  // Auto-run once on mount when embedded in the validation flow (onboarding + import both use this).
+  useEffect(() => {
+    if (autoRun && initialIdea.trim().length >= 3) void scan(initialIdea);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRun, initialIdea]);
 
   const TrendIcon = report?.trend === "rising" ? TrendingUp : report?.trend === "cooling" ? TrendingDown : Minus;
 
@@ -65,7 +71,7 @@ export default function DemandRadarPanel({ initialIdea = "" }: { initialIdea?: s
           aria-label="Your idea"
         />
         <button
-          onClick={scan}
+          onClick={() => scan()}
           disabled={busy || idea.trim().length < 3}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-violet px-4 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110 disabled:opacity-50"
         >

@@ -52,6 +52,7 @@ export function capabilities(conn?: Connections) {
     ads: !!(conn?.adsWebhookUrl || process.env.ADS_WEBHOOK_URL),
     bluesky: !!(process.env.BLUESKY_HANDLE && process.env.BLUESKY_APP_PASSWORD),
     mastodon: !!(process.env.MASTODON_BASE_URL && process.env.MASTODON_ACCESS_TOKEN),
+    reddit: !!(process.env.REDDIT_CLIENT_ID && process.env.REDDIT_CLIENT_SECRET && process.env.REDDIT_USERNAME && process.env.REDDIT_PASSWORD),
   };
 }
 export function realExecutionEnabled(): boolean {
@@ -295,6 +296,51 @@ export async function postToMastodon(opts: { text: string }): Promise<ExecOutcom
   }
 }
 
+// ── Reddit — approval-gated organic posting (Block D) ─────────────────────────
+// Script-app OAuth (password grant) → submit a self/link post. OFF until all four env vars are set.
+// Reddit blocks datacenter IPs for anonymous reads, but AUTHENTICATED API calls from a server are fine.
+// Never autonomous — only fires for a post the founder approved. Subreddit + rules are the founder's
+// responsibility (reddiquette); we default to the user's profile ("u_<name>") which is always postable.
+export async function postToReddit(opts: { title: string; text: string; subreddit?: string }): Promise<ExecOutcome> {
+  const id = process.env.REDDIT_CLIENT_ID;
+  const secret = process.env.REDDIT_CLIENT_SECRET;
+  const user = process.env.REDDIT_USERNAME;
+  const pass = process.env.REDDIT_PASSWORD;
+  const title = (opts.title || "").slice(0, 300);
+  const text = (opts.text || "").slice(0, 4000);
+  if (!id || !secret || !user || !pass || !title) return disabled();
+  const ua = `web:competitor.inc:v1 (by /u/${user})`;
+  try {
+    const auth = await timed("https://www.reddit.com/api/v1/access_token", {
+      method: "POST",
+      headers: {
+        authorization: `Basic ${Buffer.from(`${id}:${secret}`).toString("base64")}`,
+        "content-type": "application/x-www-form-urlencoded",
+        "user-agent": ua,
+      },
+      body: `grant_type=password&username=${encodeURIComponent(user)}&password=${encodeURIComponent(pass)}`,
+    });
+    if (!auth.ok) return { ok: false, error: `reddit auth ${auth.status}` };
+    const tok = (await auth.json().catch(() => ({}))) as { access_token?: string };
+    if (!tok.access_token) return { ok: false, error: "reddit no token" };
+    // Default to the poster's own profile subreddit — always allowed, no subreddit rules to trip.
+    const sr = (opts.subreddit || `u_${user}`).replace(/^r\//, "");
+    const res = await timed("https://oauth.reddit.com/api/submit", {
+      method: "POST",
+      headers: { authorization: `Bearer ${tok.access_token}`, "content-type": "application/x-www-form-urlencoded", "user-agent": ua },
+      body: `sr=${encodeURIComponent(sr)}&kind=self&title=${encodeURIComponent(title)}&text=${encodeURIComponent(text)}&api_type=json`,
+    });
+    if (!res.ok) return { ok: false, error: `reddit submit ${res.status}` };
+    const data = (await res.json().catch(() => ({}))) as { json?: { data?: { url?: string }; errors?: unknown[] } };
+    const errs = data.json?.errors;
+    if (Array.isArray(errs) && errs.length) return { ok: false, error: `reddit: ${JSON.stringify(errs[0])}` };
+    const link = data.json?.data?.url;
+    return { ok: true, proof: link ? { kind: "url", value: link } : { kind: "metric", value: "posted to Reddit" } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 // ── Dispatcher: map an agent action / approved item to its real executor ──────
 export interface ActionPayload {
   company: { name: string; idea: string };
@@ -342,6 +388,8 @@ export async function runAction(action: string, p: ActionPayload): Promise<ExecO
       return postToBluesky({ text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
     case "mastodon":
       return postToMastodon({ text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
+    case "reddit":
+      return postToReddit({ title: p.item?.title || p.company.name, text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
     case "spend":
       return placeAd(
         { objective: p.item?.title || "demand test", budget: p.item?.amount ?? 50, copy: p.item?.detail || p.company.idea },

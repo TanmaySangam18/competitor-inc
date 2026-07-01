@@ -46,6 +46,7 @@ import GuestSavePrompt from "@/components/GuestSavePrompt";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import GTMPanel from "@/components/GTMPanel";
 import GaugePanel from "@/components/GaugePanel";
+import DemandRadarPanel from "@/components/DemandRadarPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
 import CampaignPanel from "@/components/CampaignPanel";
@@ -457,11 +458,16 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
   const imported = r.company!.product?.status === "live";
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mx-auto mt-6 max-w-2xl">
+      {/* Real, cited web demand comes FIRST — the honest evidence. The AI estimate below is the fast read. */}
+      <div className="mb-5">
+        <DemandRadarPanel initialIdea={r.company!.idea} autoRun />
+      </div>
+
       <div className={`rounded-3xl border p-7 ${vs.ring}`}>
         <div className="flex items-center justify-between">
           <div className={`flex items-center gap-2 text-sm font-semibold ${vs.text}`}>
-            <FlaskConical size={16} /> VALIDATION GATE · {vs.label}
-            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-2">AI estimate</span>
+            <FlaskConical size={16} /> AI READ · {vs.label}
+            <span className="rounded-full border border-border bg-surface px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-2">estimate</span>
           </div>
           <div className="text-right">
             <div className={`font-display text-2xl font-bold ${vs.text}`}>{v.confidence}%</div>
@@ -471,7 +477,7 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
 
         <div className="mt-6 space-y-2.5">
           {v.experiments.map((e) => {
-            const ss = signalStyle[e.signal];
+            const ss = signalStyle[e.signal] ?? signalStyle.weak; // defensive: never white-screen on an unexpected signal
             return (
               <div key={e.key} className="flex items-center gap-3 rounded-2xl border border-border bg-bg/40 px-4 py-3">
                 <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${ss.dot}`} />
@@ -1210,13 +1216,13 @@ function ActivityRow({ a, onUndo, lockedUrl }: { a: Activity; onUndo: () => void
   );
 }
 
-const SOCIAL_KINDS: ApprovalKind[] = ["twitter", "linkedin", "bluesky", "mastodon"];
+const SOCIAL_KINDS: ApprovalKind[] = ["twitter", "linkedin", "bluesky", "mastodon", "reddit"];
 
 function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }: { title: string; detail: string; agent: AgentRole; kind?: ApprovalKind; onApprove: () => void; onReject: () => void }) {
   const A = AGENTS[agent];
   const [copied, setCopied] = useState(false);
   const isSocial = kind && SOCIAL_KINDS.includes(kind);
-  const kindLabel = kind === "twitter" ? "X / Twitter" : kind === "linkedin" ? "LinkedIn" : kind === "bluesky" ? "Bluesky" : kind === "mastodon" ? "Mastodon" : null;
+  const kindLabel = kind === "twitter" ? "X / Twitter" : kind === "linkedin" ? "LinkedIn" : kind === "bluesky" ? "Bluesky" : kind === "mastodon" ? "Mastodon" : kind === "reddit" ? "Reddit" : null;
 
   function copyPost() {
     navigator.clipboard.writeText(detail).then(() => {

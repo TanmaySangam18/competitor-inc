@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Loader2, Check, AlertTriangle, Rocket } from "lucide-react";
+import DemandRadarPanel from "@/components/DemandRadarPanel";
 
 // Import-and-sell on-ramp (the wedge): paste an ALREADY-BUILT product → public-page audit (read-only,
 // no ownership needed) → "grow this with my crew", which adopts it as a company focused on distribution.
@@ -93,6 +94,13 @@ export function ImportPanel({ onGrow }: { onGrow?: (url: string, title: string) 
               </div>
             ) : null
           )}
+
+          {/* Connect the Demand Radar right here: before you commit to growing it, see REAL, cited web
+              demand for what you built — no signups needed. */}
+          <div className="mt-4">
+            <DemandRadarPanel initialIdea={res.title || url} autoRun />
+          </div>
+
           {onGrow && (
             <button
               onClick={() => onGrow(url, res.title || url)}

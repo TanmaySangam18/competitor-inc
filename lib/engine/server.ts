@@ -65,7 +65,7 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms = MODEL_TIMEO
 }
 
 const ROLES = Object.keys(AGENTS) as AgentRole[];
-const APPROVAL_KINDS: ApprovalKind[] = ["spend", "outreach", "deploy", "delete", "twitter", "linkedin"];
+const APPROVAL_KINDS: ApprovalKind[] = ["spend", "outreach", "deploy", "delete", "twitter", "linkedin", "reddit", "bluesky", "mastodon"];
 const uid = () => crypto.randomUUID();
 const num = (v: unknown, d = 0) => (typeof v === "number" && Number.isFinite(v) ? v : d);
 const str = (v: unknown, d = "") => (typeof v === "string" ? v : d);
