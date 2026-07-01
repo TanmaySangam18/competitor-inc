@@ -45,6 +45,7 @@ import EntitlementNotice from "@/components/EntitlementNotice";
 import GuestSavePrompt from "@/components/GuestSavePrompt";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import GTMPanel from "@/components/GTMPanel";
+import GaugePanel from "@/components/GaugePanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
 import CampaignPanel from "@/components/CampaignPanel";
@@ -878,9 +879,12 @@ function HistoryTab({ activities, company }: { activities: Activity[]; company: 
   );
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      <BarChart title="Tasks completed / night" values={tasksByNight} nights={nights} color="var(--color-mint)" fmt={(v) => String(v)} />
-      <BarChart title="Spend / night" values={spendByNight} nights={nights} color="var(--color-coral)" fmt={(v) => "$" + v.toFixed(2)} />
+    <div className="space-y-6">
+      <GaugePanel company={company} activities={activities} />
+      <div className="grid gap-6 md:grid-cols-2">
+        <BarChart title="Tasks completed / night" values={tasksByNight} nights={nights} color="var(--color-mint)" fmt={(v) => String(v)} />
+        <BarChart title="Spend / night" values={spendByNight} nights={nights} color="var(--color-coral)" fmt={(v) => "$" + v.toFixed(2)} />
+      </div>
     </div>
   );
 }
