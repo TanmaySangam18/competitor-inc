@@ -52,6 +52,7 @@ async function run() {
   if (home) { const t = await home.text(); t.includes("competitor.inc") ? ok("/ contains brand") : fail("/ missing 'competitor.inc'"); }
   await get("/dashboard"); await get("/login"); await get("/live"); await get("/dashboard/settings"); await get("/join"); await get("/how-it-works"); await get("/delegation"); await get("/house"); await get("/house/board");
   await get("/proof");
+  await get("/radar");
   await get("/playbooks"); await get("/playbooks/validate-before-you-build");
   await get("/playbooks/how-people-decide"); await get("/playbooks/tell-a-story-that-sells");
   await get("/playbooks/cold-outreach-that-isnt-spam");
@@ -81,6 +82,11 @@ async function run() {
   if (wl) { const j = await wl.json(); j.ok && typeof j.code === "string" ? ok("waitlist returns ok + code") : fail("waitlist shape bad"); }
   await post("/api/waitlist", { email: "not-an-email" }, 400);
   await post("/api/waitlist", {}, 400);
+
+  console.log("• demand radar (input guards — no live crawl in smoke)");
+  await post("/api/radar", { idea: "x" }, 400); // too short → rejects before crawling
+  await post("/api/radar", {}, 400);
+  ok("radar rejects bad input before crawling");
 
   console.log("• demand test (fail-soft without Supabase)");
   const dq = await get("/api/demand?slug=smoke-test");
