@@ -53,6 +53,8 @@ async function run() {
   await get("/dashboard"); await get("/login"); await get("/live"); await get("/dashboard/settings"); await get("/join"); await get("/how-it-works"); await get("/delegation"); await get("/house"); await get("/house/board");
   await get("/proof");
   await get("/radar");
+  await get("/compare");
+  await get("/lockin");
   await get("/playbooks"); await get("/playbooks/validate-before-you-build");
   await get("/playbooks/how-people-decide"); await get("/playbooks/tell-a-story-that-sells");
   await get("/playbooks/cold-outreach-that-isnt-spam");

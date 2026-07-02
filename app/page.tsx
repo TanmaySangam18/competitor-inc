@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import ProductFilm from "@/components/ProductFilm";
 import { useAuth } from "@/lib/engine/useAuth";
 import { CHECKOUT_URL, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { AgentWelcome } from "@/components/AgentWelcome";
@@ -61,9 +62,10 @@ function Nav() {
   const signedIn = !!user && !user.guest;
   const [menuOpen, setMenuOpen] = useState(false);
   const links = [
+    { href: "#film", label: "Film" },
     { href: "/how-it-works", label: "How it works" },
+    { href: "/compare", label: "Compare" },
     { href: "/playbooks", label: "Playbooks" },
-    { href: "#capabilities", label: "Capabilities" },
     { href: "/delegation", label: "The Delegation" },
     { href: "#trust", label: "Glass Box" },
     { href: "/proof", label: "Proof" },
@@ -803,6 +805,7 @@ export default function Home() {
     <main id="main">
       <Nav />
       <Hero />
+      <ProductFilm />
       <Ethos />
       <HowItWorks />
       <Capabilities />
