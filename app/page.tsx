@@ -292,7 +292,7 @@ function Hero() {
   return (
     <section className="relative overflow-hidden mesh">
       <div className="absolute inset-0 grid-bg" />
-      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pt-36 pb-24 lg:grid-cols-[1.05fr_0.95fr] lg:pt-40 lg:pb-28">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 pt-28 pb-14 lg:grid-cols-[1.05fr_0.95fr] lg:pt-32 lg:pb-16">
         {/* copy */}
         <div>
           <motion.div
@@ -375,7 +375,7 @@ function Hero() {
       </div>
 
       {/* The position in three lines — the messaging pillars (Verifiable. Governed.) */}
-      <div className="mx-auto mt-14 grid max-w-5xl gap-4 px-6 sm:grid-cols-3">
+      <div className="mx-auto mt-4 grid max-w-5xl gap-4 px-6 sm:grid-cols-3">
         {[
           { h: "Building is no longer the hard part.", s: "Most products make $0. ~5% ever cross $100k/yr. The bottleneck is getting the first 100 paying customers — that's what we're built for.", accent: true },
           { h: "It asks before anything risky.", s: "Spend, sends, and deploys wait for your yes. Every action is logged with proof you can click. Nothing goes out without your say-so." },
@@ -389,7 +389,7 @@ function Hero() {
       </div>
 
       {/* welcome agent + huge wordmark */}
-      <div className="relative border-t border-border py-16">
+      <div className="relative mt-10 border-t border-border py-10">
         <div className="mx-auto mb-1 max-w-[300px]">
           <AgentWelcome />
         </div>
@@ -409,7 +409,7 @@ function Hero() {
 function Ethos() {
   return (
     <section className="border-y border-border bg-surface/30">
-      <div className="mx-auto max-w-4xl px-6 py-14 text-center">
+      <div className="mx-auto max-w-4xl px-6 py-10 text-center">
         <p className="font-display text-xl leading-relaxed md:text-2xl">
           <span className="text-text">Building is easy. Selling is the hard part.</span>{" "}
           <span className="text-muted">
@@ -423,33 +423,33 @@ function Ethos() {
 
 /* ── How it works ────────────────────────────────────────────── */
 const steps = [
-  { n: "01", title: "Validate before you build", body: "Every company starts at the Validation Gate — a fast, honest read on your idea, then a real plan to prove it: talk to a few real users, find where people already pay, and make one costly ask (a pre-order, a deposit). Commitment, not free signups. competitor.inc won't build until the signal is there.", icon: FlaskConical, color: "text-amber", ring: "bg-amber/12" },
-  { n: "02", title: "Build in the open", body: "Once validated, the agents ship. A task is only “done” when there's proof — a live URL, a passing build, a real metric. Nothing is marked complete on a hunch.", icon: CheckCircle2, color: "text-mint", ring: "bg-mint/12" },
-  { n: "03", title: "Approve the moves that matter", body: "Spend, outbound messages, deploys, and deletions land in your Approval Inbox. You bring the taste and the final call; competitor.inc handles the rest.", icon: Inbox, color: "text-coral", ring: "bg-coral/12" },
-  { n: "04", title: "Own everything", body: "Flat price, no revenue share. One-click export of all your code and data. Run it on your own infra anytime — or flip on Private Mode so nothing leaves your box.", icon: Lock, color: "text-violet", ring: "bg-violet/12" },
+  { n: "01", title: "Validate before you build", body: "A fast, honest read, then a real commitment test — conversations, existing demand, one costly ask. No code until the signal is there.", icon: FlaskConical, color: "text-amber", ring: "bg-amber/12" },
+  { n: "02", title: "Build in the open", body: "A task is only “done” with proof — a live URL, a passing build, a real metric. Never on a hunch.", icon: CheckCircle2, color: "text-mint", ring: "bg-mint/12" },
+  { n: "03", title: "Approve the moves that matter", body: "Spend, sends, deploys, and deletes land in your Approval Inbox. You make the final call.", icon: Inbox, color: "text-coral", ring: "bg-coral/12" },
+  { n: "04", title: "Own everything", body: "Flat price, no revenue share, one-click export. Run it on your own infra anytime.", icon: Lock, color: "text-violet", ring: "bg-violet/12" },
 ];
 
 function HowItWorks() {
   return (
-    <section id="how" className="mx-auto max-w-6xl px-6 py-28">
+    <section id="how" className="mx-auto max-w-6xl px-6 py-16">
       <Reveal className="max-w-2xl">
         <h2 className="display text-3xl md:text-[2.6rem]">Validate first. Build the winner. Own it.</h2>
-        <p className="mt-4 text-lg text-muted">
+        <p className="mt-3 text-lg text-muted">
           Four steps that put proof before code — and keep you in the founder&apos;s seat the whole way.
         </p>
       </Reveal>
-      <div className="mt-14 grid gap-5 md:grid-cols-2">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((s, i) => (
-          <Reveal key={s.n} delay={(i % 2) * 0.08}>
-            <div className="card h-full p-7">
+          <Reveal key={s.n} delay={i * 0.06}>
+            <div className="card h-full p-5">
               <div className="flex items-center justify-between">
-                <span className={`grid h-12 w-12 place-items-center rounded-xl ${s.ring} ${s.color}`}>
-                  <s.icon size={21} />
+                <span className={`grid h-10 w-10 place-items-center rounded-xl ${s.ring} ${s.color}`}>
+                  <s.icon size={18} />
                 </span>
                 <span className="font-display text-sm text-muted-2">{s.n}</span>
               </div>
-              <h3 className="mt-5 text-xl font-semibold">{s.title}</h3>
-              <p className="mt-2.5 leading-relaxed text-muted">{s.body}</p>
+              <h3 className="mt-3.5 text-base font-semibold">{s.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{s.body}</p>
             </div>
           </Reveal>
         ))}
@@ -472,22 +472,24 @@ const capabilities = [
 function Capabilities() {
   return (
     <section id="capabilities" className="border-t border-border bg-surface/20">
-      <div className="mx-auto max-w-6xl px-6 py-28">
+      <div className="mx-auto max-w-6xl px-6 py-16">
         <Reveal className="max-w-2xl">
           <h2 className="display text-3xl md:text-[2.6rem]">Built on trust, not vibes</h2>
-          <p className="mt-4 text-lg text-muted">
+          <p className="mt-3 text-lg text-muted">
             Each capability is designed to make autonomy feel safe, transparent, and yours.
           </p>
         </Reveal>
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {capabilities.map((c, i) => (
-            <Reveal key={c.title} delay={(i % 3) * 0.07}>
-              <div className="card h-full p-6">
-                <span className={`grid h-11 w-11 place-items-center rounded-xl ${c.ring} ${c.color}`}>
-                  <c.icon size={19} />
+            <Reveal key={c.title} delay={(i % 3) * 0.06}>
+              <div className="card flex h-full items-start gap-3.5 p-5">
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${c.ring} ${c.color}`}>
+                  <c.icon size={18} />
                 </span>
-                <h3 className="mt-4 text-lg font-semibold">{c.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">{c.body}</p>
+                <div>
+                  <h3 className="text-base font-semibold">{c.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-muted">{c.body}</p>
+                </div>
               </div>
             </Reveal>
           ))}
@@ -508,27 +510,27 @@ const contrastRows = [
 
 function HonestAlternative() {
   return (
-    <section id="why" className="mx-auto max-w-6xl px-6 py-28">
+    <section id="why" className="mx-auto max-w-6xl px-6 py-16">
       <Reveal className="max-w-2xl">
         <h2 className="display text-3xl md:text-[2.6rem]">Everything the autonomous black box isn’t</h2>
-        <p className="mt-4 text-lg text-muted">
+        <p className="mt-3 text-lg text-muted">
           The first wave of “AI that runs your company” builds fast and asks for your trust. competitor.inc
           earns it instead — proof before code, your hand on every consequential move, and none of your revenue.
         </p>
       </Reveal>
       <Reveal delay={0.06}>
-        <div className="mt-14 overflow-hidden rounded-2xl border border-border">
+        <div className="mt-8 overflow-hidden rounded-2xl border border-border">
           <div className="grid grid-cols-2 border-b border-border bg-surface/30 text-sm font-semibold">
             <div className="flex items-center gap-2 px-5 py-4 text-muted-2"><Lock size={15} /> The autonomous black box</div>
             <div className="flex items-center gap-2 border-l border-border px-5 py-4 text-text"><LogoMark size={18} /> competitor.inc</div>
           </div>
           {contrastRows.map((r, i) => (
             <div key={i} className={`grid grid-cols-2 ${i < contrastRows.length - 1 ? "border-b border-border" : ""}`}>
-              <div className="flex items-start gap-2.5 px-5 py-5 text-sm text-muted-2">
+              <div className="flex items-start gap-2.5 px-5 py-3.5 text-sm text-muted-2">
                 <X size={16} className="mt-0.5 shrink-0 opacity-60" />
                 <span>{r.black}</span>
               </div>
-              <div className="flex items-start gap-2.5 border-l border-border bg-mint/[0.04] px-5 py-5 text-sm text-text">
+              <div className="flex items-start gap-2.5 border-l border-border bg-mint/[0.04] px-5 py-3.5 text-sm text-text">
                 <Check size={16} className="mt-0.5 shrink-0 text-mint" />
                 <span>{r.ours}</span>
               </div>
@@ -552,8 +554,8 @@ const logEntries = [
 
 function GlassBox() {
   return (
-    <section id="trust" className="mx-auto max-w-6xl px-6 py-28">
-      <div className="grid items-center gap-14 lg:grid-cols-[0.9fr_1.1fr]">
+    <section id="trust" className="mx-auto max-w-6xl px-6 py-16">
+      <div className="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
         <Reveal>
           <div className="inline-flex items-center gap-2 rounded-full border border-violet/25 bg-violet/[0.06] px-3 py-1 text-xs text-violet">
             <Eye size={13} /> The Glass Box
@@ -626,27 +628,27 @@ const plans = [
 function Pricing() {
   const { user } = useAuth();
   const email = user && !user.guest ? user.email : "";
-  // Each paid tier routes to its OWN LemonSqueezy checkout when that tier's link is live (email prefilled
+  // Each paid tier routes to its OWN Polar checkout when that tier's link is live (email prefilled
   // if signed in); otherwise it falls back to the in-app/apply path so the page always works.
   const planHref = (p: { tier: string; href: string }) =>
     p.tier && checkoutLiveFor(p.tier) ? checkoutUrlFor(email, p.tier) : p.href;
   return (
     <section id="pricing" className="border-t border-border bg-surface/20">
-      <div className="mx-auto max-w-5xl px-6 py-28">
+      <div className="mx-auto max-w-5xl px-6 py-16">
         <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="display text-3xl md:text-[2.6rem]">Honest pricing</h2>
-          <p className="mt-4 text-lg text-muted">
+          <p className="mt-3 text-lg text-muted">
             Validate free. Build it yourself, or have us do it with you. No revenue share, no lock-in.
           </p>
           <p className="mt-2 text-sm text-muted-2">
             Free to prove the idea — you only pay once there&apos;s a winner worth building.
           </p>
         </Reveal>
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
           {plans.map((p, i) => (
             <Reveal key={p.name} delay={i * 0.07}>
               <div
-                className={`relative flex h-full flex-col rounded-2xl glass-panel p-7 ${
+                className={`relative flex h-full flex-col rounded-2xl glass-panel p-6 ${
                   p.highlight ? "border-white/30 shadow-[0_0_60px_-22px_rgba(255,255,255,0.22)]" : ""
                 }`}
               >
@@ -661,7 +663,7 @@ function Pricing() {
                   <span className="mb-1 text-sm text-muted-2">{p.tag}</span>
                 </div>
                 <p className="mt-2 text-xs text-muted-2">{p.audience}</p>
-                <ul className="mt-6 flex-1 space-y-3 text-sm text-muted">
+                <ul className="mt-5 flex-1 space-y-2 text-sm text-muted">
                   {p.points.map((pt) => (
                     <li key={pt} className="flex items-start gap-2">
                       <Check size={16} className="mt-0.5 shrink-0 text-mint" /> {pt}
@@ -670,7 +672,7 @@ function Pricing() {
                 </ul>
                 <a
                   href={planHref(p)}
-                  className={`mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition ${
+                  className={`mt-5 inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition ${
                     p.highlight
                       ? "bg-coral text-bg hover:brightness-110"
                       : "border border-border hover:bg-surface-2"
@@ -684,7 +686,7 @@ function Pricing() {
         </div>
 
         {/* One-time option — cash-now foot in the door that upsells to Founder. */}
-        <Reveal className="mx-auto mt-8 max-w-3xl">
+        <Reveal className="mx-auto mt-6 max-w-3xl">
           <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-border bg-surface/40 px-6 py-5 text-center sm:flex-row sm:text-left">
             <div>
               <div className="text-sm font-semibold">Not ready for a monthly commitment?</div>
@@ -719,7 +721,7 @@ function FinalCTA() {
   return (
     <section className="relative overflow-hidden mesh">
       <div className="absolute inset-0 grid-bg" />
-      <div className="relative mx-auto max-w-3xl px-6 py-32 text-center">
+      <div className="relative mx-auto max-w-3xl px-6 py-20 text-center">
         <h2 className="display text-4xl leading-tight md:text-5xl">
           Don&apos;t build it blind.
           <br />
@@ -792,53 +794,6 @@ function Footer() {
   );
 }
 
-/* ── ChatOps teaser (coming soon — texting your agents) ───────── */
-function ChatOpsTeaser() {
-  return (
-    <section className="border-t border-border bg-surface/20">
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-24 md:grid-cols-2">
-        <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-coral/30 bg-coral/10 px-3 py-1 text-xs font-medium text-coral">
-            <Sparkles size={13} /> Coming soon
-          </span>
-          <h2 className="display mt-5 text-3xl md:text-[2.6rem]">Run it from your texts.</h2>
-          <p className="mt-4 max-w-md text-muted">
-            Soon you won&apos;t need to open competitor.inc at all. Your agents will text you what they&apos;re
-            doing and what needs your call — you reply <span className="text-text">approve</span> or{" "}
-            <span className="text-text">reject</span>, right from your phone. The Approval Inbox, brought to
-            where you already live.
-          </p>
-          <p className="mt-3 text-sm text-muted-2">
-            Same rule as always: nothing consequential happens without your yes.
-          </p>
-        </div>
-
-        {/* a little text-thread preview */}
-        <div className="clay-panel mx-auto w-full max-w-sm p-5">
-          <div className="space-y-3">
-            <div className="flex items-start gap-2.5">
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-text text-bg"><LogoMark size={16} /></span>
-              <div className="rounded-2xl rounded-tl-sm border border-border bg-bg/60 px-3.5 py-2 text-sm text-muted">
-                Pitch wants to spend $40 on an X ad test. Approve?
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <div className="rounded-2xl rounded-tr-sm bg-coral px-3.5 py-2 text-sm font-medium text-bg">approve ✅</div>
-            </div>
-            <div className="flex items-start gap-2.5">
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-text text-bg"><LogoMark size={16} /></span>
-              <div className="rounded-2xl rounded-tl-sm border border-border bg-bg/60 px-3.5 py-2 text-sm text-muted">
-                Done — it&apos;s live. I&apos;ll report results tonight. 🚀
-              </div>
-            </div>
-          </div>
-          <p className="mt-4 text-center text-[11px] text-muted-2">Texting with your crew · preview</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default function Home() {
   return (
     <main id="main">
@@ -850,7 +805,6 @@ export default function Home() {
       <Capabilities />
       <HonestAlternative />
       <GlassBox />
-      <ChatOpsTeaser />
       <Pricing />
       <FinalCTA />
       <Footer />
