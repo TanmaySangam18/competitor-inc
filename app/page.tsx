@@ -19,6 +19,7 @@ import {
   TrendingUp,
   LogOut,
   Menu,
+  ChevronDown,
   X,
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
@@ -57,49 +58,90 @@ function Reveal({
 }
 
 /* ── Nav ─────────────────────────────────────────────────────── */
+// Grouped IA (the Stripe/Meta pattern): 4 top-level items — two dropdown groups + the two
+// pages a first-time visitor actually decides on (Compare, Pricing) — one auth link, one CTA.
+// Never more; a nav that overflows is a nav that failed (Hick's Law + this exact bug report).
+const NAV_GROUPS: { label: string; items: { href: string; label: string }[] }[] = [
+  {
+    label: "Product",
+    items: [
+      { href: "/how-it-works", label: "How it works" },
+      { href: "#film", label: "Watch the film" },
+      { href: "/delegation", label: "The Delegation" },
+      { href: "#trust", label: "The Glass Box" },
+      { href: "/proof", label: "Proof standard" },
+    ],
+  },
+  {
+    label: "Resources",
+    items: [
+      { href: "/playbooks", label: "Playbooks" },
+      { href: "/radar", label: "Demand Radar" },
+      { href: "/blog", label: "Blog" },
+    ],
+  },
+];
+
+function NavGroup({ label, items, open, onToggle }: { label: string; items: { href: string; label: string }[]; open: boolean; onToggle: (v: boolean) => void }) {
+  return (
+    <div className="relative" onMouseEnter={() => onToggle(true)} onMouseLeave={() => onToggle(false)}>
+      <button
+        onClick={() => onToggle(!open)}
+        aria-expanded={open}
+        className={`inline-flex items-center gap-1 py-2 transition ${open ? "text-text" : "hover:text-text"}`}
+      >
+        {label} <ChevronDown size={13} className={`transition ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-full z-50 min-w-[13rem] rounded-2xl border border-border bg-bg/95 p-2 shadow-xl backdrop-blur-xl">
+          {items.map((i) => (
+            <a key={i.href} href={i.href} onClick={() => onToggle(false)} className="block rounded-lg px-3 py-2 text-sm text-muted transition hover:bg-surface hover:text-text">
+              {i.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Nav() {
   const { user, ready, signOut } = useAuth();
   const signedIn = !!user && !user.guest;
   const [menuOpen, setMenuOpen] = useState(false);
-  const links = [
-    { href: "#film", label: "Film" },
-    { href: "/how-it-works", label: "How it works" },
-    { href: "/compare", label: "Compare" },
-    { href: "/playbooks", label: "Playbooks" },
-    { href: "/delegation", label: "The Delegation" },
-    { href: "#trust", label: "Glass Box" },
-    { href: "/proof", label: "Proof" },
-    { href: "#pricing", label: "Pricing" },
-  ];
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   return (
     <nav className="fixed top-0 inset-x-0 z-50 border-b border-border bg-bg/60 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
         <a href="#" className="flex shrink-0 items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
           <LogoMark size={34} />
           competitor.inc
-          <span className="ml-1 hidden rounded-full border border-border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-2 sm:inline-block">
+          <span className="ml-1 hidden rounded-full border border-border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-2 lg:inline-block">
             beta
           </span>
         </a>
-        <div className="hidden items-center gap-5 whitespace-nowrap text-sm text-muted xl:flex">
-          {links.map((l) => (
-            <a key={l.href} href={l.href} className="transition hover:text-text">{l.label}</a>
+
+        {/* Desktop: 4 top-level items, nothing more. */}
+        <div className="hidden items-center gap-6 whitespace-nowrap text-sm text-muted lg:flex">
+          {NAV_GROUPS.map((g) => (
+            <NavGroup key={g.label} label={g.label} items={g.items} open={openGroup === g.label} onToggle={(v) => setOpenGroup(v ? g.label : null)} />
           ))}
+          <a href="/compare" className="transition hover:text-text">Compare</a>
+          <a href="#pricing" className="transition hover:text-text">Pricing</a>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+
+        <div className="flex shrink-0 items-center gap-3">
           {ready &&
             (signedIn ? (
               <button
                 onClick={() => void signOut()}
                 title={`Signed in as ${user!.email}`}
-                className="hidden items-center gap-1.5 text-sm text-muted transition hover:text-text sm:inline-flex"
+                className="hidden items-center gap-1.5 text-sm text-muted transition hover:text-text lg:inline-flex"
               >
                 <LogOut size={14} /> Sign out
               </button>
             ) : (
-              // One returning-user link only — the "Meet your co-founder" pill is the primary CTA, so a
-              // separate "Sign up free" link here just competes with it (Hick's Law).
-              <a href="/login" className="hidden text-sm text-muted transition hover:text-text sm:inline-block">
+              <a href="/login" className="hidden text-sm text-muted transition hover:text-text lg:inline-block">
                 Sign in
               </a>
             ))}
@@ -111,32 +153,34 @@ function Nav() {
             <span className="sm:hidden">Start</span>
             <ArrowRight size={15} />
           </a>
-          {/* Mobile menu toggle — below xl, where the inline links/auth are hidden. */}
           <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-label="Menu"
             aria-expanded={menuOpen}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-muted transition hover:text-text xl:hidden"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border text-muted transition hover:text-text lg:hidden"
           >
             {menuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile dropdown — everything reachable on a phone (links + auth). */}
+      {/* Mobile: grouped sections, everything reachable. */}
       {menuOpen && (
-        <div className="border-t border-border bg-bg/95 backdrop-blur-xl xl:hidden">
+        <div className="border-t border-border bg-bg/95 backdrop-blur-xl lg:hidden">
           <div className="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-3">
-            {links.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                onClick={() => setMenuOpen(false)}
-                className="rounded-lg px-2 py-2.5 text-sm text-muted transition hover:bg-surface hover:text-text"
-              >
-                {l.label}
-              </a>
+            {NAV_GROUPS.map((g) => (
+              <div key={g.label}>
+                <div className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-2">{g.label}</div>
+                {g.items.map((i) => (
+                  <a key={i.href} href={i.href} onClick={() => setMenuOpen(false)} className="block rounded-lg px-2 py-2 text-sm text-muted transition hover:bg-surface hover:text-text">
+                    {i.label}
+                  </a>
+                ))}
+              </div>
             ))}
+            <div className="my-1 border-t border-border" />
+            <a href="/compare" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm text-muted transition hover:bg-surface hover:text-text">Compare</a>
+            <a href="#pricing" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm text-muted transition hover:bg-surface hover:text-text">Pricing</a>
             <div className="my-1 border-t border-border" />
             {ready &&
               (signedIn ? (
@@ -145,19 +189,14 @@ function Nav() {
                     setMenuOpen(false);
                     void signOut();
                   }}
-                  className="flex items-center gap-2 rounded-lg px-2 py-2.5 text-left text-sm text-muted transition hover:bg-surface hover:text-text sm:hidden"
+                  className="flex items-center gap-2 rounded-lg px-2 py-2.5 text-left text-sm text-muted transition hover:bg-surface hover:text-text"
                 >
                   <LogOut size={14} /> Sign out
                 </button>
               ) : (
-                <div className="flex flex-col gap-1 sm:hidden">
-                  <a href="/signup" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm font-medium text-text transition hover:bg-surface">
-                    Sign up free
-                  </a>
-                  <a href="/login" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm text-muted transition hover:bg-surface hover:text-text">
-                    Sign in
-                  </a>
-                </div>
+                <a href="/login" onClick={() => setMenuOpen(false)} className="rounded-lg px-2 py-2.5 text-sm text-muted transition hover:bg-surface hover:text-text">
+                  Sign in
+                </a>
               ))}
           </div>
         </div>
