@@ -637,7 +637,7 @@ export function useEngine() {
         id: rid(),
         night: active.night,
         agent: "growth",
-        kind: "outreach",
+        kind: d.kind ?? "outreach",
         title: d.title,
         detail: d.body,
       }));
@@ -645,7 +645,7 @@ export function useEngine() {
         id: rid(),
         night: active.night,
         agent: "growth",
-        action: `Drafted the launch blitz — ${drafts.length} posts queued for your approval`,
+        action: `Drafted the launch blitz — ${drafts.length} drafts queued for your approval (posts + a video-ad brief)`,
         meta: "outbound waits for your yes",
         cost: 0,
         status: "done",

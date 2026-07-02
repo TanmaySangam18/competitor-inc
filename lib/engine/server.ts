@@ -57,7 +57,7 @@ export function realModelConfigured(): boolean {
 
 
 const ROLES = Object.keys(AGENTS) as AgentRole[];
-const APPROVAL_KINDS: ApprovalKind[] = ["spend", "outreach", "deploy", "delete", "twitter", "linkedin", "reddit", "bluesky", "mastodon"];
+const APPROVAL_KINDS: ApprovalKind[] = ["spend", "outreach", "deploy", "delete", "twitter", "linkedin", "reddit", "bluesky", "mastodon", "video"];
 const uid = () => crypto.randomUUID();
 const num = (v: unknown, d = 0) => (typeof v === "number" && Number.isFinite(v) ? v : d);
 const str = (v: unknown, d = "") => (typeof v === "string" ? v : d);

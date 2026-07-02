@@ -5,15 +5,18 @@ import { Check, Copy, X } from "lucide-react";
 import { AGENTS, type AgentRole, type ApprovalKind } from "@/lib/engine/types";
 import { useCopy } from "@/components/useCopy";
 
-// Social kinds are copy-first: WE never post to the founder's accounts — they copy the draft and
-// post it themselves ("Done" just clears the approval).
+// Copy-first kinds: WE never post to the founder's accounts or generate on their credits — they
+// copy the draft/brief and act themselves ("Done" just clears the approval). "video" is the
+// claymation-film creative brief (script + shot prompts); generating is theirs, and RUNNING it as
+// a paid ad routes through a separate spend approval — always.
 const SOCIAL_KINDS: ApprovalKind[] = ["twitter", "linkedin", "bluesky", "mastodon", "reddit"];
 
 export function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }: { title: string; detail: string; agent: AgentRole; kind?: ApprovalKind; onApprove: () => void; onReject: () => void }) {
   const A = AGENTS[agent];
   const { copied, copy: copyText } = useCopy(2000);
-  const isSocial = kind && SOCIAL_KINDS.includes(kind);
-  const kindLabel = kind === "twitter" ? "X / Twitter" : kind === "linkedin" ? "LinkedIn" : kind === "bluesky" ? "Bluesky" : kind === "mastodon" ? "Mastodon" : kind === "reddit" ? "Reddit" : null;
+  const isVideo = kind === "video";
+  const isSocial = (kind && SOCIAL_KINDS.includes(kind)) || isVideo;
+  const kindLabel = kind === "twitter" ? "X / Twitter" : kind === "linkedin" ? "LinkedIn" : kind === "bluesky" ? "Bluesky" : kind === "mastodon" ? "Mastodon" : kind === "reddit" ? "Reddit" : isVideo ? "Video ad" : null;
 
   const copyPost = () => copyText(detail);
 
@@ -33,7 +36,7 @@ export function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }
         {isSocial ? (
           <>
             <button onClick={copyPost} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-coral py-2 text-xs font-semibold text-bg transition hover:brightness-110">
-              {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? "Copied!" : "Copy post"}
+              {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? "Copied!" : isVideo ? "Copy brief" : "Copy post"}
             </button>
             <button onClick={onApprove} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted transition hover:text-text">
               <Check size={13} /> Done

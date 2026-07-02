@@ -165,4 +165,10 @@ describe("governApprovals — five-gate filter on the Approval Inbox", () => {
     ]);
     expect(out.map((a) => a.agent)).toEqual(["marketing"]);
   });
+
+  it("keeps a video creative brief (copy-first draft — human approval, never auto)", () => {
+    // "video" isn't in the matrix → defaultDecision APPROVE → queued for the founder, never AUTO.
+    expect(governApprovals([appr({ agent: "growth", kind: "video", title: "Generate the launch film" })]).length).toBe(1);
+    expect(decide(green({ agent: "growth", type: "video" })).verdict).toBe("QUEUE");
+  });
 });

@@ -35,3 +35,9 @@ per-request, never persisted server-side. Same posture, no new trust surface.
 
 **Trigger to build:** ≥3 real customers with live products asking for paid acquisition, or the first
 customer already running Meta ads who wants the loop to see them.
+
+**What's allowed BEFORE the trigger (shipped 2026-07-02):** producing ad *creative* — the launch
+blitz now drafts a claymation-launch-film brief (`kind:"video"`, lib/engine/blitz.ts): script, shot
+prompts for any video model, audio guidance, and an honesty checklist. Copy-first: the founder
+generates and posts it organically themselves. Creative is free speech; *budget* is Phase 2 — any
+paid placement still routes as `kind:"spend"` and waits for the founder's explicit yes.

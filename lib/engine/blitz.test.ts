@@ -21,4 +21,16 @@ describe("draftBlitz — Surge's launch-blitz drafts", () => {
     const hn = drafts.find((d) => d.channel === "Show HN")!;
     expect(hn.body).toContain("marketplace for rare houseplants");
   });
+
+  it("includes the video-ad creative brief — kind 'video', personalized, honesty checklist baked in", () => {
+    const video = drafts.find((d) => d.kind === "video")!;
+    expect(video).toBeTruthy();
+    expect(video.body).toContain("Plantly");
+    expect(video.body).toMatch(/SHOT PROMPTS/);
+    expect(video.body).toMatch(/HONESTY CHECKLIST/);
+    // The governance line rides inside the brief itself: paid ads are a spend approval, always.
+    expect(video.body).toMatch(/PAID ad = spend approval first, always/);
+    // And the legal line: style is free, assets are not.
+    expect(video.body).toMatch(/STYLE is free, their assets are not/);
+  });
 });
