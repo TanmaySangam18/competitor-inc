@@ -49,6 +49,7 @@ import GaugePanel from "@/components/GaugePanel";
 import GrowthPanel from "@/components/GrowthPanel";
 import DemandRadarPanel from "@/components/DemandRadarPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
+import MomTestKit from "@/components/MomTestKit";
 import CrewCard from "@/components/CrewCard";
 import CampaignPanel from "@/components/CampaignPanel";
 import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
@@ -452,6 +453,7 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
       <p className="mt-3 text-center text-xs text-muted-2">
         These are <span className="text-muted">AI estimates</span> from your idea — a fast read, not a live test with real signups yet. You decide; competitor.inc only builds once you approve.
       </p>
+      <MomTestKit name={r.company!.name} idea={r.company!.idea} />
       <DemandTestPanel slug={r.company!.slug} idea={r.company!.idea} />
     </motion.div>
   );
