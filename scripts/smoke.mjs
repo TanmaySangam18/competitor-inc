@@ -106,6 +106,14 @@ async function run() {
   await get("/t/no-such-demand-test", 404);
   const mt = await get("/api/metrics");
   if (mt) { const j = await mt.json(); j.ok ? ok("metrics returns ok (locked without secret)") : fail("metrics shape bad"); }
+  // Auth callback: no code → clean redirect home to /dashboard; `next` is confined to same-origin
+  // relative paths (open-redirect guard) — //evil.com must NOT survive.
+  {
+    const r = await fetch(BASE + "/auth/callback?next=//evil.com", { redirect: "manual", signal: AbortSignal.timeout(10000) });
+    const loc = r.headers.get("location") || "";
+    if (r.status >= 300 && r.status < 400 && loc.endsWith("/dashboard")) ok("auth callback redirects safely (open-redirect guarded)");
+    else fail(`auth callback: ${r.status} → ${loc}`);
+  }
   // Polar (Merchant-of-Record) webhook is fail-CLOSED: 503 until POLAR_WEBHOOK_SECRET is set.
   // (The legacy LemonSqueezy webhook route was deleted 2026-07-02 — Polar is the only billing writer.)
   await post("/api/billing/polar", { type: "subscription.created", data: {} }, 503);

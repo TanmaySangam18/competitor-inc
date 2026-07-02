@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Github, Loader2, Mail } from "lucide-react";
@@ -29,6 +29,13 @@ export default function AuthPanel({ mode }: { mode: "signin" | "signup" }) {
 
   const signup = mode === "signup";
 
+  // Failures bounced back from /auth/callback (provider denial, code-exchange error) surface here —
+  // a failed sign-in must never look like a silent no-op.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("auth_error");
+    if (p) setErr(p);
+  }, []);
+
   // Inline, field-level validation so a bad address fails LOUDLY next to the field (not below the
   // button, not only on submit). Mirrors the server's format check; the server still owns the final
   // word on blocked domains (e.g. example.com) and surfaces that in `err`.
@@ -44,9 +51,18 @@ export default function AuthPanel({ mode }: { mode: "signin" | "signup" }) {
     setErr(""); setBusy(provider);
     try {
       await signInWithOAuth(provider);
-    } catch {
+    } catch (e) {
       setBusy(null);
-      setErr("Real sign-in needs Supabase + that provider enabled. You're in local mode — continue as guest below.");
+      const detail = e instanceof Error ? e.message : "";
+      // Honest failure copy: say what's actually wrong. Off-deployment (no Supabase) ≠ provider not
+      // switched on in Supabase — the old message claimed "local mode" even on production.
+      if (!configured) {
+        setErr("This deployment runs in local mode (no Supabase) — continue as guest below.");
+      } else if (/not enabled|unsupported provider/i.test(detail)) {
+        setErr(`${provider === "google" ? "Google" : "GitHub"} sign-in isn't switched on for this deployment yet — use the magic link below instead.`);
+      } else {
+        setErr(detail || "Sign-in failed — try the magic link below.");
+      }
     }
   }
   async function emailLink() {

@@ -38,12 +38,18 @@ export function useAuth() {
     return () => sub.subscription.unsubscribe();
   }, [configured]);
 
+  // Both flows return through /auth/callback (the @supabase/ssr canonical route): the PKCE code is
+  // exchanged SERVER-side so the session cookie exists before the destination page loads — the same
+  // cookie the middleware refreshes and /api/execute's authorize() reads. One session store, no race.
+  const callbackUrl = (next: string) =>
+    typeof window !== "undefined" ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` : undefined;
+
   const signInWithEmail = useCallback(async (email: string) => {
     const sb = getBrowserSupabase();
     if (!sb) throw new Error("Supabase not configured");
     const { error } = await sb.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined },
+      options: { emailRedirectTo: callbackUrl("/dashboard") },
     });
     if (error) throw error;
   }, []);
@@ -55,7 +61,7 @@ export function useAuth() {
     if (!sb) throw new Error("Supabase not configured");
     const { error } = await sb.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined },
+      options: { redirectTo: callbackUrl("/dashboard") },
     });
     if (error) throw error;
   }, []);
