@@ -2,6 +2,19 @@
 // user-supplied URL that we fetch server-side with credentials attached — the model BYOK base URL
 // (server.ts) and the per-user ads webhook (execution.ts) both run through it.
 
+// THE bounded fetch. Every upstream call gets a deadline so a hung provider can't wedge a request;
+// on abort the caller catches and degrades (simulated engine, failed executor, etc.). `ms` is
+// required on purpose — each caller owns its own timeout budget.
+export async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // SSRF guard: a user-supplied URL may receive an API key / payload and is fetched server-side, so a
 // malicious/typo'd URL could turn our server into a proxy to internal hosts (e.g. cloud metadata at
 // 169.254.169.254). Require https + reject private/loopback/link-local. Operator-set (env) URLs are

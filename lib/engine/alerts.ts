@@ -3,16 +3,13 @@ import "server-only";
 import { notifyFounder } from "./notify-founder";
 import { trace } from "./observability";
 import { shouldAlert, type AlertEvent } from "./policy";
+import { escapeHtml as esc } from "./html";
 
 // The Glass Box made ACTIVE. When the policy engine refuses an action (forbidden_attempt / cap_breach) or
 // a live executor fails (failure), don't just write it down — REACT: emit a dev trace AND page the
 // founder. Both legs are gated + fail-soft + non-blocking (trace no-ops without OBSERVABILITY_URL;
 // notifyFounder no-ops without Resend), and the whole thing is wrapped so alerting can never throw,
 // delay, or break the action path. Honors policy.observability.realTimeAlertsOn.
-
-function esc(s: string): string {
-  return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
-}
 
 export function raiseAlert(event: AlertEvent, summary: string, meta?: Record<string, unknown>): void {
   try {

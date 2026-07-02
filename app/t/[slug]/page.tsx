@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { publicReadClient } from "@/lib/engine/service";
 import DemandCapture from "./DemandCapture";
 import TrackBeacon from "@/components/TrackBeacon";
 import { CompanyLogo } from "@/components/CompanyLogo";
@@ -17,11 +17,9 @@ interface DemandTest {
 // Reads the public test row. Anon key is enough (demand_tests has a public select policy); the
 // service role works too. Returns null when Supabase isn't configured or the test doesn't exist.
 async function getTest(slug: string): Promise<DemandTest | null> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
+  const sb = publicReadClient();
+  if (!sb) return null;
   try {
-    const sb = createClient(url, key, { auth: { persistSession: false } });
     const { data } = await sb.from("demand_tests").select("slug, headline, subhead").eq("slug", slug).maybeSingle();
     return (data as DemandTest) ?? null;
   } catch {

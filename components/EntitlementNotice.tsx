@@ -28,7 +28,7 @@ export default function EntitlementNotice({ email }: { email?: string }) {
       <AlertCircle size={16} className="shrink-0" />
       <span className="flex-1 leading-snug">{notice}</span>
       <Link
-        href="/dashboard/settings"
+        href="/dashboard/settings#billing"
         className="shrink-0 rounded-lg border border-amber/40 px-3 py-1 text-xs font-medium transition hover:bg-amber/10"
       >
         Manage

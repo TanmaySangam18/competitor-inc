@@ -1,4 +1,5 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { serviceClient as sb } from "@/lib/engine/service";
+import { sanitizeSlug as slugify } from "@/lib/engine/slug";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
@@ -11,14 +12,6 @@ export const runtime = "nodejs";
 // GATED + fail-soft: with no Supabase service role, create/signup return { persisted:false } and GET
 // returns zero — the feature is dormant until Block 0 sets the keys, and never throws.
 
-function sb(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
-}
-
-const slugify = (s: string) => s.slice(0, 80).toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 
 export async function POST(req: Request) {
   let body: unknown;

@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, Copy, ArrowLeft, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import { useCopy } from "@/components/useCopy";
 import { codeFrom } from "@/lib/engine/refcode";
 
 // This page sells the FOUNDER tier (concierge / done-with-you). Its checkout activates when the founder
-// sets NEXT_PUBLIC_CHECKOUT_URL_FOUNDER (LemonSqueezy). Until then, the CTA routes to the apply/waitlist.
+// sets NEXT_PUBLIC_CHECKOUT_URL_FOUNDER (Polar). Until then, the CTA routes to the apply/waitlist.
 const CHECKOUT_URL = process.env.NEXT_PUBLIC_CHECKOUT_URL_FOUNDER || "";
 const WL_KEY = "cofounder:waitlist:v1";
 
@@ -39,7 +40,7 @@ export default function Join() {
   const [email, setEmail] = useState("");
   const [entry, setEntry] = useState<Entry | null>(null);
   const [referredBy, setReferredBy] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy(1500);
   const [server, setServer] = useState<ServerInfo | null>(null);
   const [totalSignups, setTotalSignups] = useState<number | null>(null);
   const [emailErr, setEmailErr] = useState("");
@@ -107,12 +108,7 @@ export default function Join() {
   }
 
   const refLink = entry && typeof window !== "undefined" ? `${window.location.origin}/join?ref=${entry.code}` : "";
-  function copyLink() {
-    navigator.clipboard?.writeText(refLink).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  }
+  const copyLink = () => copyText(refLink);
 
   return (
     <div id="main" className="min-h-screen">

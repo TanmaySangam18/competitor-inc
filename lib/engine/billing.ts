@@ -20,18 +20,10 @@ export const billingLive = (): boolean => !!CHECKOUT_URLS.operator;
 // Is a specific tier's checkout configured yet?
 export const checkoutLiveFor = (tier: string): boolean => !!CHECKOUT_URLS[tier];
 
-// Reads the signed-in user's OWN entitlement row (RLS restricts to their email) and derives access from
-// the real subscription status + period end (see lib/engine/entitlement.ts) — so a customer keeps Build
-// through a renewal hiccup (past_due grace) and through a cancelled-but-not-expired period.
+// Boolean convenience over getEntitlement — ONE read path for the money gate (these used to be two
+// near-identical queries; the richer getEntitlement below is canonical).
 export async function checkEntitled(email: string | undefined): Promise<boolean> {
-  const sb = getBrowserSupabase();
-  if (!sb || !email) return false;
-  try {
-    const { data } = await sb.from("entitlements").select("status, current_period_end").eq("email", email).maybeSingle();
-    return data ? isEntitled(data.status, data.current_period_end) : false;
-  } catch {
-    return false;
-  }
+  return (await getEntitlement(email)).entitled;
 }
 
 // For the UI: the user's subscription state + a short nudge (e.g. "update your card") when it's not clean.

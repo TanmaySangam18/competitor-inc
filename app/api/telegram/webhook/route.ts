@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { parseApprovalCallback, telegramAck, telegramEditText, notifyCustomer } from "@/lib/engine/notify";
 import { runChat, detectChatApproval } from "@/lib/engine/server";
 
@@ -60,11 +60,9 @@ export async function POST(req: Request) {
   const parsed = parseApprovalCallback(cq.data);
   if (!parsed) { await telegramAck(cq.id, "Unrecognized."); return Response.json({ ok: true }); }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (url && key) {
+  const sb = serviceClient();
+  if (sb) {
     try {
-      const sb = createClient(url, key, { auth: { persistSession: false } });
       await sb.from("approval_decisions").upsert(
         { approval_id: parsed.id, decision: parsed.approve ? "approved" : "rejected", source: "telegram" },
         { onConflict: "approval_id" },

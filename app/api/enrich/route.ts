@@ -23,9 +23,11 @@ export async function GET() {
 
 // Right-to-delete (PDR §4 / MA privacy posture). Self-only: the user can purge anything we hold about
 // them. Enrichment is computed LIVE from public sources and NOT persisted server-side, so today this is
-// a verified no-op that confirms there's nothing stored — and it best-effort purges any future-persisted
-// copy + records a suppression so we never enrich them again. The client also sets a permanent local
-// suppression (so the panel stops fetching). Cross-device suppression needs a privacy_prefs table (v2).
+// a verified no-op that confirms there's nothing stored — plus a best-effort purge of any
+// future-persisted copy (the `enrichment` table doesn't exist yet by design; the delete fail-softs).
+// Suppression today is CLIENT-SIDE ONLY (the panel sets a permanent local flag and stops fetching).
+// Server-side + cross-device suppression needs a privacy_prefs table — required BEFORE enrichment is
+// ever persisted server-side (migration 0014 when that lands).
 export async function DELETE() {
   if (!isSupabaseConfigured()) return Response.json({ ok: true, deleted: 0, persisted: false });
   try {

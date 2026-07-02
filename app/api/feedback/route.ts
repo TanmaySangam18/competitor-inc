@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { notifyFounder } from "@/lib/engine/notify-founder";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 
@@ -6,9 +6,7 @@ export const runtime = "nodejs";
 
 // Beta feedback → persists to Supabase AND emails the founder (so it actually reaches them, not just the
 // Table Editor). Gated + fail-soft: no Supabase → skip the insert; no Resend → skip the email; never throws.
-function esc(s: string): string {
-  return s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] || c));
-}
+import { escapeHtml as esc } from "@/lib/engine/html";
 
 export async function POST(req: Request) {
   if (rateLimited(`feedback:${clientIp(req)}`)) {
@@ -26,11 +24,9 @@ export async function POST(req: Request) {
   const path = typeof b.path === "string" ? b.path.slice(0, 200) : "";
   if (!message) return Response.json({ error: "empty" }, { status: 400 });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (url && key) {
+  const sb = serviceClient();
+  if (sb) {
     try {
-      const sb = createClient(url, key, { auth: { persistSession: false } });
       await sb.from("feedback").insert({ message, email: email || null, path: path || null, user_agent: req.headers.get("user-agent")?.slice(0, 300) ?? null });
     } catch (e) {
       console.error("[/api/feedback] insert failed:", e instanceof Error ? e.message : "unknown");

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { FlaskConical, Copy, Check, RefreshCw } from "lucide-react";
+import { useCopy } from "@/components/useCopy";
 
 // The bridge from "AI estimate" to a real, measured demand test. Stands up a live public page
 // (/t/<slug>) for the idea, captures real signups, and reads them back against a pre-set threshold.
@@ -23,7 +24,7 @@ const verdictTone: Record<string, { text: string; label: string }> = {
 export default function DemandTestPanel({ slug, idea }: { slug: string; idea: string }) {
   const [s, setS] = useState<State | null>(null);
   const [busy, setBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy(1500);
   const link = typeof window !== "undefined" ? `${window.location.origin}/t/${slug}` : `/t/${slug}`;
 
   const refresh = useCallback(async () => {
@@ -71,12 +72,7 @@ export default function DemandTestPanel({ slug, idea }: { slug: string; idea: st
     }
   }
 
-  function copy() {
-    navigator.clipboard?.writeText(link).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  }
+  const copy = () => copyText(link);
 
   // Supabase not connected → honest "this unlocks when the DB is connected" (also advertises the feature).
   if (s && !s.persisted) {

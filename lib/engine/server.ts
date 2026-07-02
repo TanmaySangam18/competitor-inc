@@ -55,17 +55,6 @@ export function realModelConfigured(): boolean {
   return managedModel() !== null;
 }
 
-// Every upstream model call is bounded so a hung/slow provider can't wedge a request; on abort the
-// caller catches and degrades to the simulated engine.
-async function fetchWithTimeout(url: string, init: RequestInit, ms = MODEL_TIMEOUT_MS): Promise<Response> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), ms);
-  try {
-    return await fetch(url, { ...init, signal: ctrl.signal });
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 const ROLES = Object.keys(AGENTS) as AgentRole[];
 const APPROVAL_KINDS: ApprovalKind[] = ["spend", "outreach", "deploy", "delete", "twitter", "linkedin", "reddit", "bluesky", "mastodon"];
@@ -92,7 +81,7 @@ async function callAnthropic(system: string, user: string, key: string = KEY ?? 
 // SSRF guard for the user-supplied BYOK base URL. Single source of truth lives in ./net and is
 // re-exported here so existing importers (and tests) keep working unchanged.
 export { assertSafeBaseUrl } from "./net";
-import { assertSafeBaseUrl } from "./net";
+import { assertSafeBaseUrl, fetchWithTimeout } from "./net";
 
 // Any OpenAI-compatible endpoint: OpenAI, Groq, OpenRouter, Together, the Vercel AI Gateway, local
 // servers, … `enforceSsrf` is true ONLY for user-supplied (BYOK) URLs; operator-set env URLs are
@@ -144,7 +133,7 @@ async function streamAnthropic(system: string, user: string, key: string, model:
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({ model, max_tokens: 1500, system, stream: true, messages: [{ role: "user", content: user }] }),
-  });
+  }, MODEL_TIMEOUT_MS);
   if (!res.ok || !res.body) throw new Error(`anthropic ${res.status}`);
   return (async function* () {
     for await (const data of sseData(res.body!)) {
@@ -165,7 +154,7 @@ async function streamOpenAICompat(baseUrl: string, key: string, model: string, s
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
     body: JSON.stringify({ model, stream: true, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
-  });
+  }, MODEL_TIMEOUT_MS);
   if (!res.ok || !res.body) throw new Error(`model ${res.status}`);
   return (async function* () {
     for await (const data of sseData(res.body!)) {

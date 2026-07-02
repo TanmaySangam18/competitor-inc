@@ -1,6 +1,11 @@
 -- Generic interest/signup capture for standalone apps we launch (e.g. Lockin at /lockin).
 -- Apply via Supabase → SQL Editor (paste & run). Same posture as waitlist: insert-only for everyone,
 -- reads are server-only via the service role (/api/interest). No public select policy → can't be scraped.
+--
+-- RENUMBERED 2026-07-02: formerly 0005_interest.sql, which collided with 0005_agent_memory.sql (two
+-- files, one version prefix — a skip/repair landmine for CLI-driven migration runs). This SQL was
+-- ALREADY APPLIED to prod via the SQL editor on 2026-06-30; everything is `if not exists`, so
+-- re-running is a safe no-op.
 
 create table if not exists public.interest (
   id          uuid primary key default gen_random_uuid(),

@@ -7,7 +7,8 @@ import "server-only";
 // as done. Nothing here runs live without the operator's credentials.
 
 import type { Proof, ApprovalKind, Connections } from "./types";
-import { assertSafeBaseUrl } from "./net";
+import { assertSafeBaseUrl, fetchWithTimeout } from "./net";
+import { escapeHtml } from "./html";
 import { generateSiteFiles } from "./server";
 import { namespacedResource } from "./hosting";
 
@@ -22,18 +23,7 @@ export interface ExecOutcome {
 const disabled = (): ExecOutcome => ({ ok: false, disabled: true });
 const fail = (e: unknown): ExecOutcome => ({ ok: false, error: e instanceof Error ? e.message : "unknown" });
 
-async function timed(url: string, init: RequestInit): Promise<Response> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    return await fetch(url, { ...init, signal: ctrl.signal });
-  } finally {
-    clearTimeout(t);
-  }
-}
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch] as string));
-}
+const timed = (url: string, init: RequestInit): Promise<Response> => fetchWithTimeout(url, init, TIMEOUT_MS);
 function repoSlug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "competitor-mvp";
 }
@@ -69,10 +59,7 @@ export async function verifyProof(proof?: Proof): Promise<boolean> {
     try { u = new URL(proof.value); } catch { return false; }
     if (u.protocol !== "https:") return false;
     try {
-      const ctrl = new AbortController();
-      const t = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-      const res = await fetch(proof.value, { method: "HEAD", signal: ctrl.signal });
-      clearTimeout(t);
+      const res = await timed(proof.value, { method: "HEAD" });
       return res.ok;
     } catch {
       return false;

@@ -143,4 +143,3 @@ export function buildGTMPlan(company: Company, activities: Activity[] = []): GTM
   };
 }
 
-export const GTM_SOURCES = { concentric: SRC_CONCENTRIC, demand: SRC_DEMAND, sources: SRC_SOURCES };

@@ -1,5 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
+import { serviceClient as sb } from "@/lib/engine/service";
+import { SLUG_RE } from "@/lib/engine/slug";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
@@ -18,13 +19,6 @@ const CORS = {
   "access-control-allow-methods": "POST, OPTIONS",
   "access-control-allow-headers": "content-type",
 };
-
-function sb() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false } });
-}
 
 export function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS });
@@ -47,7 +41,7 @@ export async function POST(req: Request) {
   const type = typeof body.type === "string" ? body.type : "";
   const source = typeof body.source === "string" ? body.source.slice(0, 60) : null;
 
-  if (!/^[a-z0-9-]{2,80}$/.test(slug)) return Response.json({ ok: false, error: "bad slug" }, { status: 400, headers: CORS });
+  if (!SLUG_RE.test(slug)) return Response.json({ ok: false, error: "bad slug" }, { status: 400, headers: CORS });
   // Public pixel may only report views and signups. Purchases come from the payment webhook alone.
   if (type !== "view" && type !== "signup") {
     return Response.json({ ok: false, error: "type must be view|signup" }, { status: 400, headers: CORS });
@@ -92,7 +86,7 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const slug = (url.searchParams.get("slug") ?? "").trim().toLowerCase();
-  if (!/^[a-z0-9-]{2,80}$/.test(slug)) return Response.json({ ok: false, error: "bad slug" }, { status: 400 });
+  if (!SLUG_RE.test(slug)) return Response.json({ ok: false, error: "bad slug" }, { status: 400 });
   const client = sb();
   if (!client) return Response.json({ ok: true, persisted: false, views: 0, signups: 0 });
   try {

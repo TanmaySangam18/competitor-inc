@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { runShift } from "@/lib/engine/server";
 import { insertActivities, insertApprovals, insertExperiments, closeExperiment, fetchExperiments, updateCompany, toCompany } from "@/lib/engine/db";
 import { sendEmail } from "@/lib/engine/execution";
@@ -30,13 +30,10 @@ export async function GET(req: Request) {
   if (!secret) return new Response("Cron disabled — set CRON_SECRET to enable.", { status: 401 });
   if (!bearerOk(req, secret)) return new Response("Unauthorized", { status: 401 });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
+  const sb = serviceClient();
+  if (!sb) {
     return Response.json({ ran: 0, note: "Supabase service role not configured — nightly heartbeat idle." });
   }
-
-  const sb: SupabaseClient = createClient(url, serviceKey, { auth: { persistSession: false } });
   const { data, error } = await sb.from("companies").select("*").eq("status", "operating");
   if (error) {
     console.error("[/api/cron] companies fetch:", error.message);

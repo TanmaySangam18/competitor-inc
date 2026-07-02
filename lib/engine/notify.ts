@@ -7,6 +7,8 @@
 // the user gives us. So the customer OPTS IN with a handle/number — we never auto-pull it from their
 // Google sign-in. This module is the seam where Linqapp/SMS drop in later without changing callers.
 
+import { escapeHtml } from "./html";
+
 export interface NotifyTarget {
   telegramChatId?: string;
   phone?: string; // SMS / iMessage (Linqapp) — later
@@ -132,6 +134,3 @@ export async function telegramEditText(chatId: string | number, messageId: numbe
   } catch { /* ignore */ }
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}

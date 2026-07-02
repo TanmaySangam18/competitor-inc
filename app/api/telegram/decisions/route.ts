@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
@@ -14,11 +14,9 @@ export async function GET(req: Request) {
   const ids = raw.split(",").map((s) => s.trim()).filter((s) => /^[0-9a-fA-F-]{6,40}$/.test(s)).slice(0, 50);
   if (ids.length === 0) return Response.json({ decisions: {} });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return Response.json({ decisions: {} });
+  const sb = serviceClient();
+  if (!sb) return Response.json({ decisions: {} });
   try {
-    const sb = createClient(url, key, { auth: { persistSession: false } });
     const { data } = await sb.from("approval_decisions").select("approval_id, decision").in("approval_id", ids);
     const decisions: Record<string, string> = {};
     for (const row of data ?? []) decisions[row.approval_id as string] = row.decision as string;

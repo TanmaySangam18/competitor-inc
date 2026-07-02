@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply } from "@/lib/engine/server";
 import { capabilities } from "@/lib/engine/execution";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
@@ -83,12 +83,9 @@ export async function POST(req: Request) {
       const openExps = Array.isArray(body.experiments) ? body.experiments.slice(0, 12) : [];
       let growth: ReturnType<typeof runGrowthStep> | null = null;
       try {
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const sb = serviceClient();
         const funnel =
-          url && key && typeof c.slug === "string" && c.slug
-            ? await readFunnel(createClient(url, key, { auth: { persistSession: false } }), c.slug)
-            : MISSING_FUNNEL;
+          sb && typeof c.slug === "string" && c.slug ? await readFunnel(sb, c.slug) : MISSING_FUNNEL;
         growth = await withTrace("growth", async () => runGrowthStep(c, openExps, funnel, [], c.night + 1), { companyId: c.id });
       } catch (e) {
         console.error("[/api/engine] growth step failed:", e instanceof Error ? e.message : "unknown");

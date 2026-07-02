@@ -1,22 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { Check, Copy, Radar } from "lucide-react";
+import { useCopy } from "@/components/useCopy";
 
 // "Install our pixel" — the Meta-Pixel mental model, first-party. One tiny script on the customer's
 // own site sends anonymous view events to /api/track, which is what lets the Revenue Loop measure a
 // REAL funnel (views → signups) instead of guessing. No cookies, no PII, one request per page view.
 export default function PixelSnippet({ slug }: { slug: string }) {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy(1800);
   const origin = typeof window !== "undefined" ? window.location.origin : "https://competitor-inc-zeta.vercel.app";
   const snippet = `<script>fetch("${origin}/api/track",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({slug:"${slug}",type:"view",source:location.hostname})})</script>`;
-
-  function copy() {
-    navigator.clipboard?.writeText(snippet).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    });
-  }
+  const copy = () => copyText(snippet);
 
   return (
     <div className="rounded-2xl border border-border bg-bg/40 p-4">

@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { verifyProof } from "@/lib/engine/execution";
 import { redactText, redactUrl } from "@/lib/engine/redact";
 import { classifyProof, type ProofRing } from "@/lib/engine/proof";
@@ -43,14 +43,12 @@ export async function GET(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
+  const sb = serviceClient();
+  if (!sb) {
     return Response.json({ ok: true, persisted: false, cards: [] });
   }
 
   try {
-    const sb = createClient(url, key, { auth: { persistSession: false } });
     // Real, receipted, not-undone outcomes — newest first, bounded (re-verification does live HEAD checks).
     const { data } = await sb
       .from("activities")

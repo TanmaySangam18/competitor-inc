@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { verifyPolarSignature, entitlementFromPolar, revenueFromPolar } from "@/lib/engine/polar";
 
 export const runtime = "nodejs";
@@ -35,12 +35,9 @@ export async function POST(req: Request) {
   const rev = revenueFromPolar(evt?.type || "", evt?.data ?? {});
   if (!rec && !rev) return Response.json({ ok: true, note: `ignored ${evt?.type || "event"}` });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return Response.json({ ok: true, note: "no db configured" });
+  const sb = serviceClient();
+  if (!sb) return Response.json({ ok: true, note: "no db configured" });
   try {
-    const sb = createClient(url, key, { auth: { persistSession: false } });
-
     if (rec) {
       const { error } = await sb.from("entitlements").upsert(
         { email: rec.email, plan: rec.plan, status: rec.status, current_period_end: rec.periodEnd, updated_at: new Date().toISOString() },

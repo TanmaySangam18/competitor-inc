@@ -1,8 +1,9 @@
-// Subscription lifecycle — pure, dependency-free, shared by the billing webhook (server) and the Build
-// gate (client). We store LemonSqueezy's REAL subscription status (not a collapsed active/inactive) so
-// every lifecycle event — created, renewed, cancelled, paused, payment-failed, expired — is represented
-// faithfully, and ACCESS is derived from status + period end. Swapping placeholder creds for production
-// changes nothing here — only env vars.
+// Subscription lifecycle — pure, dependency-free, shared by the Polar billing webhook (server, via
+// entitlementFromPolar in polar.ts) and the Build gate (client). We store the provider's REAL
+// subscription status (not a collapsed active/inactive) so every lifecycle event — created, renewed,
+// cancelled, paused, payment-failed, expired — is represented faithfully, and ACCESS is derived from
+// status + period end. (The LemonSqueezy normalizer that used to live here was deleted with the
+// LS webhook route when billing moved to Polar — one provider, one writer to `entitlements`.)
 
 export type SubStatus =
   | "active"
@@ -14,46 +15,11 @@ export type SubStatus =
   | "expired"
   | "none";
 
-const KNOWN: SubStatus[] = ["active", "on_trial", "past_due", "paused", "unpaid", "cancelled", "expired"];
-
 export interface EntitlementRecord {
   email: string;
   status: SubStatus;
   plan: string;
   periodEnd: string | null; // ISO; renews_at while active, ends_at once cancelled
-}
-
-// Normalize any LemonSqueezy subscription_* event into our entitlement record. Trusts the subscription's
-// own `status` field (LS sends it on every subscription event); falls back to inferring from the event
-// name only if status is missing/unknown. Returns null when there's no email (nothing to write).
-export function entitlementFromEvent(
-  eventName: string,
-  attrs: Record<string, unknown>,
-): EntitlementRecord | null {
-  const email = String(attrs.user_email || (attrs as Record<string, unknown>).email || "")
-    .trim()
-    .toLowerCase();
-  if (!email) return null;
-
-  let status = String(attrs.status || "").toLowerCase() as SubStatus;
-  if (!KNOWN.includes(status)) {
-    const e = eventName.toLowerCase();
-    status = /expired/.test(e)
-      ? "expired"
-      : /cancelled/.test(e)
-        ? "cancelled"
-        : /paused/.test(e)
-          ? "paused"
-          : /payment_failed/.test(e)
-            ? "past_due"
-            : /(created|updated|resumed|unpaused|payment_success|payment_recovered)/.test(e)
-              ? "active"
-              : "none";
-  }
-
-  const plan = String((attrs.product_name as string) || (attrs.variant_name as string) || "operator").slice(0, 60);
-  const periodEnd = (attrs.ends_at as string) || (attrs.renews_at as string) || null;
-  return { email, status, plan, periodEnd };
 }
 
 // The single source of truth for "can this user build?". Entitled while active / on trial, through the

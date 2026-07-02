@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { notifyFounder } from "@/lib/engine/notify-founder";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 
@@ -12,11 +12,9 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const app = (url.searchParams.get("app") || "").slice(0, 40);
-  const dbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!dbUrl || !serviceKey) return Response.json({ count: 0, persisted: false });
+  const sb = serviceClient();
+  if (!sb) return Response.json({ count: 0, persisted: false });
   try {
-    const sb = createClient(dbUrl, serviceKey, { auth: { persistSession: false } });
     let q = sb.from("interest").select("id", { count: "exact", head: true });
     if (app) q = q.eq("app", app);
     const { count } = await q;
@@ -45,14 +43,12 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: "invalid email" }, { status: 400 });
   }
 
-  const dbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!dbUrl || !serviceKey) {
+  const sb = serviceClient();
+  if (!sb) {
     // Honest: we accept it client-side but can't persist centrally yet.
     return Response.json({ ok: true, persisted: false });
   }
   try {
-    const sb = createClient(dbUrl, serviceKey, { auth: { persistSession: false } });
     const prior = await sb.from("interest").select("email").eq("email", email).eq("app", app).maybeSingle();
     const isNew = !prior.data;
     const { error: insErr } = await sb

@@ -1,3 +1,8 @@
+// ⏸ DORMANT BY DECISION (2026-07-02 consolidation audit): no production caller imports this module —
+// the Lead Desk it powers is ON HOLD until the first paying users exist (GTM decision 2026-06-27).
+// Kept (with its tests) because the compliance logic is done and will be wired then; if the Lead Desk
+// is ever cancelled outright, delete this file and outreach.test.ts together.
+//
 // Cold-outreach drafting — the Predictable Revenue way (targeted + personalized, NOT a blast). The agents
 // draft a personalized B2B cold email per prospect, attributed to competitor.inc (sent on the user's
 // behalf, branded), with a one-line ask + an easy opt-out. An evaluator gates each draft for compliance

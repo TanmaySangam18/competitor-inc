@@ -55,6 +55,7 @@ import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
 import { rationaleFor } from "@/lib/engine/rationale";
 import { CoachCard } from "@/components/CoachCard";
 import MorningBrief from "@/components/MorningBrief";
+import { useCopy } from "@/components/useCopy";
 import { ImportPanel } from "@/components/ImportPanel";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
@@ -1298,16 +1299,11 @@ const SOCIAL_KINDS: ApprovalKind[] = ["twitter", "linkedin", "bluesky", "mastodo
 
 function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }: { title: string; detail: string; agent: AgentRole; kind?: ApprovalKind; onApprove: () => void; onReject: () => void }) {
   const A = AGENTS[agent];
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyText } = useCopy(2000);
   const isSocial = kind && SOCIAL_KINDS.includes(kind);
   const kindLabel = kind === "twitter" ? "X / Twitter" : kind === "linkedin" ? "LinkedIn" : kind === "bluesky" ? "Bluesky" : kind === "mastodon" ? "Mastodon" : kind === "reddit" ? "Reddit" : null;
 
-  function copyPost() {
-    navigator.clipboard.writeText(detail).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  }
+  const copyPost = () => copyText(detail);
 
   return (
     <motion.div layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="rounded-2xl border border-coral/30 bg-coral/[0.05] p-4">

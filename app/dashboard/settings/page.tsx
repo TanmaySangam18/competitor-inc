@@ -35,10 +35,37 @@ const NAV: { id: Section; label: string; icon: typeof Mic }[] = [
   { id: "account", label: "Account", icon: UserCircle },
 ];
 
+// Deep links into Settings: map URL hashes to the section that actually contains the target, so
+// CTAs like /dashboard/settings#connect-accounts land on the right panel (sections render
+// conditionally — the anchor isn't in the DOM until its section is selected).
+const HASH_SECTION: Record<string, Section> = {
+  "connect-accounts": "integrations",
+  billing: "billing",
+  brand: "brand",
+  agents: "agents",
+  engine: "engine",
+  integrations: "integrations",
+  account: "account",
+};
+
 export default function Settings() {
   const [section, setSection] = useState<Section>("brand");
   const cfg = useConfig();
   const auth = useAuth();
+
+  useEffect(() => {
+    const apply = () => {
+      const h = window.location.hash.replace("#", "");
+      const target = HASH_SECTION[h];
+      if (!target) return;
+      setSection(target);
+      // Wait a tick for the section to render before scrolling to the anchor within it.
+      setTimeout(() => document.getElementById(h)?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, []);
 
   if (!cfg.hydrated) return null;
 
@@ -305,7 +332,7 @@ function Integrations({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
     { key: "github", icon: Github, name: "GitHub build", desc: "Forge creates real repos & commits (verified before done).", self: true },
     { key: "deploy", icon: Globe, name: "Deploy", desc: "Real Vercel deploys — a live product URL." },
     { key: "email", icon: Mail, name: "Email", desc: "Outreach, support & the nightly morning summary.", self: true },
-    { key: "payments", icon: CreditCard, name: "Payments", desc: "Stripe payment links — you keep 100%." },
+    { key: "payments", icon: CreditCard, name: "Payments", desc: "Payment links for your product — coming soon, not available yet." },
     { key: "ads", icon: Megaphone, name: "Ads", desc: "Approved ad spend routed to your own pipeline.", self: true },
   ];
 
@@ -329,7 +356,7 @@ function Integrations({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
               ) : i.self ? (
                 <a href="#connect-accounts" className="inline-flex items-center gap-1 rounded-lg border border-coral/40 px-2.5 py-1.5 text-xs font-medium text-coral transition hover:bg-coral/10">Connect ↓</a>
               ) : (
-                <span title="Operator-level — activates when the deploy's key is set. Hosted plans turn this on for you." className="inline-flex cursor-help items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-2"><Lock size={11} /> Off</span>
+                <span title="Operator-level — activates when the deploy's key is set. Not available on hosted plans yet." className="inline-flex cursor-help items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-2"><Lock size={11} /> Off</span>
               )}
             </div>
           );

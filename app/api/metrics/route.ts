@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { isEntitled } from "@/lib/engine/entitlement";
 
 export const runtime = "nodejs";
@@ -115,14 +116,12 @@ export async function GET(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
+  const sb = serviceClient();
+  if (!sb) {
     return Response.json({ ok: true, persisted: false, ppu: EMPTY_PPU, waitlist: 0, waitlistReferred: 0, demandTests: 0, demandSignups: 0 });
   }
 
   try {
-    const sb = createClient(url, key, { auth: { persistSession: false } });
     const [ppu, wl, wlRef, dt, ds] = await Promise.all([
       computePpu(sb),
       sb.from("waitlist").select("id", { count: "exact", head: true }),

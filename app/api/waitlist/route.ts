@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/lib/engine/service";
 import { codeFrom } from "@/lib/engine/refcode";
 import { notifyFounder } from "@/lib/engine/notify-founder";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
@@ -18,11 +18,9 @@ const REFERRAL_BUMP = 5; // every friend who joins moves you up this many spots 
 
 // Public count endpoint — no email, just the total. Fail-soft (returns 0 when DB not configured).
 export async function GET() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return Response.json({ count: 0 });
+  const sb = serviceClient();
+  if (!sb) return Response.json({ count: 0 });
   try {
-    const sb = createClient(url, serviceKey, { auth: { persistSession: false } });
     const { count } = await sb.from("waitlist").select("id", { count: "exact", head: true });
     return Response.json({ count: count ?? 0 });
   } catch {
@@ -49,15 +47,12 @@ export async function POST(req: Request) {
   }
   const code = codeFrom(email);
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
+  const sb = serviceClient();
+  if (!sb) {
     return Response.json({ ok: true, code, persisted: false });
   }
 
   try {
-    const sb = createClient(url, serviceKey, { auth: { persistSession: false } });
-
     // Is this a brand-new signup? (so we only email the founder once, not on every returning-visitor sync)
     const prior = await sb.from("waitlist").select("email").eq("email", email).maybeSingle();
     const isNew = !prior.data;

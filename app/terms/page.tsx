@@ -58,7 +58,7 @@ export default function Terms() {
         <section>
           <h2 className="text-base font-semibold text-text">Billing</h2>
           <p className="mt-2">
-            Paid plans are processed by <span className="text-text">LemonSqueezy</span>, our merchant of record — they
+            Paid plans are processed by <span className="text-text">Polar</span>, our merchant of record — they
             handle payment and any applicable sales tax/VAT. We never see or store your card details.
           </p>
         </section>

@@ -50,17 +50,9 @@ const between = (rng: () => number, lo: number, hi: number) => lo + rng() * (hi 
 const round = (n: number, d = 2) => Math.round(n * 10 ** d) / 10 ** d;
 const uid = () => crypto.randomUUID();
 
-export function slugify(s: string): string {
-  return (
-    s
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
-      .trim()
-      .split(/\s+/)
-      .slice(0, 3)
-      .join("-") || "venture"
-  );
-}
+// Canonical implementation lives in slug.ts (the attribution-key module); re-exported here so the
+// engine's existing importers (useEngine, tests) keep their `slugify` name.
+export { companySlug as slugify } from "./slug";
 
 const STOP = new Set([
   "a", "an", "the", "for", "to", "of", "and", "app", "that", "with", "my", "me", "build",
