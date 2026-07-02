@@ -11,18 +11,21 @@ import type { Activity, ActivityStatus, AgentRole, ApprovalItem, ApprovalKind, B
 import { AGENTS } from "./types";
 
 const PROVIDER = process.env.MODEL_PROVIDER ?? "simulated";
-// Default model: Claude Sonnet 4.6 (the in-house agents run on it for now). Override per-deploy with
-// MODEL_ID. Sonnet 4.6 takes our standard Messages call as-is (no thinking/sampling params).
-const MODEL = process.env.MODEL_ID ?? "claude-sonnet-4-6";
+// Default model: Claude Opus 4.8 — the same tier Claude's own agents (Claude Code) run on, so "our
+// agents are as smart as Claude's" holds by default. Override per-deploy with MODEL_ID. Opus 4.8 is a
+// safe drop-in for our bare Messages call: omitting `thinking` runs without thinking, and we send no
+// sampling params (which 4.7+ rejects). NOTE: Sonnet 5 runs ADAPTIVE thinking when `thinking` is
+// omitted (thinking blocks precede text) — the text extraction below handles that, but budget for it.
+const MODEL = process.env.MODEL_ID ?? "claude-opus-4-8";
 const KEY = process.env.ANTHROPIC_API_KEY;
 const GATEWAY_KEY = process.env.AI_GATEWAY_API_KEY;
 // Self-hosted / any OpenAI-compatible endpoint set by the operator (trusted, not user-supplied).
 const SELF_HOST_URL = process.env.MODEL_BASE_URL;
 const SELF_HOST_KEY = process.env.MODEL_API_KEY;
 const MODEL_TIMEOUT_MS = 30_000;
-// For now every agent is on Sonnet 4.6. Set MODEL_CHEAP (e.g. claude-haiku-4-5) to split the
-// lighter roles onto a cheaper/faster model later.
-const MODEL_CHEAP = process.env.MODEL_CHEAP || "claude-sonnet-4-6";
+// Lighter roles run Haiku 4.5 ($1/$5 per MTok — ~5x cheaper than Opus): fast, cheap, plenty for
+// marketing/support/growth copy. Override with MODEL_CHEAP.
+const MODEL_CHEAP = process.env.MODEL_CHEAP || "claude-haiku-4-5";
 
 // Per-agent model routing: the hard reasoners (Forge=engineering, Apex=ceo) get the strong model
 // (MODEL_ID); other agents can run on a cheaper/faster one (MODEL_CHEAP). The managed
@@ -79,7 +82,11 @@ async function callAnthropic(system: string, user: string, key: string = KEY ?? 
   }, maxTokens > 4000 ? 60_000 : MODEL_TIMEOUT_MS);
   if (!res.ok) throw new Error(`anthropic ${res.status}`);
   const data = await res.json();
-  return data?.content?.[0]?.text ?? "";
+  // First TEXT block, not content[0]: on models with thinking on by default (Sonnet 5, Fable 5),
+  // thinking blocks precede the text block — content[0].text would be undefined and we'd silently
+  // fall back to the simulated engine.
+  const blocks = (data?.content ?? []) as Array<{ type?: string; text?: string }>;
+  return blocks.find((b) => b.type === "text")?.text ?? "";
 }
 
 // SSRF guard for the user-supplied BYOK base URL. Single source of truth lives in ./net and is

@@ -98,9 +98,14 @@ describe("assertSafeBaseUrl — SSRF guard on user-supplied BYOK URLs", () => {
 });
 
 describe("modelForAgent — per-agent model routing", () => {
-  it("defaults every agent to Sonnet 4.6 (strong + cheap tiers, for now)", () => {
-    for (const role of ["engineering", "ceo", "growth", "marketing", "support"] as const) {
-      expect(modelForAgent(role)).toBe("claude-sonnet-4-6");
+  it("routes the hard reasoners (Forge, Apex) to Opus 4.8 — Claude's own agent tier", () => {
+    for (const role of ["engineering", "ceo"] as const) {
+      expect(modelForAgent(role)).toBe("claude-opus-4-8");
+    }
+  });
+  it("routes the lighter roles to Haiku 4.5 (fast + ~5x cheaper)", () => {
+    for (const role of ["growth", "marketing", "support"] as const) {
+      expect(modelForAgent(role)).toBe("claude-haiku-4-5");
     }
   });
 });
