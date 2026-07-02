@@ -44,3 +44,20 @@ export interface HostingProvider {
   readonly name: string;
   provision(tenant: TenantContext, spec: { repo: string; description: string; files: Record<string, string> }): Promise<{ ok: boolean; url?: string; error?: string }>;
 }
+
+// Reverse of the shipped-URL contract: recover the GitHub repo ("owner/name") from a product URL so
+// the dashboard can offer "own your code" doors (repo / StackBlitz / Replit). Returns null for
+// external/imported URLs — the row simply doesn't render when we can't verify a repo exists.
+export function repoFromUrl(raw: string): string | null {
+  let u: URL;
+  try { u = new URL(raw); } catch { return null; }
+  if (u.protocol !== "https:") return null;
+  const host = u.hostname.toLowerCase();
+  const parts = u.pathname.split("/").filter(Boolean);
+  // github.com/<owner>/<name>[/...]
+  if (host === "github.com" && parts.length >= 2) return `${parts[0]}/${parts[1]}`;
+  // <owner>.github.io/<name>/  (project pages) or <owner>.github.io/ (user pages root)
+  const m = host.match(/^([a-z0-9-]+)\.github\.io$/);
+  if (m) return parts.length >= 1 ? `${m[1]}/${parts[0]}` : `${m[1]}/${m[1]}.github.io`;
+  return null;
+}

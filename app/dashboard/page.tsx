@@ -67,6 +67,7 @@ import { netSpend } from "@/lib/engine/ledger";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
 import { isFounderEmail } from "@/lib/engine/founders";
+import { repoFromUrl } from "@/lib/engine/hosting";
 
 const verdictStyle = {
   strong: { ring: "border-white/30 bg-white/[0.06]", text: "text-text", label: "strong signal" },
@@ -600,23 +601,37 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
           true for everyone, so this stays an open clickable card (pre-launch demo). Never a fake link. */}
       {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
         entitled ? (
-          <a
-            href={c.product.url}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-6 flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] p-4 transition hover:border-mint/40"
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mint/12 text-mint">
-                <Rocket size={18} />
-              </span>
-              <div className="min-w-0">
-                <div className="text-sm font-medium">Your product is live</div>
-                <div className="truncate text-xs text-mint">{c.product.url}</div>
+          <div className="mt-6 rounded-2xl border border-mint/25 bg-mint/[0.05] p-4">
+            <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mint/12 text-mint">
+                  <Rocket size={18} />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium">Your product is live</div>
+                  <div className="truncate text-xs text-mint">{c.product.url}</div>
+                </div>
               </div>
-            </div>
-            <span className="ml-3 shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-muted">View site ↗</span>
-          </a>
+              <span className="ml-3 shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-muted transition group-hover:text-text">View site ↗</span>
+            </a>
+            {/* "Own your code" doors — the anti-black-box move: the build is a REAL repo the founder
+                owns, openable in a full browser IDE via GitHub's free bridges. Renders only when the
+                repo is verifiably derivable from the shipped URL (never a dead link). */}
+            {(() => {
+              const repo = repoFromUrl(c.product.url);
+              if (!repo) return null;
+              return (
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-mint/15 pt-3 text-xs">
+                  <span className="flex items-center gap-1.5 text-muted-2"><Code2 size={12} /> Your code — own it:</span>
+                  <a href={`https://github.com/${repo}`} target="_blank" rel="noreferrer" className="text-muted underline-offset-2 transition hover:text-text hover:underline">View repo</a>
+                  <span className="text-muted-2">·</span>
+                  <a href={`https://stackblitz.com/github/${repo}`} target="_blank" rel="noreferrer" className="text-muted underline-offset-2 transition hover:text-text hover:underline">Edit in StackBlitz</a>
+                  <span className="text-muted-2">·</span>
+                  <a href={`https://replit.com/github/${repo}`} target="_blank" rel="noreferrer" className="text-muted underline-offset-2 transition hover:text-text hover:underline">Open in Replit</a>
+                </div>
+              );
+            })()}
+          </div>
         ) : (
           <div className="mt-6 overflow-hidden rounded-2xl border border-coral/30 bg-coral/[0.05] p-4">
             <div className="flex items-center justify-between gap-3">

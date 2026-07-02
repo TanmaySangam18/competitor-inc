@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tenantNamespace, namespacedResource, isolationContract } from "./hosting";
+import { tenantNamespace, namespacedResource, isolationContract, repoFromUrl } from "./hosting";
 
 describe("tenantNamespace — stable + distinct per tenant", () => {
   it("is stable for the same identity (idempotent re-runs)", () => {
@@ -39,5 +39,22 @@ describe("isolationContract — the Governed guarantees are explicit", () => {
     const c = isolationContract().join(" ").toLowerCase();
     expect(c).toMatch(/per-tenant/);
     expect(c).toMatch(/eject|own/);
+  });
+});
+
+describe("repoFromUrl — recovering the owned repo from a shipped URL", () => {
+  it("derives owner/name from GitHub Pages project URLs", () => {
+    expect(repoFromUrl("https://kindred.github.io/kindred-mvp/")).toBe("kindred/kindred-mvp");
+  });
+  it("derives from github.com repo URLs", () => {
+    expect(repoFromUrl("https://github.com/acme/site")).toBe("acme/site");
+  });
+  it("handles user-pages roots", () => {
+    expect(repoFromUrl("https://kindred.github.io/")).toBe("kindred/kindred.github.io");
+  });
+  it("returns null for external/imported URLs (row must not render)", () => {
+    expect(repoFromUrl("https://lockin.example.com/")).toBeNull();
+    expect(repoFromUrl("http://kindred.github.io/x/")).toBeNull();
+    expect(repoFromUrl("not a url")).toBeNull();
   });
 });
