@@ -9,6 +9,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Deploy-freshness stamp: frozen at build time, read by /api/version. Works for git-connected AND
+  // git-metadata-free deploys (unlike VERCEL_GIT_COMMIT_SHA) — the House board compares it to "now"
+  // so a silently-blocked deploy pipeline (the Vercel seatBlock incident) is visible, not quiet.
+  env: { BUILD_STAMP: String(Date.now()) },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import ProductFilm from "@/components/ProductFilm";
+import CapabilityExplorer from "@/components/CapabilityExplorer";
 import { useAuth } from "@/lib/engine/useAuth";
 import { CHECKOUT_URL, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { AgentWelcome } from "@/components/AgentWelcome";
@@ -78,6 +79,7 @@ const NAV_GROUPS: { label: string; items: { href: string; label: string }[] }[] 
       { href: "/playbooks", label: "Playbooks" },
       { href: "/radar", label: "Demand Radar" },
       { href: "/blog", label: "Blog" },
+      { href: "/nu", label: "For NU founders" },
     ],
   },
 ];
@@ -458,17 +460,7 @@ function HowItWorks() {
   );
 }
 
-/* ── Capabilities ────────────────────────────────────────────── */
-const capabilities = [
-  { icon: FlaskConical, title: "Validation Gate", body: "A fast, honest read first — then a commitment test that actually proves demand: real conversations, evidence people already pay, and one costly ask. Not vanity signups, and never a line of product code on a hunch.", color: "text-amber", ring: "bg-amber/12" },
-  { icon: CheckCircle2, title: "Proof-of-Work", body: "A task counts as done only with a verifiable artifact — a live URL, a passing build, a real metric.", color: "text-mint", ring: "bg-mint/12" },
-  { icon: Eye, title: "The Glass Box", body: "A human-readable log of every action, every dollar, every decision — with one-click undo.", color: "text-violet", ring: "bg-violet/12" },
-  { icon: Inbox, title: "Approval Inbox", body: "Consequential actions wait for your yes/no. Safe autonomy by design — and the right way to handle prompt injection.", color: "text-coral", ring: "bg-coral/12" },
-  { icon: Send, title: "Autopilot growth", body: "Approve one campaign and the crew drafts launch posts that market your product — to Bluesky and Mastodon, from competitor.inc's own accounts. Each post is policy-checked before it goes out; you never touch a login. Unlocked on Operator.", color: "text-amber", ring: "bg-amber/12" },
-  { icon: Lock, title: "Private Mode", body: "Swap in a self-hosted open-weight model so sensitive business data never leaves your own infrastructure.", color: "text-violet", ring: "bg-violet/12" },
-  { icon: Wallet, title: "Fair pricing", body: "A flat subscription with no revenue share. Failed work is credited back — you only pay for work that lands. Export and eject anytime.", color: "text-mint", ring: "bg-mint/12" },
-];
-
+/* ── Capabilities (progressive disclosure — one selector, one panel) ── */
 function Capabilities() {
   return (
     <section id="capabilities" className="border-t border-border bg-surface/20">
@@ -476,24 +468,12 @@ function Capabilities() {
         <Reveal className="max-w-2xl">
           <h2 className="display text-3xl md:text-[2.6rem]">Built on trust, not vibes</h2>
           <p className="mt-3 text-lg text-muted">
-            Each capability is designed to make autonomy feel safe, transparent, and yours.
+            Each capability is designed to make autonomy feel safe, transparent, and yours. Pick one to see how.
           </p>
         </Reveal>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {capabilities.map((c, i) => (
-            <Reveal key={c.title} delay={(i % 3) * 0.06}>
-              <div className="card flex h-full items-start gap-3.5 p-5">
-                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${c.ring} ${c.color}`}>
-                  <c.icon size={18} />
-                </span>
-                <div>
-                  <h3 className="text-base font-semibold">{c.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted">{c.body}</p>
-                </div>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal delay={0.06}>
+          <CapabilityExplorer />
+        </Reveal>
       </div>
     </section>
   );

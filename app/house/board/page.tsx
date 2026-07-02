@@ -117,6 +117,7 @@ export default function Board() {
       <div className="mx-auto max-w-4xl px-6 py-10">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <BarChart3 size={16} className="text-coral" /> North Star — Proven Paying Users
+          <DeployFreshness />
         </div>
 
         {locked && (
@@ -207,4 +208,19 @@ export default function Board() {
       </div>
     </div>
   );
+}
+
+// Deploy freshness — commits and prod are different states; this chip reconciles them at a glance.
+// Green under 24h, amber under 72h, red beyond (a red chip is how a silently-blocked deploy pipeline
+// announces itself instead of hiding for days).
+function DeployFreshness() {
+  const [builtAt, setBuiltAt] = useState<number | null>(null);
+  useEffect(() => {
+    fetch("/api/version").then((r) => r.json()).then((d) => setBuiltAt(d?.builtAt ?? null)).catch(() => {});
+  }, []);
+  if (!builtAt) return null;
+  const hours = (Date.now() - builtAt) / 36e5;
+  const label = hours < 1 ? "built <1h ago" : hours < 48 ? `built ${Math.round(hours)}h ago` : `built ${Math.round(hours / 24)}d ago`;
+  const tone = hours < 24 ? "text-mint bg-mint/10" : hours < 72 ? "text-amber bg-amber/10" : "text-coral bg-coral/10";
+  return <span className={`ml-auto rounded-full px-2.5 py-1 text-[10px] font-semibold ${tone}`} title="Production build age — red means deploys may be silently failing">{label}</span>;
 }
