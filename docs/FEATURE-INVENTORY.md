@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL SNAPSHOT (superseded 2026-07-02).** Many items marked ❌ missing (auth, billing, /live) have since been BUILT. Canonical feature list: [FEATURE-LEDGER.md](FEATURE-LEDGER.md).
+
 # Polsia Feature Inventory & Ranked Gap Analysis
 
 > Mandated research artifact for the parity-and-beyond program. Catalogs every identifiable

@@ -41,9 +41,11 @@ Source of truth is **`.env.example`**. Must-set vs optional:
 - `NEXT_PUBLIC_OPERATE` = `0` for the lean launch surface (set later to re-enable the Operate tab)
 
 **Model (pick one when you want real AI; leave unset = simulated):**
-- `ROOMIE_PROVIDER=openai-compatible` + `ROOMIE_PRIVATE_BASE_URL` + `ROOMIE_API_KEY` (free tier: **NVIDIA NIM**
-  `https://integrate.api.nvidia.com/v1` or **Groq**) — or `ROOMIE_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`
-  (your Claude-for-Startups credits). `ROOMIE_MODEL` / `ROOMIE_MODEL_CHEAP` set the models.
+- `MODEL_PROVIDER=openai-compatible` + `MODEL_BASE_URL` + `MODEL_API_KEY` (free tier: **NVIDIA NIM**
+  `https://integrate.api.nvidia.com/v1` or **Groq**) — or `MODEL_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`
+  (your Claude-for-Startups credits). `MODEL_ID` / `MODEL_CHEAP` set the models (defaults: Opus 4.8 /
+  Haiku 4.5). ⚠️ An earlier version of this doc said `ROOMIE_*` — the code reads **`MODEL_*` only**;
+  `ROOMIE_*` vars configure nothing.
 
 **Gated real-execution (each OFF until you add its key — turn on only when ready):**
 - `GITHUB_TOKEN` (Forge builds) · `RESEND_API_KEY`+`RESEND_FROM` (email) · `STRIPE_SECRET_KEY`+`STRIPE_PRICE_ID`

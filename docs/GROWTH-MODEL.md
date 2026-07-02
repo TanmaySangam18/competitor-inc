@@ -1,3 +1,5 @@
+> ⚠️ **GOAL/PRICING SUPERSEDED.** Signup-anchored goals here are superseded — north star = **PPU (Proven Paying Users)** per [REVENUE-RUN.md](REVENUE-RUN.md); pricing per [PATH-TO-10K.md](PATH-TO-10K.md).
+
 # Growth model — evidence-based, scenario-based, honestly bounded
 
 > Every figure is tagged **[benchmark]** (external data, sourced) or **[assumption]** (a reasoned input,

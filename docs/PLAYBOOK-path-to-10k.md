@@ -1,3 +1,5 @@
+> ⚠️ **PRICING SUPERSEDED.** Models the killed "Founding $99 once" tier. Canonical: [PATH-TO-10K.md](PATH-TO-10K.md). North star = PPU.
+
 # Playbook — The House's path to $10K/month (competitor.inc as customer zero)
 
 > **The one goal (feature freeze until the 2026-06-22 handoff):** competitor.inc *itself* becomes a real

@@ -1,3 +1,5 @@
+> ⚠️ **HISTORICAL (superseded 2026-07-02).** The handoff happened; the founder took full ownership (see TAKE-OWNERSHIP.md). The live deploy is **competitor-inc-zeta.vercel.app** (not the URL below); pricing here is stale — see [PATH-TO-10K.md](PATH-TO-10K.md).
+
 # Handoff — what exists & what's for the Monday meeting
 
 > **The one goal:** competitor.inc *itself* reaches **~$10K MRR within a month of launch** — that *is* the

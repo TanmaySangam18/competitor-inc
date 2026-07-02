@@ -1,3 +1,5 @@
+> ⚠️ **STALE FIGURES.** Number authority = [intel/polsia-deep-dive.md](intel/polsia-deep-dive.md) (2026-07-02, verified). The strategy decode below still stands.
+
 # Polsia Decode — Now / Next / Our Plays (June 2026)
 
 > Strategic read on Polsia to inform competitor.inc's direction. Grounded in sourced facts; all

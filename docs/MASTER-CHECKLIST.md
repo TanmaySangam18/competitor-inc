@@ -1,3 +1,5 @@
+> ⚠️ **GOAL SUPERSEDED.** The "2,000 waitlist signups" anchor is superseded — north star = **PPU (Proven Paying Users)** per [REVENUE-RUN.md](REVENUE-RUN.md).
+
 # Master checklist — competitor.inc to the vision
 
 > **The vision (your words):** ~**2,000 waitlist signups** + ~**$10K MRR** within a month of launch —

@@ -1,5 +1,11 @@
 # Consolidation Audit — full-codebase sweep (2026-07-02)
 
+> ✅ **RESOLVED same day** (commits `889ad05` + `5ca5b0b`): C1, C2, H1–H7, M1–M6, M8, and the doc
+> findings (H6/M9) are all fixed. Still open by choice: **M7** `/api/import/verify` stays unwired
+> until the v2 private-until-paid gate (documented), **L1** ROOMIE display string + `cofounder:`
+> storage namespace (rename needs a deliberate localStorage migration), **L2** the Operate-tab env
+> flag (a deploy-time decision). This file now serves as the findings record.
+
 **Method:** four parallel audit passes (lib/engine · API+data layer · frontend · docs-vs-reality),
 every finding verified with file:line evidence and usage greps before inclusion; coordinator
 re-verified the top claims independently. **Playbooks:** the Founder Operating System recurring

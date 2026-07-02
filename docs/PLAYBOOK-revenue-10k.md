@@ -1,3 +1,5 @@
+> ⚠️ **PRICING SUPERSEDED.** Models the killed "Founding $99 once" tier. Canonical: [PATH-TO-10K.md](PATH-TO-10K.md). North star = PPU.
+
 # Revenue Playbook — the path to $10K/month
 
 > **The founder lens:** **Rob Walling** — bootstrapped Drip to a 2016 exit, founded MicroConf + the

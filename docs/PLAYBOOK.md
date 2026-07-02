@@ -1,3 +1,5 @@
+> ⚠️ **PRICING SUPERSEDED.** This doc models the killed "Founding $99 once" tier. Canonical revenue path: [PATH-TO-10K.md](PATH-TO-10K.md) ($39 Operator / $299 Founder / $499 Sprint). North star = PPU (Proven Paying Users), not signups.
+
 # The competitor.inc Playbook — "Quiet Build, Loud Launch"
 
 > The master plan, synthesized from all the research (decode, new-game, sprint, money, launch).

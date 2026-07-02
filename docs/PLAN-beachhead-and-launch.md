@@ -1,3 +1,5 @@
+> ⚠️ **PRICING SUPERSEDED.** Models the killed "Founding $99 once" tier. Canonical: [PATH-TO-10K.md](PATH-TO-10K.md). Beachhead thinking itself remains valid (NU-first wedge).
+
 # Plan — beachhead niche + sharpened positioning + surprise launch
 
 > **Playbooks:** **Crossing the Chasm** (Moore — win ONE narrow beachhead first) · **Walling** (a niche

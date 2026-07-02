@@ -9,8 +9,10 @@ capability is **OFF until its key is set**; nothing consequential ever runs with
 ## The 5 steps
 
 1. **Vercel** — create a project ($0 Hobby), import `TanmaySangam18/competitor-inc`, enable auto-deploy on `main`.
-2. **Supabase** — create a project ($0), open the SQL editor, and run the migrations **in order**:
-   `0001_init.sql` → `0002_feedback.sql` → `0003_waitlist.sql` → `0004_demand_test.sql` → `0005_agent_memory.sql`.
+2. **Supabase** — create a project ($0), open the SQL editor, and run **ALL migrations in
+   `supabase/migrations/` in filename order** — `0001_init.sql` through `0013_interest.sql` (13 files;
+   an earlier version of this doc stopped at 0005, which would ship WITHOUT entitlements, approvals,
+   the RLS tightening, and the entire revenue loop).
 3. **Env vars in Vercel** (table below) — at minimum Supabase + one model key.
 4. **Deploy** (push to `main` or `npx vercel --prod`), point a domain, set `NEXT_PUBLIC_SITE_URL`.
 5. **IP assignment** — get your contributor's signed IP-assignment so you own 100%. (Code is already yours in GitHub.)
@@ -29,7 +31,7 @@ capability is **OFF until its key is set**; nothing consequential ever runs with
 | `VERCEL_DEPLOY_HOOK_URL` (+ `VERCEL_PROJECT_URL`) | Real deploys | exec |
 | `STRIPE_SECRET_KEY` + `STRIPE_PRICE_ID` | Payment links (you keep 100%) | exec |
 | `BLUESKY_HANDLE` + `BLUESKY_APP_PASSWORD` | Free organic posting (approval-gated) | dist |
-| `NEXT_PUBLIC_CHECKOUT_URL` | `/join` Founding checkout (LemonSqueezy/Gumroad) | rev |
+| `NEXT_PUBLIC_CHECKOUT_URL` | Operator checkout (Polar — Merchant of Record) | rev |
 | `ADS_WEBHOOK_URL` | Ad spend routing (SSRF-guarded) | exec |
 | `OBSERVABILITY_URL` (+ `OBSERVABILITY_KEY`) | Eval/trace sink on autonomous ops | 6 |
 | `NEXT_PUBLIC_SITE_PUBLIC=1` | **The launch flip** — allows search indexing + the playbooks sitemap | 7 |

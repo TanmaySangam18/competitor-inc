@@ -1,3 +1,5 @@
+> ⚠️ **STALE.** Founder is canonically **Ben Broca** (media renders "Ben Cera"); figures superseded by [intel/polsia-deep-dive.md](intel/polsia-deep-dive.md) (2026-07-02).
+
 # Polsia / Ben Cera — The Full Journey (Day One → $10M ARR)
 
 > A chronological study of how Ben Cera built Polsia, the decisions that scaled it, the

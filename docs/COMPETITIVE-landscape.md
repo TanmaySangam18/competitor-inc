@@ -1,3 +1,5 @@
+> ⚠️ **STALE POLSIA FIGURES.** Number authority = [intel/polsia-deep-dive.md](intel/polsia-deep-dive.md) (2026-07-02, source-verified): $8.52M headline "ARR" declining, ~51% recurring, ~4% active, $31M raised.
+
 # Competitive Landscape — the AI-company-builder category (2026)
 
 > **Playbooks:** **Porter's Five Forces** (is this industry even winnable?) · **7 Powers** (who has a

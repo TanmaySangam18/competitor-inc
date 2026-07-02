@@ -9,7 +9,9 @@ exact space — CRO who scaled Zenefits $0→$70M and Brex $0→$400M; full sour
 - *"Only blast after brand recognition"* → real cold-send infra comes late, after warm channels + brand.
 
 Meta-frame (standing): **Levels** (ship fast, charge) + **Walling** (revenue → $10K MRR). Goal anchors:
-**10,000 signups** + **one company clearing $1,000** (the validation).
+**one company clearing $1,000** (the validation), measured in **PPU — Proven Paying Users** (the locked
+north star, per REVENUE-RUN.md / the positioning decision; signup counts are an input, never the goal —
+the earlier "10,000 signups" anchor here is retired).
 
 Legend: ⛔ founder-blocked · 🟢 buildable now · 🔬 needs a go/no-go · ✅ done
 

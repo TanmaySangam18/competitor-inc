@@ -55,25 +55,18 @@ import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
 import { rationaleFor } from "@/lib/engine/rationale";
 import { CoachCard } from "@/components/CoachCard";
 import MorningBrief from "@/components/MorningBrief";
-import { useCopy } from "@/components/useCopy";
-import { ImportPanel } from "@/components/ImportPanel";
+import { Onboarding } from "@/components/dashboard/Onboarding";
+import { ChatTab } from "@/components/dashboard/ChatTab";
+import { OperateTab } from "@/components/dashboard/OperateTab";
+import { ActivityRow } from "@/components/dashboard/ActivityRow";
+import { ApprovalCard } from "@/components/dashboard/ApprovalCard";
+import { BarChart } from "@/components/dashboard/BarChart";
+import { Stat } from "@/components/dashboard/Stat";
+import { agentStyle } from "@/components/dashboard/agentStyle";
+import { netSpend } from "@/lib/engine/ledger";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
 import { isFounderEmail } from "@/lib/engine/founders";
-
-const agentStyle: Record<AgentRole, { icon: typeof Gauge; color: string; ring: string }> = {
-  ceo: { icon: Gauge, color: "text-violet", ring: "bg-violet/12" },
-  engineering: { icon: Code2, color: "text-mint", ring: "bg-mint/12" },
-  marketing: { icon: Megaphone, color: "text-amber", ring: "bg-amber/12" },
-  support: { icon: LifeBuoy, color: "text-coral", ring: "bg-coral/12" },
-  growth: { icon: TrendingUp, color: "text-mint", ring: "bg-mint/12" },
-};
-
-const EXAMPLES = [
-  "An app for AI bedtime stories for kids",
-  "A newsletter for indie game devs",
-  "A marketplace for vintage film cameras",
-];
 
 const verdictStyle = {
   strong: { ring: "border-white/30 bg-white/[0.06]", text: "text-text", label: "strong signal" },
@@ -304,81 +297,6 @@ function AutopilotToggle({ on, onToggle, paused }: { on: boolean; onToggle: () =
   );
 }
 
-/* ── Onboarding ──────────────────────────────────────────────── */
-function Onboarding({ onSubmit, hasOthers, onDemo, onImport }: { onSubmit: (idea: string) => void; hasOthers: boolean; onDemo: () => void; onImport: (url: string, title: string) => void }) {
-  const [idea, setIdea] = useState("");
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="mx-auto mt-8 max-w-2xl text-center"
-    >
-      <span className="mx-auto grid h-14 w-14 place-items-center">
-        <LogoMark size={56} />
-      </span>
-      <h1 className="mt-6 text-3xl font-bold md:text-4xl">
-        {hasOthers ? "Start another company" : "What should we build together?"}
-      </h1>
-      <p className="mt-3 text-muted">
-        Describe your idea in a sentence. Before building anything, competitor.inc checks whether people
-        actually want it.
-      </p>
-
-      <div className="mt-8 rounded-2xl glass-panel p-3 text-left">
-        <textarea
-          value={idea}
-          onChange={(e) => setIdea(e.target.value)}
-          placeholder="e.g. An app that turns my voice notes into polished blog posts…"
-          rows={3}
-          className="w-full resize-none rounded-xl bg-transparent px-3 py-2 text-text outline-none placeholder:text-muted-2"
-          aria-label="Describe your company idea"
-        />
-        <div className="flex items-center justify-between px-1 pt-1">
-          <span className="text-xs text-muted-2">competitor.inc estimates demand first — an honest AI read before you build.</span>
-          <button
-            onClick={() => onSubmit(idea)}
-            disabled={!idea.trim()}
-            className="group inline-flex items-center gap-2 rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110 disabled:opacity-40"
-          >
-            Hand it over
-            <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-        <span className="text-xs text-muted-2">Try:</span>
-        {EXAMPLES.map((ex) => (
-          <button
-            key={ex}
-            onClick={() => setIdea(ex)}
-            className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted transition hover:border-coral/40 hover:text-text"
-          >
-            {ex}
-          </button>
-        ))}
-      </div>
-
-      <button
-        onClick={onDemo}
-        className="mt-6 text-xs text-muted-2 underline-offset-4 transition hover:text-text hover:underline"
-      >
-        Or load a demo company to explore the full workflow →
-      </button>
-
-      <div className="mt-10 flex items-center gap-4">
-        <div className="h-px flex-1 bg-border" />
-        <span className="whitespace-nowrap text-xs uppercase tracking-wide text-muted-2">or grow what you&apos;ve already built</span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
-      <div className="mt-6">
-        <ImportPanel onGrow={onImport} />
-      </div>
-    </motion.div>
-  );
-}
-
 /* ── Validation running ──────────────────────────────────────── */
 // Honest framing: this is a fast AI estimate, not a live test. (A real live test — deploy a page,
 // collect real signups over time — is the separate, opt-in path.)
@@ -570,11 +488,10 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
     setBlitzDone(true);
     setTimeout(() => setBlitzDone(false), 2200);
   }
-  const net = Math.round((c.ledger.spent - (c.ledger.credited ?? 0)) * 100) / 100;
   const stats = [
     { label: "Nights run", val: c.night },
     { label: "Tasks done", val: c.ledger.tasksDone },
-    { label: "Net spend", val: "$" + net.toFixed(2) },
+    { label: "Net spend", val: "$" + netSpend(c).toFixed(2) },
     { label: "Credited back", val: "$" + (c.ledger.credited ?? 0).toFixed(2) },
   ];
   const tabs: { id: Tab; label: string; icon: typeof ActivityIcon }[] = [
@@ -662,10 +579,7 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-2xl glass-panel px-4 py-3">
-            <div className="font-display text-xl font-bold">{s.val}</div>
-            <div className="text-xs text-muted-2">{s.label}</div>
-          </div>
+          <Stat key={s.label} label={s.label} val={s.val} />
         ))}
       </div>
 
@@ -913,327 +827,6 @@ function HistoryTab({ activities, company }: { activities: Activity[]; company: 
   );
 }
 
-function BarChart({ title, values, nights, color, fmt }: { title: string; values: number[]; nights: number[]; color: string; fmt: (v: number) => string }) {
-  const max = Math.max(1, ...values);
-  return (
-    <div className="overflow-hidden rounded-2xl glass-panel p-5">
-      <div className="text-sm font-semibold">{title}</div>
-      {/* Wide-data rule (Refactoring UI): the bars live in their own horizontal scroll box, so many
-          nights scroll *inside* the card instead of bleeding past it. Each bar keeps a readable min
-          width. The height % is measured against a fixed track, with labels outside it — so a tall
-          bar can never push past the chart area. */}
-      <div className="mt-5 overflow-x-auto pb-1">
-        <div className="flex gap-2" style={{ minWidth: `${values.length * 26}px` }}>
-          {values.map((v, i) => (
-            <div key={i} className="group flex min-w-0 flex-1 flex-col items-center gap-2">
-              <div className="relative flex h-40 w-full items-end">
-                <span className="pointer-events-none absolute inset-x-0 -top-4 text-center text-[10px] text-muted-2 opacity-0 transition group-hover:opacity-100">{fmt(v)}</span>
-                <div
-                  className="w-full rounded-t-md transition-all"
-                  style={{ height: `${(v / max) * 100}%`, minHeight: v > 0 ? 4 : 2, backgroundColor: v > 0 ? color : "var(--color-border)" }}
-                />
-              </div>
-              <span className="text-[10px] text-muted-2">{nights[i]}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="mt-2 text-center text-[10px] uppercase tracking-wide text-muted-2">night</div>
-    </div>
-  );
-}
-
-/* ── Chat ────────────────────────────────────────────────────── */
-interface ChatMsg { role: "you" | "agent"; text: string }
-
-function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof useEngine> }) {
-  const { config } = useConfig();
-  const storeKey = `cofounder:chat:${company.id}`;
-  const [msgs, setMsgs] = useState<ChatMsg[]>([]);
-  const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
-  const endRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(storeKey);
-      setMsgs(raw ? (JSON.parse(raw) as ChatMsg[]) : [{ role: "agent", text: `Hey! I'm running ${company.name} with you — what should we tackle?` }]);
-    } catch {
-      setMsgs([]);
-    }
-  }, [storeKey, company.name]);
-
-  useEffect(() => {
-    if (msgs.length) {
-      try { window.localStorage.setItem(storeKey, JSON.stringify(msgs)); } catch { /* ignore */ }
-    }
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs, storeKey]);
-
-  async function send() {
-    const text = input.trim();
-    if (!text || sending) return;
-    setInput("");
-    setMsgs((m) => [...m, { role: "you", text }]);
-    setSending(true);
-    try {
-      const res = await fetch("/api/engine", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ kind: "chat", company: { name: company.name, idea: company.idea }, message: text, soul: config.soul, byok: getByok() ?? undefined }),
-      });
-      // A consequential request? The engine flags it; queue a real approval so the inbox matches
-      // what the co-founder promises.
-      let queued: { agent: AgentRole; kind: ApprovalKind; title: string; detail: string; amount?: number } | null = null;
-      const approvalHeader = res.headers.get("x-approval");
-      if (approvalHeader) {
-        try { queued = JSON.parse(decodeURIComponent(approvalHeader)); } catch { /* ignore */ }
-      }
-      if (!res.body) {
-        const data = await res.json().catch(() => ({ reply: "…" }));
-        setMsgs((m) => [...m, { role: "agent", text: data.reply ?? "…" }]);
-      } else {
-        // stream the reply token-by-token
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        setMsgs((m) => [...m, { role: "agent", text: "" }]);
-        let acc = "";
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          acc += decoder.decode(value, { stream: true });
-          setMsgs((m) => {
-            const copy = m.slice();
-            copy[copy.length - 1] = { role: "agent", text: acc };
-            return copy;
-          });
-        }
-      }
-      if (queued) {
-        r.addApproval(queued);
-        setMsgs((m) => [...m, { role: "agent", text: "🔔 Queued for your approval — open the Operations tab to approve or reject. Nothing happens until you say yes." }]);
-      }
-    } catch {
-      setMsgs((m) => [...m, { role: "agent", text: "I couldn't reach the engine just now — try again?" }]);
-    } finally {
-      setSending(false);
-    }
-  }
-
-  return (
-    <div className="mx-auto flex max-w-2xl flex-col rounded-2xl border border-border bg-surface">
-      <div className="h-[420px] space-y-3 overflow-y-auto p-5">
-        {msgs.map((m, i) => (
-          <div key={i} className={m.role === "you" ? "flex justify-end" : "flex items-start gap-2.5"}>
-            {m.role === "agent" && (
-              <LogoMark size={28} className="mt-0.5 shrink-0" />
-            )}
-            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${m.role === "you" ? "rounded-tr-sm bg-surface-2" : "rounded-tl-sm border border-border bg-bg/50 text-muted"}`}>
-              {m.text}
-            </div>
-          </div>
-        ))}
-        {sending && msgs[msgs.length - 1]?.role === "you" && (
-          <div className="flex items-center gap-2 text-xs text-muted-2"><Loader2 size={12} className="animate-spin" /> Thinking…</div>
-        )}
-        <div ref={endRef} />
-      </div>
-      <div className="flex items-center gap-2 border-t border-border p-3">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder="Message your co-founder…"
-          className="w-full rounded-xl bg-bg/50 px-4 py-2.5 text-sm outline-none placeholder:text-muted-2"
-          aria-label="Message your co-founder"
-        />
-        <button onClick={send} disabled={!input.trim() || sending} className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-coral text-bg transition hover:brightness-110 disabled:opacity-40">
-          <Send size={16} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ── Operate (EOS company-OS, gated) ─────────────────────────── */
-function OperateTab({ r, c }: { r: ReturnType<typeof useEngine>; c: Company }) {
-  const [rock, setRock] = useState("");
-  const [issue, setIssue] = useState("");
-  const net = Math.round((c.ledger.spent - (c.ledger.credited ?? 0)) * 100) / 100;
-  const resolvedApprovals = r.approvals.filter((a) => a.resolved).length;
-  const doneRocks = r.operate.rocks.filter((rk) => rk.done).length;
-  const autoIssues = r.activities
-    .filter((a) => a.status === "failed-credited" || a.meta === "recommend killing")
-    .slice(0, 4)
-    .map((a) => (a.meta === "recommend killing" ? a.action : `${a.action} — credited back, not charged`));
-  const openCount = r.operate.issues.filter((i) => !i.resolved).length + autoIssues.length;
-
-  const score = [
-    { label: "Net spend", val: "$" + net.toFixed(2) },
-    { label: "Tasks shipped", val: String(c.ledger.tasksDone) },
-    { label: "Validation", val: (c.validation?.confidence ?? "—") + "%" },
-    { label: "Approvals handled", val: String(resolvedApprovals) },
-    { label: "Marginal cost", val: "$0" },
-    { label: "Open issues", val: String(openCount) },
-  ];
-
-  const review =
-    `This quarter Apex shipped ${c.ledger.tasksDone} task${c.ledger.tasksDone === 1 ? "" : "s"} for ${c.name} ` +
-    `at $${net.toFixed(2)} net spend — marginal cost ~$0 (BYOK / free-tier). Validation confidence ` +
-    `${c.validation?.confidence ?? "—"}%. ${doneRocks}/${r.operate.rocks.length} Rocks done, ${openCount} open issue${openCount === 1 ? "" : "s"}. ` +
-    (openCount > 0 ? "Recommended focus: run IDS on the top issue." : "Recommended focus: keep shipping the winners.");
-
-  return (
-    <div className="space-y-8">
-      <section>
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
-          <Gauge size={15} className="text-violet" /> Scorecard · the numbers that matter
-        </h2>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {score.map((s) => (
-            <div key={s.label} className="rounded-2xl glass-panel px-4 py-3">
-              <div className="font-display text-xl font-bold">{s.val}</div>
-              <div className="text-xs text-muted-2">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section>
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
-            <Target size={15} className="text-coral" /> Rocks · this quarter ({doneRocks}/{r.operate.rocks.length})
-          </h2>
-          <div className="mt-4 space-y-2">
-            {r.operate.rocks.length === 0 && (
-              <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-xs text-muted-2">No Rocks yet — set 3–5 priorities for the quarter.</div>
-            )}
-            {r.operate.rocks.map((rk) => (
-              <div key={rk.id} className="flex items-center gap-3 rounded-xl glass-panel px-3 py-2.5">
-                <button onClick={() => r.toggleRock(rk.id)} aria-label="Toggle rock" className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border ${rk.done ? "border-mint bg-mint text-bg" : "border-muted-2"}`}>
-                  {rk.done && <Check size={12} />}
-                </button>
-                <span className={`flex-1 text-sm ${rk.done ? "text-muted line-through" : "text-text"}`}>{rk.title}</span>
-                <button onClick={() => r.deleteRock(rk.id)} aria-label="Delete rock" className="text-muted-2 transition hover:text-coral">
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            ))}
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); r.addRock(rock); setRock(""); }} className="mt-3 flex gap-2">
-            <input value={rock} onChange={(e) => setRock(e.target.value)} placeholder="Add a quarterly Rock…" className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40" aria-label="New rock" />
-            <button type="submit" className="shrink-0 rounded-lg border border-border px-3 py-2 text-sm text-muted transition hover:text-text" aria-label="Add rock"><Plus size={15} /></button>
-          </form>
-        </section>
-
-        <section>
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
-            <AlertTriangle size={15} className="text-amber" /> Issues · identify, discuss, solve
-          </h2>
-          <div className="mt-4 space-y-2">
-            {autoIssues.map((t, i) => (
-              <div key={"auto" + i} className="flex items-center gap-2 rounded-xl border border-amber/25 bg-amber/[0.05] px-3 py-2.5 text-sm">
-                <span className="rounded bg-amber/15 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber">auto</span>
-                <span className="flex-1 text-muted">{t}</span>
-              </div>
-            ))}
-            {r.operate.issues.map((i) => (
-              <div key={i.id} className="flex items-center gap-3 rounded-xl glass-panel px-3 py-2.5">
-                <button onClick={() => r.resolveIssue(i.id)} aria-label="Resolve issue" className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border ${i.resolved ? "border-mint bg-mint text-bg" : "border-muted-2"}`}>
-                  {i.resolved && <Check size={12} />}
-                </button>
-                <span className={`flex-1 text-sm ${i.resolved ? "text-muted line-through" : "text-text"}`}>{i.title}</span>
-              </div>
-            ))}
-            {autoIssues.length === 0 && r.operate.issues.length === 0 && (
-              <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center text-xs text-muted-2">No issues. Clean week.</div>
-            )}
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); r.addIssue(issue); setIssue(""); }} className="mt-3 flex gap-2">
-            <input value={issue} onChange={(e) => setIssue(e.target.value)} placeholder="Log an issue…" className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40" aria-label="New issue" />
-            <button type="submit" className="shrink-0 rounded-lg border border-border px-3 py-2 text-sm text-muted transition hover:text-text" aria-label="Add issue"><Plus size={15} /></button>
-          </form>
-        </section>
-      </div>
-
-      <section className="rounded-2xl glass-panel p-5">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
-          <MessagesSquare size={15} className="text-mint" /> Weekly review
-        </h2>
-        <div className="mt-3 flex items-start gap-2.5">
-          <LogoMark size={24} className="mt-0.5 shrink-0" />
-          <p className="text-sm leading-relaxed text-muted">{review}</p>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-/* ── shared rows ─────────────────────────────────────────────── */
-function ActivityRow({ a, onUndo, lockedUrl }: { a: Activity; onUndo: () => void; lockedUrl?: string }) {
-  const S = agentStyle[a.agent];
-  const A = AGENTS[a.agent];
-  const failed = a.status === "failed-credited";
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: a.undone ? 0.45 : 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      className="flex items-start gap-3 rounded-2xl glass-panel p-4"
-    >
-      <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${S.ring} ${S.color}`}>
-        <S.icon size={16} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-muted-2">
-          {A.name} · night {a.night}
-          {a.meta && <span className="normal-case tracking-normal">· {a.meta}</span>}
-        </div>
-        <div className={`mt-0.5 text-sm ${a.undone ? "text-muted line-through" : "text-text"}`}>{a.action}</div>
-        {a.proof && !a.undone &&
-          (lockedUrl && a.proof.value === lockedUrl ? (
-            // Paywall integrity: the build's proof IS the live URL. Mask it here too so a non-paying
-            // user can't just read the link out of the Glass Box (the reveal card is the only door).
-            <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-coral/10 px-2 py-1 text-[11px] text-coral">
-              <Lock size={11} /> live site — unlock to view
-            </div>
-          ) : (
-            <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-bg/60 px-2 py-1 text-[11px] text-mint">
-              <Check size={11} />
-              {a.proof.value}
-            </div>
-          ))}
-        {/* Rationale Stream (PDR §6): the "why" behind the action — one tap, tiered (Education view). */}
-        {!a.undone && (
-          <details className="mt-1.5 text-[11px] text-muted-2">
-            <summary className="cursor-pointer list-none transition hover:text-muted">Why?</summary>
-            {(() => {
-              const r = a.rationale ?? rationaleFor(a.agent, a.action, a.meta);
-              return (
-                <div className="mt-1 space-y-0.5">
-                  <div className="text-muted">{r.why}</div>
-                  <div>Principle: {r.principle}</div>
-                </div>
-              );
-            })()}
-          </details>
-        )}
-      </div>
-      <div className="flex flex-col items-end gap-1.5">
-        <span className={`text-xs ${failed ? "text-muted-2 line-through" : "text-muted"}`}>{a.cost > 0 ? "$" + a.cost.toFixed(2) : "—"}</span>
-        {!a.undone && a.status === "done" && a.cost > 0 && (
-          <button onClick={onUndo} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted transition hover:text-text">
-            <Undo2 size={11} /> undo
-          </button>
-        )}
-        {failed && <span className="rounded-md bg-mint/12 px-2 py-1 text-[11px] text-mint">credited back</span>}
-        {a.undone && <span className="text-[11px] text-muted-2">undone</span>}
-      </div>
-    </motion.div>
-  );
-}
-
 /* ── Growth goal (the Revenue Loop scoreboard) ───────────────── */
 const NORTH_STARS: { key: NonNullable<Company["growthGoal"]>["northStar"]; label: string }[] = [
   { key: "signups", label: "Signups" },
@@ -1295,52 +888,3 @@ function GoalChip({ goal, imported, onSet }: { goal?: Company["growthGoal"]; imp
   );
 }
 
-const SOCIAL_KINDS: ApprovalKind[] = ["twitter", "linkedin", "bluesky", "mastodon", "reddit"];
-
-function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }: { title: string; detail: string; agent: AgentRole; kind?: ApprovalKind; onApprove: () => void; onReject: () => void }) {
-  const A = AGENTS[agent];
-  const { copied, copy: copyText } = useCopy(2000);
-  const isSocial = kind && SOCIAL_KINDS.includes(kind);
-  const kindLabel = kind === "twitter" ? "X / Twitter" : kind === "linkedin" ? "LinkedIn" : kind === "bluesky" ? "Bluesky" : kind === "mastodon" ? "Mastodon" : kind === "reddit" ? "Reddit" : null;
-
-  const copyPost = () => copyText(detail);
-
-  return (
-    <motion.div layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="rounded-2xl border border-coral/30 bg-coral/[0.05] p-4">
-      <div className="flex items-center justify-between">
-        <div className="text-[11px] uppercase tracking-wide text-muted-2">{A.name} · needs your ok</div>
-        {kindLabel && <div className="rounded-md bg-coral/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-coral">{kindLabel}</div>}
-      </div>
-      <div className="mt-1 text-sm font-semibold">{title}</div>
-      {isSocial ? (
-        <pre className="mt-2 whitespace-pre-wrap rounded-xl border border-border bg-bg/60 p-3 text-xs text-muted font-sans leading-relaxed">{detail}</pre>
-      ) : (
-        <p className="mt-1 text-xs text-muted">{detail}</p>
-      )}
-      <div className="mt-3 flex gap-2">
-        {isSocial ? (
-          <>
-            <button onClick={copyPost} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-coral py-2 text-xs font-semibold text-bg transition hover:brightness-110">
-              {copied ? <Check size={13} /> : <Copy size={13} />} {copied ? "Copied!" : "Copy post"}
-            </button>
-            <button onClick={onApprove} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted transition hover:text-text">
-              <Check size={13} /> Done
-            </button>
-            <button onClick={onReject} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted transition hover:text-text">
-              <X size={13} /> Skip
-            </button>
-          </>
-        ) : (
-          <>
-            <button onClick={onApprove} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-coral py-2 text-xs font-semibold text-bg transition hover:brightness-110">
-              <Check size={13} /> Approve
-            </button>
-            <button onClick={onReject} className="inline-flex items-center justify-center gap-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-muted transition hover:text-text">
-              <X size={13} /> Reject
-            </button>
-          </>
-        )}
-      </div>
-    </motion.div>
-  );
-}

@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED.** Built on the abandoned build-in-public premise (see BUILD-IN-PUBLIC.md) and old economics. Canonical: [PATH-TO-10K.md](PATH-TO-10K.md).
+
 # The Money Plan — <$100 to run, $10K in Month 2 (or kill it)
 
 > Playbook: **Pieter Levels' indie-hacker model** (charge day one, keep fixed cost ~$0, pass-through

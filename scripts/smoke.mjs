@@ -106,14 +106,12 @@ async function run() {
   await get("/t/no-such-demand-test", 404);
   const mt = await get("/api/metrics");
   if (mt) { const j = await mt.json(); j.ok ? ok("metrics returns ok (locked without secret)") : fail("metrics shape bad"); }
-  // Billing webhook is fail-CLOSED without LEMONSQUEEZY_WEBHOOK_SECRET — 503 is correct here.
-  await post("/api/billing/webhook", { meta: { event_name: "subscription_created" } }, 503);
-  ok("billing webhook rejects when unconfigured (fail-closed)");
-  await post("/api/billing/webhook", { meta: { event_name: "order_created" } }, 503);
-  ok("billing webhook rejects non-subscription (fail-closed)");
-  // Polar (Merchant-of-Record) webhook is fail-CLOSED too: 503 until POLAR_WEBHOOK_SECRET is set.
+  // Polar (Merchant-of-Record) webhook is fail-CLOSED: 503 until POLAR_WEBHOOK_SECRET is set.
+  // (The legacy LemonSqueezy webhook route was deleted 2026-07-02 — Polar is the only billing writer.)
   await post("/api/billing/polar", { type: "subscription.created", data: {} }, 503);
   ok("polar webhook rejects when unconfigured (fail-closed)");
+  await post("/api/billing/polar", { type: "order.paid", data: {} }, 503);
+  ok("polar webhook rejects orders too when unconfigured (fail-closed)");
   // Nightly heartbeat triggers real spend/deploys — it must be fail-CLOSED: 401 unauthenticated AND
   // 401 with a wrong bearer (never silently open, even before CRON_SECRET is set).
   await get("/api/cron", 401);

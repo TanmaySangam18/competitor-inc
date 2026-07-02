@@ -285,9 +285,9 @@ below) before launch hardening.
   The lead competitor is **Polsia** (autonomous AI company‑builder, 20% revenue cut); we
   **counter‑position** as the proof‑first, human‑in‑control, 0%‑cut alternative — full analysis +
   roadmap in [`docs/COMPETITIVE-polsia.md`](docs/COMPETITIVE-polsia.md) (internal).
-- **Pricing** — **Validate $0** (free forever) · **Operator $39/mo** · **Founding $99 once** (launch‑only,
-  ~100 seats). No revenue share, no lock‑in. Payments via **Polar** (Merchant‑of‑Record — handles
-  VAT/tax globally, GitHub‑login checkout, free at our scale).
+- **Pricing** — **Validate $0** (free forever) · **Operator $39/mo** · **Founder $299/mo** (done‑with‑you,
+  limited slots) · **$499 Validation Sprint** (one‑time). No revenue share, no lock‑in. Payments via
+  **Polar** (Merchant‑of‑Record — handles VAT/tax globally, GitHub‑login checkout, free at our scale).
 - **Money model** — keep total project spend low (BYOK + free model tiers + free hosting tiers).
   Go/no‑go: **~$10K in month 2, or kill it.**
 - **Launch** — a **big‑bang surprise** drop (not build‑in‑public): a polished demo + Show HN / Product

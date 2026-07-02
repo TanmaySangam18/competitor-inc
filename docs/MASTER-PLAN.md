@@ -18,7 +18,7 @@ founder's accounts/keys are required. Status: [ ] todo · [~] in progress · [x]
 - [x] 1.3 B1+B2 · Anti-crowding — autonomous-marketing card collapsed behind "Advanced" disclosure (Hick's Law) (dpl_…hzq91egf3)
 - [x] 1.4 D · SEO engine — JSON-LD Article + OG + canonical on playbooks; sitemap canonical domain fixed (dpl_…hzq91egf3)
 - [x] 1.5 Compliance wire-in — CAN-SPAM footer (sender identity + opt-out) appended in the live send path (dpl_…9scf1yte8)
-- [ ] 1.6 Billing live — LemonSqueezy product + webhook + checkout ⛔ FOUNDER ACCOUNT GATE
+- [x] 1.6 Billing live — done via **Polar** (MoR; webhook + checkout live in prod, `POLAR_WEBHOOK_SECRET` + `NEXT_PUBLIC_CHECKOUT_URL` set 2026-06-30 — LemonSqueezy path deleted 2026-07-02)
 - [ ] 1.7 LAUNCH — custom domain, flip SITE_PUBLIC/robots, GO-LIVE checklist ⛔ FOUNDER ACCOUNT/DOMAIN GATE
 
 ## Phase 2 — "Every inch": the autonomous builder (the moat)
@@ -77,4 +77,4 @@ The 28-block plan captured most of the pre-plan backlog, but the cross-check sur
 
 **Product completeness:**
 - ✅ DONE — Enrichment now show→**correct/edit**→confirm, plus a REAL delete: DELETE /api/enrich (self-only, fail-soft) purges any server copy + a permanent local suppression so we never enrich again. Honest: enrichment is computed live, never stored, so DELETE confirms "nothing stored" today; cross-device suppression = privacy_prefs table (v2) (dpl_…38d6j).
-- ✅ PATH VERIFIED (code) — first-real-receipt is wired end-to-end + internally consistent: approve → /api/execute (policy floor + approval keystone) → real executor returns {proof} → appendRealResult writes an activity tagged "real ✓" + proof → /api/proof filters real + re-verifies (HEAD/SHA) + classifyProof tag + redacts → ledger renders live/archived. ⛔ FOUNDER-ONLY to actually RUN: needs a signed-in founder (Supabase session) with live keys (GITHUB_TOKEN / Resend / LemonSqueezy) approving one real action. Cannot be faked — an empty board is the honest state until then.
+- ✅ PATH VERIFIED (code) — first-real-receipt is wired end-to-end + internally consistent: approve → /api/execute (policy floor + approval keystone) → real executor returns {proof} → appendRealResult writes an activity tagged "real ✓" + proof → /api/proof filters real + re-verifies (HEAD/SHA) + classifyProof tag + redacts → ledger renders live/archived. ⛔ FOUNDER-ONLY to actually RUN: needs a signed-in founder (Supabase session) with live keys (GITHUB_TOKEN / Resend / Polar) approving one real action. Cannot be faked — an empty board is the honest state until then.

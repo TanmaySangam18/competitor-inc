@@ -1,3 +1,5 @@
+> ⚠️ **STALE FIGURES.** Number authority = [intel/polsia-deep-dive.md](intel/polsia-deep-dive.md) (2026-07-02, source-verified): $8.52M headline "ARR" and DECLINING, ~51% recurring, ~4% of companies active, **$31M raised (NOT bootstrapped)**. Strategy analysis below still useful.
+
 # Competitive Analysis — competitor.inc vs Polsia
 
 > **The playbook:** Hamilton Helmer's **7 Powers → Counter-Positioning** — beat an incumbent not by

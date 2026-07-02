@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED (2026-07-02, consolidation audit).** Canonical roadmap: [NEXT-BLOCKS.md](NEXT-BLOCKS.md). The billing steps below describe LemonSqueezy — dead; billing is LIVE on **Polar** (`POLAR_WEBHOOK_SECRET` + `NEXT_PUBLIC_CHECKOUT_URL`). Kept as history.
+
 # Roadmap — what's left, shaped into blocks (for tomorrow)
 
 Everything still open, sorted by whether it needs **your approval/keys** or is **mine to build**, then shaped
