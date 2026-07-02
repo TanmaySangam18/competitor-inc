@@ -3,7 +3,8 @@
 // provisioned (see docs/SUPABASE-SETUP.md) the app falls back to the local store in useEngine.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Activity, ApprovalItem, Company, Issue, Ledger, OperateData, Proof, Rock, ValidationResult } from "./types";
+import type { Activity, ApprovalItem, Company, GrowthGoal, Issue, Ledger, OperateData, Proof, Rock, ValidationResult } from "./types";
+import type { GrowthExperiment } from "./growth";
 
 /* ── row shapes ─────────────────────────────────────────────── */
 interface CompanyRow {
@@ -16,6 +17,10 @@ interface CompanyRow {
   night: number;
   ledger: Ledger;
   validation: ValidationResult | null;
+  // goal + product are nullable JSONB (migration 0009). product was previously tracked client-side
+  // only — persisting it fixes cron losing imported companies' "live" status between shifts.
+  goal: GrowthGoal | null;
+  product: Company["product"] | null;
   created_at: string;
 }
 interface ActivityRow {
@@ -54,6 +59,8 @@ export function toCompany(r: CompanyRow): Company {
     night: r.night,
     ledger: r.ledger,
     validation: r.validation ?? undefined,
+    growthGoal: r.goal ?? undefined,
+    product: r.product ?? undefined,
   };
 }
 function toActivity(r: ActivityRow): Activity {
@@ -124,6 +131,8 @@ export async function createCompany(sb: SupabaseClient, userId: string, c: Compa
       night: c.night,
       ledger: c.ledger,
       validation: c.validation ?? null,
+      goal: c.growthGoal ?? null,
+      product: c.product ?? null,
     })
     .select("*")
     .single();
@@ -134,7 +143,15 @@ export async function createCompany(sb: SupabaseClient, userId: string, c: Compa
 export async function updateCompany(sb: SupabaseClient, c: Company): Promise<void> {
   const { error } = await sb
     .from("companies")
-    .update({ name: c.name, status: c.status, night: c.night, ledger: c.ledger, validation: c.validation ?? null })
+    .update({
+      name: c.name,
+      status: c.status,
+      night: c.night,
+      ledger: c.ledger,
+      validation: c.validation ?? null,
+      goal: c.growthGoal ?? null,
+      product: c.product ?? null,
+    })
     .eq("id", c.id);
   if (error) throw error;
 }
@@ -182,6 +199,86 @@ export async function setApprovalResolved(sb: SupabaseClient, id: string, resolv
 
 export async function setActivityUndone(sb: SupabaseClient, id: string): Promise<void> {
   const { error } = await sb.from("activities").update({ undone: true }).eq("id", id);
+  if (error) throw error;
+}
+
+/* ── growth experiments (Revenue Loop R4) ───────────────────── */
+// Append + one-shot close, mirroring the approvals concurrency posture. Row shape ↔ GrowthExperiment.
+interface ExperimentRow {
+  id: string;
+  company_id: string;
+  hypothesis: string;
+  metric: GrowthExperiment["metric"];
+  baseline: number | null;
+  target: number;
+  started_night: number;
+  window_nights: number;
+  status: GrowthExperiment["status"];
+  result_value: number | null;
+  result_basis: GrowthExperiment["resultBasis"] | null;
+  learning: string | null;
+  activity_ids: string[];
+  closed_at: string | null;
+}
+
+function toExperiment(r: ExperimentRow): GrowthExperiment {
+  return {
+    id: r.id,
+    hypothesis: r.hypothesis,
+    metric: r.metric,
+    baseline: r.baseline == null ? null : Number(r.baseline),
+    target: Number(r.target),
+    startedNight: r.started_night,
+    windowNights: r.window_nights,
+    status: r.status,
+    resultValue: r.result_value == null ? undefined : Number(r.result_value),
+    resultBasis: r.result_basis ?? undefined,
+    learning: r.learning ?? undefined,
+    activityIds: r.activity_ids ?? [],
+    closedAt: r.closed_at ? new Date(r.closed_at).getTime() : undefined,
+  };
+}
+
+export async function fetchExperiments(sb: SupabaseClient, companyId: string): Promise<GrowthExperiment[]> {
+  const { data, error } = await sb
+    .from("growth_experiments")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return ((data as ExperimentRow[]) ?? []).map(toExperiment);
+}
+
+export async function insertExperiments(sb: SupabaseClient, companyId: string, items: GrowthExperiment[]): Promise<void> {
+  if (items.length === 0) return;
+  const { error } = await sb.from("growth_experiments").insert(
+    items.map((x) => ({
+      id: x.id, // client-authoritative, like activities
+      company_id: companyId,
+      hypothesis: x.hypothesis,
+      metric: x.metric,
+      baseline: x.baseline,
+      target: x.target,
+      started_night: x.startedNight,
+      window_nights: x.windowNights,
+      status: x.status,
+      activity_ids: x.activityIds,
+    }))
+  );
+  if (error) throw error;
+}
+
+export async function closeExperiment(sb: SupabaseClient, x: GrowthExperiment): Promise<void> {
+  const { error } = await sb
+    .from("growth_experiments")
+    .update({
+      status: x.status,
+      result_value: x.resultValue ?? null,
+      result_basis: x.resultBasis ?? null,
+      learning: x.learning ?? null,
+      closed_at: x.closedAt ? new Date(x.closedAt).toISOString() : new Date().toISOString(),
+    })
+    .eq("id", x.id);
   if (error) throw error;
 }
 

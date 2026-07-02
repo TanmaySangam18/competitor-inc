@@ -45,6 +45,11 @@ export async function POST(req: Request) {
         console.error("[/api/demand] signup failed:", error.message);
         return Response.json({ ok: true, persisted: false });
       }
+      // Revenue Loop funnel event — written server-side ONLY (the public pixel never posts signups
+      // for /t/ pages, so this stays the single source of truth; no double counting).
+      void client.from("events").insert({ slug, type: "signup", source: "demand-test" }).then(({ error: e }) => {
+        if (e) console.error("[/api/demand] funnel event failed:", e.message);
+      });
       return Response.json({ ok: true, persisted: true });
     } catch (e) {
       console.error("[/api/demand] signup threw:", e instanceof Error ? e.message : "unknown");

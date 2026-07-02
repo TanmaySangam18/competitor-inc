@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { verifyPolarSignature, entitlementFromPolar } from "@/lib/engine/polar";
+import { verifyPolarSignature, entitlementFromPolar, revenueFromPolar } from "@/lib/engine/polar";
 
 export const runtime = "nodejs";
 
@@ -28,23 +28,37 @@ export async function POST(req: Request) {
     return new Response("bad json", { status: 400 });
   }
 
+  // Two INDEPENDENT extractions from the same verified event: entitlement (access) and revenue
+  // (amount). A renewal order returns null for entitlement (subscription.* events own access) but
+  // MUST still be captured as revenue — MRR is made of renewals.
   const rec = entitlementFromPolar(evt?.type || "", evt?.data ?? {});
-  if (!rec) return Response.json({ ok: true, note: `ignored ${evt?.type || "event"}` });
+  const rev = revenueFromPolar(evt?.type || "", evt?.data ?? {});
+  if (!rec && !rev) return Response.json({ ok: true, note: `ignored ${evt?.type || "event"}` });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return Response.json({ ok: true, note: "no db configured" });
   try {
     const sb = createClient(url, key, { auth: { persistSession: false } });
-    const { error } = await sb.from("entitlements").upsert(
-      { email: rec.email, plan: rec.plan, status: rec.status, current_period_end: rec.periodEnd, updated_at: new Date().toISOString() },
-      { onConflict: "email" },
-    );
-    if (error) {
-      console.error("[billing/polar] upsert failed:", error.message);
-      return Response.json({ ok: false }, { status: 200 });
+
+    if (rec) {
+      const { error } = await sb.from("entitlements").upsert(
+        { email: rec.email, plan: rec.plan, status: rec.status, current_period_end: rec.periodEnd, updated_at: new Date().toISOString() },
+        { onConflict: "email" },
+      );
+      if (error) console.error("[billing/polar] entitlement upsert failed:", error.message);
     }
-    return Response.json({ ok: true, status: rec.status });
+
+    if (rev) {
+      // Fail-soft + retry-safe: external_id is unique, so Polar redeliveries dedup to a no-op.
+      const { error } = await sb.from("revenue_events").upsert(
+        { external_id: rev.externalId, email: rev.email, amount_cents: rev.amountCents, currency: rev.currency, product: rev.product, slug: rev.slug },
+        { onConflict: "external_id", ignoreDuplicates: true },
+      );
+      if (error) console.error("[billing/polar] revenue insert failed:", error.message);
+    }
+
+    return Response.json({ ok: true, status: rec?.status ?? "revenue-only" });
   } catch (e) {
     console.error("[billing/polar] webhook threw:", e instanceof Error ? e.message : "unknown");
     return Response.json({ ok: false }, { status: 200 });

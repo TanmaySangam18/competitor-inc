@@ -1,12 +1,14 @@
 import crypto from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { runShift } from "@/lib/engine/server";
-import { insertActivities, insertApprovals, updateCompany, toCompany } from "@/lib/engine/db";
+import { insertActivities, insertApprovals, insertExperiments, closeExperiment, fetchExperiments, updateCompany, toCompany } from "@/lib/engine/db";
 import { sendEmail } from "@/lib/engine/execution";
 import { remember, recall } from "@/lib/engine/memory";
 import { buildGraph, summarizeGraph } from "@/lib/engine/bkg";
 import { withTrace } from "@/lib/engine/observability";
 import { raiseAlert } from "@/lib/engine/alerts";
+import { runGrowthStep } from "@/lib/engine/growth";
+import { readFunnel } from "@/lib/engine/funnel";
 
 export const runtime = "nodejs";
 
@@ -61,8 +63,37 @@ export async function GET(req: Request) {
         .order("created_at", { ascending: false })
         .limit(60);
       const graphSummary = summarizeGraph(buildGraph((history.data ?? []) as { action?: string; meta?: string; agent?: string }[]));
-      const priorContext = [recalled, graphSummary].filter(Boolean).join(" • ");
-      const { activities, approvals } = await withTrace("shift", () => runShift(company, undefined, priorContext), { companyId: company.id, night: company.night });
+
+      // ── Revenue Loop growth step (BEFORE the shift): measure → close → diagnose → propose. ──
+      // Fail-soft: a growth error never blocks the shift. Learnings go into memory + priorContext
+      // so the model builds on them, and closes/proposals persist to the experiments ledger.
+      let growthContext: Parameters<typeof runShift>[3];
+      let growthNotes = "";
+      try {
+        const [openExps, funnel] = await Promise.all([
+          fetchExperiments(sb, company.id).then((xs) => xs.filter((x) => x.status === "running")),
+          readFunnel(sb, company.slug),
+        ]);
+        const g = await withTrace("growth", async () => runGrowthStep(company, openExps, funnel, [], company.night + 1), { companyId: company.id });
+        for (const x of g.closed) await closeExperiment(sb, x).catch((e) => console.error("[/api/cron] close exp:", e?.message));
+        await insertExperiments(sb, company.id, g.proposed).catch((e) => console.error("[/api/cron] insert exps:", e?.message));
+        await insertActivities(sb, company.id, g.activities).catch((e) => console.error("[/api/cron] growth log:", e?.message));
+        for (const note of g.memoryNotes) {
+          await remember(sb, company.id, company.night, "experiment", note);
+        }
+        growthNotes = g.memoryNotes.join(" • ");
+        growthContext = {
+          goal: company.growthGoal,
+          constraint: g.diagnosis.constraint,
+          signal: g.diagnosis.signal,
+          learnings: g.closed.map((x) => x.learning ?? "").filter(Boolean),
+        };
+      } catch (e) {
+        console.error("[/api/cron] growth step failed:", e instanceof Error ? e.message : "unknown");
+      }
+
+      const priorContext = [recalled, graphSummary, growthNotes].filter(Boolean).join(" • ");
+      const { activities, approvals } = await withTrace("shift", () => runShift(company, undefined, priorContext, growthContext), { companyId: company.id, night: company.night });
       await insertActivities(sb, company.id, activities);
       await insertApprovals(sb, company.id, approvals);
 

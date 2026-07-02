@@ -90,6 +90,12 @@ async function run() {
   await post("/api/radar", {}, 400);
   ok("radar rejects bad input before crawling");
 
+  console.log("• track pixel (input guards — fail-soft without Supabase)");
+  await post("/api/track", { slug: "BAD SLUG!!", type: "view" }, 400);
+  await post("/api/track", { slug: "ok-slug", type: "purchase" }, 400); // revenue only via webhook
+  const tk = await post("/api/track", { slug: "ok-slug", type: "view" });
+  if (tk) { const j = await tk.json(); j.ok === true ? ok("track fails soft / accepts view") : fail("track shape bad"); }
+
   console.log("• demand test (fail-soft without Supabase)");
   const dq = await get("/api/demand?slug=smoke-test");
   if (dq) { const j = await dq.json(); j.ok && typeof j.signups === "number" ? ok("demand GET returns shape") : fail("demand GET shape bad"); }

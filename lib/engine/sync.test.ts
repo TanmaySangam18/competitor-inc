@@ -21,7 +21,7 @@ function act(over: Partial<Activity> = {}): Activity {
 function appr(over: Partial<ApprovalItem> = {}): ApprovalItem {
   return { id: "p1", night: 1, agent: "marketing", kind: "spend", title: "Scale ads", detail: "", ...over };
 }
-const state = (over: Partial<SyncState> = {}): SyncState => ({ companies: [], activities: {}, approvals: {}, operate: {}, ...over });
+const state = (over: Partial<SyncState> = {}): SyncState => ({ companies: [], activities: {}, approvals: {}, operate: {}, experiments: {}, ...over });
 
 describe("diffStore — centralized write-through delta", () => {
   it("no change → empty ops", () => {
@@ -42,6 +42,26 @@ describe("diffStore — centralized write-through delta", () => {
     const ops = diffStore(prev, next);
     expect(ops.createCompanies).toHaveLength(0);
     expect(ops.updateCompanies.map((c) => c.id)).toEqual(["c1"]);
+  });
+
+  it("detects a growthGoal change as an update (Revenue Loop scoreboard syncs)", () => {
+    const prev = state({ companies: [co()] });
+    const next = state({ companies: [co({ growthGoal: { northStar: "paying_customers", target: 3, setAt: 1 } })] });
+    const ops = diffStore(prev, next);
+    expect(ops.updateCompanies.map((c) => c.id)).toEqual(["c1"]);
+  });
+
+  it("appends new experiments and flips a close exactly once (Revenue Loop ledger)", () => {
+    const running = { id: "x1", hypothesis: "h", metric: "signups" as const, baseline: null, target: 10, startedNight: 1, windowNights: 3, status: "running" as const, activityIds: [] };
+    const closed = { ...running, status: "won" as const, resultValue: 12, resultBasis: "real" as const, learning: "WON" };
+    const fresh = { ...running, id: "x2" };
+    const prev = state({ companies: [co()], experiments: { c1: [running] } });
+    const next = state({ companies: [co()], experiments: { c1: [fresh, closed] } });
+    const ops = diffStore(prev, next);
+    expect(ops.insertExperiments).toEqual([{ companyId: "c1", items: [fresh] }]);
+    expect(ops.closeExperiments.map((x) => x.id)).toEqual(["x1"]);
+    // and closing an already-closed experiment again is NOT re-flipped
+    expect(isEmptyOps(diffStore(next, next))).toBe(true);
   });
 
   it("appends only the new activities, not the existing ones", () => {

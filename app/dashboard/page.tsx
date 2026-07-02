@@ -46,6 +46,7 @@ import GuestSavePrompt from "@/components/GuestSavePrompt";
 import { LiveGlassBox } from "@/components/LiveGlassBox";
 import GTMPanel from "@/components/GTMPanel";
 import GaugePanel from "@/components/GaugePanel";
+import GrowthPanel from "@/components/GrowthPanel";
 import DemandRadarPanel from "@/components/DemandRadarPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import CrewCard from "@/components/CrewCard";
@@ -89,7 +90,7 @@ const signalStyle = {
 // the launch build keeps it off to shrink the launch surface until v0.2.0, per the blueprint).
 const OPERATE_ENABLED = process.env.NEXT_PUBLIC_OPERATE !== "0";
 
-type Tab = "operations" | "history" | "chat" | "operate";
+type Tab = "operations" | "growth" | "history" | "chat" | "operate";
 
 export default function Dashboard() {
   const r = useEngine();
@@ -576,6 +577,7 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
   ];
   const tabs: { id: Tab; label: string; icon: typeof ActivityIcon }[] = [
     { id: "operations", label: "Operations", icon: ActivityIcon },
+    { id: "growth", label: "Growth", icon: Target },
     { id: "history", label: "History", icon: LineChart },
     { id: "chat", label: "Chat", icon: MessagesSquare },
     ...(OPERATE_ENABLED ? [{ id: "operate" as Tab, label: "Operate", icon: Gauge }] : []),
@@ -589,6 +591,7 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
           <div>
             <h1 className="text-3xl font-bold">{c.name}</h1>
             <p className="mt-1 max-w-xl text-sm text-muted">{c.idea}</p>
+            <GoalChip goal={c.growthGoal} imported={c.product?.status === "live"} onSet={r.setGrowthGoal} />
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
@@ -753,6 +756,7 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
 
       <div className="mt-6">
         {tab === "operations" && <OperationsTab r={r} lockedUrl={!entitled && c.product?.status === "live" ? c.product?.url : undefined} />}
+        {tab === "growth" && <GrowthPanel company={c} experiments={r.experiments} />}
         {tab === "history" && <HistoryTab activities={r.activities} company={c} />}
         {tab === "chat" && <ChatTab company={c} r={r} />}
         {tab === "operate" && OPERATE_ENABLED && <OperateTab r={r} c={c} />}
@@ -1213,6 +1217,67 @@ function ActivityRow({ a, onUndo, lockedUrl }: { a: Activity; onUndo: () => void
         {a.undone && <span className="text-[11px] text-muted-2">undone</span>}
       </div>
     </motion.div>
+  );
+}
+
+/* ── Growth goal (the Revenue Loop scoreboard) ───────────────── */
+const NORTH_STARS: { key: NonNullable<Company["growthGoal"]>["northStar"]; label: string }[] = [
+  { key: "signups", label: "Signups" },
+  { key: "paying_customers", label: "Paying customers" },
+  { key: "revenue", label: "Revenue" },
+];
+
+function GoalChip({ goal, imported, onSet }: { goal?: Company["growthGoal"]; imported: boolean; onSet: (g: Company["growthGoal"]) => void }) {
+  const [editing, setEditing] = useState(false);
+  // Sensible default per stage: an already-live import chases customers; a fresh idea chases signups.
+  const [star, setStar] = useState<NonNullable<Company["growthGoal"]>["northStar"]>(goal?.northStar ?? (imported ? "paying_customers" : "signups"));
+  const [target, setTarget] = useState(String(goal?.target ?? (imported ? 3 : 25)));
+
+  if (!editing) {
+    const meta = goal && NORTH_STARS.find((n) => n.key === goal.northStar);
+    return (
+      <button
+        onClick={() => setEditing(true)}
+        className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition ${
+          goal ? "border-violet/30 bg-violet/[0.06] text-violet hover:brightness-110" : "border-coral/40 text-coral hover:bg-coral/10"
+        }`}
+      >
+        <Target size={12} />
+        {goal && meta ? `Goal: ${goal.northStar === "revenue" ? "$" : ""}${goal.target} ${meta.label.toLowerCase()}` : "Set your goal — what number matters?"}
+      </button>
+    );
+  }
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+      <select
+        value={star}
+        onChange={(e) => setStar(e.target.value as typeof star)}
+        aria-label="North-star metric"
+        className="rounded-lg border border-border bg-surface px-2 py-1.5 text-xs outline-none"
+      >
+        {NORTH_STARS.map((n) => (
+          <option key={n.key} value={n.key}>{n.label}</option>
+        ))}
+      </select>
+      <input
+        value={target}
+        onChange={(e) => setTarget(e.target.value.replace(/[^0-9]/g, ""))}
+        aria-label="Goal target"
+        className="w-20 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs outline-none focus:border-violet/40"
+      />
+      <button
+        onClick={() => {
+          const t = parseInt(target, 10);
+          if (!Number.isFinite(t) || t <= 0) return;
+          onSet({ northStar: star, target: t, setAt: Date.now() });
+          setEditing(false);
+        }}
+        className="rounded-lg bg-violet px-3 py-1.5 text-xs font-semibold text-bg transition hover:brightness-110"
+      >
+        Save goal
+      </button>
+      <button onClick={() => setEditing(false)} className="text-xs text-muted-2 transition hover:text-text">cancel</button>
+    </div>
   );
 }
 

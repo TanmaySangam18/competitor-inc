@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, OperateData, ValidationResult } from "./types";
+import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, GrowthGoal, OperateData, ValidationResult } from "./types";
+import type { GrowthExperiment } from "./growth";
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
 import { getByok, getConnections, pingCustomerUpdate, pingApprovalRequest, fetchApprovalDecisions } from "./config";
 import { draftBlitz } from "./blitz";
@@ -24,8 +25,9 @@ interface Store {
   approvals: Record<string, ApprovalItem[]>;
   activeId: string | null;
   operate: Record<string, OperateData>;
+  experiments: Record<string, GrowthExperiment[]>;
 }
-const empty: Store = { companies: [], activities: {}, approvals: {}, activeId: null, operate: {} };
+const empty: Store = { companies: [], activities: {}, approvals: {}, activeId: null, operate: {}, experiments: {} };
 
 function load(): Store {
   if (typeof window === "undefined") return empty;
@@ -41,6 +43,7 @@ function load(): Store {
           activities: parsed.activities && typeof parsed.activities === "object" ? parsed.activities : {},
           approvals: parsed.approvals && typeof parsed.approvals === "object" ? parsed.approvals : {},
           operate: parsed.operate && typeof parsed.operate === "object" ? parsed.operate : {},
+          experiments: parsed.experiments && typeof parsed.experiments === "object" ? parsed.experiments : {},
         };
       }
       // corrupted — fall through to legacy/empty
@@ -56,6 +59,7 @@ function load(): Store {
           approvals: { [old.company.id]: old.approvals ?? [] },
           activeId: old.company.id,
           operate: {},
+          experiments: {},
         };
       }
     }
@@ -70,8 +74,10 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const rid = () => crypto.randomUUID();
 
 async function callEngine(
-  body: { kind: "validate"; idea: string; nonce?: number } | { kind: "shift"; company: Company }
-): Promise<{ validation: ValidationResult } | ShiftResult> {
+  body:
+    | { kind: "validate"; idea: string; nonce?: number }
+    | { kind: "shift"; company: Company; experiments?: GrowthExperiment[] }
+): Promise<{ validation: ValidationResult } | (ShiftResult & { experiments?: GrowthExperiment[] })> {
   try {
     const res = await fetch("/api/engine", {
       method: "POST",
@@ -130,6 +136,7 @@ export function useEngine() {
       activities: s.activities,
       approvals: s.approvals,
       operate: { ...prev.operate, ...s.operate },
+      experiments: { ...prev.experiments, ...s.experiments },
       activeId: prev.activeId ?? s.companies[0]?.id ?? null,
     }));
   }, []);
@@ -140,6 +147,7 @@ export function useEngine() {
     activities: store.activities,
     approvals: store.approvals,
     operate: store.operate,
+    experiments: store.experiments,
     overlay: overlayFromDb,
   });
 
@@ -147,6 +155,7 @@ export function useEngine() {
   const activities = company ? store.activities[company.id] ?? [] : [];
   const approvals = company ? store.approvals[company.id] ?? [] : [];
   const operate = company ? store.operate[company.id] ?? { rocks: [], issues: [] } : { rocks: [], issues: [] };
+  const experiments = company ? store.experiments[company.id] ?? [] : [];
 
   const createCompany = useCallback((idea: string) => {
     const trimmed = idea.trim();
@@ -172,6 +181,7 @@ export function useEngine() {
       activities: { ...s.activities, [c.id]: [] },
       approvals: { ...s.approvals, [c.id]: [] },
       operate: { ...s.operate, [c.id]: { rocks: [], issues: [] } },
+      experiments: { ...s.experiments, [c.id]: [] },
       activeId: c.id,
     }));
     setWorking("validating");
@@ -227,6 +237,7 @@ export function useEngine() {
       activities: { ...s.activities, [c.id]: [] },
       approvals: { ...s.approvals, [c.id]: [] },
       operate: { ...s.operate, [c.id]: { rocks: [], issues: [] } },
+      experiments: { ...s.experiments, [c.id]: [] },
       activeId: c.id,
     }));
     setWorking("validating");
@@ -259,10 +270,12 @@ export function useEngine() {
       const activities = { ...s.activities };
       const approvals = { ...s.approvals };
       const operate = { ...s.operate };
+      const experiments = { ...s.experiments };
       delete activities[id];
       delete approvals[id];
       delete operate[id];
-      return { companies, activities, approvals, operate, activeId: s.activeId === id ? companies[0]?.id ?? null : s.activeId };
+      delete experiments[id];
+      return { companies, activities, approvals, operate, experiments, activeId: s.activeId === id ? companies[0]?.id ?? null : s.activeId };
     });
   }, []);
 
@@ -443,9 +456,15 @@ export function useEngine() {
     (async () => {
       try {
         const started = Date.now();
-        const res = (await callEngine({ kind: "shift", company: active })) as Partial<ShiftResult>;
+        // Revenue Loop: send the open experiments so the server can close them against real funnel
+        // data and propose the next ones. The returned array is the company's full updated ledger.
+        const openExps = (ref.current.experiments[active.id] ?? []).filter((x) => x.status === "running");
+        const res = (await callEngine({ kind: "shift", company: active, experiments: openExps })) as Partial<
+          ShiftResult & { experiments: GrowthExperiment[] }
+        >;
         const acts = Array.isArray(res?.activities) ? res.activities : []; // guard malformed 200
         const apps = Array.isArray(res?.approvals) ? res.approvals : [];
+        const exps = Array.isArray(res?.experiments) ? res.experiments : [];
         const remaining = 900 - (Date.now() - started);
         if (remaining > 0) await sleep(remaining);
         const done = acts.filter((a) => a.status === "done");
@@ -473,6 +492,19 @@ export function useEngine() {
             ),
             activities: { ...s.activities, [c.id]: [...acts, ...(s.activities[c.id] ?? [])] },
             approvals: { ...s.approvals, [c.id]: [...apps, ...(s.approvals[c.id] ?? [])] },
+            // Experiment merge: replace touched ids (closes), append new ones, keep untouched history.
+            experiments: exps.length
+              ? {
+                  ...s.experiments,
+                  [c.id]: (() => {
+                    const byId = new Map(exps.map((x) => [x.id, x]));
+                    const keptOrUpdated = (s.experiments[c.id] ?? []).map((x) => byId.get(x.id) ?? x);
+                    const existing = new Set(keptOrUpdated.map((x) => x.id));
+                    const brandNew = exps.filter((x) => !existing.has(x.id));
+                    return [...brandNew, ...keptOrUpdated];
+                  })(),
+                }
+              : s.experiments,
           };
         });
         // Opt-in customer update (no-op unless they connected a channel) — fires on every shift.
@@ -627,6 +659,15 @@ export function useEngine() {
     });
   }, []);
 
+  // The Revenue Loop scoreboard: set/replace the active company's growth goal. Persistence rides the
+  // normal localStorage + sync path (companyChanged compares growthGoal).
+  const setGrowthGoal = useCallback((goal: GrowthGoal | undefined) => {
+    setStore((s) => {
+      if (!s.activeId) return s;
+      return { ...s, companies: s.companies.map((c) => (c.id === s.activeId ? { ...c, growthGoal: goal } : c)) };
+    });
+  }, []);
+
   // Queue an approval from outside a shift (e.g. a consequential request made in chat). Keeps the
   // promise "I'll queue it for your approval" honest — the item really lands in the Approval Inbox.
   const addApproval = useCallback(
@@ -746,6 +787,7 @@ export function useEngine() {
     company,
     activities,
     approvals,
+    experiments,
     companies: store.companies,
     activeId: store.activeId,
     hydrated,
@@ -765,6 +807,7 @@ export function useEngine() {
     runShift,
     revalidate,
     launchBlitz,
+    setGrowthGoal,
     resolveApproval,
     addApproval,
     undoActivity,

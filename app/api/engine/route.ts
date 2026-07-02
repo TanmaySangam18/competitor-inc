@@ -1,7 +1,10 @@
+import { createClient } from "@supabase/supabase-js";
 import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply } from "@/lib/engine/server";
 import { capabilities } from "@/lib/engine/execution";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
+import { runGrowthStep, type FunnelSnapshot, type GrowthExperiment } from "@/lib/engine/growth";
+import { readFunnel } from "@/lib/engine/funnel";
 import type { ByokConfig, Company } from "@/lib/engine/types";
 
 export const runtime = "nodejs";
@@ -18,8 +21,18 @@ export async function GET() {
 
 type Body =
   | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig }
-  | { kind: "shift"; company: Company; byok?: ByokConfig }
+  | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig }
   | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; byok?: ByokConfig };
+
+// The funnel used when no DB is configured (or the read fails): every stage missing. The growth step
+// then closes due experiments as "inconclusive — connect the signal" instead of inventing numbers.
+const MISSING_FUNNEL: FunnelSnapshot = {
+  views: null,
+  signups: null,
+  payingCustomers: null,
+  revenueCents: null,
+  basis: { views: "missing", signups: "missing", paying: "missing", revenue: "missing" },
+};
 
 export async function POST(req: Request) {
   // Cost/abuse guard: soft per-IP rate limit. Active only on Vercel (real deployments) so the local
@@ -64,8 +77,38 @@ export async function POST(req: Request) {
       ) {
         return Response.json({ error: "`company` (id, idea, night, ledger) is required" }, { status: 400 });
       }
-      const result = await withTrace("shift", () => runShift(c, body.byok), { companyId: c.id, night: c.night });
-      return Response.json(result);
+      // Revenue Loop growth step (runs BEFORE the shift so learnings inform the model's prompt):
+      // close due experiments against the REAL funnel when a DB is reachable, else against the
+      // missing funnel (honest inconclusives). Deterministic + fail-soft: any error skips growth.
+      const openExps = Array.isArray(body.experiments) ? body.experiments.slice(0, 12) : [];
+      let growth: ReturnType<typeof runGrowthStep> | null = null;
+      try {
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const funnel =
+          url && key && typeof c.slug === "string" && c.slug
+            ? await readFunnel(createClient(url, key, { auth: { persistSession: false } }), c.slug)
+            : MISSING_FUNNEL;
+        growth = await withTrace("growth", async () => runGrowthStep(c, openExps, funnel, [], c.night + 1), { companyId: c.id });
+      } catch (e) {
+        console.error("[/api/engine] growth step failed:", e instanceof Error ? e.message : "unknown");
+      }
+
+      const growthContext = growth
+        ? {
+            goal: c.growthGoal,
+            constraint: growth.diagnosis.constraint,
+            signal: growth.diagnosis.signal,
+            learnings: growth.closed.map((x) => x.learning ?? "").filter(Boolean),
+          }
+        : undefined;
+      const result = await withTrace("shift", () => runShift(c, body.byok, undefined, growthContext), { companyId: c.id, night: c.night });
+      if (!growth) return Response.json(result);
+      return Response.json({
+        ...result,
+        activities: [...growth.activities, ...result.activities],
+        experiments: [...growth.closed, ...growth.stillOpen, ...growth.proposed],
+      });
     }
 
     if (body.kind === "chat") {

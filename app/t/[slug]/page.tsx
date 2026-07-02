@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import DemandCapture from "./DemandCapture";
+import TrackBeacon from "@/components/TrackBeacon";
 import { CompanyLogo } from "@/components/CompanyLogo";
 
 export const runtime = "nodejs";
@@ -42,6 +43,7 @@ export default async function DemandTestPage({ params }: { params: Promise<{ slu
 
   return (
     <div className="min-h-screen mesh">
+      <TrackBeacon slug={test.slug} />
       <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-center px-6 py-20">
         <CompanyLogo name={test.headline} size={52} className="mb-6 rounded-xl shadow-sm" />
         <h1 className="display text-4xl leading-tight md:text-5xl">{test.headline}</h1>

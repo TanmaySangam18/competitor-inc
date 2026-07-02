@@ -7,7 +7,7 @@ import "server-only";
 
 import { getProvider, scoreIdea, type ShiftResult } from "./provider";
 import { governApprovals } from "./policy";
-import type { Activity, ActivityStatus, AgentRole, ApprovalItem, ApprovalKind, ByokConfig, Company, ValidationResult } from "./types";
+import type { Activity, ActivityStatus, AgentRole, ApprovalItem, ApprovalKind, ByokConfig, Company, GrowthGoal, ValidationResult } from "./types";
 import { AGENTS } from "./types";
 
 const PROVIDER = process.env.MODEL_PROVIDER ?? "simulated";
@@ -441,16 +441,30 @@ function governShift(s: ShiftResult): ShiftResult {
   return { ...s, approvals: governApprovals(s.approvals) };
 }
 
-export async function runShift(company: Company, byok?: ByokConfig, context?: string): Promise<ShiftResult> {
+// Revenue Loop context injected into the shift prompt: the goal, the diagnosed constraint, and the
+// learnings from experiments that just closed — so the model proposes work that moves the CONSTRAINT,
+// not generic activity. (Computed deterministically by lib/engine/growth.ts; the model never invents
+// metrics, it only acts on them.)
+export interface GrowthShiftContext {
+  goal?: GrowthGoal;
+  constraint: string;
+  signal: string;
+  learnings: string[];
+}
+
+export async function runShift(company: Company, byok?: ByokConfig, context?: string, growth?: GrowthShiftContext): Promise<ShiftResult> {
   if (!modelAvailable(byok)) return governShift(getProvider().shift(company));
   const night = company.night + 1;
   const isImported = company.product?.status === "live";
   const distributionConstraint = isImported
     ? " CRITICAL: this product is ALREADY BUILT AND LIVE. The crew's ONLY job is getting it customers. DO NOT propose engineering or build activities. Focus exclusively on: outreach drafts, positioning, programmatic SEO, community posts, and referral mechanics."
     : "";
+  const growthBlock = growth
+    ? ` REVENUE LOOP: the founder's north star is ${growth.goal ? `${growth.goal.northStar} (target ${growth.goal.target})` : "not set yet"}. Current funnel constraint: ${growth.constraint} — ${growth.signal}${growth.learnings.length ? ` Learnings from closed experiments: ${growth.learnings.join(" | ")}` : ""} Propose work that moves THIS constraint; success is measured on outcome metrics, never on tasks completed.`
+    : "";
   try {
     const text = await callModel(
-      `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${ROLES.join(", ")}.${distributionConstraint} ` +
+      `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${ROLES.join(", ")}.${distributionConstraint}${growthBlock} ` +
         "Produce 3-5 realistic actions taken overnight. Build on priorContext (what earlier nights did) — stay consistent; don't repeat or contradict past decisions. " +
         "Consequential actions (spend>$100, outreach, deploy, delete, twitter posts, linkedin posts) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
         '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-credited","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete"|"twitter"|"linkedin","title":string,"detail":string,"amount":number}]}',

@@ -17,15 +17,19 @@
 import { useEffect, useRef } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Activity, ApprovalItem, Company, OperateData } from "./types";
+import type { GrowthExperiment } from "./growth";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import {
   fetchUserCompanies,
   fetchCompanyState,
   fetchOperate,
+  fetchExperiments,
   createCompany,
   updateCompany,
   insertActivities,
   insertApprovals,
+  insertExperiments,
+  closeExperiment,
   setApprovalResolved,
   setActivityUndone,
   upsertRocks,
@@ -40,6 +44,7 @@ export interface SyncState {
   activities: Record<string, Activity[]>;
   approvals: Record<string, ApprovalItem[]>;
   operate: Record<string, OperateData>;
+  experiments: Record<string, GrowthExperiment[]>;
 }
 
 export interface SyncOps {
@@ -49,6 +54,9 @@ export interface SyncOps {
   undoActivities: string[];
   insertApprovals: { companyId: string; items: ApprovalItem[] }[];
   resolveApprovals: { id: string; resolved: "approved" | "rejected" }[];
+  // experiments (Revenue Loop): append proposals + a one-shot close flip (like approvals.resolved)
+  insertExperiments: { companyId: string; items: GrowthExperiment[] }[];
+  closeExperiments: GrowthExperiment[];
   // operate is tiny → upsert the whole list on change + delete removed ids
   upsertRocks: { companyId: string; rocks: OperateData["rocks"] }[];
   deleteRockIds: string[];
@@ -56,7 +64,7 @@ export interface SyncOps {
   deleteIssueIds: string[];
 }
 
-const EMPTY_STATE: SyncState = { companies: [], activities: {}, approvals: {}, operate: {} };
+const EMPTY_STATE: SyncState = { companies: [], activities: {}, approvals: {}, operate: {}, experiments: {} };
 const EMPTY_OPERATE: OperateData = { rocks: [], issues: [] };
 
 // Tracked company fields — a change in any of these triggers an UPDATE. (slug/idea/createdAt are
@@ -68,7 +76,8 @@ function companyChanged(a: Company, b: Company): boolean {
     a.name !== b.name ||
     JSON.stringify(a.ledger) !== JSON.stringify(b.ledger) ||
     JSON.stringify(a.validation ?? null) !== JSON.stringify(b.validation ?? null) ||
-    JSON.stringify(a.product ?? null) !== JSON.stringify(b.product ?? null)
+    JSON.stringify(a.product ?? null) !== JSON.stringify(b.product ?? null) ||
+    JSON.stringify(a.growthGoal ?? null) !== JSON.stringify(b.growthGoal ?? null)
   );
 }
 
@@ -87,6 +96,8 @@ export function diffStore(prev: SyncState, next: SyncState): SyncOps {
   const undoActivities: string[] = [];
   const insertApps: SyncOps["insertApprovals"] = [];
   const resolveApprovals: SyncOps["resolveApprovals"] = [];
+  const insertExps: SyncOps["insertExperiments"] = [];
+  const closeExps: SyncOps["closeExperiments"] = [];
   const upRocks: SyncOps["upsertRocks"] = [];
   const deleteRockIds: string[] = [];
   const upIssues: SyncOps["upsertIssues"] = [];
@@ -113,6 +124,16 @@ export function diffStore(prev: SyncState, next: SyncState): SyncOps {
       if (a.resolved && (!p || p.resolved !== a.resolved)) resolveApprovals.push({ id: a.id, resolved: a.resolved });
     }
 
+    // growth experiments (append + a one-shot close flip)
+    const prevExps = new Map((prev.experiments[c.id] ?? []).map((x) => [x.id, x]));
+    const nextExps = next.experiments[c.id] ?? [];
+    const newExps = nextExps.filter((x) => !prevExps.has(x.id));
+    if (newExps.length) insertExps.push({ companyId: c.id, items: newExps });
+    for (const x of nextExps) {
+      const p = prevExps.get(x.id);
+      if (x.status !== "running" && p && p.status === "running") closeExps.push(x);
+    }
+
     // operate (Rocks/Issues): if a list changed, upsert it whole + delete any vanished ids
     const pOp = prev.operate[c.id] ?? EMPTY_OPERATE;
     const nOp = next.operate[c.id] ?? EMPTY_OPERATE;
@@ -131,6 +152,7 @@ export function diffStore(prev: SyncState, next: SyncState): SyncOps {
   return {
     createCompanies, updateCompanies, insertActivities: insertActs, undoActivities,
     insertApprovals: insertApps, resolveApprovals,
+    insertExperiments: insertExps, closeExperiments: closeExps,
     upsertRocks: upRocks, deleteRockIds, upsertIssues: upIssues, deleteIssueIds,
   };
 }
@@ -143,6 +165,8 @@ export function isEmptyOps(o: SyncOps): boolean {
     o.undoActivities.length === 0 &&
     o.insertApprovals.length === 0 &&
     o.resolveApprovals.length === 0 &&
+    o.insertExperiments.length === 0 &&
+    o.closeExperiments.length === 0 &&
     o.upsertRocks.length === 0 &&
     o.deleteRockIds.length === 0 &&
     o.upsertIssues.length === 0 &&
@@ -157,6 +181,7 @@ export async function loadFromDb(sb: SupabaseClient, userId: string): Promise<Sy
   const activities: Record<string, Activity[]> = {};
   const approvals: Record<string, ApprovalItem[]> = {};
   const operate: Record<string, OperateData> = {};
+  const experiments: Record<string, GrowthExperiment[]> = {};
   await Promise.all(
     companies.map(async (c) => {
       try {
@@ -172,9 +197,14 @@ export async function loadFromDb(sb: SupabaseClient, userId: string): Promise<Sy
       } catch {
         operate[c.id] = { rocks: [], issues: [] };
       }
+      try {
+        experiments[c.id] = await fetchExperiments(sb, c.id);
+      } catch {
+        experiments[c.id] = []; // table may predate migration 0012 — stay local
+      }
     })
   );
-  return { companies, activities, approvals, operate };
+  return { companies, activities, approvals, operate, experiments };
 }
 
 // Push a delta. Ordered so parents exist before children (companies → their activities/approvals).
@@ -193,6 +223,8 @@ export async function applyOps(sb: SupabaseClient, userId: string, ops: SyncOps)
   for (const id of ops.undoActivities) await guard("setActivityUndone", () => setActivityUndone(sb, id));
   for (const g of ops.insertApprovals) await guard("insertApprovals", () => insertApprovals(sb, g.companyId, g.items));
   for (const r of ops.resolveApprovals) await guard("setApprovalResolved", () => setApprovalResolved(sb, r.id, r.resolved));
+  for (const g of ops.insertExperiments) await guard("insertExperiments", () => insertExperiments(sb, g.companyId, g.items));
+  for (const x of ops.closeExperiments) await guard("closeExperiment", () => closeExperiment(sb, x));
   for (const g of ops.upsertRocks) await guard("upsertRocks", () => upsertRocks(sb, g.companyId, g.rocks));
   if (ops.deleteRockIds.length) await guard("deleteRocks", () => deleteRocks(sb, ops.deleteRockIds));
   for (const g of ops.upsertIssues) await guard("upsertIssues", () => upsertIssues(sb, g.companyId, g.issues));
@@ -206,11 +238,12 @@ export interface UseDbSyncParams {
   activities: Record<string, Activity[]>;
   approvals: Record<string, ApprovalItem[]>;
   operate: Record<string, OperateData>;
+  experiments: Record<string, GrowthExperiment[]>;
   // Called once after a successful DB load that returns data — merges cloud state into the store.
   overlay: (s: SyncState) => void;
 }
 
-export function useDbSync({ enabled, hydrated, companies, activities, approvals, operate, overlay }: UseDbSyncParams): void {
+export function useDbSync({ enabled, hydrated, companies, activities, approvals, operate, experiments, overlay }: UseDbSyncParams): void {
   const syncedRef = useRef<SyncState | null>(null); // what we believe is in the DB
   const readyRef = useRef(false); // true after a successful initial load (gates write-through)
   const userIdRef = useRef<string | null>(null);
@@ -254,10 +287,10 @@ export function useDbSync({ enabled, hydrated, companies, activities, approvals,
     const sb = getBrowserSupabase();
     const uid = userIdRef.current;
     if (!sb || !uid) return;
-    const next: SyncState = { companies, activities, approvals, operate };
+    const next: SyncState = { companies, activities, approvals, operate, experiments };
     const ops = diffStore(syncedRef.current ?? EMPTY_STATE, next);
     if (isEmptyOps(ops)) return;
     syncedRef.current = next; // optimistic; best-effort push below
     void applyOps(sb, uid, ops);
-  }, [enabled, hydrated, companies, activities, approvals, operate]);
+  }, [enabled, hydrated, companies, activities, approvals, operate, experiments]);
 }

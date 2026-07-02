@@ -106,3 +106,43 @@ export function entitlementFromPolar(
 
   return null;
 }
+
+// ── Revenue Loop (R3): real revenue amounts ────────────────────────────────
+// Unlike entitlementFromPolar (which skips subscription orders to avoid double entitlement writes),
+// revenue wants EVERY paid order — first purchases AND renewals — because MRR is made of renewals.
+// This is the ONLY source of `purchase`/revenue data in the system: the public pixel can't write
+// money, so a revenue row always traces back to a signature-verified Polar webhook.
+export interface RevenueEvent {
+  externalId: string; // Polar order id — webhook retries dedup on this
+  email: string;
+  amountCents: number;
+  currency: string;
+  product: string;
+  slug: string | null; // company attribution via checkout metadata.slug, when present
+}
+
+export function revenueFromPolar(eventName: string, data: Record<string, unknown>): RevenueEvent | null {
+  const e = (eventName || "").toLowerCase();
+  if (!e.startsWith("order.")) return null;
+  const isPaid = e === "order.paid" || String(data.status || "").toLowerCase() === "paid" || data.paid === true;
+  if (!isPaid) return null;
+
+  const externalId = String(data.id || "").trim();
+  const email = pickEmail(data);
+  // Polar amounts are integer cents; prefer the buyer-facing total, fall back defensively.
+  const rawAmount = data.total_amount ?? data.amount ?? data.net_amount;
+  const amountCents = typeof rawAmount === "number" && Number.isFinite(rawAmount) ? Math.round(rawAmount) : NaN;
+  if (!externalId || !email || !Number.isFinite(amountCents) || amountCents <= 0) return null;
+
+  const meta = (data.metadata as Record<string, unknown> | undefined) ?? undefined;
+  const slug = typeof meta?.slug === "string" && meta.slug.trim() ? meta.slug.trim().toLowerCase().slice(0, 80) : null;
+
+  return {
+    externalId,
+    email,
+    amountCents,
+    currency: String(data.currency || "usd").toLowerCase().slice(0, 8),
+    product: pickPlan(data),
+    slug,
+  };
+}

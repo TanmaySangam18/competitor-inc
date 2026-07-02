@@ -78,6 +78,14 @@ export interface Ledger {
   tasksFailed: number;
 }
 
+// The Revenue Loop's scoreboard (Block R): ONE founder-chosen outcome metric every shift is judged
+// against. Not vanity metrics — the three north stars map to the funnel's real stages.
+export interface GrowthGoal {
+  northStar: "revenue" | "paying_customers" | "signups";
+  target: number; // revenue in whole dollars; others in people
+  setAt: number;
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -89,6 +97,7 @@ export interface Company {
   validation?: ValidationResult;
   ledger: Ledger;
   product?: { url: string; status: "live" | "building" }; // the built winner (proof-of-work)
+  growthGoal?: GrowthGoal;
 }
 
 export interface EngineState {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { verifyPolarSignature, entitlementFromPolar } from "./polar";
+import { verifyPolarSignature, entitlementFromPolar, revenueFromPolar } from "./polar";
 
 // The canonical Standard Webhooks test vector (which Polar follows). If our verifier accepts this and
 // rejects tampering, the signature scheme is implemented correctly.
@@ -61,5 +61,42 @@ describe("entitlementFromPolar — maps Polar events to our entitlement record",
   });
   it("returns null when there's no email", () => {
     expect(entitlementFromPolar("subscription.created", { status: "active" })).toBeNull();
+  });
+});
+
+describe("revenueFromPolar — real amounts, every paid order (Revenue Loop R3)", () => {
+  const base = { id: "ord_1", customer: { email: "A@b.com" }, total_amount: 3900, currency: "USD" };
+
+  it("captures a first purchase with amount, id, and normalized email/currency", () => {
+    const r = revenueFromPolar("order.paid", base);
+    expect(r).toEqual({
+      externalId: "ord_1",
+      email: "a@b.com",
+      amountCents: 3900,
+      currency: "usd",
+      product: "operator",
+      slug: null,
+    });
+  });
+
+  it("captures a RENEWAL (subscription order) that entitlementFromPolar skips", () => {
+    const renewal = { ...base, id: "ord_2", subscription_id: "sub_1" };
+    expect(entitlementFromPolar("order.paid", renewal)).toBeNull(); // access handled by subscription.*
+    expect(revenueFromPolar("order.paid", renewal)?.amountCents).toBe(3900); // but the money is real
+  });
+
+  it("attributes to a company via checkout metadata.slug", () => {
+    expect(revenueFromPolar("order.paid", { ...base, metadata: { slug: "Mealory" } })?.slug).toBe("mealory");
+  });
+
+  it("returns null without an amount, without an order id, or for zero/negative amounts", () => {
+    expect(revenueFromPolar("order.paid", { id: "ord_3", customer: { email: "a@b.com" } })).toBeNull();
+    expect(revenueFromPolar("order.paid", { customer: { email: "a@b.com" }, total_amount: 100 })).toBeNull();
+    expect(revenueFromPolar("order.paid", { ...base, total_amount: 0 })).toBeNull();
+  });
+
+  it("ignores non-order and unpaid events", () => {
+    expect(revenueFromPolar("subscription.created", base)).toBeNull();
+    expect(revenueFromPolar("order.created", { ...base, status: "pending" })).toBeNull();
   });
 });
