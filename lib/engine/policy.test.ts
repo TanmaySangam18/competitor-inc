@@ -72,6 +72,18 @@ describe("decide — the five-gate enforcement engine", () => {
   });
 });
 
+// Founder directive (2026-07-01): budget changes and ad spend ALWAYS require explicit founder
+// approval. This locks the SHIPPED policy to that rule — if a future matrix edit grants any agent
+// AUTO on money, this fails before it ships.
+describe("founder spend governance — money never runs unattended", () => {
+  const agents = Object.keys(POLICY.matrix) as (keyof typeof POLICY.matrix)[];
+  it.each(agents)("%s cannot AUTO spend or payments, even with every gate green", (agent) => {
+    for (const type of ["spend", "payments"] as const) {
+      expect(decide(green({ agent, type })).verdict).not.toBe("AUTO");
+    }
+  });
+});
+
 describe("withinCaps — spend blast radius", () => {
   it("passes non-spend actions through", () => {
     expect(withinCaps(green({ type: "outreach", amountUsd: 99999 }))).toBe(true);

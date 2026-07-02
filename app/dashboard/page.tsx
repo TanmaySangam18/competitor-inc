@@ -54,6 +54,7 @@ import CampaignPanel from "@/components/CampaignPanel";
 import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
 import { rationaleFor } from "@/lib/engine/rationale";
 import { CoachCard } from "@/components/CoachCard";
+import MorningBrief from "@/components/MorningBrief";
 import { ImportPanel } from "@/components/ImportPanel";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
@@ -645,6 +646,18 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
           Autopilot paused — {r.pendingApprovals.length} approvals are waiting on you. Clear your inbox below to resume nightly shifts.
         </div>
       )}
+
+      <MorningBrief
+        company={c}
+        activities={r.activities}
+        pendingApprovals={r.pendingApprovals}
+        experiments={r.experiments}
+        onReviewDecisions={() => {
+          setTab("operations");
+          setTimeout(() => document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth" }), 60);
+        }}
+        onSeeFunnel={() => setTab("growth")}
+      />
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => (

@@ -14,7 +14,10 @@ where ~30% of the web already reports — so the loop can see and optimize paid 
    slug + day. Feeds CAC/ROAS into `readFunnel()` as a fifth signal (basis "real").
 3. **Budget actions — always QUEUE.** Any campaign create/pause/budget change routes as a
    `kind:"spend"` approval through `decide()` (the policy matrix already QUEUEs all spend). The loop
-   may *recommend* "kill campaign X, shift $Y to Z" — a human clicks approve. No exceptions.
+   may *recommend* "kill campaign X, shift $Y to Z" — **the founder explicitly approves. No
+   exceptions, no auto-spend, ever.** This is a standing founder directive (2026-07-01), enforced
+   structurally: `policy.test.ts` ("founder spend governance") fails the build if any agent is ever
+   granted AUTO on `spend` or `payments`.
 
 ## Credential model (the existing BYOK trust pattern)
 
