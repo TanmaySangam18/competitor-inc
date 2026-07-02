@@ -18,11 +18,11 @@ export default function NuPage() {
     <main id="main" className="relative grid min-h-[100dvh] place-items-center overflow-hidden mesh px-6 py-10">
       <div className="absolute inset-0 grid-bg" />
       <div className="relative w-full max-w-3xl">
-        <Link href="/" className="inline-flex items-center gap-2 font-mono text-sm font-bold tracking-tight">
+        <Link href="/" className="flex w-fit items-center gap-2 font-mono text-sm font-bold tracking-tight">
           <LogoMark size={22} /> competitor.inc
         </Link>
 
-        <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-coral/30 bg-coral/[0.07] px-3.5 py-1.5 text-xs font-medium text-coral">
+        <div className="mt-6 flex w-fit items-center gap-2 rounded-full border border-coral/30 bg-coral/[0.07] px-3.5 py-1.5 text-xs font-medium text-coral">
           <GraduationCap size={13} /> Built at Northeastern · launching on campus first
         </div>
 
