@@ -26,13 +26,27 @@ const MODEL_TIMEOUT_MS = 30_000;
 // Lighter roles run Haiku 4.5 ($1/$5 per MTok — ~5x cheaper than Opus): fast, cheap, plenty for
 // marketing/support/growth copy. Override with MODEL_CHEAP.
 const MODEL_CHEAP = process.env.MODEL_CHEAP || "claude-haiku-4-5";
+// Mid tier: Sonnet 5 — near-Opus quality on agentic work at $3/$15 per MTok (intro $2/$10 through
+// 2026-08-31) vs Opus 4.8's $5/$25. Override with MODEL_MID.
+const MODEL_MID = process.env.MODEL_MID || "claude-sonnet-5";
 
-// Per-agent model routing: the hard reasoners (Forge=engineering, Apex=ceo) get the strong model
-// (MODEL_ID); other agents can run on a cheaper/faster one (MODEL_CHEAP). The managed
-// engine honors this; BYOK always uses the user's own chosen model. Full per-agent task calls extend it.
-const STRONG_ROLES: AgentRole[] = ["engineering", "ceo"];
+// Per-agent model routing — three tiers, chosen to minimize cost per shift without dumbing down the
+// work that earns trust (2026-07-03 token-savings pass):
+//   STRONG (Opus 4.8, $5/$25)  → engineering (Forge authors real production code — quality IS the product)
+//   MID    (Sonnet 5, $3/$15)  → ceo (nightly judgment + growth diagnosis: near-Opus agentic quality,
+//                                 ~40-60% cheaper on the run's dominant call)
+//   CHEAP  (Haiku 4.5, $1/$5)  → marketing/support/growth copy + light analysis
+// The managed engine honors this; BYOK always uses the user's own chosen model.
+const TIER: Record<AgentRole, "strong" | "mid" | "cheap"> = {
+  engineering: "strong",
+  ceo: "mid",
+  marketing: "cheap",
+  support: "cheap",
+  growth: "cheap",
+};
 export function modelForAgent(role: AgentRole): string {
-  return STRONG_ROLES.includes(role) ? MODEL : MODEL_CHEAP;
+  const tier = TIER[role] ?? "cheap";
+  return tier === "strong" ? MODEL : tier === "mid" ? MODEL_MID : MODEL_CHEAP;
 }
 
 // The model is a swappable commodity — never hardwired to one vendor. The managed (server-side)
@@ -64,10 +78,14 @@ const str = (v: unknown, d = "") => (typeof v === "string" ? v : d);
 const role = (v: unknown): AgentRole => (ROLES.includes(v as AgentRole) ? (v as AgentRole) : "engineering");
 
 async function callAnthropic(system: string, user: string, key: string = KEY ?? "", model: string = MODEL, maxTokens = 1500): Promise<string> {
+  // Sonnet 5 runs ADAPTIVE thinking when `thinking` is omitted — inside our 1500-token budget the
+  // thinking would eat most of the output and truncate the answer. Explicitly disable it there
+  // (accepted on Sonnet 5; Opus 4.8/Haiku already run thinking-off when the field is omitted).
+  const thinking = model.includes("sonnet-5") ? { thinking: { type: "disabled" } } : {};
   const res = await fetchWithTimeout("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
+    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }], ...thinking }),
   }, maxTokens > 4000 ? 60_000 : MODEL_TIMEOUT_MS);
   if (!res.ok) throw new Error(`anthropic ${res.status}`);
   const data = await res.json();
