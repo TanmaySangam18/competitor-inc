@@ -14,6 +14,14 @@ export type Channel = "paid-search" | "paid-social" | "organic-social" | "commun
 export interface EventRow {
   type: "view" | "signup" | "purchase";
   source: string | null;
+  createdAt?: string | number; // ISO or epoch — only needed for the time-series rollup
+}
+
+// Campaign rides inside `source` as a `/c:<campaign>` suffix (see TrackBeacon.beaconSource) — no
+// schema change. parseCampaign extracts it; classifyChannel ignores it (its patterns match the prefix).
+export function parseCampaign(source: string | null | undefined): string | null {
+  const m = (source || "").match(/\/c:([a-z0-9_-]{1,40})/i);
+  return m ? m[1].toLowerCase() : null;
 }
 
 // Optional inputs that only exist once the founder connects ad accounts (Phase 2, approval-gated).
@@ -117,6 +125,84 @@ function decideChannel(p: { views: number; signupRate: number; medianRate: numbe
   if (p.signupRate >= p.medianRate * 1.5) return { verdict: "scale", why: `${(p.signupRate * 100).toFixed(1)}% signup rate — well above your ${(p.medianRate * 100).toFixed(1)}% median. Do more of this. (Connect ad spend to see ROAS.)` };
   if (p.signupRate <= p.medianRate * 0.5) return { verdict: "pause", why: `${(p.signupRate * 100).toFixed(1)}% signup rate — less than half your median. The traffic isn't converting.` };
   return { verdict: "optimize", why: `${(p.signupRate * 100).toFixed(1)}% signup rate — around your median. Worth improving the landing before you spend more.` };
+}
+
+// Campaign-level rollup — answers "which CAMPAIGNS work," not just which channels. Only events that
+// carry a campaign tag participate (untagged traffic can't honestly be assigned to a campaign).
+export interface CampaignStat {
+  campaign: string;
+  channel: Channel;
+  views: number;
+  signups: number;
+  signupRate: number;
+  verdict: Verdict;
+  why: string;
+}
+
+export function attributeCampaigns(events: EventRow[]): CampaignStat[] {
+  const byCampaign = new Map<string, { channel: Channel; views: number; signups: number }>();
+  for (const e of events) {
+    const campaign = parseCampaign(e.source);
+    if (!campaign) continue;
+    const agg = byCampaign.get(campaign) ?? { channel: classifyChannel(e.source), views: 0, signups: 0 };
+    if (e.type === "view") agg.views++;
+    else if (e.type === "signup") agg.signups++;
+    byCampaign.set(campaign, agg);
+  }
+  const rates = [...byCampaign.values()].filter((a) => a.views >= 20).map((a) => a.signups / a.views).sort((x, y) => x - y);
+  const mid = Math.floor(rates.length / 2);
+  const medianRate = rates.length === 0 ? 0.02 : rates.length % 2 ? rates[mid] : (rates[mid - 1] + rates[mid]) / 2;
+
+  const out: CampaignStat[] = [];
+  for (const [campaign, a] of byCampaign) {
+    const signupRate = a.views > 0 ? a.signups / a.views : 0;
+    const d = a.views < 20
+      ? { verdict: "watch" as Verdict, why: `Only ${a.views} views — too little signal to judge yet.` }
+      : signupRate >= medianRate * 1.5
+        ? { verdict: "scale" as Verdict, why: `${(signupRate * 100).toFixed(1)}% signup rate — top of your campaigns. Do more of this.` }
+        : signupRate <= medianRate * 0.5
+          ? { verdict: "pause" as Verdict, why: `${(signupRate * 100).toFixed(1)}% signup rate — well under your campaign median. Rework or stop.` }
+          : { verdict: "optimize" as Verdict, why: `${(signupRate * 100).toFixed(1)}% signup rate — mid-pack. Tune the message before spending more.` };
+    out.push({ campaign, channel: a.channel, views: a.views, signups: a.signups, signupRate, ...d });
+  }
+  return out.sort((x, y) => y.signupRate - x.signupRate || y.views - x.views);
+}
+
+// Weekly paid-vs-organic contribution — answers "how did paid and organic contribute over time."
+// ISO-week buckets (UTC Monday), newest last, capped to the most recent `weeks`.
+export interface WeekPoint {
+  week: string; // e.g. "2026-W27"
+  paidViews: number;
+  organicViews: number;
+  paidSignups: number;
+  organicSignups: number;
+}
+
+const PAID: Channel[] = ["paid-search", "paid-social"];
+
+export function isoWeek(d: Date): string {
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day); // shift to the Thursday of this ISO week
+  const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  const week = Math.ceil(((t.getTime() - yearStart.getTime()) / 864e5 + 1) / 7);
+  return `${t.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+}
+
+export function weeklySeries(events: EventRow[], weeks = 8): WeekPoint[] {
+  const byWeek = new Map<string, WeekPoint>();
+  for (const e of events) {
+    if (e.createdAt == null || e.type === "purchase") continue;
+    const d = new Date(e.createdAt);
+    if (isNaN(d.getTime())) continue;
+    const wk = isoWeek(d);
+    const p = byWeek.get(wk) ?? { week: wk, paidViews: 0, organicViews: 0, paidSignups: 0, organicSignups: 0 };
+    const paid = PAID.includes(classifyChannel(e.source));
+    if (e.type === "view") paid ? p.paidViews++ : p.organicViews++;
+    else paid ? p.paidSignups++ : p.organicSignups++;
+    byWeek.set(wk, p);
+  }
+  return [...byWeek.values()].sort((a, b) => a.week.localeCompare(b.week)).slice(-weeks);
 }
 
 // Portfolio ROI when spend is connected across channels. Null (honestly) until ad accounts exist.

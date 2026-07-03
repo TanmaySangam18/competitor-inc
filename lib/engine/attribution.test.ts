@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { classifyChannel, attributeChannels, portfolioRoi, type EventRow, type SpendInput } from "./attribution";
+import { classifyChannel, attributeChannels, portfolioRoi, parseCampaign, attributeCampaigns, weeklySeries, isoWeek, type EventRow, type SpendInput } from "./attribution";
 
 describe("classifyChannel", () => {
   it("maps common sources to channels; empty → direct; unknown → other", () => {
@@ -83,5 +83,56 @@ describe("portfolioRoi", () => {
     expect(roi.spendCents).toBe(20000);
     expect(roi.revenueCents).toBe(45000);
     expect(roi.roas).toBeCloseTo(2.25, 5);
+  });
+});
+
+describe("parseCampaign + attributeCampaigns — campaign-level truth", () => {
+  it("extracts the /c: suffix; channel classification ignores it", () => {
+    expect(parseCampaign("t.co/c:launch-week")).toBe("launch-week");
+    expect(parseCampaign("t.co")).toBeNull();
+    expect(classifyChannel("news.ycombinator.com/c:show-hn")).toBe("community");
+  });
+
+  it("rolls up per campaign with verdicts; untagged traffic never fakes a campaign", () => {
+    const evs: EventRow[] = [
+      ...Array(100).fill({ type: "view", source: "t.co/c:launch-week" }),
+      ...Array(9).fill({ type: "signup", source: "t.co/c:launch-week" }),
+      ...Array(100).fill({ type: "view", source: "t.co/c:meme-thread" }),
+      ...Array(1).fill({ type: "signup", source: "t.co/c:meme-thread" }),
+      ...Array(500).fill({ type: "view", source: "t.co" }), // untagged
+    ];
+    const stats = attributeCampaigns(evs);
+    expect(stats.length).toBe(2);
+    const launch = stats.find((s) => s.campaign === "launch-week")!;
+    expect(launch.verdict).toBe("scale");
+    expect(stats.find((s) => s.campaign === "meme-thread")!.verdict).toBe("pause");
+  });
+});
+
+describe("weeklySeries — paid vs organic over time", () => {
+  it("buckets by ISO week, splits paid/organic, newest last", () => {
+    const evs: EventRow[] = [
+      { type: "view", source: "google/cpc", createdAt: "2026-06-01T12:00:00Z" },
+      { type: "view", source: "t.co", createdAt: "2026-06-01T12:00:00Z" },
+      { type: "signup", source: "t.co", createdAt: "2026-06-02T12:00:00Z" },
+      { type: "view", source: "fb_ad", createdAt: "2026-06-10T12:00:00Z" },
+    ];
+    const series = weeklySeries(evs);
+    expect(series.length).toBe(2);
+    expect(series[0].week < series[1].week).toBe(true);
+    expect(series[0].paidViews).toBe(1);
+    expect(series[0].organicViews).toBe(1);
+    expect(series[0].organicSignups).toBe(1);
+    expect(series[1].paidViews).toBe(1);
+  });
+
+  it("isoWeek handles year boundaries", () => {
+    expect(isoWeek(new Date("2026-01-01T00:00:00Z"))).toMatch(/^202[56]-W\d\d$/);
+  });
+
+  it("caps to the requested number of recent weeks and skips undated rows", () => {
+    const evs: EventRow[] = Array.from({ length: 12 }, (_, i) => ({ type: "view" as const, source: "t.co", createdAt: Date.UTC(2026, 0, 5 + i * 7) }));
+    evs.push({ type: "view", source: "t.co" }); // no createdAt → skipped
+    expect(weeklySeries(evs, 8).length).toBe(8);
   });
 });

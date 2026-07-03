@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { TrendingUp, ArrowUpRight, Wrench, Pause, Eye, Radar } from "lucide-react";
-import { channelLabel, type ChannelStat, type Verdict } from "@/lib/engine/attribution";
+import { TrendingUp, ArrowUpRight, Wrench, Pause, Eye, Radar, Megaphone, CalendarRange } from "lucide-react";
+import { channelLabel, type ChannelStat, type CampaignStat, type WeekPoint, type Verdict } from "@/lib/engine/attribution";
 
 // The attribution surface: which marketing made money, per channel, with honest verdicts. Traffic
 // legs are real from our pixel; ROAS shows only when an ad account is connected (Phase 2). When the
@@ -25,21 +25,44 @@ const EXAMPLE: ChannelStat[] = [
 
 const money = (c: number | null) => (c == null ? "—" : `$${(c / 100).toLocaleString(undefined, { maximumFractionDigits: 0 })}`);
 
+const EXAMPLE_CAMPAIGNS: CampaignStat[] = [
+  { campaign: "launch-week", channel: "community", views: 640, signups: 61, signupRate: 0.095, verdict: "scale", why: "9.5% signup rate — top of your campaigns. Do more of this." },
+  { campaign: "spring-promo", channel: "paid-search", views: 1800, signups: 51, signupRate: 0.028, verdict: "optimize", why: "2.8% signup rate — mid-pack. Tune the message before spending more." },
+  { campaign: "meme-thread", channel: "organic-social", views: 900, signups: 7, signupRate: 0.008, verdict: "pause", why: "0.8% signup rate — well under your campaign median. Rework or stop." },
+];
+
+const EXAMPLE_SERIES: WeekPoint[] = [
+  { week: "2026-W22", paidViews: 300, organicViews: 520, paidSignups: 6, organicSignups: 31 },
+  { week: "2026-W23", paidViews: 900, organicViews: 480, paidSignups: 14, organicSignups: 28 },
+  { week: "2026-W24", paidViews: 1400, organicViews: 610, paidSignups: 19, organicSignups: 40 },
+  { week: "2026-W25", paidViews: 1600, organicViews: 940, paidSignups: 22, organicSignups: 66 },
+  { week: "2026-W26", paidViews: 1200, organicViews: 1350, paidSignups: 17, organicSignups: 92 },
+];
+
 export default function AttributionPanel({ slug }: { slug: string }) {
   const [channels, setChannels] = useState<ChannelStat[] | null>(null);
+  const [campaigns, setCampaigns] = useState<CampaignStat[]>([]);
+  const [series, setSeries] = useState<WeekPoint[]>([]);
   const [showExample, setShowExample] = useState(false);
 
   useEffect(() => {
     let on = true;
     fetch(`/api/attribution?slug=${encodeURIComponent(slug)}`)
       .then((r) => r.json())
-      .then((d) => { if (on) setChannels(Array.isArray(d?.channels) ? d.channels : []); })
+      .then((d) => {
+        if (!on) return;
+        setChannels(Array.isArray(d?.channels) ? d.channels : []);
+        setCampaigns(Array.isArray(d?.campaigns) ? d.campaigns : []);
+        setSeries(Array.isArray(d?.series) ? d.series : []);
+      })
       .catch(() => { if (on) setChannels([]); });
     return () => { on = false; };
   }, [slug]);
 
   const real = channels ?? [];
   const rows = showExample ? EXAMPLE : real;
+  const campaignRows = showExample ? EXAMPLE_CAMPAIGNS : campaigns;
+  const seriesRows = showExample ? EXAMPLE_SERIES : series;
   const portfolio = useMemo(() => {
     const withRoas = rows.filter((s) => s.roas != null && s.spendCents != null);
     if (!withRoas.length) return null;
@@ -116,6 +139,56 @@ export default function AttributionPanel({ slug }: { slug: string }) {
             <TrendingUp size={10} className="mr-1 inline" />
             Conversion is real from our pixel. ROAS appears per channel once its ad account is connected — paid budget always waits for your approval.
           </p>
+        </div>
+      )}
+
+      {/* campaigns — tagged traffic only, so a campaign is never invented from ambient visits */}
+      {campaignRows.length > 0 && (
+        <div className="mt-5">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted">
+            <Megaphone size={13} className="text-amber" /> Campaigns
+            <span className="text-[10px] font-normal text-muted-2">— tag links with ?utm_campaign= to appear here</span>
+          </div>
+          <div className="mt-2 space-y-1.5">
+            {campaignRows.map((c) => {
+              const V = VERDICT[c.verdict];
+              return (
+                <div key={c.campaign} className="flex items-center gap-3 rounded-xl border border-border bg-bg/40 px-3 py-2 text-xs">
+                  <span className="min-w-0 flex-1 truncate font-mono">{c.campaign}</span>
+                  <span className="shrink-0 text-muted-2">{channelLabel(c.channel)}</span>
+                  <span className="shrink-0 font-mono">{c.views.toLocaleString()}v · {c.signups}s · {(c.signupRate * 100).toFixed(1)}%</span>
+                  <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${V.cls}`}><V.icon size={10} /> {V.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* paid vs organic over time — the "how did each contribute" answer, weekly */}
+      {seriesRows.length > 1 && (
+        <div className="mt-5">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted">
+            <CalendarRange size={13} className="text-violet" /> Paid vs organic — weekly signups
+          </div>
+          <div className="mt-3 flex items-end gap-1.5" style={{ height: 90 }}>
+            {(() => {
+              const max = Math.max(1, ...seriesRows.map((w) => w.paidSignups + w.organicSignups));
+              return seriesRows.map((w) => (
+                <div key={w.week} className="group flex min-w-0 flex-1 flex-col items-center gap-1 self-stretch">
+                  <div className="flex w-full flex-1 flex-col justify-end gap-px" title={`${w.week}: ${w.organicSignups} organic + ${w.paidSignups} paid signups`}>
+                    <div className="w-full rounded-t-sm bg-coral/70" style={{ height: `${(w.paidSignups / max) * 100}%`, minHeight: w.paidSignups > 0 ? 3 : 0 }} />
+                    <div className="w-full rounded-t-sm bg-mint/70" style={{ height: `${(w.organicSignups / max) * 100}%`, minHeight: w.organicSignups > 0 ? 3 : 0 }} />
+                  </div>
+                  <span className="text-[9px] text-muted-2">{w.week.slice(5)}</span>
+                </div>
+              ));
+            })()}
+          </div>
+          <div className="mt-1.5 flex items-center gap-4 text-[10px] text-muted-2">
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-mint/70" /> organic</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-coral/70" /> paid</span>
+          </div>
         </div>
       )}
     </div>
