@@ -51,7 +51,7 @@ A daily scoreboard on `/house/board` (R3 will track it):
 ## 4. Tomorrow's blocks (the build that *enables* the money) — status
 | Block | Purpose | State |
 |---|---|---|
-| **R0 — keys on (YOU, 15 min)** | the literal cash register (LemonSqueezy Operator/Founder/Sprint + webhook) | ⏳ **#1 blocker — nothing charges until done** |
+| **R0 — keys on** | the literal cash register (**Polar** MoR: Operator checkout + webhook — LemonSqueezy is dead) | ✅ **LIVE in prod** (NEXT_PUBLIC_CHECKOUT_URL + POLAR_WEBHOOK_SECRET set 2026-06-30) |
 | **R1 — offer/pricing** | the tiers + checkout | ✅ live |
 | **R2 — validation messaging** | the converting wedge, in words | ✅ live |
 | **GSO — Grand Slam Offer on-site** | put §1 + the guarantee on `/join` + hero | ▶ build first tomorrow |

@@ -1,3 +1,5 @@
+> ⚠️ **PARTIALLY STALE (2026-07-03).** Point-in-time audit (2026-06-28): the billing env rows say LemonSqueezy — dead; billing is LIVE on **Polar** (`POLAR_WEBHOOK_SECRET` + `NEXT_PUBLIC_CHECKOUT_URL`). Newer audit: [CONSOLIDATION-AUDIT.md](CONSOLIDATION-AUDIT.md); feature truth: [FEATURE-LEDGER.md](FEATURE-LEDGER.md).
+
 # Professional full-codebase audit — competitor.inc
 
 **Date:** 2026-06-28 · **Scope:** every live route, API handler, and engine module — full pass including second-round deep security review.

@@ -25,6 +25,7 @@ import {
 import { LogoMark } from "@/components/Logo";
 import ProductFilm from "@/components/ProductFilm";
 import CapabilityExplorer from "@/components/CapabilityExplorer";
+import ScrollProgress from "@/components/ScrollProgress";
 import { useAuth } from "@/lib/engine/useAuth";
 import { CHECKOUT_URL, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { AgentWelcome } from "@/components/AgentWelcome";
@@ -683,6 +684,25 @@ function Pricing() {
             </a>
           </div>
         </Reveal>
+
+        {/* Cohort Lab — the program/accelerator tier (founder-led sales; no self-serve checkout). */}
+        <Reveal className="mx-auto mt-4 max-w-3xl">
+          <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-violet/25 bg-violet/[0.04] px-6 py-5 text-center sm:flex-row sm:text-left">
+            <div>
+              <div className="text-sm font-semibold">Run an accelerator, university program, or studio?</div>
+              <p className="mt-1 text-sm text-muted">
+                <span className="text-text">Cohort Lab — from $1,500/mo</span>: a validation lab for your whole cohort
+                (25–100 founder seats) plus an outcomes-evidence dashboard your funders will actually believe.
+              </p>
+            </div>
+            <a
+              href="mailto:projecttattva1@gmail.com?subject=Cohort%20Lab%20for%20our%20program"
+              className="shrink-0 rounded-xl border border-violet/40 px-5 py-2.5 text-sm font-semibold text-violet transition hover:bg-violet/10"
+            >
+              Talk to the founder
+            </a>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -777,6 +797,7 @@ function Footer() {
 export default function Home() {
   return (
     <main id="main">
+      <ScrollProgress />
       <Nav />
       <Hero />
       <ProductFilm />

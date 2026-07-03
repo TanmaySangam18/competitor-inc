@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED (2026-07-03).** The tagline ("complete autonomy") and self-serve student beachhead predate the pivot: positioning = **"Verifiable. Governed."** / prove-before-build, beachhead = **cohort owners** (Northeastern = warm deal #1), north star = **PPU**. Canonical: [BLUEPRINT.md](BLUEPRINT.md).
+
 # competitor.inc — Positioning & Differentiation
 
 **Tagline:** *The AI companion that runs your company — with complete autonomy, and complete honesty.*

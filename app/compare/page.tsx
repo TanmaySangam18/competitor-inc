@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Scale, ShieldCheck, TrendingUp } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import ScrollProgress from "@/components/ScrollProgress";
 
 // The comparison page — scored, cited, and computed live from the data below (view-source honest).
 // RULES this page lives by (MA 93A + our no-fake-proof brand):
@@ -132,6 +133,7 @@ export default function Compare() {
 
   return (
     <div id="main" className="min-h-screen">
+      <ScrollProgress />
       <header className="glass-nav sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">

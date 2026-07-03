@@ -10,7 +10,7 @@ capability is **OFF until its key is set**; nothing consequential ever runs with
 
 1. **Vercel** — create a project ($0 Hobby), import `TanmaySangam18/competitor-inc`, enable auto-deploy on `main`.
 2. **Supabase** — create a project ($0), open the SQL editor, and run **ALL migrations in
-   `supabase/migrations/` in filename order** — `0001_init.sql` through `0013_interest.sql` (13 files;
+   `supabase/migrations/` in filename order** — `0001_init.sql` through `0014_video_kind.sql` (14 files — or paste `supabase/PENDING-PROD.sql` in one go;
    an earlier version of this doc stopped at 0005, which would ship WITHOUT entitlements, approvals,
    the RLS tightening, and the entire revenue loop).
 3. **Env vars in Vercel** (table below) — at minimum Supabase + one model key.

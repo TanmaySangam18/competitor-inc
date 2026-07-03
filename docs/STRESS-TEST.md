@@ -1,3 +1,5 @@
+> ⚠️ **STALE SNAPSHOT (2026-07-03).** Describes the killed "$99 Founding seat" + LemonSqueezy checkout as current UI. Live pricing = $0 / $39 Operator / $299 Founder / $499 Sprint on **Polar** — see [PATH-TO-10K.md](PATH-TO-10K.md); feature truth: [FEATURE-LEDGER.md](FEATURE-LEDGER.md).
+
 # Stress-test — "tap every word," map the pipeline, find the gaps (2026-06-27)
 
 > Method (the playbook the founder asked for): a **content inventory + information-architecture audit**

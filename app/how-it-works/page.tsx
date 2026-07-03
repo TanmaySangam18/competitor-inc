@@ -3,13 +3,6 @@ import type { Metadata } from "next";
 import {
   ArrowLeft,
   ArrowRight,
-  Lightbulb,
-  FlaskConical,
-  ShieldCheck,
-  Rocket,
-  Users,
-  Eye,
-  BadgeCheck,
   RotateCcw,
   Mic,
   KeyRound,
@@ -17,59 +10,14 @@ import {
   Radio,
 } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import JourneyExplorer from "@/components/JourneyExplorer";
+import ScrollProgress from "@/components/ScrollProgress";
 
 export const metadata: Metadata = {
   title: "How it works — competitor.inc",
   description:
     "From a one-sentence idea to a real, validated business — the whole journey, in plain English. No jargon.",
 };
-
-// The story, told in plain language. Each step explains one thing competitor.inc does,
-// the way you'd explain it to someone who has never used software like this.
-const steps = [
-  {
-    icon: Lightbulb,
-    title: "You tell it your idea — in one sentence",
-    body: "No business plan, no slide deck, no forms. You just type what you wish existed, like “an app that turns my voice notes into polished blog posts.” That single line is enough to begin.",
-    like: "Like describing an idea to a friend over coffee.",
-  },
-  {
-    icon: FlaskConical,
-    title: "It checks if people actually want it — before building anything",
-    body: "Not by counting free email signups (nobody signs up for a thing that doesn't exist — you know you wouldn't). It runs the honest version: it preps you to talk to a handful of real potential users, digs up where people already pay to solve this, and helps you set up one costly ask — a pre-order, a deposit, a “hold my spot.” It measures commitment, because money and time are the only signals that don't lie.",
-    like: "Like a chef who has you taste the sauce — and put money down for a bowl — before cooking the whole meal.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "It gives you the honest truth — even when that's “don't build it”",
-    body: "Most tools just cheer you on. This one will tell you to walk away if the interest isn't there — and exactly why. A clear verdict: go for it, tweak the idea, or stop now. That honesty is the whole point.",
-    like: "A co-founder who'd rather lose the project than waste your savings.",
-  },
-  {
-    icon: Rocket,
-    title: "If the answer is yes, it builds the winner",
-    body: "Once demand is proven, it ships a first real, working version with a live link you can open — not a drawing or a mockup. You go from idea to a thing that exists, fast.",
-    like: "Like getting a real storefront, not an architect's sketch.",
-  },
-  {
-    icon: Users,
-    title: "Your AI team runs it, night after night",
-    body: "Five specialists keep the business moving while you sleep: a CEO who watches the money, an engineer who ships, a marketer who finds customers, support who helps users, and a growth lead who spots opportunities. A little progress, every single night.",
-    like: "Like a small startup team that never clocks out.",
-  },
-  {
-    icon: Eye,
-    title: "You see everything it does — the Glass Box",
-    body: "Every action is written down with what it cost and proof it really happened. Nothing is hidden behind the curtain. Anything still reversible, you can undo in one click — and nothing risky happens without your yes in the first place.",
-    like: "Like a glass-walled kitchen where you watch every dish being made.",
-  },
-  {
-    icon: BadgeCheck,
-    title: "It asks first before doing anything risky — the Approval Inbox",
-    body: "Spending real money, emailing real people, or putting something live always waits for your “yes.” You're the boss. It proposes; you decide. It never goes rogue.",
-    like: "Like an assistant who checks with you before signing any cheque.",
-  },
-];
 
 // The promises that hold underneath the whole thing — what keeps you in control.
 const controls = [
@@ -83,6 +31,7 @@ const controls = [
 export default function HowItWorks() {
   return (
     <div id="main" className="min-h-screen">
+      <ScrollProgress />
       <header className="glass-nav sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
@@ -109,27 +58,9 @@ export default function HowItWorks() {
         </div>
       </div>
 
-      {/* The story */}
-      <div className="mx-auto max-w-3xl px-6 pb-8">
-        <ol className="space-y-5">
-          {steps.map((s, i) => (
-            <li key={s.title} className="glass-panel rounded-3xl p-6 md:p-8">
-              <div className="flex items-start gap-5">
-                <div className="flex shrink-0 flex-col items-center gap-3">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-text text-bg">
-                    <s.icon size={22} />
-                  </span>
-                  <span className="font-mono text-xs text-muted-2">{String(i + 1).padStart(2, "0")}</span>
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-xl font-semibold md:text-2xl">{s.title}</h2>
-                  <p className="mt-3 text-muted">{s.body}</p>
-                  <p className="mt-4 border-l-2 border-white/20 pl-3 text-sm italic text-muted-2">{s.like}</p>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ol>
+      {/* The story — 7 steps, one panel at a time (progressive disclosure) */}
+      <div className="mx-auto max-w-4xl px-6 pb-8">
+        <JourneyExplorer />
       </div>
 
       {/* The control promises */}

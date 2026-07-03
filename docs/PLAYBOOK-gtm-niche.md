@@ -1,3 +1,5 @@
+> ⚠️ **PARTIALLY SUPERSEDED (2026-07-03).** ICP thinking still useful, but the beachhead moved to **cohort owners** (Northeastern first) and the milestone metric is **PPU**, not a 2,000-waitlist. Canonical: [BLUEPRINT.md](BLUEPRINT.md) + [PATH-TO-10K.md](PATH-TO-10K.md).
+
 # Playbook — GTM research & niche validation (competitor.inc's *own* go-to-market)
 
 > Closes a real gap: the product's Validation Gate validates a *customer's* idea, but nothing validated

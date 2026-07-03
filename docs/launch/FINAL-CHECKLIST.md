@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED (2026-07-03).** Says run migrations `0001 → 0005` — there are now **14 (0001–0014)**, and billing is live on **Polar**. Canonical: [../NEXT-BLOCKS.md](../NEXT-BLOCKS.md) + [../AUTH-SETUP.md](../AUTH-SETUP.md).
+
 # competitor.inc — FINAL master checklist (updated 2026-06-26)
 
 Single source of truth. **[YOU]** = your action · **[ME]** = I do it · **[DECIDE]** = your call.

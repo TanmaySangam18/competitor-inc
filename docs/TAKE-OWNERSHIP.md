@@ -1,3 +1,5 @@
+> ⚠️ **PARTIALLY STALE (2026-07-03).** The Supabase step says run only `0001_init.sql` — there are now **14 migrations (0001–0014)**; run ALL in filename order. (The ROOMIE_*→MODEL_* correction below already landed.) Canonical setup: [AUTH-SETUP.md](AUTH-SETUP.md).
+
 # Take full ownership — the solo-founder runbook
 
 > Goal: **you own every account and asset**, end to end, with zero dependency on anyone else. Your friend

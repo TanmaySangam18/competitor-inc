@@ -1,3 +1,5 @@
+> ⚠️ **STALE (2026-07-03).** Says run only `0001_init.sql` — there are now **14 migrations (0001–0014)**; run ALL in filename order or prod ships without entitlements, approvals, RLS tightening, and the revenue loop. Auth specifics: [AUTH-SETUP.md](AUTH-SETUP.md).
+
 # Activating Supabase (auth + persistent multi-company)
 
 competitor.inc ships with the **full Supabase integration already coded** — schema migration,

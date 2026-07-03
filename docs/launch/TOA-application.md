@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED (2026-07-03).** Early draft — the paste-ready canonical version is [TOA-application-filled.md](TOA-application-filled.md).
+
 # The Open Accelerator (TOA) — application draft
 
 > Red Hat + IBM, Fort Point Boston. Cohort **Sep 1 – Dec 18, 2026**, in-person 4 days/week. IBM Ventures

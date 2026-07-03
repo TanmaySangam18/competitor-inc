@@ -18,7 +18,7 @@ Follow [`../launch/runbook.md`](../launch/runbook.md) (~30 min) plus the main
 | The 28-block master build plan (status-tracked)? | [`MASTER-PLAN.md`](MASTER-PLAN.md) |
 | Ads / Meta Pixel phase 2 (gated on 3+ customers)? | [`PLAN-REVENUE-LOOP-PHASE2`](PLAN-revenue-loop-phase2.md) — budget = founder-approval-only |
 | Demoing from a laptop? | [`DEMO-RUNBOOK.md`](DEMO-RUNBOOK.md) |
-| Turning on real auth + database? | [`SUPABASE-SETUP.md`](SUPABASE-SETUP.md) — run ALL migrations 0001–0013 |
+| Turning on real auth + database? | [`SUPABASE-SETUP.md`](SUPABASE-SETUP.md) — run ALL migrations 0001–0014 (or the one-paste `supabase/PENDING-PROD.sql`) |
 | GTM agent design (Blond frameworks)? | [`BLOND-GTM-AGENT.md`](BLOND-GTM-AGENT.md) · Lockin launch: [`LOCKIN-LAUNCH-KIT.md`](LOCKIN-LAUNCH-KIT.md) |
 
 ## Background & strategy (still-valid thinking)

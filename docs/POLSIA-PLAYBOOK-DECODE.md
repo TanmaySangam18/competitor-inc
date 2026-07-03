@@ -1,3 +1,5 @@
+> ⚠️ **STALE FIGURES (2026-07-03).** Number authority = [intel/polsia-deep-dive.md](intel/polsia-deep-dive.md) (2026-07-02, source-verified): $8.52M headline "ARR" and DECLINING, ~51% recurring, ~4% of companies active, **$31M raised (NOT bootstrapped)**. The YC-playbook/Chesky decode below is still useful.
+
 # Polsia, Fully Decoded — Public Footprint + YC Playbook + the Chesky Lens
 
 > A line-by-line read of Polsia's public footprint (what each says vs. what it *conveys*), then

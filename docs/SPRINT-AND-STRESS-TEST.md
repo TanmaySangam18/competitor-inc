@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED (2026-07-03).** Part 1's 14-day Shape Up sprint targeted June 28 — passed. Canonical roadmap: [NEXT-BLOCKS.md](NEXT-BLOCKS.md). Part 2 (7 Powers defensibility) is still useful reading.
+
 # The 14-Day Sprint + Defensibility Stress-Test
 
 > Two playbooks: **Shape Up** (Basecamp) for the fixed June-28 deadline, and **Hamilton Helmer's

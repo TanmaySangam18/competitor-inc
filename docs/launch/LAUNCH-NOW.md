@@ -1,3 +1,5 @@
+> ⚠️ **STALE (2026-07-03).** Says run "the 5 migrations" (0001→0005) — there are now **14 (0001–0014)**, and billing is live on **Polar**. Canonical: [../NEXT-BLOCKS.md](../NEXT-BLOCKS.md) + [../AUTH-SETUP.md](../AUTH-SETUP.md).
+
 # Launch checklist — what's left (self-marketing strategy)
 
 Goal: go **live + measurable** so you can market it yourself, gather real numbers, *then* apply/raise.
