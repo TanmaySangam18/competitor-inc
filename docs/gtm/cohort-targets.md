@@ -148,3 +148,24 @@
 **Playbook:** Crossing the Chasm beachhead (NU → Boston/NE → national) + Blond concentric circles (warm before cold, never skip a ring).
 
 *Compiled 2026-07-03 from public sources only (program sites, university news, press releases). No personal contact info harvested; all emails listed are published program addresses.*
+
+---
+
+## Enriched warm contacts (sub-agent verified, 2026-07-03)
+
+Named directors + **public** program emails for the highest-priority WARM rows (public sources only; re-verify a name before you send). These are the first-contact nodes.
+
+| Program | Named lead (public role) | Public contact | Warmth |
+|---|---|---|---|
+| NU Sherman Center (Generate / Venture Co-op / Forge) | **Theo Johnson**, Sherman Director | **th.johnson@northeastern.edu** | WARM-NU |
+| NU Women Who Empower | Betsy Ludwig, ED Women's Entrepreneurship | via Northeastern Advancement | WARM-NU |
+| NU IDEA | student-led (CEO/COO students) | via ideaneu.com | WARM-NU |
+| MIT delta v / Trust Center | **Bill Aulet**, Managing Director | **trustcenter@mit.edu** | WARM |
+| MIT Sandbox | Jinane Abounadi, ED (re-verify) | via MIT Sandbox | WARM |
+| Harvard i-lab VIP | Tom Samph (Dir., Venture Incubation); Jill Kravetz (ED) | i-lab contact form | WARM |
+| Innovate@BU / BUild Lab | Siobhan Dullea, ED (ex-MassChallenge CEO) | bu.edu/innovate contact | WARM |
+| BU Spark! | Ziba Cranmer, Founding Director | **buspark@bu.edu** | WARM |
+| Berkeley SkyDeck | Caroline Winnett, ED | **skydeck@berkeley.edu** | COLD (W.Coast) |
+| UCLA Summer Accelerator | Robert Jadon, Exec Director | via startupucla.com | COLD (W.Coast) |
+
+**First move:** Theo Johnson is the single warmest node — founder's own campus, named director, public email, and he already runs validation-oriented venture programs. That's outreach #1.
