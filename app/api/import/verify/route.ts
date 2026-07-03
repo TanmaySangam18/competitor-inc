@@ -4,6 +4,10 @@ import { normalizeHost, ownershipToken, verifyOwnership } from "@/lib/engine/own
 
 export const runtime = "nodejs";
 
+// ⏳ STAGED (2026-07-03): correct + tested, but intentionally NOT yet wired into ImportPanel — it's the
+// backend for the v2 "private-until-paid / operate an imported product" gate. Kept (not deleted) so
+// the UX can adopt it when that gate ships; smoke covers it. Not dead code — deferred by decision.
+//
 // v2 — Import ownership verification (PDR §5). Self-only: the SUBJECT is the signed-in user, never a
 // request param, so a user can only ever verify a domain for themselves. Two calls:
 //   POST { url }              → the token + setup instructions (DNS TXT or a well-known file).

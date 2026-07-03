@@ -5,7 +5,10 @@
 // the human doesn't approve each post — only off-policy edge cases escalate. Reddit/LinkedIn stay
 // human-posted (anti-ban). v1 generation is deterministic/offline; model-upgradeable behind a key.
 
-export const ROOMIE = "competitor.inc (roomie)"; // the bot identity shown on every post
+// The bot identity shown on every post. Dropped the "(roomie)" codename leak (2026-07-03) — it's
+// user-visible on generated posts and "roomie" is an internal-only name. Symbol stays ROOMIE for its
+// importers; only the display string changed.
+export const ROOMIE = "competitor.inc";
 
 export type CampaignPlatform = "bluesky" | "mastodon";
 
