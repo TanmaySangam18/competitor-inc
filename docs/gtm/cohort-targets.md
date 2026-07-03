@@ -321,3 +321,26 @@ Recurring competitions that judge cohorts of founders — each needs a way to sc
 
 ### COLD national/global competitions (runway; strong funder-reporting fit)
 Rice Business Plan Competition (rbpc@rice.edu) · Chicago NVC (Polsky) · NYU Stern $300K (Cynthia Franklin) · Penn Venture Lab Startup Challenge · Cornell BIG Idea (eship@cornell.edu) · Georgia Tech InVenture (rubric scores customer discovery — strong fit) · UC LAUNCH (launch@berkeley.edu) · BASES $150K (Stanford) · optiMize (Michigan) · **Rise of the Rest** (Revolution; live-product+KPI rubric — best positioning fit) · 43North (Buffalo, $1M) · SXSW Pitch · TechCrunch Startup Battlefield · Hult Prize · GSEA (EO) · Diamond Challenge (HS) · Milken-Penn GSE (ed-tech) · Miami Herbert · U Louisville Cardinal Challenge.
+
+---
+
+## WARM New England — seed accelerators & incubators (final addition)
+
+| Program | Org | City | Lead (public role) | Public contact |
+|---|---|---|---|---|
+| US Early Stage Accelerator | MassChallenge | Boston, MA | Kiki Mills Johnston, Boston MD | programs@masschallenge.org |
+| Fellowship for Female Founders | The Capital Network | Boston, MA | Kat Lawlor, ED; Jingjing Li Cohen, Prog Dir | via TCN |
+| LearnLaunch Accelerator | LearnLaunch (edtech) | Boston, MA | Liam Pisano, MD | accelerator@learnlaunch.com |
+| MassRobotics Accelerator | MassRobotics | Boston, MA | Marita McGinn, Director | via MassRobotics |
+| Roxbury Innovation Center — Launch | RIC / Venture Café | Roxbury, MA | Tara Atwood, Sr. Director | via RIC |
+| Venture Café Cambridge | CIC network | Cambridge, MA | Alex Cheung, Director | via venturecafecambridge.org |
+| CIC Social Impact Cohorts | Cambridge Innovation Center | Cambridge, MA | not listed | cic.com/programs |
+| VCET Venture Platform + Seed Fund | Vermont Ctr for Emerging Tech | Burlington, VT | David Bradbury, Pres; Nicole Eaton, Dir | via vcet.co |
+| Top Gun Accelerator | Maine Center for Entrepreneurs | Portland, ME | Laurie Johnson, Prog Mgr | via mced.biz |
+| CTNext | CT Office of Innovation | Statewide, CT | Onyeka Obiocha, ED | via CTNext |
+
+*Verify-before-outreach (status uncertain): Founders League (RI), Accelerate NH / Alpha Loft, gener8tor Boston (no current MA program).*
+
+---
+
+**📍 TARGET LIST CLOSED (2026-07-03).** ~250 programs across all 4 target types (university E-centers · accelerators/incubators · studios/fellowships · pitch competitions), NU/Boston/NE-warm first, national runway after. Public info only; defunct programs flagged. Next step is not more research — it's loading the ~15 WARM-NU/Boston rows into the CRM Ledger and sending outreach #1 (Theo Johnson, NU Sherman).
