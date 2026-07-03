@@ -1,3 +1,5 @@
+> ⚠️ **SUPERSEDED (2026-07-03).** Early EOS/Traction blueprint using the internal "Roomie" working name; the canonical living blueprint (positioning, moat, cohort-owner beachhead, PPU north star) is [BLUEPRINT.md](BLUEPRINT.md). Kept as history.
+
 # competitor.inc Inc. — Company Blueprint
 
 > The company designed from the ground up on **EOS ("Traction", Gino Wickman)** — the proven SMB

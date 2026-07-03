@@ -1,3 +1,5 @@
+> ⚠️ **PRICING SUPERSEDED (2026-07-03).** The viral mechanic headlines the killed "capped Founding Members ($99, ~150 seats)" tier. Live pricing = $0 / $39 Operator / $299 Founder / $499 Sprint + Cohort Lab $1.5–2.5k — see [PATH-TO-10K.md](PATH-TO-10K.md); north star = PPU. The surprise-launch precedents + mechanics below still stand.
+
 # The Big-Bang Surprise Launch (skip build-in-public, go viral on drop)
 
 > You want the *surprise* advantage build-in-public gives away. There's a proven counter-playbook:

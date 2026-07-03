@@ -1,3 +1,5 @@
+> ⚠️ **STALE PATHS (2026-07-03).** Code pointers say `lib/roomie/*` (`types.ts`, `delegation.ts`) — that dir was renamed to **`lib/engine/`** (roomie→engine consolidation); `lib/roomie` no longer exists. The design itself (per-company dynamic crew, persistent private memory) remains the intended architecture; feature truth: [FEATURE-LEDGER.md](FEATURE-LEDGER.md).
+
 # Plan — Dynamic, persistent, private specialist-crew engine
 
 > The "run **any** company inside a **focused** niche" engine. Founder-approved architecture

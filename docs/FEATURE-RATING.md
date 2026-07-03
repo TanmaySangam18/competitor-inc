@@ -1,3 +1,5 @@
+> ⚠️ **PARTIALLY SUPERSEDED (2026-07-03).** Scored against the killed "$10K MRR within a month" goal; north star is now **PPU (Proven Paying Users)** per [REVENUE-RUN.md](REVENUE-RUN.md), and the "Studio $99 / annual" pricing bet was dropped (live tiers $0 / $39 / $299 / $499 + Cohort Lab, see [PATH-TO-10K.md](PATH-TO-10K.md)). The RICE method + per-feature reads remain useful.
+
 # Feature rating — every feature, scored (RICE)
 
 > Scored with **RICE** (Intercom's prioritization playbook): **Reach × Impact × Confidence ÷ Effort.**

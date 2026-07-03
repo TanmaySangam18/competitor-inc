@@ -1,3 +1,5 @@
+> ⚠️ **STALE FIGURES (2026-07-03).** The scorecard cites Polsia at "$10M ARR" — number authority = [intel/polsia-deep-dive.md](intel/polsia-deep-dive.md) (2026-07-02, source-verified): $8.52M headline "ARR" and DECLINING, ~51% recurring, ~4% of companies active, **$31M raised (NOT bootstrapped)**. The scorecard reasoning + agent-intelligence plan below still stand.
+
 # Plan — Polsia scorecard, the real mission, and making the agents smarter
 
 > Reads "what does X do" as **post-launch/real behavior** (founder's standing rule). Honest by design —
