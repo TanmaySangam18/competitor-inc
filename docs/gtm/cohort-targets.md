@@ -169,3 +169,94 @@ Named directors + **public** program emails for the highest-priority WARM rows (
 | UCLA Summer Accelerator | Robert Jadon, Exec Director | via startupucla.com | COLD (W.Coast) |
 
 **First move:** Theo Johnson is the single warmest node — founder's own campus, named director, public email, and he already runs validation-oriented venture programs. That's outreach #1.
+
+---
+
+## National expansion tail (research swarm, 2026-07-03)
+
+Beyond the Boston/NE beachhead. Shared hook for all: *a program-director evidence dashboard proving which cohort ventures validated real demand vs. were killed — funder/donor/dean-ready outcomes.* Public info only; re-verify a name before sending. Contact after the warm ring converts.
+
+### New England (extended)
+| Program | School | City | Lead (public role) | Public email |
+|---|---|---|---|---|
+| Spark Program | Brandeis | Waltham, MA | Juan Giraldo, Program Lead | juang@brandeis.edu |
+| Asper Center | Brandeis IBS | Waltham, MA | Philippe Wells, Director | — |
+| Berthiaume Center (Innovation Challenge) | UMass Amherst | Amherst, MA | Gregory Thomas, ED | berthiaume@umass.edu |
+| Rist DifferenceMaker | UMass Lowell | Lowell, MA | Richard Juknavorian, Director | DifferenceMaker@uml.edu |
+| Tinkerbox / I&E Center | WPI | Worcester, MA | Kristie DeJesus, Sr. Director | BDL@wpi.edu |
+| E-Hub Incubator | Bentley | Waltham, MA | Sandeep Purao, Director | spurao@bentley.edu |
+| Design Justice Studio (ADE) | Olin | Needham, MA | B. Linder / E. Johansen (faculty) | — |
+| BEAM | Wellesley | Wellesley, MA | Casey Hurley, Director | ch111@wellesley.edu |
+| Accelerate | Wentworth | Boston, MA | Ashley Lucas, ED | lucasa1@wit.edu |
+| Summer Venture Program | Babson (Blank Center) | Wellesley, MA | Cindy Klein Marmer, ED | — |
+| WIN Lab Boston | Babson | Boston, MA | Kara Miller, Director | kmiller5@babson.edu |
+| Derby Center / Tufts $100K | Tufts | Medford, MA | Elaine Chen, Director | — |
+| Accelerate@Shea | Boston College | Chestnut Hill, MA | Jere Doyle, ED | doylejm@bc.edu |
+| Magnuson Center | Dartmouth | Hanover, NH | (ED search underway 2026) | — |
+| B-Lab | Brown (Nelson Center) | Providence, RI | Alexis Alston, Director | entrepreneurship@brown.edu |
+| Tsai CITY | Yale | New Haven, CT | Kassie Tucker, ED (new Nov'25) | — |
+| Werth Institute | UConn | Storrs, CT | Michelle Cote, Interim Dir | — |
+| ECenter | UNH | Durham, NH | Josh Cyr, Interim Dir | e.center@unh.edu |
+| Center for E'ship & Design Thinking | Bryant | Smithfield, RI | Kristie DeJesus, Inaugural Dir | — |
+
+### Ivy+ / Mid-Atlantic
+| Program | School | City | Lead | Public email |
+|---|---|---|---|---|
+| eLab | Cornell | Ithaca, NY | Gregory Ray, lead | — |
+| Startup Studio | Cornell Tech | NYC | Fielding/Dix/Escarlate (co-heads) | — |
+| eLab Summer Accelerator | Princeton (Keller) | Princeton, NJ | Benedikt Lehnert; Manda Ryan | mandar@princeton.edu |
+| Venture Lab (VIP-X) | Penn Wharton | Philadelphia, PA | Goutorova/Middleton; R. Winkler | winklerr@wharton.upenn.edu |
+| Columbia Startup Lab | Columbia | NYC | Dave Lerner, Director | — |
+| Endless Frontier Labs | NYU Stern | NYC | Deepak Hegde, Faculty Dir | — |
+| Summer Launchpad | NYU | NYC | Jeff Levick, ED | — |
+| Terp Startup / Pitch Dingman | U Maryland | College Park, MD | Michael Hoffmeyer, MD | — |
+
+### West Coast
+| Program | School | City | Lead | Public email |
+|---|---|---|---|---|
+| StartX | Stanford-affiliated | Palo Alto, CA | Cameron Teitelman, CEO | — |
+| Cardinal Ventures | Stanford | Stanford, CA | student-run | — |
+| SkyDeck | UC Berkeley | Berkeley, CA | Caroline Winnett, ED | skydeck@berkeley.edu |
+| LavaLab | USC | Los Angeles, CA | student-run | — |
+| Summer Accelerator | UCLA | Los Angeles, CA | Robert Jadon, ED | — |
+| RI² | Caltech | Pasadena, CA | Case Cortese, Director | — |
+| Jones + Foster | U Washington | Seattle, WA | Amy Sallin, Director | — |
+| Venture Devils | Arizona State | Tempe, AZ | Ji Mi Choi, Founding ED | — |
+
+### Midwest
+| Program | School | City | Lead | Public email |
+|---|---|---|---|---|
+| Zell Lurie Institute | U Michigan (Ross) | Ann Arbor, MI | Gregg Latterman, ED | — |
+| TechArb | U Michigan (CFE) | Ann Arbor, MI | (verify current) | — |
+| optiMize | U Michigan | Ann Arbor, MI | Jeni Olney, Director | — |
+| Polsky Center / NVC | U Chicago | Chicago, IL | Samir Mayekar, MD | — |
+| The Garage | Northwestern | Evanston, IL | Mike Raab, ED | — |
+| NUvention | Northwestern (Farley) | Evanston, IL | Mike Marasco, Director | — |
+| IDEA Center | Notre Dame | South Bend, IN | Karen Deak, ED (Oct'25) | — |
+| Purdue Innovates | Purdue | West Lafayette, IN | Tyler Mantel, Director | — |
+| Buckeye Accelerator | Ohio State (Keenan) | Columbus, OH | Cheryl Turnbull, Sr. Dir | — |
+| D2P | UW–Madison | Madison, WI | Abram Becker, Director | — |
+| Holmes Center / MIN-Corps | U Minnesota (Carlson) | Minneapolis, MN | Carla Pavone, Prog. Dir | — |
+| Conquer Accelerator | Michigan State | East Lansing, MI | Tom Stewart, Dir Venture Prog | — |
+| Shoemaker Innovation Center | Indiana U | Bloomington, IN | Travis Brown, Asst. Dean | — |
+
+### South / Mountain
+| Program | School | City | Lead | Public email |
+|---|---|---|---|---|
+| Duke I&E | Duke | Durham, NC | (verify) | entrepreneurship@duke.edu |
+| CREATE-X | Georgia Tech | Atlanta, GA | Margaret Weniger, Dir | — |
+| ATDC | Georgia Tech | Atlanta, GA | John Avery, GM | — |
+| Longhorn Startup | UT Austin | Austin, TX | Joshua Baer, lead | under-info@cs.utexas.edu |
+| Project Olympus | Carnegie Mellon | Pittsburgh, PA | Meredith Grelli, Interim Dir | — |
+| Rice Alliance / OwlSpark | Rice | Houston, TX | Brad Burke, ED | alliance@rice.edu |
+| The Wond'ry | Vanderbilt | Nashville, TN | Kevin Galloway, ED (Mar'26) | — |
+| Deming Center / NVC | CU Boulder (Leeds) | Boulder, CO | Erick Mueller, ED | — |
+
+### National networks (lowest warmth; large but diffuse)
+| Program | HQ | Lead | Note |
+|---|---|---|---|
+| Founder Institute | Palo Alto, CA | Jonathan Greechan, CEO | 200+ chapters; local MDs vary |
+| Startupbootcamp | Amsterdam, NL | Marc Jellema, CEO a.i. | 20+ countries; regional MDs |
+| ~~Newchip~~ | Austin, TX | **DEFUNCT** | Ch.7 liquidation May 2023 — do NOT contact |
+
+*Leadership-transition signal (warm timing for a new tool): Dartmouth, Yale Tsai CITY, UConn Werth, Vanderbilt Wond'ry, Notre Dame IDEA, CMU Olympus all changed directors in 2025–26.*
