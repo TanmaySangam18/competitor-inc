@@ -106,6 +106,10 @@ async function run() {
   await get("/t/no-such-demand-test", 404);
   const mt = await get("/api/metrics");
   if (mt) { const j = await mt.json(); j.ok ? ok("metrics returns ok (locked without secret)") : fail("metrics shape bad"); }
+  // Attribution: fail-soft channel rollup; bad slug 400, valid slug returns a channels array.
+  await get("/api/attribution?slug=!!", 400);
+  const at = await get("/api/attribution?slug=smoke-test");
+  if (at) { const j = await at.json(); j.ok && Array.isArray(j.channels) ? ok("attribution returns channels shape") : fail("attribution shape bad"); }
   // Auth callback: no code → clean redirect home to /dashboard; `next` is confined to same-origin
   // relative paths (open-redirect guard) — //evil.com must NOT survive.
   {

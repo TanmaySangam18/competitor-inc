@@ -5,6 +5,7 @@ import { Target, FlaskConical, CheckCircle2, XCircle, CircleDashed, Loader2, Rad
 import type { Company } from "@/lib/engine/types";
 import { diagnoseFunnel, readMetric, type FunnelSnapshot, type GrowthExperiment, type StageBasis } from "@/lib/engine/growth";
 import PixelSnippet from "@/components/PixelSnippet";
+import AttributionPanel from "@/components/AttributionPanel";
 
 // R5 of the Revenue Loop — the transparency surface. Everything the loop knows, does, and learned,
 // visible to founder AND customer: the real funnel (with per-stage basis badges), progress toward
@@ -123,6 +124,9 @@ export default function GrowthPanel({ company, experiments }: { company: Company
           <div className="mt-1 text-[10px] italic text-muted-2">{diagnosis.principle}</div>
         </div>
       </div>
+
+      {/* attribution — which marketing made money, per channel */}
+      <AttributionPanel slug={company.slug} />
 
       {/* experiment ledger */}
       <div className="rounded-2xl glass-panel p-5">
