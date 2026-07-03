@@ -290,3 +290,34 @@ Recurring-cohort + funder-reporting fit, lowest warmth. Contact only after Bosto
 - **Fellowships:** Thiel (Alex Handy, team@thielfellowship.org) · Z Fellows (Cory Levy) · On Deck · Neo (Ali Partovi) · South Park Commons · Contrary (vp@contrary.com) · KP Fellows · Draper University · Founder Institute (Jonathan Greechan) · LAUNCH Founder University (Calacanis) · Halcyon (DC) · Camelback (New Orleans) · Cintrifuse (info@cintrifuse.com).
 - **Studios:** High Alpha · Atomic · Human Ventures · Betaworks Camp (Analisa Svehaug) · Expa · Science Inc · Idealab · Prehype · AlleyCorp · Hexa · Antler · Entrepreneur First.
 - **Dead — do NOT contact:** Newchip (Ch.7 liquidation 2023) · Venture for America (closed Aug 2024) · Pioneer (paused new investments 2024).
+
+---
+
+## Pitch & business-plan competitions (target type #4)
+
+Recurring competitions that judge cohorts of founders — each needs a way to score/verify traction and report outcomes to sponsors. Strongest positioning fits: **Babson B.E.T.A.** ("milestones through action") and **Rise of the Rest** (requires live product + revenue/customer KPIs). Warmest ICP: **Husky Startup Challenge** (NU).
+
+### WARM Boston / New England
+| Competition | Org | City | Lead (public role) | Public contact |
+|---|---|---|---|---|
+| **Husky Startup Challenge** | Northeastern E-Club | Boston, MA | student-run | via E-Club |
+| Northeastern RISE Expo | Northeastern (Undergrad Research) | Boston, MA | Jonna Iacono, Director | via RISE |
+| MIT $100K | MIT Sloan (student-led) | Cambridge, MA | rotating MBA MDs | via mit100k.org |
+| Harvard President's Innovation Challenge | Harvard i-lab | Allston, MA | Jill Kravetz, ED | via i-lab |
+| Babson B.E.T.A. Challenge | Babson (Blank Center) | Wellesley, MA | Alexandra Dunk, Assoc. Dir | via center |
+| Babson Rocket Pitch | Babson | Wellesley, MA | Alexandra Dunk, Assoc. Dir | via center |
+| New Venture Competition | Innovate@BU | Boston, MA | Nana Younge, Program Dir | via Innovate@BU |
+| Tufts $100K | Tufts Derby Center | Medford, MA | Elaine Chen, Director | via Derby |
+| Strakosch Venture Competition | BC Shea Center | Chestnut Hill, MA | Jere Doyle, ED | shea.center@bc.edu |
+| SparkTank | Brandeis Innovation | Waltham, MA | Juan Giraldo, Spark Dir | juang@brandeis.edu |
+| Tinkerbox / Value Creation Pitch | WPI I&E | Worcester, MA | Curtis Abel, ED | ie@wpi.edu |
+| Innovation Challenge | UMass Amherst Berthiaume | Amherst, MA | Gregory Thomas, ED | berthiaume@umass.edu |
+| Draper Competition (collegiate women) | Smith Conway Center | Northampton, MA | Andrea St. Louis, Director | draper@smith.edu |
+| VentureWell E-Team | VentureWell | Hadley, MA | Tricia Compas-Markman, Dir | via venturewell.org |
+| Suffolk pitch competitions | Suffolk CFE | Boston, MA | Chaim Letwin, Director | via Suffolk |
+| E-Hub pitch competitions | Bentley | Waltham, MA | (E-Hub) | via E-Hub |
+| Clark Tank | Clark University E&I | Worcester, MA | not listed | via E&I dept |
+| RI Business Competition | Bryant-affiliated nonprofit | RI (statewide) | Beth Carter, ED | info@ri-business.com |
+
+### COLD national/global competitions (runway; strong funder-reporting fit)
+Rice Business Plan Competition (rbpc@rice.edu) · Chicago NVC (Polsky) · NYU Stern $300K (Cynthia Franklin) · Penn Venture Lab Startup Challenge · Cornell BIG Idea (eship@cornell.edu) · Georgia Tech InVenture (rubric scores customer discovery — strong fit) · UC LAUNCH (launch@berkeley.edu) · BASES $150K (Stanford) · optiMize (Michigan) · **Rise of the Rest** (Revolution; live-product+KPI rubric — best positioning fit) · 43North (Buffalo, $1M) · SXSW Pitch · TechCrunch Startup Battlefield · Hult Prize · GSEA (EO) · Diamond Challenge (HS) · Milken-Penn GSE (ed-tech) · Miami Herbert · U Louisville Cardinal Challenge.
