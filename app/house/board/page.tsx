@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, KeyRound, BarChart3, ShieldCheck } from "lucide-react";
+import { ArrowLeft, RefreshCw, KeyRound, BarChart3, ShieldCheck, GraduationCap } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 
 // Founder KPI board (Block 9). Reads aggregate funnel counts from /api/metrics (bearer-guarded by
@@ -104,6 +104,12 @@ export default function Board() {
             <LogoMark size={32} /> Founder board
           </Link>
           <div className="flex items-center gap-4">
+            <Link href="/house/ledger" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
+              <BarChart3 size={15} /> Pipeline
+            </Link>
+            <Link href="/house/cohort" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
+              <GraduationCap size={15} /> Cohort Lab
+            </Link>
             <Link href="/house/proof" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
               <ShieldCheck size={15} /> Proof ledger
             </Link>

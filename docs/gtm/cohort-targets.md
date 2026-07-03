@@ -88,3 +88,63 @@
 | 57 | Capital Factory Accelerator | Capital Factory | Austin/Dallas/Houston, TX | ~150 applications/mo; 6-month program | Joshua Baer, Founder & CEO | site contact form | Texas-scale funnel, paid-membership model — AI validation seats are an upsellable member benefit and a filter for their VC arm | COLD | https://capitalfactory.com/ |
 | 58 | 1871 Early Stage programs | 1871 (Chicagoland Entrepreneurial Center) | Chicago, IL | ~450 startups, ~1,500 members on-site | Betsy Ziegler, CEO | site contact form | Nonprofit hub reporting jobs/capital to civic funders — member-wide validation-outcome evidence upgrades their annual impact numbers | COLD | https://1871.com/about/ |
 | 59 | Founder Institute Core Program | Founder Institute | Global HQ San Francisco, CA; 200+ cities | 35–50 founders start per cohort, 7–15 graduate; 2 batches/yr | Jonathan Greechan, Co-Founder & CEO | site contact form | Now marketing itself as "AI-native company builder" — Cohort Lab adds the governed-execution + evidence layer their local chapter directors lack | COLD | https://fi.co/overview |
+| 60 | Halcyon Incubator Fellowship | Halcyon | Washington, DC | 8 ventures/yr; 5-month residency + $10K stipend | Ryan Ross, Program Director | site contact form | Philanthropy-funded social-venture fellowship — foundation funders demand outcome evidence; 8-venture cohorts make a dashboard pilot trivially easy | COLD | https://www.halcyonhouse.org/programs/halcyon-incubator/ |
+| 61 | Village Capital sector accelerators (peer-selected) | Village Capital | Washington, DC (global programs) | 10–12 startups/cohort; 150+ cohorts, 1,400+ startups since 2009 | Allie Burns, CEO | site contact form | The most outcomes-obsessed accelerator in the market (publishes revenue/jobs/alumni stats) — validation-evidence dashboards are their native language | COLD | https://vilcap.com/results |
+| 62 | AlphaLab (software) + AlphaLab tracks | Innovation Works | Pittsburgh, PA | 20 startups (2026, largest ever); $100K each | Aaron Tainter, Director of Accelerator Programs | site contact form | State-supported economic-development funder behind it (Ben Franklin TP) — cohort validation outcomes feed directly into PA impact reporting | COLD | https://www.alphalab.org/news/ |
+| 63 | Techstars city accelerators (e.g., NYC, Detroit) | Techstars | Multiple US cities | 10–12 companies/cohort/city; 13 weeks | Per-city MDs (e.g., Gary Stewart, NYC; Monica Wheat, Detroit) | site contact form | Every MD reports cohort outcomes to corporate partners (e.g., J.P. Morgan) — a partner-facing evidence dashboard eases that quarterly pain | COLD | https://www.techstars.com/accelerators |
+
+## 5. COLD — Venture studios, founder bootcamps & fellowships
+
+| # | Program | Org | City, State | Cohort size / founders/yr | Director (name, role) | Public contact | Why they'd care | Warmth | Source |
+|---|---------|-----|-------------|---------------------------|----------------------|----------------|-----------------|--------|--------|
+| 64 | Antler US Founder Residency | Antler | New York, NY / Austin, TX / San Francisco, CA | 60–80 individuals/cohort/city | Ryan Sommerville & Prerna Sharma, General Partners, Antler US | site contact form | Residency phase = pre-idea validation at scale across 3 cities — a per-founder validation-evidence layer standardizes investment-committee decisions | COLD | https://www.antler.co/location/us |
+| 65 | On Deck Founders (ODF) | On Deck | San Francisco, CA (remote-first) | ~80–150 fellows/cohort | — | site contact form | Tagline is literally "from idea to conviction" — an AI co-founder that produces auditable validation evidence is conviction, productized | COLD | https://joinodf.com/ |
+| 66 | Thiel Fellowship | Thiel Foundation | San Francisco, CA | 12–30 fellows/yr; $250K each (2026) | Alex Handy, Director | site contact form | Fellows drop out to build under public scrutiny — governed AI execution + evidence protects both fellow and foundation reputation | COLD | https://thielfellowship.org/ |
+| 67 | Z Fellows | Z Fellows | SF/NYC (mostly virtual) | 10 builders/cohort, multiple cohorts/yr | Cory Levy, Founder | site contact form | One-week sprint format — AI-compressed validation is the only way to show real evidence in 7 days; small cohorts = easy pilot | COLD | https://www.zfellows.com/ |
+| 68 | High Alpha Venture Studio | High Alpha | Indianapolis, IN | ~2–5 new B2B SaaS companies/yr; 45+ founded to date | — (partner-led studio) | site contact form | Studio teams validate concepts before spinning out CEOs — an AI validation engine with governance de-risks each studio sprint | COLD | https://www.highalpha.com/ |
+
+## 6. Pitch competitions & recurring-cohort programs
+
+| # | Program | Org | City, State | Cohort size / founders/yr | Director (name, role) | Public contact | Why they'd care | Warmth | Source |
+|---|---------|-----|-------------|---------------------------|----------------------|----------------|-----------------|--------|--------|
+| 69 | MIT $100K Entrepreneurship Competition | MIT (student-run) | Cambridge, MA | Campus-wide, 3 rounds/yr (Pitch, Accelerate, Launch) | Student leadership (rotates annually) | site contact form | Multi-round format = repeated validation gates; evidence dashboard gives judges comparable data instead of pitch theater | WARM | https://entrepreneurship.mit.edu/ |
+| 70 | Rice Business Plan Competition (RBPC) | Rice Alliance | Houston, TX | 42 teams/yr; $1M+ in prizes; world's largest student startup competition | Catherine Santamaria, Director, RBPC | site contact form | Judges award $1M+ on pitch quality — validated-evidence dossiers per team would upgrade the world's richest student competition; leadership transition (Brad Burke's final year) = open door | COLD | https://rbpc.rice.edu/ |
+| 71 | Hult Prize | Hult Prize Foundation | Boston, MA (global; HQ ties to Hult IBS) | 2,200 universities, 130 countries; 18,000 startup ideas (2026) | Lori van Dam, CEO | site contact form | Campus directors worldwide must run local rounds with zero tooling — a validation dashboard per campus round is a franchise-wide upgrade | COLD (global HQ; Boston-adjacent) | https://www.hultprize.org/ |
+| 72 | NYU $300K Entrepreneurs Challenge | NYU Stern Berkley Center | New York, NY | 243 teams / 500 participants across 3 tracks | Cynthia Franklin, Director, Berkley Center | site contact form | 9-month competition with boot camps and coaching — per-team validation evidence gives coaches leverage and makes final judging defensible | COLD | https://nyusternberkleycenter.com/accelerate-your-growth-2/entrepreneurs-challenge/ |
+
+---
+
+## Summary
+
+### Counts by region and type
+
+| Segment | Rows | Count |
+|---------|------|-------|
+| WARM — Boston/NE university E-centers & student accelerators | 1–26 | 26 (incl. 6 WARM-NU) |
+| WARM — Boston/NE independent accelerators & fellowships | 27–37 | 11 |
+| COLD — National university E-centers & student accelerators | 38–54 | 17 |
+| COLD — Independent/regional accelerators & incubators | 55–63 | 9 |
+| COLD — Venture studios, bootcamps & fellowships | 64–68 | 5 |
+| Pitch competitions (1 WARM + 3 COLD) | 69–72 | 4 |
+| **Total** | | **72 targets** (38 WARM / 34 COLD; 6 WARM-NU) |
+
+~55 of 72 rows have a publicly listed director/MD name; the rest are marked "—" rather than guessed (honesty rule: nothing fabricated — verify names before sending, program leadership churns fast; two targets are mid-transition, which is an opening, not a blocker).
+
+### The 10 to contact first (and why)
+
+| Rank | Target | Why first |
+|------|--------|-----------|
+| 1 | **IDEA — Northeastern** (Rich Zou + staff advisors) | Founder's own campus accelerator; walk-in warm; 400+ ventures with a student-run mentor bench = the exact capacity gap Cohort Lab fills. Land the flagship logo first. |
+| 2 | **Sherman Center — Northeastern** (Theo J. Johnson) | Second on-campus warm door; engineering ventures that build-before-validating — the counter-example that makes the demo land. |
+| 3 | **Women Who Empower — Northeastern** (Betsy Ludwig) | Just launched a fellowship + follow-on fund (2025): brand-new program needs outcome evidence for donors, and budget exists now. |
+| 4 | **Roux Institute Founder Residency** (Santiago Zindel) | NU family, 8–12 startups/yr, explicitly measured on Maine-ecosystem impact reporting — the evidence dashboard is their deliverable. |
+| 5 | **Innovate@BU** (Siobhan Dullea) | Ex-MassChallenge CEO running a university program — she already thinks in cohort-outcome metrics; one T stop away; fastest "gets it" meeting in Boston. |
+| 6 | **MIT Sandbox** (Jinane Abounadi) | Funds 500+ ideas/yr with $25K checks — follow-on decisions need validation evidence at a scale humans can't review; public program email (sandbox@mit.edu). |
+| 7 | **EforAll HQ** (Lowell, MA) | Nonprofit running ~10+ cohort sites of first-time founders on grant money — one deal could standardize evidence across every site; price point fits a grant line item. |
+| 8 | **MassChallenge** (Cait Brumme) | 125–186 startups/yr, zero-equity, sponsor-funded — their entire model is selling impact to sponsors; the dashboard IS their renewal deck. Biggest WARM logo. |
+| 9 | **Derby Entrepreneurship Center — Tufts** (Elaine Chen) | Trust-Center alum who literally teaches disciplined validation; highest pedagogy-product fit; strong reference node into MIT network. |
+| 10 | **Village Capital** (Allie Burns) | Best COLD message-market fit in the country: they publish outcome stats and run 150+ peer-selected cohorts — if any national buyer converts on "evidence dashboard," it's them. |
+
+**Playbook:** Crossing the Chasm beachhead (NU → Boston/NE → national) + Blond concentric circles (warm before cold, never skip a ring).
+
+*Compiled 2026-07-03 from public sources only (program sites, university news, press releases). No personal contact info harvested; all emails listed are published program addresses.*
