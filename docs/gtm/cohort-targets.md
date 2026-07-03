@@ -260,3 +260,33 @@ Beyond the Boston/NE beachhead. Shared hook for all: *a program-director evidenc
 | ~~Newchip~~ | Austin, TX | **DEFUNCT** | Ch.7 liquidation May 2023 — do NOT contact |
 
 *Leadership-transition signal (warm timing for a new tool): Dartmouth, Yale Tsai CITY, UConn Werth, Vanderbilt Wond'ry, Notre Dame IDEA, CMU Olympus all changed directors in 2025–26.*
+
+---
+
+## WARM Boston — accelerators, studios & fellowships (beyond university E-centers)
+
+The founder's warmest *recurring-cohort* targets — each runs cohorts of first-time founders AND reports outcomes to sponsors/LPs/donors (exact ICP for the evidence dashboard). These rank alongside the NU/university rows for first outreach.
+
+| Program | Org | City | Lead (public role) | Public email | Fit note |
+|---|---|---|---|---|---|
+| **MassChallenge** (US Early Stage) | MassChallenge | Boston, MA | Cait Brumme, CEO (ex-Boston MD) | via site | ~100 startups/cohort, **zero-equity, sponsor-funded → impact reporting IS their product**. Top fit. |
+| **Techstars Boston** | Techstars | Boston, MA | Jennifer Davis, MD | via site | ~10–12/cohort; must report outcomes to LPs/corporate partners. |
+| **GC Venture Fellows** (ex-Rough Draft) | General Catalyst | Cambridge, MA | Jeremy Navarro / Zak Kukoff (per press) | via GC | ~20 student fellows/yr sourcing collegiate first-time founders — near 1:1 fit. |
+| MIT delta v | MIT Trust Center | Cambridge, MA | Bill Aulet, MD | deltavstaff@mit.edu | ~25 teams (2025); equity-free, donor-reported (Klaviyo gift). |
+| Greentown Labs / ACCEL | Greentown Labs | Somerville, MA | Georgina Campbell Flatter, CEO | via site | Climatetech, grant/sponsor-funded; $25k non-dilutive → grantmaker reporting. |
+| Flagship Fellowship | Flagship Pioneering | Cambridge, MA | Bradley Coleman, Fellowship Dir | bcoleman@flagshippioneering.com | Systematized hypothesis-validation venture creation — philosophically aligned. |
+| Butler Venture Accelerator | Babson (Blank Center) | Wellesley, MA | Andrew Corbett, Faculty Dir; Cindy Marmer, Interim ED | via center | #1 entrepreneurship school; reports outcomes constantly. |
+| The Engine Accelerator | Engine Ventures (MIT-built) | Cambridge, MA | Katie Rae, CEO | via site | Tough-tech, long evidence arcs; LP + MIT reporting. |
+| Pillar Co-Founder Community | Pillar VC | Boston, MA | Jamie Goldstein, Managing Partner | via site | MIT/Harvard/NU co-founder matching; LP reporting need. |
+| Underscore Core Community | Underscore VC | Boston, MA | partner-led | via site | Profit-share with Core Partners who source/validate → defensible allocation. |
+| Link Ventures studio | Link Ventures | Cambridge, MA | Dave Blundin, Managing Partner | via site | Technical MIT/Harvard AI founders end-to-end. |
+| Harvard Rock Center fellowships | Harvard Business School | Boston, MA | (ED transition) | rockcenter@hbs.edu | Annual EIR/fellow cohorts; donor recaps. |
+| Startup Leadership Program | SLP (Boston-founded) | Boston, MA | Sharma/Dang, co-founders | via site | Chapter model already brags alumni startup totals. |
+| Interact Fellowship | Interact | convenes Boston | volunteer-led | team@joininteract.com | ~50 tech fellows/yr, 18–23; sponsor-funded retreats. |
+
+### COLD national runway (studios / fellowships / accelerator networks — after warm ring converts)
+Recurring-cohort + funder-reporting fit, lowest warmth. Contact only after Boston lands.
+- **Accelerators:** Y Combinator (Jared Friedman, MD) · Techstars network (Kerty Levy) · a16z Speedrun · Sequoia Arc (Jess Lee) · 500 Global (Tim Chae) · gener8tor (per-program MDs) · Capital Factory (Austin; leadership in transition) · AngelPad · Alchemist (Ian Bergman, CEO) · Plug and Play · Dreamit (Darren Sandberg).
+- **Fellowships:** Thiel (Alex Handy, team@thielfellowship.org) · Z Fellows (Cory Levy) · On Deck · Neo (Ali Partovi) · South Park Commons · Contrary (vp@contrary.com) · KP Fellows · Draper University · Founder Institute (Jonathan Greechan) · LAUNCH Founder University (Calacanis) · Halcyon (DC) · Camelback (New Orleans) · Cintrifuse (info@cintrifuse.com).
+- **Studios:** High Alpha · Atomic · Human Ventures · Betaworks Camp (Analisa Svehaug) · Expa · Science Inc · Idealab · Prehype · AlleyCorp · Hexa · Antler · Entrepreneur First.
+- **Dead — do NOT contact:** Newchip (Ch.7 liquidation 2023) · Venture for America (closed Aug 2024) · Pioneer (paused new investments 2024).
