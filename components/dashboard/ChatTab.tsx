@@ -33,9 +33,32 @@ export function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs, storeKey]);
 
+  // Approve/reject from chat — the governance IS the one word. "approved" clears the pending inbox
+  // items and logs each as governed (nothing is fabricated; a real send still needs the channel
+  // connected). Deterministic, no model call. This is the "say approved and it goes" flow.
+  function tryChatDecision(text: string): boolean {
+    const pending = r.pendingApprovals;
+    const approve = /^\s*(approve(d)?|yes[,!.\s]*(send|do|ship|go|please)?|send it|do it|ship it|go ahead|lgtm|👍)\b/i.test(text);
+    const reject = /^\s*(reject(ed)?|no[,!.\s]*(don'?t|stop|hold)?|decline|hold( off)?|cancel|stop|👎)\b/i.test(text);
+    if ((!approve && !reject) || pending.length === 0) return false;
+    setMsgs((m) => [...m, { role: "you", text }]);
+    const titles = pending.map((p) => p.title);
+    pending.forEach((p) => r.resolveApproval(p.id, approve));
+    if (approve) {
+      setMsgs((m) => [...m, { role: "agent", text:
+        `✅ Approved${titles.length > 1 ? ` (${titles.length})` : ""}: ${titles.join("; ")}. Cleared from your inbox and logged in the Glass Box — you can undo any of it there. Each one executes for real the moment its channel is connected; until then it's governed, not sent. Nothing was fabricated.` }]);
+    } else {
+      setMsgs((m) => [...m, { role: "agent", text: `🚫 Rejected${titles.length > 1 ? ` (${titles.length})` : ""}: ${titles.join("; ")}. Nothing went out.` }]);
+    }
+    setInput("");
+    return true;
+  }
+
   async function send() {
     const text = input.trim();
     if (!text || sending) return;
+    // A bare approve/reject with items waiting is handled locally — the human's word is the gate.
+    if (tryChatDecision(text)) return;
     setInput("");
     setMsgs((m) => [...m, { role: "you", text }]);
     setSending(true);
@@ -74,7 +97,7 @@ export function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof
       }
       if (queued) {
         r.addApproval(queued);
-        setMsgs((m) => [...m, { role: "agent", text: "🔔 Queued for your approval — open the Operations tab to approve or reject. Nothing happens until you say yes." }]);
+        setMsgs((m) => [...m, { role: "agent", text: "🔔 Queued for your approval. Just reply \"approved\" here and I'll clear it — or open the Operations tab. Nothing happens until you say yes." }]);
       }
     } catch {
       setMsgs((m) => [...m, { role: "agent", text: "I couldn't reach the engine just now — try again?" }]);

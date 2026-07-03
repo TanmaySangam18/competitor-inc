@@ -58,6 +58,7 @@ import { CoachCard } from "@/components/CoachCard";
 import MorningBrief from "@/components/MorningBrief";
 import { Onboarding } from "@/components/dashboard/Onboarding";
 import { ChatTab } from "@/components/dashboard/ChatTab";
+import { CrewBoard } from "@/components/dashboard/CrewBoard";
 import { OperateTab } from "@/components/dashboard/OperateTab";
 import { ActivityRow } from "@/components/dashboard/ActivityRow";
 import { ApprovalCard } from "@/components/dashboard/ApprovalCard";
@@ -715,6 +716,7 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
   const roles = (Object.keys(AGENTS) as AgentRole[]).filter((role) => config.agents[role]?.enabled ?? true);
   return (
     <div className="space-y-8">
+      <CrewBoard r={r} />
       <div className="rounded-3xl glass-panel p-5 sm:p-7">
         <LiveGlassBox company={r.company ?? undefined} />
       </div>

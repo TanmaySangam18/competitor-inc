@@ -106,6 +106,9 @@ async function run() {
   await get("/t/no-such-demand-test", 404);
   const mt = await get("/api/metrics");
   if (mt) { const j = await mt.json(); j.ok ? ok("metrics returns ok (locked without secret)") : fail("metrics shape bad"); }
+  // Tenant runtime: path validation (bad ns/entity → 400); valid-but-unprovisioned fail-soft.
+  await get("/api/app/BADNS/entity", 400);
+  await post("/api/app/deadbeef/notanentity!/", { data: {} }, 400);
   // Attribution: fail-soft channel rollup; bad slug 400, valid slug returns a channels array.
   await get("/api/attribution?slug=!!", 400);
   const at = await get("/api/attribution?slug=smoke-test");
