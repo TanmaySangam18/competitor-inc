@@ -449,6 +449,13 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
             </>
           )}
         </div>
+        {/* Set the expectation BEFORE the reveal paywall — never surprise them at the door. Only when
+            billing is actually live; during the free pre-launch there's no wall, so we say nothing. */}
+        {!imported && !recommendHold && billingLive() && (
+          <p className="mt-3 text-center text-[11px] text-muted-2">
+            Building is free — you&apos;ll watch the crew ship a real, working site. Opening the live link is the paid unlock.
+          </p>
+        )}
       </div>
       <GuestSavePrompt context="save this validation" />
       <p className="mt-3 text-center text-xs text-muted-2">
