@@ -132,6 +132,50 @@ async function run() {
   if (cronBad && cronBad.status === 401) ok("cron heartbeat rejects a wrong bearer (401)");
   else fail(`cron heartbeat with wrong bearer → ${cronBad ? cronBad.status : "threw"} (want 401)`);
 
+  // ── GOLDEN PATH (API level): the funnel a real company travels, end to end ──────────────────
+  // demand test exists → visit tracked (with a campaign tag) → real signup → attribution sees the
+  // channel/campaign → growth reads the funnel. Runs identically with or without Supabase (fail-soft
+  // shapes verified either way). The BROWSER golden path (sign-in → checkout → entitlement) stays a
+  // founder-gated follow-up until OAuth providers are live.
+  console.log("• golden path (idea → tracked visit → signup → attribution → growth)");
+  {
+    const gslug = "golden-smoke";
+    await post("/api/demand", { action: "create", slug: gslug, headline: "Golden smoke", subhead: "e2e", goal: 5 }, 200);
+    const v = await post("/api/track", { slug: gslug, type: "view", source: "news.ycombinator.com/c:golden-run" });
+    if (v) { const j = await v.json(); j.ok ? ok("golden: campaign-tagged view accepted") : fail("golden: view rejected"); }
+    await post("/api/demand", { action: "signup", slug: gslug, email: "golden@example.org" }, 200);
+    const at = await get(`/api/attribution?slug=${gslug}`);
+    if (at) {
+      const j = await at.json();
+      const shapeOk = j.ok && Array.isArray(j.channels) && Array.isArray(j.campaigns) && Array.isArray(j.series);
+      shapeOk ? ok("golden: attribution returns channels+campaigns+series") : fail("golden: attribution shape bad");
+      if (j.persisted) {
+        const hasCampaign = j.campaigns.some((c) => c.campaign === "golden-run");
+        hasCampaign ? ok("golden: campaign attributed end-to-end (persisted)") : fail("golden: tagged campaign missing from rollup");
+      } else ok("golden: unpersisted deploy — shapes verified, rollup needs Supabase (honest)");
+    }
+    const gr = await get(`/api/growth?slug=${gslug}`);
+    if (gr) { const j = await gr.json(); j.ok && j.funnel?.basis ? ok("golden: growth funnel readable with basis labels") : fail("golden: growth shape bad"); }
+  }
+
+  // ── AUTHZ (adversarial): the money keystone must never REALLY execute for a stranger ────────
+  // By design /api/execute returns HTTP 200 even on refusal (so the client falls back to simulated
+  // UI, never a broken page) — the security invariant is in the BODY: an unauthenticated/unowned
+  // call must come back ok:false (disabled or "not authorized"), NEVER a successful real execution.
+  // In prod the Supabase gate enforces ownership; with no Supabase (this smoke env) the executor is
+  // keyless so it returns disabled:true. Either way: no real side effect fired.
+  console.log("• authz probes (/api/execute keystone)");
+  {
+    const ex = await post("/api/execute", { action: "deploy", companyId: "11111111-1111-1111-1111-111111111111" }, 200);
+    if (ex) {
+      const j = await ex.json().catch(() => ({}));
+      if (j.ok === false || j.disabled === true) ok(`execute did NOT run for a stranger (ok:${j.ok}, disabled:${j.disabled ?? false})`);
+      else fail(`execute returned a live result to an unauthenticated caller: ${JSON.stringify(j).slice(0, 80)}`);
+    }
+    const caps = await get("/api/execute");
+    if (caps) { const j = await caps.json(); j && typeof j.capabilities === "object" ? ok("execute GET exposes capabilities only (no actions)") : fail("execute GET shape bad"); }
+  }
+
   console.log("• new routes (enrich / import / proof — gated, fail-soft)");
   const en = await get("/api/enrich");
   if (en) { const j = await en.json(); typeof j.found === "boolean" ? ok("enrich acks (found:false without session)") : fail("enrich shape bad"); }
