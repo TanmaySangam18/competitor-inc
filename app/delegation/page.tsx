@@ -18,7 +18,7 @@ import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
 import { getByok } from "@/lib/engine/config";
 
-const DelegationScene = dynamic(() => import("./DelegationScene"), {
+const DelegationScene = dynamic(() => import("./DelegationScene2D"), {
   ssr: false,
   loading: () => (
     <div className="grid h-full w-full place-items-center">
@@ -26,6 +26,8 @@ const DelegationScene = dynamic(() => import("./DelegationScene"), {
     </div>
   ),
 });
+
+type CustomerGender = "man" | "woman";
 
 const BY_ROLE = Object.fromEntries(DELEGATION.map((a) => [a.role, a])) as Record<
   AgentRole,
@@ -74,6 +76,19 @@ export default function DelegationPage() {
   // ── Ambient conversation ───────────────────────────────────────
   const [speaker, setSpeaker] = useState<Turn | null>(null);
   const [transcript, setTranscript] = useState<Turn[]>([]);
+
+  // The customer avatar — man or woman, the founder's pick, remembered on this device.
+  const [customerGender, setCustomerGender] = useState<CustomerGender>("man");
+  useEffect(() => {
+    try {
+      const g = localStorage.getItem("cofounder:customer-gender");
+      if (g === "man" || g === "woman") setCustomerGender(g);
+    } catch { /* ignore */ }
+  }, []);
+  const chooseGender = (g: CustomerGender) => {
+    setCustomerGender(g);
+    try { localStorage.setItem("cofounder:customer-gender", g); } catch { /* ignore */ }
+  };
 
   // ── Talk to the crew (customer → the active company's agents) ──
   const [directive, setDirective] = useState("");
@@ -178,7 +193,7 @@ export default function DelegationPage() {
   return (
     <main id="main" className="relative h-[100dvh] w-full overflow-hidden bg-bg mesh">
       <div className="absolute inset-0">
-        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} faces agents={crew} />
+        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} agents={crew} customerGender={customerGender} />
       </div>
 
       {/* Top bar */}
@@ -297,13 +312,32 @@ export default function DelegationPage() {
             );
           })}
         </ul>
-        <p className="mt-3 border-t border-border pt-2.5 text-[11px] leading-relaxed text-muted-2">
-          Drag to orbit. Every action is logged with proof in the{" "}
-          <Link href="/dashboard" className="text-muted underline-offset-2 hover:underline">
-            Glass Box
-          </Link>
-          .
-        </p>
+        <div className="mt-3 border-t border-border pt-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-muted-2">You (the customer)</span>
+            <div className="flex overflow-hidden rounded-lg border border-border">
+              {(["man", "woman"] as const).map((g) => (
+                <button
+                  key={g}
+                  onClick={() => chooseGender(g)}
+                  aria-pressed={customerGender === g}
+                  className={`px-2.5 py-1 text-[11px] font-medium capitalize transition ${
+                    customerGender === g ? "bg-text text-bg" : "text-muted hover:text-text"
+                  }`}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-2">
+            They sit together and talk through the build in real time. Every action is logged with proof in the{" "}
+            <Link href="/dashboard" className="text-muted underline-offset-2 hover:underline">
+              Glass Box
+            </Link>
+            .
+          </p>
+        </div>
       </aside>
 
       {/* Conversation feed (claymorphism) — bottom right */}

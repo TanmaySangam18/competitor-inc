@@ -109,6 +109,16 @@ h1, h2, h3, h4 {
   .bob { animation: none; }
 }
 
+/* The Delegation (2D) — a speech bubble pops when an agent takes its turn. */
+@keyframes bubble-pop {
+  0% { opacity: 0; transform: translateY(4px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.delegation-bubble { animation: bubble-pop 0.28s ease-out; transform-box: fill-box; transform-origin: center bottom; }
+@media (prefers-reduced-motion: reduce) {
+  .delegation-bubble { animation: none; }
+}
+
 /* sticky translucent header — frosts the cream scrolling beneath it */
 .glass-nav {
   @apply backdrop-blur-xl backdrop-saturate-150;
