@@ -208,6 +208,20 @@ function Engine({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
 
       {useOwnKey && (
         <div className="mt-4 rounded-xl border border-border bg-bg/40 p-4">
+          {/* One-click free setup — Groq is OpenAI-compatible and has a generous free tier; fills
+              everything but the key so the founder (or any user) just pastes it and goes live. */}
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="text-[11px] text-muted-2">Quick setup:</span>
+            <button
+              onClick={() => cfg.setByok({ provider: "openai-compatible", baseUrl: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile" })}
+              className="rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted transition hover:text-text"
+            >
+              Groq (free) — fills everything but the key
+            </button>
+            <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-[11px] text-muted-2 underline-offset-2 hover:text-muted hover:underline">
+              get a free Groq key ↗
+            </a>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-xs text-muted-2">
               Provider
