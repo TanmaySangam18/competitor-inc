@@ -4,23 +4,20 @@ Everything below is founder-side; the code is shipped and QA-green. Total time: 
 
 ## 1. Prod Supabase migrations (blocking real funnel data)
 
-No CLI/psql access exists from the dev machine, so apply via the dashboard:
+**Probed prod 2026-07-03 — precise status (no more guessing):**
+- ✅ Service role IS configured in prod; `events` (0010) and `interest` (0013) tables exist and persist.
+- ❌ **`0016` is NOT applied** — confirmed live: a `demo_verdict` POST to prod was rejected by the old
+  type CHECK (`persisted:false`, no row written). So demo metrics silently drop until 0016 runs.
+- ❌ **`0017` is NOT applied** — it's brand new this session (scorecard_snapshots + weekly_review_digests).
 
-1. Open Supabase → your prod project → **SQL Editor**.
-2. Paste + run each pending file from `supabase/migrations/`, **in order**. Per the last audit,
-   0009–0012 were never applied to prod; 0013–0017 are newer. Safe to re-run: everything is
-   `if not exists` / `drop … if exists` guarded.
-   - `0009_growth_goal.sql`
-   - `0010_events.sql`
-   - `0011_revenue_events.sql`
-   - `0012_growth_experiments.sql`
-   - `0013_interest.sql`
-   - `0014_video_kind.sql`
-   - `0015_backend_provisioning.sql`
-   - `0016_landing_demo_events.sql` ← new (hero-demo event types)
-   - `0017_scorecard_and_digests.sql` ← new (scorecard history + weekly digests)
-3. Verify: `select count(*) from public.events;` runs without error, and
-   `select * from information_schema.tables where table_name in ('scorecard_snapshots','weekly_review_digests');` returns 2 rows.
+**So the only two that definitely need running are `0016` and `0017`.** No CLI/psql from the dev
+machine, so apply via the dashboard — Supabase → prod project → **SQL Editor** → paste + run each.
+Everything is `if not exists` / `drop … if exists` guarded, so re-running the older ones (0009, 0011,
+0012, 0014, 0015) is a harmless no-op if you're unsure whether they were applied.
+
+Verify after: a `demo_verdict` event now persists, and
+`select * from information_schema.tables where table_name in ('scorecard_snapshots','weekly_review_digests');`
+returns 2 rows.
 
 ## 2. Env vars to confirm on Vercel
 
