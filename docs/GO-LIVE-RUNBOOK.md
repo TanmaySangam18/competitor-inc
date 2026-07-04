@@ -10,14 +10,16 @@ Everything below is founder-side; the code is shipped and QA-green. Total time: 
   type CHECK (`persisted:false`, no row written). So demo metrics silently drop until 0016 runs.
 - ❌ **`0017` is NOT applied** — it's brand new this session (scorecard_snapshots + weekly_review_digests).
 
-**So the only two that definitely need running are `0016` and `0017`.** No CLI/psql from the dev
-machine, so apply via the dashboard — Supabase → prod project → **SQL Editor** → paste + run each.
-Everything is `if not exists` / `drop … if exists` guarded, so re-running the older ones (0009, 0011,
-0012, 0014, 0015) is a harmless no-op if you're unsure whether they were applied.
+**Pending set (run in order, all idempotent):** `0016_landing_demo_events` · `0017_scorecard_and_digests`
+· `0018_business_wallet` · `0019_demo_cta_event`. No CLI/psql from the dev machine, so apply via the
+dashboard — Supabase → prod project → **SQL Editor** → paste + run each file. Everything is
+`if not exists` / `drop … if exists` guarded, so re-running the older ones (0009–0015) if you're unsure
+is a harmless no-op. (0019 finalizes the events type CHECK to include demo_start/demo_verdict/demo_cta,
+so if you only run one of the events migrations, run 0019.)
 
-Verify after: a `demo_verdict` event now persists, and
-`select * from information_schema.tables where table_name in ('scorecard_snapshots','weekly_review_digests');`
-returns 2 rows.
+Verify after: a `demo_cta` event persists, and
+`select table_name from information_schema.tables where table_name in
+('scorecard_snapshots','weekly_review_digests','wallets','wallet_transactions');` returns 4 rows.
 
 ## 2. Env vars to confirm on Vercel
 

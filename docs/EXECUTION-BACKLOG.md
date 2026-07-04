@@ -27,6 +27,9 @@ work moving in the meantime._
   pixel data, spending within the Wallet's `ads` budget + approval rules (exactly what the Wallet enables).
 
 ## Recently Shipped (rolling)
+- Launch Kit (docs/LAUNCH-KIT.md): copy-paste Show HN / Product Hunt / Reddit / X posts (honest voice,
+  no fake metrics) + the 3-action "flip to live" checklist → makes the free-tier soft-launch turnkey
+  for the founder. Runbook updated to migrations 0016–0019 (2026-07-04).
 - Playbook FAQs + FAQPage structured data on the 3 highest-intent playbooks (validate / zero-budget /
   distribution) — long-tail question intent + rich-results eligibility (2026-07-04, deployed).
 - Signup-completion attribution: landing CTA marks a referral; SignupAttribution fires one real
