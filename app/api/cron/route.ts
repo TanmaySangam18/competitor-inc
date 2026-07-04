@@ -9,6 +9,8 @@ import { saveScorecardSnapshot, type ScorecardMetric } from "@/lib/engine/scorec
 import { auditShiftActivities } from "@/lib/engine/office-house-architecture";
 import { performanceWeightedAllocations, overageForAllocation, breachesForAllocations, spendByAgent } from "@/lib/engine/office-budget";
 import { successRateByAgent } from "@/lib/engine/agent-performance";
+import { loadWallet } from "@/lib/engine/wallet-db";
+import { decideSpend } from "@/lib/engine/wallet";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY } from "@/lib/engine/policy";
 import type { Company, Activity, AgentRole } from "@/lib/engine/types";
@@ -136,6 +138,10 @@ export async function GET(req: Request) {
       const cumulative = [...priorActivities, ...activities];
       const allocations = performanceWeightedAllocations(POLICY.spend.monthlyCapUsd, crewRoles, successRateByAgent(cumulative));
       const spentSoFar = spendByAgent(cumulative);
+      // Business Wallet gate — the hard money gate. Fail-safe: an unfunded/absent wallet blocks all
+      // real spend, so the crew can never spend money the founder hasn't funded. Annotate any spend
+      // approval the wallet would block so the founder sees it can't clear even if they approve.
+      const wallet = await loadWallet(sb, company.id);
       const overBudgetApprovals: string[] = [];
       for (const ap of approvals) {
         if (ap.kind !== "spend" || ap.amount == null) continue;
@@ -143,6 +149,10 @@ export async function GET(req: Request) {
         if (over > 0) {
           ap.detail = `${ap.detail} ⚠ Office: this would put ${ap.agent} ~$${over.toFixed(0)} over its performance-weighted budget allocation — recommend reject or rebalance.`;
           overBudgetApprovals.push(`${ap.agent} +$${over.toFixed(0)}`);
+        }
+        const wd = decideSpend(wallet.config, { agent: ap.agent, task: ap.title, category: "other", amountCents: Math.round(ap.amount * 100) }, wallet.txns);
+        if (wd.verdict === "block") {
+          ap.detail = `${ap.detail} 💳 Wallet: ${wd.reason}`;
         }
       }
       await insertApprovals(sb, company.id, approvals);
