@@ -9,7 +9,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check, Eye, Inbox, Users, Scale, BarChart3, ShieldCheck } from "lucide-react";
-import { LogoMark } from "@/components/Logo";
 import { SecretHouseDoor } from "@/components/SecretHouseDoor";
 import { SlackMark, TelegramMark } from "@/components/ChatOpsLogos";
 import { useAuth } from "@/lib/engine/useAuth";
@@ -104,13 +103,12 @@ export default function LandingPage() {
       {/* ── Nav: wordmark, one link, one CTA ─────────────────────── */}
       <header className="glass-nav sticky top-0 z-30">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
-          <Link href="/" className="group flex items-center gap-2" aria-label="competitor.inc home">
-            <LogoMark className="h-7 w-7 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3" />
+          <Link href="/" className="group flex items-center" aria-label="competitor.inc home">
             <span
-              className="text-[17px] font-bold tracking-tight sm:text-lg"
-              style={{ fontFamily: "var(--font-display, inherit)" }}
+              className="text-lg tracking-tight sm:text-xl"
+              style={{ fontFamily: "var(--font-heavy)" }}
             >
-              competitor<span className="text-muted-2">.inc</span>
+              competitor<span className="text-muted-2 transition-colors duration-200 group-hover:text-text">.inc</span>
             </span>
           </Link>
           <div className="ml-auto flex items-center gap-1.5 text-sm sm:gap-3">
@@ -297,7 +295,9 @@ export default function LandingPage() {
         {/* ── Wordmark (the House door stays on the wordmark) ─────── */}
         <div className="mt-16 border-t border-border py-10">
           <SecretHouseDoor className="text-center leading-[0.85] tracking-tight text-[10vw]">
-            <span style={{ fontFamily: "var(--font-heavy)" }}>competitor.inc</span>
+            <span style={{ fontFamily: "var(--font-heavy)" }}>
+              competitor<span className="text-muted-2">.inc</span>
+            </span>
           </SecretHouseDoor>
         </div>
       </section>
