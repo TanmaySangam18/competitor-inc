@@ -211,6 +211,38 @@ export function applyRefund(txn: WalletTxn, refundCents: number): WalletTxn {
   return { ...txn, refundCents: capped, status: "refunded" };
 }
 
+/* ── spend lifecycle: request → approve → execute (the "approve option") ──────
+   NON-CUSTODIAL: the wallet is a budget + policy + audit layer, never a holder of the user's cash.
+   "Executed" means the spend cleared the caps + a human yes and fired on the user's OWN connected
+   rail (their vendor account / payment method). competitor.inc doesn't move the money, so it isn't a
+   money transmitter. requestSpend classifies; approveSpend/rejectSpend are the founder's one-tap yes/no. */
+
+// Classify a proposed spend AND produce the transaction in the right initial state:
+//   auto    → executed straight away (within caps, under the auto-approve threshold)
+//   approve → pending (parked for the human's one-tap approve)
+//   block   → blocked (recorded so the audit log shows the refusal + why)
+export function requestSpend(
+  wallet: WalletConfig,
+  req: SpendRequest,
+  txns: WalletTxn[],
+  makeId: () => string = () => crypto.randomUUID(),
+  now: number = Date.now()
+): { decision: WalletDecision; txn: WalletTxn } {
+  const decision = decideSpend(wallet, req, txns, now);
+  const status: TxnStatus = decision.verdict === "auto" ? "executed" : decision.verdict === "approve" ? "pending" : "blocked";
+  return { decision, txn: newTxn(req, status, makeId, now) };
+}
+
+// The human's one-tap yes on a pending spend → executed. No-op unless pending.
+export function approveSpend(txn: WalletTxn): WalletTxn {
+  return txn.status === "pending" ? { ...txn, status: "executed" } : txn;
+}
+
+// The human's no → blocked (never spent). No-op unless pending.
+export function rejectSpend(txn: WalletTxn): WalletTxn {
+  return txn.status === "pending" ? { ...txn, status: "blocked" } : txn;
+}
+
 export const pause = (w: WalletConfig): WalletConfig => ({ ...w, paused: true });
 export const resume = (w: WalletConfig): WalletConfig => ({ ...w, paused: false });
 export const revoke = (w: WalletConfig): WalletConfig => ({ ...w, revoked: true, paused: true });

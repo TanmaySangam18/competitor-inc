@@ -124,6 +124,10 @@ export interface Company {
   ledger: Ledger;
   product?: { url: string; status: "live" | "building" }; // the built winner (proof-of-work)
   growthGoal?: GrowthGoal;
+  // Build-in-public opt-in: when true, the crew may share this company's REAL shipped milestones on
+  // competitor.inc's OWN social accounts (never the customer's) — the platform builds in public, and
+  // that stream is itself marketing. Off by default; consent required (privacy).
+  shareInPublic?: boolean;
 }
 
 export interface EngineState {

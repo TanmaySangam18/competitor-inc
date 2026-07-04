@@ -604,7 +604,26 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
           <span>Advanced · autonomous marketing</span>
           <ChevronDown size={16} className="shrink-0 text-muted-2 transition group-open:rotate-180" />
         </summary>
-        <div className="mt-3">
+        <div className="mt-3 space-y-3">
+          {/* Build-in-public consent — the crew shares THIS company's real milestones on
+              competitor.inc's own channels (never yours). Opt-in; off by default. */}
+          <div className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-bg/40 p-4">
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-text">Build in public</div>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-muted-2">
+                Let the crew share {c.name}&apos;s <span className="text-muted">verified</span> milestones on competitor.inc&apos;s own
+                accounts — free distribution. Only real, proof-backed progress is ever posted; nothing is fabricated.
+              </p>
+            </div>
+            <button
+              role="switch"
+              aria-checked={!!c.shareInPublic}
+              onClick={() => r.setShareInPublic(!c.shareInPublic)}
+              className={`mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${c.shareInPublic ? "border-text bg-text" : "border-border bg-surface"}`}
+            >
+              <span className={`h-4 w-4 rounded-full transition ${c.shareInPublic ? "translate-x-6 bg-bg" : "translate-x-1 bg-muted-2"}`} />
+            </button>
+          </div>
           <CampaignPanel company={c} locked={!entitled} />
         </div>
       </details>

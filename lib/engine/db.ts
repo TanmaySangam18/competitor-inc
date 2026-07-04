@@ -21,6 +21,7 @@ interface CompanyRow {
   // only — persisting it fixes cron losing imported companies' "live" status between shifts.
   goal: GrowthGoal | null;
   product: Company["product"] | null;
+  share_in_public: boolean | null; // build-in-public consent (migration 0020)
   created_at: string;
 }
 interface ActivityRow {
@@ -61,6 +62,7 @@ export function toCompany(r: CompanyRow): Company {
     validation: r.validation ?? undefined,
     growthGoal: r.goal ?? undefined,
     product: r.product ?? undefined,
+    shareInPublic: r.share_in_public ?? false,
   };
 }
 function toActivity(r: ActivityRow): Activity {
@@ -133,6 +135,7 @@ export async function createCompany(sb: SupabaseClient, userId: string, c: Compa
       validation: c.validation ?? null,
       goal: c.growthGoal ?? null,
       product: c.product ?? null,
+      share_in_public: c.shareInPublic ?? false,
     })
     .select("*")
     .single();
@@ -151,6 +154,7 @@ export async function updateCompany(sb: SupabaseClient, c: Company): Promise<voi
       validation: c.validation ?? null,
       goal: c.growthGoal ?? null,
       product: c.product ?? null,
+      share_in_public: c.shareInPublic ?? false,
     })
     .eq("id", c.id);
   if (error) throw error;

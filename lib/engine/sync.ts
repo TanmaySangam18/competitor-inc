@@ -77,7 +77,8 @@ function companyChanged(a: Company, b: Company): boolean {
     JSON.stringify(a.ledger) !== JSON.stringify(b.ledger) ||
     JSON.stringify(a.validation ?? null) !== JSON.stringify(b.validation ?? null) ||
     JSON.stringify(a.product ?? null) !== JSON.stringify(b.product ?? null) ||
-    JSON.stringify(a.growthGoal ?? null) !== JSON.stringify(b.growthGoal ?? null)
+    JSON.stringify(a.growthGoal ?? null) !== JSON.stringify(b.growthGoal ?? null) ||
+    (a.shareInPublic ?? false) !== (b.shareInPublic ?? false)
   );
 }
 

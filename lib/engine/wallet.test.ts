@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 import {
   DEFAULT_WALLET,
   decideSpend,
+  requestSpend,
+  approveSpend,
+  rejectSpend,
   balanceCents,
   committedCents,
   spentThisMonthCents,
@@ -101,6 +104,33 @@ describe("wallet — decideSpend", () => {
   });
   it("rejects non-positive amounts", () => {
     expect(decideSpend(wallet(), req({ amountCents: 0 }), [], now).verdict).toBe("block");
+  });
+});
+
+describe("wallet — spend lifecycle (request → approve → execute)", () => {
+  it("auto spend executes immediately", () => {
+    const w = wallet({ autoApproveUnderCents: 2000 });
+    const { decision, txn } = requestSpend(w, req({ amountCents: 1200 }), [], () => "t1", now);
+    expect(decision.verdict).toBe("auto");
+    expect(txn.status).toBe("executed");
+  });
+  it("approve-tier spend is pending until the human's one tap", () => {
+    const w = wallet({ autoApproveUnderCents: 2000 });
+    const { decision, txn } = requestSpend(w, req({ amountCents: 5000 }), [], () => "t2", now);
+    expect(decision.verdict).toBe("approve");
+    expect(txn.status).toBe("pending");
+    expect(approveSpend(txn).status).toBe("executed");
+    expect(rejectSpend(txn).status).toBe("blocked");
+  });
+  it("blocked spend is recorded blocked (audit trail), never executed", () => {
+    const { decision, txn } = requestSpend(revoke(wallet()), req(), [], () => "t3", now);
+    expect(decision.verdict).toBe("block");
+    expect(txn.status).toBe("blocked");
+  });
+  it("approve/reject are no-ops on a non-pending txn", () => {
+    const executed = txn({ status: "executed" });
+    expect(approveSpend(executed).status).toBe("executed");
+    expect(rejectSpend(executed).status).toBe("executed");
   });
 });
 

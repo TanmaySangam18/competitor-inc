@@ -11,6 +11,8 @@ import { performanceWeightedAllocations, overageForAllocation, breachesForAlloca
 import { successRateByAgent } from "@/lib/engine/agent-performance";
 import { loadWallet } from "@/lib/engine/wallet-db";
 import { decideSpend } from "@/lib/engine/wallet";
+import { draftProgressPost, shouldShare } from "@/lib/engine/buildinpublic";
+import { postToBluesky, postToMastodon } from "@/lib/engine/execution";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY } from "@/lib/engine/policy";
 import type { Company, Activity, AgentRole } from "@/lib/engine/types";
@@ -183,6 +185,16 @@ export async function GET(req: Request) {
           night: company.night + 1,
           flags: audit.flagged.map((f) => ({ action: f.activity.action, issues: f.issues })),
         });
+      }
+
+      // Build-in-public — if this company opted in, post a REAL shipped milestone to competitor.inc's
+      // OWN social accounts (never the customer's). The public stream is the platform's marketing.
+      // Fail-soft + gated on Bluesky/Mastodon keys; posts nothing when there's no verified milestone.
+      if (shouldShare(company, activities)) {
+        const post = draftProgressPost(company, activities);
+        if (post) {
+          await Promise.allSettled([postToBluesky({ text: post }), postToMastodon({ text: post })]).catch(() => {});
+        }
       }
 
       const done = activities.filter((a) => a.status === "done");

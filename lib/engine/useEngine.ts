@@ -668,6 +668,15 @@ export function useEngine() {
     });
   }, []);
 
+  // Build-in-public consent — lets the crew share this company's real milestones on competitor.inc's
+  // own channels. Off by default; the customer flips it. Persists + syncs like any company field.
+  const setShareInPublic = useCallback((on: boolean) => {
+    setStore((s) => {
+      if (!s.activeId) return s;
+      return { ...s, companies: s.companies.map((c) => (c.id === s.activeId ? { ...c, shareInPublic: on } : c)) };
+    });
+  }, []);
+
   // Queue an approval from outside a shift (e.g. a consequential request made in chat). Keeps the
   // promise "I'll queue it for your approval" honest — the item really lands in the Approval Inbox.
   const addApproval = useCallback(
@@ -808,6 +817,7 @@ export function useEngine() {
     revalidate,
     launchBlitz,
     setGrowthGoal,
+    setShareInPublic,
     resolveApproval,
     addApproval,
     undoActivity,

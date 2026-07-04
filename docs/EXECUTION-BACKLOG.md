@@ -27,6 +27,14 @@ work moving in the meantime._
   pixel data, spending within the Wallet's `ads` budget + approval rules (exactly what the Wallet enables).
 
 ## Recently Shipped (rolling)
+- Build-in-public auto-distribution: opt-in consent toggle (Company.shareInPublic, migration 0020) →
+  cron posts a company's REAL verified milestone to competitor.inc's OWN Bluesky/Mastodon (never the
+  customer's; never fabricated). The public stream is the platform's marketing (2026-07-04, deployed).
+- Wallet spend lifecycle: requestSpend → approve/reject (the one-tap "approve option"), non-custodial
+  (budget+policy+audit over the customer's own rails; competitor.inc never holds funds → not a money
+  transmitter). Pure + tested (2026-07-04, deployed).
+- Ownership decision recorded: customer connects their own GitHub/Vercel (their repo/cost) and funds
+  their own wallet on their own rails; founder KYC is only for receiving subscription fees.
 - Launch Kit (docs/LAUNCH-KIT.md): copy-paste Show HN / Product Hunt / Reddit / X posts (honest voice,
   no fake metrics) + the 3-action "flip to live" checklist → makes the free-tier soft-launch turnkey
   for the founder. Runbook updated to migrations 0016–0019 (2026-07-04).
