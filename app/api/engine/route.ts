@@ -1,5 +1,5 @@
 import { serviceClient } from "@/lib/engine/service";
-import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply } from "@/lib/engine/server";
+import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel } from "@/lib/engine/server";
 import { capabilities } from "@/lib/engine/execution";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
@@ -11,7 +11,17 @@ import { AGENTS } from "@/lib/engine/types";
 export const runtime = "nodejs";
 
 // Health/status — confirms the engine is reachable and whether a real model is wired.
-export async function GET() {
+// `?probe=1` additionally fires a tiny real model call and reports the actual error (diagnoses a
+// misconfigured MODEL_* env — a decommissioned model id, bad key, etc.). Rate-limited: the probe
+// spends ~5 tokens, so a flood can't run up a bill.
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  if (url.searchParams.get("probe") === "1") {
+    if (process.env.VERCEL && rateLimited(clientIp(req))) {
+      return Response.json({ error: "rate limited — wait a minute and retry" }, { status: 429 });
+    }
+    return Response.json(await probeModel());
+  }
   return Response.json({
     ok: true,
     provider: process.env.MODEL_PROVIDER ?? "simulated",

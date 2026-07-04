@@ -105,7 +105,12 @@ async function callOpenAICompat(baseUrl: string, key: string, model: string, sys
     headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
     body: JSON.stringify({ model, max_tokens: maxTokens, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
   }, maxTokens > 4000 ? 60_000 : MODEL_TIMEOUT_MS);
-  if (!res.ok) throw new Error(`model ${res.status}`);
+  if (!res.ok) {
+    // Include a snippet of the provider's error body so failures are diagnosable (e.g. a decommissioned
+    // model id, or "invalid api key") instead of a bare status. Never contains our key.
+    const detail = await res.text().catch(() => "");
+    throw new Error(`model ${res.status}${detail ? `: ${detail.slice(0, 180)}` : ""}`);
+  }
   const data = await res.json();
   return data?.choices?.[0]?.message?.content ?? "";
 }
@@ -177,6 +182,29 @@ async function streamOpenAICompat(baseUrl: string, key: string, model: string, s
       } catch { /* keepalive / non-JSON line — skip */ }
     }
   })();
+}
+
+// Diagnostic: attempt a tiny (5-token) real call against the MANAGED model and report the outcome.
+// Turns the silent simulated-fallback into a visible error (e.g. "model 404: ... decommissioned" or
+// "model 401" for a bad key) so a misconfigured MODEL_* env can be pinpointed. Returns model NAMES
+// (not secrets) to spot a stale/decommissioned id. Rate-limited by the caller (tiny token cost).
+export async function probeModel(): Promise<{
+  ok: boolean;
+  provider: string;
+  models: { strong: string; mid: string; cheap: string };
+  error?: string;
+}> {
+  const provider = process.env.MODEL_PROVIDER ?? "simulated";
+  const models = { strong: MODEL, mid: MODEL_MID, cheap: MODEL_CHEAP };
+  if (!realModelConfigured()) {
+    return { ok: false, provider, models, error: "no managed model configured (MODEL_PROVIDER / key unset)" };
+  }
+  try {
+    const out = await callModel("You are a health check. Reply with the single word: OK.", "ping", undefined, undefined, 5);
+    return { ok: !!out.trim(), provider, models, error: out.trim() ? undefined : "empty completion" };
+  } catch (e) {
+    return { ok: false, provider, models, error: (e instanceof Error ? e.message : "unknown").slice(0, 220) };
+  }
 }
 
 // True when SOME model is reachable: the user's BYOK key, or a server-side env key.

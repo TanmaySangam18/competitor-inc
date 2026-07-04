@@ -26,6 +26,14 @@ export interface DelegationScene2DProps {
 
 const INK = "#14130e";
 
+// Ambient office life: a few little robots stroll the back walkway, at different speeds/depths, so the
+// room feels alive behind the seated crew. Pure CSS motion (translate across + leg scissor + bob).
+const WALKERS: { dir: "r" | "l"; dur: string; delay: string; s: number; y: number; box?: boolean }[] = [
+  { dir: "r", dur: "19s", delay: "0s", s: 0.62, y: 120 },
+  { dir: "l", dur: "26s", delay: "-9s", s: 0.5, y: 104, box: true },
+  { dir: "r", dur: "23s", delay: "-15s", s: 0.56, y: 112 },
+];
+
 export default function DelegationScene2D({
   phase,
   spotlight,
@@ -61,6 +69,22 @@ export default function DelegationScene2D({
       >
         {/* soft floor shadow under the desk */}
         <ellipse cx={W / 2} cy={deskY + 96} rx={W / 2 - 60} ry={16} fill={INK} opacity={0.05} />
+
+        {/* ambient office life — little robots strolling the back walkway (behind the seated crew) */}
+        <g fill="none" stroke={INK} strokeLinecap="round" strokeLinejoin="round">
+          <line x1={60} y1={128} x2={W - 60} y2={128} strokeWidth={2} opacity={0.16} />
+          {WALKERS.map((wk, i) => (
+            <g
+              key={`wk${i}`}
+              className={wk.dir === "r" ? "dg-walker-r" : "dg-walker-l"}
+              style={{ animationDuration: wk.dur, animationDelay: wk.delay }}
+            >
+              <g transform={`translate(0 ${wk.y}) scale(${wk.dir === "l" ? -wk.s : wk.s} ${wk.s})`}>
+                <WalkingBot box={wk.box} />
+              </g>
+            </g>
+          ))}
+        </g>
 
         <g fill="none" stroke={INK} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
           {/* the long shared desk */}
@@ -227,6 +251,41 @@ function Monitor({ cx }: { cx: number }) {
       {/* stand */}
       <line x1={cx} y1={382} x2={cx} y2={388} />
       <line x1={cx - 9} y1={388} x2={cx + 9} y2={388} strokeWidth={2.4} />
+    </g>
+  );
+}
+
+/* ── Walking robot (full-body, tiny) — drawn feet-at-y=0, centered on x=0 ─────
+   Legs scissor (opposite phase) while the body gently bobs → reads as walking as the
+   parent group translates across the floor. Optional little briefcase. */
+function WalkingBot({ box }: { box?: boolean }) {
+  return (
+    <g strokeWidth={2.6} stroke={INK} fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* legs — pivot at the hip (each leg drawn from 0,0 downward, rotated about its top) */}
+      <g transform="translate(-3 -14)">
+        <g className="dg-leg dg-leg-a">
+          <path d="M0 0 L -2 14" />
+        </g>
+      </g>
+      <g transform="translate(3 -14)">
+        <g className="dg-leg dg-leg-b">
+          <path d="M0 0 L 2 14" />
+        </g>
+      </g>
+      {/* body + head bob together */}
+      <g className="dg-stride">
+        {/* torso */}
+        <path d="M -8 -14 Q -9 -30 0 -32 Q 9 -30 8 -14 Z" fill="#fff" />
+        {/* arm + optional briefcase */}
+        <path d="M 8 -27 L 12 -19" />
+        {box && <rect x="9" y="-19" width="8" height="7" rx="1.5" fill="#fff" />}
+        {/* head */}
+        <line x1="0" y1="-51" x2="0" y2="-54" />
+        <circle cx="0" cy="-56" r="2.4" fill={INK} stroke="none" />
+        <rect x="-9" y="-50" width="18" height="16" rx="6" fill="#fff" />
+        <circle cx="-4" cy="-42" r="1.8" fill={INK} stroke="none" />
+        <circle cx="4" cy="-42" r="1.8" fill={INK} stroke="none" />
+      </g>
     </g>
   );
 }

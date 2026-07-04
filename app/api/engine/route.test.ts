@@ -22,9 +22,15 @@ const company = {
 
 describe("/api/engine route", () => {
   it("GET returns a status payload", async () => {
-    const data = await (await GET()).json();
+    const data = await (await GET(new Request("http://localhost/api/engine"))).json();
     expect(data.ok).toBe(true);
     expect(typeof data.realModelConfigured).toBe("boolean");
+  });
+
+  it("GET ?probe=1 reports the model probe result", async () => {
+    const data = await (await GET(new Request("http://localhost/api/engine?probe=1"))).json();
+    expect(typeof data.ok).toBe("boolean");
+    expect(data.models).toBeTruthy();
   });
 
   it("400 on invalid JSON", async () => {
