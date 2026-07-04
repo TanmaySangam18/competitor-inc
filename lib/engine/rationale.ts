@@ -15,6 +15,7 @@ const PRINCIPLES: Record<AgentRole, string> = {
   ceo: "Every move sits inside the unit economics — protect runway, cut what doesn't convert.",
   engineering: "Proof-of-Work: a task is done only with a verifiable artifact, never on a hunch.",
   marketing: "Validate demand before scaling spend — a costly signal beats raw reach.",
+  manufacturing: "Quality and cost-down move together — verify before ship, never cut the bar to hit a date.",
   support: "Help first; never make a promise the company can't keep.",
   growth: "Test small, bounded, and reversible — then scale only what actually converts.",
 };

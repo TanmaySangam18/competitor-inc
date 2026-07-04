@@ -109,6 +109,8 @@ export const POLICY: Policy = {
     support: { outreach: "APPROVE", build: "NEVER", deploy: "NEVER", spend: "NEVER", payments: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Growth — spots opportunities. May run experiments (spend/social/payments) with sign-off; never ships.
     growth: { spend: "APPROVE", payments: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", build: "NEVER", deploy: "NEVER", outreach: "NEVER", delete: "NEVER" },
+    // Manufacturing (dynamic-crew role) — runs ops & supply. May propose spend with sign-off; never ships code or posts.
+    manufacturing: { spend: "APPROVE", build: "NEVER", deploy: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
   },
   channels: {
     email: { allowed: "opted_in_only", compliance: ["unsubscribe_link", "sender_identity", "consent_basis"], autoSend: false },

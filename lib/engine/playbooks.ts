@@ -18,6 +18,68 @@ export interface Playbook {
 
 export const PLAYBOOKS: Playbook[] = [
   {
+    slug: "attention-first-landing",
+    title: "The attention-first landing page",
+    summary: "Visitors decide in five seconds. How to replace reading with proof — and stop losing people before they understand you.",
+    readMins: 4,
+    freeIntro: [
+      "Most startup landing pages are explanation funnels: read the hero, scroll the features, click through three more pages, and then — maybe — believe. Attention doesn't survive that. A visitor's real question was never \"how does this work?\" It's \"will this work for me, and can I see it right now?\" Every paragraph between them and that answer is a place to lose them.",
+      "The fix isn't cramming everything into smaller boxes — denser reading is still reading. The fix is substitution: replace reading with watching, and watching with doing. If a stranger can't tell what your product does, who it's for, and what to do next within five seconds of landing — without scrolling — the page is working against you.",
+    ],
+    body: [
+      {
+        heading: "The 5-second test",
+        paragraphs: [
+          "Show your page to someone for five seconds, then take it away and ask: what does it do, who is it for, what would you click? If they can't answer all three, cut until they can. The hero earns one sentence, one input or call to action, and one piece of proof — nothing else lives above the fold.",
+          "Boxes can work below the fold — but only as glanceable proof, a dozen words each, not compressed paragraphs. A wall of boxes is still a wall.",
+        ],
+      },
+      {
+        heading: "Make the product the pitch",
+        paragraphs: [
+          "The strongest landing page runs the product on the visitor's own input before asking for anything — an interactive demo, a live calculation, a real sample output. Value lands before the signup ask, which flips the psychology: they're no longer evaluating claims, they're reacting to a result. If your product can't demo itself cheaply, show a real artifact it produced — never a staged one.",
+        ],
+      },
+      {
+        heading: "Tone: receipts over adjectives",
+        paragraphs: [
+          "Cut exclamation marks, superlatives, and filler like 'seamless' — every claim either carries a verifiable receipt (a number, a link, an artifact) or gets deleted. Serious reads as trustworthy; trustworthy converts. Measure the change: time-to-first-interaction under ten seconds, share of visitors who start the demo, and demo-to-signup rate — not bounce rate alone.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "the-commitment-ladder",
+    title: "The commitment ladder",
+    summary: "Likes lie, emails hedge, money tells the truth. How to design validation asks that produce signals you can bet on.",
+    readMins: 4,
+    freeIntro: [
+      "Every validation signal has a price the other person paid to send it. A like costs nothing, so it means nothing. An email costs a little — mild interest. Thirty minutes of someone's time costs real attention. A deposit costs money. The ladder is simple: the more a signal costs the sender, the more it's worth to you — and most founders spend months collecting the free kind.",
+      "This playbook is about deliberately climbing that ladder: starting with cheap asks to find the right people, then raising the price of the ask until you learn whether anyone will actually pay. The goal isn't to maximize signups; it's to find the smallest group of people willing to make the most expensive commitment.",
+    ],
+    body: [
+      {
+        heading: "The rungs, in order",
+        paragraphs: [
+          "1) Attention: they read or click — noise unless it repeats. 2) Identity: they give an email — mild interest, easily faked by politeness. 3) Time: they take a 30-minute call about their problem (not your idea) — real. 4) Reputation: they introduce you to a colleague or say it publicly — strong. 5) Money: a pre-order, deposit, or signed order — the only rung that predicts revenue.",
+          "Design every test to capture the highest rung you can credibly ask for at that stage. A waitlist launch that could have been a $20-deposit launch wasted the traffic it got.",
+        ],
+      },
+      {
+        heading: "Raising the ask without losing the person",
+        paragraphs: [
+          "Each rung earns the right to ask for the next. Someone who gave an email gets the honest conversation ask; someone who gave a great conversation gets the founding-member offer. Skipping rungs reads as desperate; climbing them reads as momentum. And when someone declines a rung, that's data, not failure — ask what would have made it worth it, then close the loop.",
+        ],
+      },
+      {
+        heading: "Reading the ladder honestly",
+        paragraphs: [
+          "Count only the rung actually reached, never the one implied. 'They said they'd definitely pay' is rung 2 wearing a rung 5 costume — talk is a compliment, commitment is evidence. Write down, before the test, how many people at which rung equals a green light. Then believe your own threshold.",
+        ],
+      },
+    ],
+  },
+  {
     slug: "validate-before-you-build",
     title: "Validate before you build",
     summary: "How to know if anyone wants your idea — before you spend a month and your savings building it.",

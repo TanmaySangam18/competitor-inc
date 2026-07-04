@@ -3,6 +3,12 @@ import { serviceClient } from "@/lib/engine/service";
 import { runShift } from "@/lib/engine/server";
 import { insertActivities, insertApprovals, insertExperiments, closeExperiment, fetchExperiments, updateCompany, toCompany } from "@/lib/engine/db";
 import { sendEmail } from "@/lib/engine/execution";
+import { fetchOperate } from "@/lib/engine/db";
+import { generateWeeklyDigest, sendWeeklyDigest } from "@/lib/engine/weekly-review-digest";
+import { saveScorecardSnapshot, type ScorecardMetric } from "@/lib/engine/scorecard-persistence";
+import { auditShiftActivities } from "@/lib/engine/office-house-architecture";
+import type { Company } from "@/lib/engine/types";
+import type { FunnelDiagnosis } from "@/lib/engine/growth";
 import { remember, recall } from "@/lib/engine/memory";
 import { buildGraph, summarizeGraph } from "@/lib/engine/bkg";
 import { withTrace } from "@/lib/engine/observability";
@@ -43,6 +49,9 @@ export async function GET(req: Request) {
   const EMPTY = { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 };
   let ran = 0;
   let failed_companies = 0;
+  // Friday (UTC): collect each company's growth diagnosis during the loop for the weekly digest.
+  const isFriday = new Date().getUTCDay() === 5;
+  const fridayDigests: Array<{ company: Company; diagnosis: FunnelDiagnosis }> = [];
   for (const row of data ?? []) {
     // Isolate each company: one bad row (e.g. null ledger, insert error) must not abort the
     // whole nightly run for everyone else.
@@ -85,6 +94,19 @@ export async function GET(req: Request) {
           signal: g.diagnosis.signal,
           learnings: g.closed.map((x) => x.learning ?? "").filter(Boolean),
         };
+        if (isFriday) fridayDigests.push({ company, diagnosis: g.diagnosis });
+
+        // Persist a Scorecard snapshot (v0.5) so trend history accumulates for the weekly digest.
+        // Real funnel values only — nulls stay null (basis "missing"), never invented.
+        const metrics: ScorecardMetric[] = [
+          { id: "views", name: "views", value: funnel.views ?? 0, target: 0, basis: funnel.basis.views, unit: "count" },
+          { id: "signups", name: "signups", value: funnel.signups ?? 0, target: 0, basis: funnel.basis.signups, unit: "count" },
+          { id: "paying", name: "paying_customers", value: funnel.payingCustomers ?? 0, target: 0, basis: funnel.basis.paying, unit: "count" },
+          { id: "revenue", name: "revenue_cents", value: funnel.revenueCents ?? 0, target: 0, basis: funnel.basis.revenue, unit: "cents" },
+        ];
+        await saveScorecardSnapshot(company.id, company.night + 1, metrics, g.diagnosis.constraint, g.diagnosis.signal).catch(
+          (e) => console.error("[/api/cron] scorecard snapshot:", e?.message)
+        );
       } catch (e) {
         console.error("[/api/cron] growth step failed:", e instanceof Error ? e.message : "unknown");
       }
@@ -93,6 +115,17 @@ export async function GET(req: Request) {
       const { activities, approvals } = await withTrace("shift", () => runShift(company, undefined, priorContext, growthContext), { companyId: company.id, night: company.night });
       await insertActivities(sb, company.id, activities);
       await insertApprovals(sb, company.id, approvals);
+
+      // Office · Chief Audit Officer — review this shift's work; flag overclaims / unproven
+      // high-cost actions so the founder sees them in the alert feed (governance that REACTS).
+      const audit = auditShiftActivities(activities);
+      if (audit.flagged.length > 0) {
+        raiseAlert("forbidden_attempt", `Audit flagged ${audit.flagged.length} action(s) for ${company.name}`, {
+          companyId: company.id,
+          night: company.night + 1,
+          flags: audit.flagged.map((f) => ({ action: f.activity.action, issues: f.issues })),
+        });
+      }
 
       const done = activities.filter((a) => a.status === "done");
       const failed = activities.filter((a) => a.status === "failed-credited");
@@ -137,5 +170,30 @@ export async function GET(req: Request) {
     });
   }
 
-  return Response.json({ ran, failed: failed_companies });
+  // ── Friday: the CEO's weekly review digest (v0.5) — Rocks, Issues, constraint, next-week focus.
+  // Best-effort per company; a digest failure never breaks the heartbeat. Gated on the same
+  // recipient as the morning summary. Trend history stays sparse until scorecard snapshots
+  // accumulate (known follow-up: snapshot writes still use the cookie-bound client).
+  if (isFriday && to && fridayDigests.length > 0) {
+    for (const d of fridayDigests) {
+      try {
+        const operate = await fetchOperate(sb, d.company.id).catch(() => ({ rocks: [], issues: [] }));
+        const digest = await generateWeeklyDigest(
+          d.company,
+          operate.rocks,
+          operate.issues,
+          `${d.diagnosis.constraint}: ${d.diagnosis.signal}`,
+          d.diagnosis.recommendation,
+          d.diagnosis.principle,
+          d.company.night,
+          Math.max(1, 90 - (d.company.night % 90))
+        );
+        await sendWeeklyDigest(digest, to, process.env.TELEGRAM_CHAT_ID, process.env.SLACK_DIGEST_CHANNEL);
+      } catch (e) {
+        console.error("[/api/cron] weekly digest failed:", e instanceof Error ? e.message : "unknown");
+      }
+    }
+  }
+
+  return Response.json({ ran, failed: failed_companies, digests: isFriday ? fridayDigests.length : 0 });
 }

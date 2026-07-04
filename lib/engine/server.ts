@@ -7,6 +7,8 @@ import "server-only";
 
 import { getProvider, scoreIdea, type ShiftResult } from "./provider";
 import { governApprovals } from "./policy";
+import { rolesForIdea } from "./dynamic-crew";
+import { enrichActivitiesWithSubAgents, flattenActivitiesForGlassBox } from "./shift-with-subagents";
 import type { Activity, ActivityStatus, AgentRole, ApprovalItem, ApprovalKind, ByokConfig, Company, GrowthGoal, ValidationResult } from "./types";
 import { AGENTS } from "./types";
 
@@ -31,21 +33,13 @@ const MODEL_CHEAP = process.env.MODEL_CHEAP || "claude-haiku-4-5";
 const MODEL_MID = process.env.MODEL_MID || "claude-sonnet-5";
 
 // Per-agent model routing — three tiers, chosen to minimize cost per shift without dumbing down the
-// work that earns trust (2026-07-03 token-savings pass):
-//   STRONG (Opus 4.8, $5/$25)  → engineering (Forge authors real production code — quality IS the product)
-//   MID    (Sonnet 5, $3/$15)  → ceo (nightly judgment + growth diagnosis: near-Opus agentic quality,
-//                                 ~40-60% cheaper on the run's dominant call)
-//   CHEAP  (Haiku 4.5, $1/$5)  → marketing/support/growth copy + light analysis
-// The managed engine honors this; BYOK always uses the user's own chosen model.
-const TIER: Record<AgentRole, "strong" | "mid" | "cheap"> = {
-  engineering: "strong",
-  ceo: "mid",
-  marketing: "cheap",
-  support: "cheap",
-  growth: "cheap",
-};
+// work that earns trust (2026-07-03 token-savings pass). The tier map's single source of truth
+// lives in ./per-agent-model-routing (shared with cost estimation + telemetry); this resolver adds
+// the env-overridable model ids. The managed engine honors this; BYOK always uses the user's model.
+import { AGENT_MODEL_TIER } from "./per-agent-model-routing";
+
 export function modelForAgent(role: AgentRole): string {
-  const tier = TIER[role] ?? "cheap";
+  const tier = AGENT_MODEL_TIER[role] ?? "cheap";
   return tier === "strong" ? MODEL : tier === "mid" ? MODEL_MID : MODEL_CHEAP;
 }
 
@@ -459,8 +453,21 @@ export interface GrowthShiftContext {
   learnings: string[];
 }
 
+// Sub-agent breakdown (Paperclip-style, one per shift): after a shift resolves, the single most
+// complex piece of work by a role that carries sub-agent templates fans out into scope-breakdown
+// children (cost 0 — the parent's cost already counts; parentActivityId links the hierarchy in the
+// Glass Box). Fail-soft: any error returns the shift untouched.
+async function withSubAgentBreakdown(result: ShiftResult, company: Company, night: number): Promise<ShiftResult> {
+  try {
+    const enriched = await enrichActivitiesWithSubAgents(result.activities, company, night);
+    return { ...result, activities: flattenActivitiesForGlassBox(enriched) };
+  } catch {
+    return result;
+  }
+}
+
 export async function runShift(company: Company, byok?: ByokConfig, context?: string, growth?: GrowthShiftContext): Promise<ShiftResult> {
-  if (!modelAvailable(byok)) return governShift(getProvider().shift(company));
+  if (!modelAvailable(byok)) return withSubAgentBreakdown(governShift(getProvider().shift(company)), company, company.night + 1);
   const night = company.night + 1;
   const isImported = company.product?.status === "live";
   const distributionConstraint = isImported
@@ -471,7 +478,7 @@ export async function runShift(company: Company, byok?: ByokConfig, context?: st
     : "";
   try {
     const text = await callModel(
-      `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${ROLES.join(", ")}.${distributionConstraint}${growthBlock} ` +
+      `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${rolesForIdea(company.idea).join(", ")}.${distributionConstraint}${growthBlock} ` +
         "Produce 3-5 realistic actions taken overnight. Build on priorContext (what earlier nights did) — stay consistent; don't repeat or contradict past decisions. " +
         "Consequential actions (spend>$100, outreach, deploy, delete, twitter posts, linkedin posts) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
         '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-credited","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete"|"twitter"|"linkedin","title":string,"detail":string,"amount":number}]}',
@@ -500,8 +507,8 @@ export async function runShift(company: Company, byok?: ByokConfig, context?: st
       amount: p.amount != null ? Math.max(0, num(p.amount)) : undefined,
     }));
     if (activities.length === 0 && approvals.length === 0) throw new Error("empty");
-    return governShift({ activities, approvals });
+    return withSubAgentBreakdown(governShift({ activities, approvals }), company, night);
   } catch {
-    return governShift(getProvider().shift(company)); // graceful degradation
+    return withSubAgentBreakdown(governShift(getProvider().shift(company)), company, company.night + 1); // graceful degradation
   }
 }

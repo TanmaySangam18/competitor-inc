@@ -26,6 +26,7 @@ import {
   Settings,
   Send,
   Activity as ActivityIcon,
+  Brain as BrainIcon,
   LineChart,
   MessagesSquare,
   Zap,
@@ -59,6 +60,7 @@ import MorningBrief from "@/components/MorningBrief";
 import { Onboarding } from "@/components/dashboard/Onboarding";
 import { ChatTab } from "@/components/dashboard/ChatTab";
 import { CrewBoard } from "@/components/dashboard/CrewBoard";
+import { BrainTab } from "@/components/dashboard/BrainTab";
 import { OperateTab } from "@/components/dashboard/OperateTab";
 import { ActivityRow } from "@/components/dashboard/ActivityRow";
 import { ApprovalCard } from "@/components/dashboard/ApprovalCard";
@@ -88,7 +90,7 @@ const signalStyle = {
 // the launch build keeps it off to shrink the launch surface until v0.2.0, per the blueprint).
 const OPERATE_ENABLED = process.env.NEXT_PUBLIC_OPERATE !== "0";
 
-type Tab = "operations" | "growth" | "history" | "chat" | "operate";
+type Tab = "operations" | "growth" | "history" | "chat" | "brain" | "operate";
 
 export default function Dashboard() {
   const r = useEngine();
@@ -510,6 +512,7 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
     { id: "growth", label: "Growth", icon: Target },
     { id: "history", label: "History", icon: LineChart },
     { id: "chat", label: "Chat", icon: MessagesSquare },
+    { id: "brain", label: "Brain", icon: BrainIcon },
     ...(OPERATE_ENABLED ? [{ id: "operate" as Tab, label: "Operate", icon: Gauge }] : []),
   ];
 
@@ -712,6 +715,7 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
         {tab === "growth" && <GrowthPanel company={c} experiments={r.experiments} />}
         {tab === "history" && <HistoryTab activities={r.activities} company={c} />}
         {tab === "chat" && <ChatTab company={c} r={r} />}
+        {tab === "brain" && <BrainTab r={r} />}
         {tab === "operate" && OPERATE_ENABLED && <OperateTab r={r} c={c} />}
       </div>
     </div>

@@ -28,6 +28,9 @@ export interface DelegationSceneProps {
   vivid?: boolean;
   /** Give the figures faces (eyes + a smile) — Disney "appeal", so they read as characters. */
   faces?: boolean;
+  /** Which crew is on the floor. Defaults to the canonical five; a dynamic crew (see
+   *  lib/engine/delegation.ts delegationForCrew) adds/removes figures — e.g. Rig for EV ideas. */
+  agents?: DelegationAgent[];
 }
 
 interface Char {
@@ -51,7 +54,7 @@ function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-export default function DelegationScene({ phase, spotlight, speech = null, vivid = false, faces = false }: DelegationSceneProps) {
+export default function DelegationScene({ phase, spotlight, speech = null, vivid = false, faces = false, agents = DELEGATION }: DelegationSceneProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   // Latest props read by the animation loop without re-instantiating the scene.
@@ -140,7 +143,7 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
     scene.add(tableLeg);
     const tableGlow = new THREE.Mesh(
       new THREE.RingGeometry(1.5, 1.62, 48),
-      new THREE.MeshBasicMaterial({ color: 0xff5a36, transparent: true, opacity: 0.3 })
+      new THREE.MeshBasicMaterial({ color: 0x14130e, transparent: true, opacity: 0.3 })
     );
     tableGlow.rotation.x = -Math.PI / 2;
     tableGlow.position.y = 0.705;
@@ -154,6 +157,39 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
     youSeat.rotation.x = -Math.PI / 2;
     youSeat.position.set(0, 0.02, -1.95);
     scene.add(youSeat);
+
+    // ── The company being built — a construction site rising in the background ──
+    // Floors stack up while the crew works; when the tower tops out, it starts over
+    // (a company is never "done"). Monochrome ink, like everything on this floor.
+    const site = new THREE.Group();
+    site.position.set(-4.4, 0, -4.6);
+    site.rotation.y = Math.PI / 5;
+    scene.add(site);
+    const FLOORS = 6;
+    const floorMeshes: THREE.Mesh[] = [];
+    for (let f = 0; f < FLOORS; f++) {
+      const m = new THREE.Mesh(
+        new THREE.BoxGeometry(1.35, 0.32, 1.35),
+        new THREE.MeshStandardMaterial({ color: f % 2 ? 0x1b1a16 : 0x252420, roughness: 0.85 })
+      );
+      m.position.y = 0.16 + f * 0.34;
+      m.scale.setScalar(0.001);
+      site.add(m);
+      floorMeshes.push(m);
+    }
+    const craneMat = new THREE.MeshStandardMaterial({ color: 0x14130e, roughness: 0.8 });
+    const mast = new THREE.Mesh(new THREE.BoxGeometry(0.07, 3.1, 0.07), craneMat);
+    mast.position.set(1.05, 1.55, 0);
+    const jib = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.06, 0.06), craneMat);
+    jib.position.set(0.3, 3.03, 0);
+    const cable = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.85, 0.018), craneMat);
+    cable.position.set(-0.42, 2.55, 0);
+    const hook = new THREE.Mesh(
+      new THREE.BoxGeometry(0.2, 0.2, 0.2),
+      new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.7 })
+    );
+    hook.position.set(-0.42, 2.05, 0);
+    site.add(mast, jib, cable, hook);
 
     // ── Desks (one per agent) ─────────────────────────────────────
     function buildDesk(x: number, z: number) {
@@ -179,11 +215,11 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
       g.lookAt(0, 0, 0);
       return g;
     }
-    DELEGATION.forEach((a) => scene.add(buildDesk(a.desk[0], a.desk[1])));
+    agents.forEach((a) => scene.add(buildDesk(a.desk[0], a.desk[1])));
 
     // ── Characters ────────────────────────────────────────────────
     const chars: Char[] = [];
-    DELEGATION.forEach((agent, i) => {
+    agents.forEach((agent, i) => {
       const hex = vivid ? new THREE.Color(agent.color) : new THREE.Color().setHSL(0.1, 0.1, 0.14 + agent.tone * 0.06);
       const group = new THREE.Group();
 
@@ -222,6 +258,32 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
         head.add(mouth);
       }
 
+      // Business attire — tiny suited figures: white shirt, black tie, briefcase in hand.
+      const shirt = new THREE.Mesh(
+        new THREE.BoxGeometry(0.17, 0.3, 0.02),
+        new THREE.MeshStandardMaterial({ color: 0xf5f2e8, roughness: 0.85 })
+      );
+      shirt.position.set(0, 0.82, 0.305);
+      const tie = new THREE.Mesh(
+        new THREE.BoxGeometry(0.05, 0.24, 0.015),
+        new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.7 })
+      );
+      tie.position.set(0, 0.79, 0.32);
+      const briefcase = new THREE.Group();
+      const caseBody = new THREE.Mesh(
+        new THREE.BoxGeometry(0.26, 0.19, 0.07),
+        new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.6 })
+      );
+      const caseHandle = new THREE.Mesh(
+        new THREE.BoxGeometry(0.1, 0.025, 0.02),
+        new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.6 })
+      );
+      caseHandle.position.y = 0.115;
+      briefcase.add(caseBody, caseHandle);
+      briefcase.position.set(0.4, 0.3, 0.02);
+      group.add(shirt, tie, briefcase);
+      group.userData.briefcase = briefcase;
+
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(0.32, 0.4, 32),
         new THREE.MeshBasicMaterial({
@@ -239,7 +301,7 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
       scene.add(group);
 
       // collaboration seat around the table
-      const ang = (i / DELEGATION.length) * Math.PI * 2 - Math.PI / 2;
+      const ang = (i / agents.length) * Math.PI * 2 - Math.PI / 2;
       const seat = new THREE.Vector2(Math.cos(ang) * 2.1, Math.sin(ang) * 2.1);
 
       // DOM label
@@ -366,6 +428,15 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
       rim.intensity = working ? 30 : 16;
       tableGlow.material.opacity = working ? 0.34 : 0.16;
 
+      // Construction loop — one floor rises every ~3s; after topping out, the site restarts.
+      const buildT = (elapsed % ((FLOORS + 2) * 3)) / 3;
+      floorMeshes.forEach((m, f) => {
+        const t = THREE.MathUtils.clamp(buildT - f, 0, 1);
+        if (t <= 0) m.scale.setScalar(0.001);
+        else m.scale.set(1, 0.25 + 0.75 * t, 1);
+      });
+      hook.position.y = 2.05 + Math.sin(elapsed * 0.8) * 0.18;
+
       chars.forEach((c) => {
         const isSpot = spot === c.agent.role;
         const pos = new THREE.Vector2(c.group.position.x, c.group.position.z);
@@ -384,8 +455,10 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
               const targetFace = Math.atan2(dir.x, dir.y);
               c.facing += (targetFace - c.facing) * Math.min(1, dt * 8);
               c.group.rotation.y = c.facing;
-              // subtle walking bob
+              // subtle walking bob + briefcase swing
               c.head.position.y = 1.3 + Math.sin(elapsed * 9 + c.agent.tone * 6) * 0.02;
+              const bc = c.group.userData.briefcase as THREE.Group | undefined;
+              if (bc) bc.rotation.x = Math.sin(elapsed * 9 + c.agent.tone * 6) * 0.18;
             }
             if (dist < 0.12) {
               c.wait = rand(0.5, 1.8);
@@ -458,7 +531,9 @@ export default function DelegationScene({ phase, spotlight, speech = null, vivid
       renderer.dispose();
       if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
     };
-  }, []);
+    // Rebuild the floor only when the crew itself changes (vivid/faces are per-deploy constants).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agents]);
 
   return (
     <div className="relative h-full w-full overflow-hidden">

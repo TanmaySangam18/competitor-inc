@@ -106,6 +106,10 @@ That single principle shapes every feature:
 
 ## 4 · Every feature, in plain English
 
+- **Attention‑first landing** — The home page *runs the product* before it asks for anything: type an
+  idea in the hero and watch the crew validate it live (the deterministic, keyless simulated engine,
+  in your browser). Below it, a bento grid of glanceable proofs. Monochrome "paper & ink" liquid‑glass
+  design — no color except meaning. See `docs/PLAYBOOK-attention-first-landing.md`.
 - **Validation Gate** — Describe your idea in a sentence. competitor.inc runs **four experiments**
   (landing page + waitlist, fake‑door click test, a small paid demand test, and search demand),
   scores each as positive/weak/negative, and produces a **confidence %** and an honest verdict:
@@ -117,6 +121,18 @@ That single principle shapes every feature:
   - **Pitch · Marketing** — runs demand tests & campaigns, finds the one channel that works · playbook: *Bullseye / Traction* (Weinberg & Mares)
   - **Guard · Support** — handles users; can refund, *can't* touch payments · playbook: *The Effortless Experience* (CEB)
   - **Surge · Growth** — spots trends & **loads the surprise‑launch blitz** (big‑bang drop, not build‑in‑public) · playbook: *Hacking Growth* (Sean Ellis)
+- **Dynamic crew from real org structures** — When an idea matches a benchmark we hold org data for
+  (e.g. an EV idea → Tesla, a productivity/SaaS idea → Notion), the crew is generated from that
+  company's actual roles — adding agents like a Manufacturing lead and nesting **sub‑agents**
+  (Paperclip‑style: Manufacturing → Supply Chain + Quality). Ideas without a matching benchmark get
+  the default five — we never invent a crew we can't back with data. See `lib/engine/dynamic-crew.ts`.
+- **The Delegation (living 3D office)** — `/delegation`: the crew as tiny suited figures with
+  briefcases, walking, collaborating, and cracking jokes, while a company‑being‑built construction
+  site rises in the background. Wired to real engine state; the destination after a build is approved.
+- **The Company Brain** — A dashboard tab that renders the company's whole decision history as a
+  tappable graph (center = company, ring = nights, leaves = every action & approval). Tap any node
+  for the **why** (rationale), **how** (proof + cost), and a playbook‑grounded **founder lesson** —
+  including *why* a rejected action never ran. Operating knowledge founders usually pay years to learn.
 - **The Glass Box** — A public, real‑time log of *every* action, each with a cost and a proof artifact
   (a URL, a build result, or a metric). Total transparency.
 - **Approval Inbox** — Anything consequential (spend over a threshold, outreach, deploys, deletions)
@@ -125,8 +141,9 @@ That single principle shapes every feature:
   work allowance** — you're simply never charged for work that didn't land (competitor.inc absorbs its
   own compute cost). It is *not* money returned to your card, and it's separate from real ad spend on
   your own connected accounts. You pay for work that worked.
-- **Chat with your co‑founder** — A streaming chat to ask questions and direct the work; it queues
-  consequential requests for approval rather than just doing them.
+- **Chat with your co‑founder + ChatOps** — A streaming chat to ask questions and direct the work; it
+  queues consequential requests for approval rather than just doing them. Approve from your phone via
+  **Telegram or Slack** (`docs/SLACK-CHATOPS-SETUP.md`) — same audit trail, buttons on the message.
 - **Autopilot / nightly heartbeat** — Toggle autopilot and it runs shifts on an interval; deployed, a
   nightly cron does the same for every operating company.
 - **Public `/live` board** — A shareable, real‑time view of every company being validated and built —
@@ -404,12 +421,20 @@ For the person deploying this (the "techie friend"):
 ## 16 · Status & roadmap
 
 - **Status:** feature‑complete, hardened, and deployed to Vercel (`competitor-inc-zeta.vercel.app`).
-  Runs end‑to‑end today — validation, Glass Box, Approvals, ChatOps (Telegram), Polar billing.
-- **Before launch (needs the owner's credentials):** provision Supabase, set the Polar checkout link
-  (`NEXT_PUBLIC_CHECKOUT_URL`) + webhook secret (`POLAR_WEBHOOK_SECRET`), finish Polar KYC.
-- **Post‑launch v2 candidates:** Rationale Stream, Background Knowledge Graph on-demand, import
-  on-ramp (existing-site enrichment), per-agent model routing (Opus/Haiku split), real coding agent
-  (Forge → Claude Agent SDK). See [`docs/ROADMAP-V2.md`](docs/ROADMAP-V2.md).
+  Runs end‑to‑end today — attention‑first landing with a live demo, validation, dynamic crews +
+  sub‑agents, the Delegation office, the Company Brain, Glass Box, Approvals, ChatOps
+  (Telegram **and** Slack), per‑agent model routing (Opus/Sonnet/Haiku), and Polar billing.
+- **Before launch (needs the owner's credentials):** provision Supabase and **run the pending
+  migrations** (`0009`–`0017`) via the SQL editor — see [`docs/GO-LIVE-RUNBOOK.md`](docs/GO-LIVE-RUNBOOK.md);
+  set the Polar checkout link (`NEXT_PUBLIC_CHECKOUT_URL`) + webhook secret (`POLAR_WEBHOOK_SECRET`),
+  finish Polar KYC; optional Slack keys (`docs/SLACK-CHATOPS-SETUP.md`).
+- **Shipped since v0.3:** dynamic agent generation (Tesla/Notion benchmarks), Paperclip‑style
+  sub‑agent orchestration, the Company Brain decision graph, the bento monochrome landing with a live
+  demo, Slack ChatOps, persistent Scorecard history + an automated Friday review digest, and the
+  Office/House two‑layer governance model. Feature deep‑dives in [`docs/FEATURES-COMPLETE.md`](docs/FEATURES-COMPLETE.md).
+- **Post‑launch v2 candidates:** wire the v0.5 governance libs (Office/House, Scorecard snapshots via
+  the service client) into the live loop, more benchmark orgs, real coding agent (Forge → Claude Agent
+  SDK). See [`docs/ROADMAP-V2.md`](docs/ROADMAP-V2.md).
 
 ---
 

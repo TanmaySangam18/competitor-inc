@@ -12,7 +12,8 @@ import dynamic from "next/dynamic";
 import { ArrowLeft, ExternalLink, Inbox, Loader2, MessagesSquare, Play, Power, Send, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { useEngine } from "@/lib/engine/useEngine";
-import { DELEGATION, toneHex } from "@/lib/engine/delegation";
+import { DELEGATION, delegationForCrew, toneHex } from "@/lib/engine/delegation";
+import { generateCrewFromIdea, matchBenchmarkCompany } from "@/lib/engine/dynamic-crew";
 import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
 import { getByok } from "@/lib/engine/config";
@@ -33,6 +34,18 @@ const BY_ROLE = Object.fromEntries(DELEGATION.map((a) => [a.role, a])) as Record
 
 export default function DelegationPage() {
   const r = useEngine();
+
+  // The floor crew: dynamic when the idea matches a benchmark we hold org data for, else the
+  // canonical five. Deterministic + memoized on the idea, so the 3D scene only rebuilds on change.
+  const crew = useMemo(() => {
+    const idea = r.company?.idea;
+    if (!idea || !matchBenchmarkCompany(idea)) return DELEGATION;
+    try {
+      return delegationForCrew(generateCrewFromIdea(idea).agents);
+    } catch {
+      return DELEGATION;
+    }
+  }, [r.company?.idea]);
 
   const operating = r.company?.status === "operating";
   const live = r.activities.filter((a) => !a.undone);
@@ -165,7 +178,7 @@ export default function DelegationPage() {
   return (
     <main id="main" className="relative h-[100dvh] w-full overflow-hidden bg-bg mesh">
       <div className="absolute inset-0">
-        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} faces vivid />
+        <DelegationScene phase={phase} spotlight={spotlight} speech={speaker} faces agents={crew} />
       </div>
 
       {/* Top bar */}
@@ -262,7 +275,7 @@ export default function DelegationPage() {
       <aside className="glass-panel pointer-events-auto absolute bottom-4 left-4 z-20 w-[17rem] max-w-[calc(100vw-2rem)] rounded-2xl p-4">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-2">The crew</h2>
         <ul className="mt-3 space-y-2.5">
-          {DELEGATION.map((a) => {
+          {crew.map((a) => {
             const active = spotlight === a.role;
             return (
               <li key={a.role} className="flex items-start gap-2.5">
@@ -354,7 +367,7 @@ export default function DelegationPage() {
                 aria-label="Pick which agent to ask"
                 className="w-[5.2rem] shrink-0 truncate rounded-lg border border-border bg-surface px-1.5 py-1.5 text-[11px] outline-none"
               >
-                {DELEGATION.map((a) => (
+                {crew.map((a) => (
                   <option key={a.role} value={a.role}>{a.name}</option>
                 ))}
               </select>

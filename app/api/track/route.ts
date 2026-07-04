@@ -42,21 +42,31 @@ export async function POST(req: Request) {
   const source = typeof body.source === "string" ? body.source.slice(0, 60) : null;
 
   if (!SLUG_RE.test(slug)) return Response.json({ ok: false, error: "bad slug" }, { status: 400, headers: CORS });
-  // Public pixel may only report views and signups. Purchases come from the payment webhook alone.
-  if (type !== "view" && type !== "signup") {
-    return Response.json({ ok: false, error: "type must be view|signup" }, { status: 400, headers: CORS });
+  // Public pixel may only report views, signups, and hero-demo events. Purchases come from the
+  // payment webhook alone. Demo events are restricted to OUR first-party pages (reserved slugs) —
+  // they measure the attention-first playbook's triggers, never a customer's demand test.
+  const isDemoType = type === "demo_start" || type === "demo_verdict";
+  const isReservedSlug = slug === "home" || slug === "nu";
+  if (type !== "view" && type !== "signup" && !isDemoType) {
+    return Response.json({ ok: false, error: "type must be view|signup|demo_start|demo_verdict" }, { status: 400, headers: CORS });
+  }
+  if (isDemoType && !isReservedSlug) {
+    return Response.json({ ok: false, error: "demo events are first-party only" }, { status: 400, headers: CORS });
   }
 
   const client = sb();
   if (!client) return Response.json({ ok: true, persisted: false }, { headers: CORS });
 
   try {
-    // Slug must belong to something real — a demand test or a company.
-    const [dt, co] = await Promise.all([
-      client.from("demand_tests").select("slug").eq("slug", slug).maybeSingle(),
-      client.from("companies").select("slug").eq("slug", slug).maybeSingle(),
-    ]);
-    if (!dt.data && !co.data) return Response.json({ ok: false, error: "unknown slug" }, { status: 404, headers: CORS });
+    // Slug must belong to something real — a demand test or a company. Reserved first-party slugs
+    // (our own landing pages) are exempt from the join check.
+    if (!isReservedSlug) {
+      const [dt, co] = await Promise.all([
+        client.from("demand_tests").select("slug").eq("slug", slug).maybeSingle(),
+        client.from("companies").select("slug").eq("slug", slug).maybeSingle(),
+      ]);
+      if (!dt.data && !co.data) return Response.json({ ok: false, error: "unknown slug" }, { status: 404, headers: CORS });
+    }
 
     // Salted daily dedup — one view per visitor/slug/day, never a raw IP at rest.
     const salt = process.env.TRACK_SALT;

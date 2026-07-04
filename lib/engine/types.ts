@@ -1,6 +1,6 @@
 // Core domain types for the competitor.inc autonomous company OS.
 
-export type AgentRole = "ceo" | "engineering" | "marketing" | "support" | "growth";
+export type AgentRole = "ceo" | "engineering" | "marketing" | "manufacturing" | "support" | "growth";
 
 export type CompanyStatus =
   | "validating" // the Validation Gate is running
@@ -50,6 +50,10 @@ export interface Activity {
   status: ActivityStatus;
   proof?: Proof;
   undone?: boolean;
+  // Parent activity ID for sub-agent work (hierarchical execution)
+  parentActivityId?: string;
+  // Sub-activities spawned by this agent (for Manufacturing → Supply Chain + QA, etc.)
+  subActivities?: Activity[];
   // The Rationale Stream (PDR §6): the "why" behind an action. Optional + usually DERIVED for display
   // (see lib/engine/rationale.ts) so it works for every action without storage; a real engine may attach
   // a richer one. The Glass Box, the founder/customer views, and the proof board all read this.
@@ -67,6 +71,28 @@ export interface ApprovalItem {
   detail: string;
   amount?: number;
   resolved?: "approved" | "rejected";
+}
+
+/* ── Sub-Agent Orchestration (Paperclip-style hierarchical agents) ────────────────── */
+
+export type SubAgentStatus = "idle" | "running" | "waiting_approval" | "blocked" | "done" | "failed";
+
+export interface SubAgent {
+  id: string;
+  name: string;
+  parentAgentId: string;
+  scope: string[]; // areas of responsibility
+  blockingOn: string[]; // other sub-agents or activities this one depends on
+  status: SubAgentStatus;
+  spendCap: number;
+  allocated: number; // amount allocated from parent's cap
+  spent: number; // amount actually spent
+}
+
+// Hierarchical agent execution tracking
+export interface AgentHierarchy {
+  topLevelAgents: AgentRole[];
+  subAgentsByParent: Map<string, SubAgent[]>;
 }
 
 export interface Ledger {
@@ -193,6 +219,17 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     ],
     icp: "First-time / student founders building their first company",
     objections: ["Is this a scam?", "Will it spend my money without asking?", "Am I locked in?", "What if it tells me not to build?"],
+  },
+  manufacturing: {
+    name: "Rig",
+    label: "Manufacturing",
+    blurb: "Runs ops & supply — sourcing, quality, cost-down (dynamic-crew ideas that ship physical product)",
+    playbook: "Toyota Production System (lean ops)",
+    responsibilities: [
+      "Own the supply chain — sourcing, supplier relationships, lead times",
+      "Own quality — test protocols, defect analysis, verify-before-ship",
+      "Drive cost per unit down without cutting the quality bar",
+    ],
   },
   support: {
     name: "Guard",
