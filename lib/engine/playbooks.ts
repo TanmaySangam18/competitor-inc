@@ -724,3 +724,16 @@ export const PLAYBOOKS: Playbook[] = [
 export function getPlaybook(slug: string): Playbook | undefined {
   return PLAYBOOKS.find((p) => p.slug === slug);
 }
+
+// "Read next" — the n playbooks AFTER this one in the list, wrapping around, excluding self. Chosen
+// deterministically by position (not "the same top 3 everywhere") so internal links fan out across the
+// whole library — every playbook both receives and passes link equity, and readers always have a next step.
+export function readNext(slug: string, n = 3): Playbook[] {
+  const i = PLAYBOOKS.findIndex((p) => p.slug === slug);
+  if (i < 0) return PLAYBOOKS.slice(0, n);
+  const out: Playbook[] = [];
+  for (let k = 1; k <= PLAYBOOKS.length - 1 && out.length < n; k++) {
+    out.push(PLAYBOOKS[(i + k) % PLAYBOOKS.length]);
+  }
+  return out;
+}

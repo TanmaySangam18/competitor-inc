@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Clock, Lock, Check } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
-import { PLAYBOOKS, getPlaybook } from "@/lib/engine/playbooks";
+import { PLAYBOOKS, getPlaybook, readNext } from "@/lib/engine/playbooks";
 import { SITE_URL } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -30,6 +30,7 @@ export default async function PlaybookDetail({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const pb = getPlaybook(slug);
   if (!pb) notFound();
+  const next = readNext(slug, 3);
 
   return (
     <div id="main" className="min-h-screen">
@@ -103,15 +104,40 @@ export default async function PlaybookDetail({ params }: { params: Promise<{ slu
 
         <div className="mt-12 flex flex-wrap items-center justify-center gap-3 border-t border-border pt-10">
           <Link
-            href="/dashboard"
+            href="/"
             className="group inline-flex items-center gap-2 rounded-xl bg-text px-6 py-3.5 font-semibold text-bg transition hover:opacity-90"
           >
-            Try it free <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
+            Try it free — watch a crew validate your idea <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
           </Link>
           <Link href="/playbooks" className="inline-flex items-center gap-2 rounded-xl glass px-6 py-3.5 font-semibold transition hover:border-white/25">
             More playbooks
           </Link>
         </div>
+
+        {/* Read next — contextual internal links (SEO link equity + keeps readers going deeper). */}
+        {next.length > 0 && (
+          <div className="mt-16 border-t border-border pt-10">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-2">Read next</h2>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              {next.map((p) => (
+                <Link
+                  key={p.slug}
+                  href={`/playbooks/${p.slug}`}
+                  className="group rounded-2xl glass-panel p-5 transition hover:border-white/25"
+                >
+                  <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-2">
+                    <Clock size={11} /> {p.readMins} min
+                  </span>
+                  <div className="mt-2 font-semibold leading-snug transition group-hover:text-text">{p.title}</div>
+                  <p className="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-muted">{p.summary}</p>
+                  <span className="mt-3 inline-flex items-center gap-1 text-[13px] font-medium text-muted transition group-hover:text-text">
+                    Read <ArrowRight size={13} className="transition group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </article>
     </div>
   );
