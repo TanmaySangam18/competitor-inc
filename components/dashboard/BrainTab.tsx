@@ -11,6 +11,7 @@ import { useMemo, useState } from "react";
 import type { useEngine } from "@/lib/engine/useEngine";
 import { AGENTS, type Activity, type ApprovalItem, type ApprovalKind } from "@/lib/engine/types";
 import { rationaleFor } from "@/lib/engine/rationale";
+import { auditShiftActivities } from "@/lib/engine/office-house-architecture";
 
 type NodeStatus = "done" | "failed" | "rejected" | "approved" | "pending";
 
@@ -25,6 +26,7 @@ interface BrainNode {
   y: number;
   activity?: Activity;
   approval?: ApprovalItem;
+  auditIssues?: string[]; // Office Chief Audit Officer flags (overclaim / unproven high cost)
 }
 
 // The founder lesson behind each approval kind — why this class of decision deserves a human.
@@ -52,6 +54,10 @@ export function BrainTab({ r }: { r: ReturnType<typeof useEngine> }) {
   const { nodes, hubs, stats } = useMemo(() => {
     const live = r.activities.filter((a) => !a.undone);
     const approvals = r.approvals;
+
+    // Run the SAME Office audit the cron runs (pure fn) so the graph shows exactly what the backend
+    // flagged — overclaims and unproven high-cost actions — as a badge on the node, no persistence.
+    const auditMap = new Map(auditShiftActivities(live).flagged.map((f) => [f.activity.id, f.issues]));
 
     const nightsAll = Array.from(new Set([...live.map((a) => a.night), ...approvals.map((p) => p.night)])).sort(
       (a, b) => b - a
@@ -90,6 +96,7 @@ export function BrainTab({ r }: { r: ReturnType<typeof useEngine> }) {
             x,
             y,
             activity: item.a,
+            auditIssues: auditMap.get(item.a.id),
           });
         } else if (item.p) {
           nodeList.push({
@@ -214,6 +221,12 @@ export function BrainTab({ r }: { r: ReturnType<typeof useEngine> }) {
                       </>
                     )}
                     {isSel && <circle cx={n.x} cy={n.y} r="14" fill="none" stroke="currentColor" strokeWidth="1.5" />}
+                    {n.auditIssues && n.auditIssues.length > 0 && (
+                      <g aria-label="Office audit flag">
+                        <circle cx={n.x + 11} cy={n.y - 11} r="7" fill="var(--color-bg, #f7f0da)" stroke="currentColor" strokeWidth="1.5" />
+                        <text x={n.x + 11} y={n.y - 7.5} textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">!</text>
+                      </g>
+                    )}
                   </g>
                 );
               })}
@@ -224,6 +237,7 @@ export function BrainTab({ r }: { r: ReturnType<typeof useEngine> }) {
             <span>◌ failed (credited)</span>
             <span>⊗ rejected</span>
             <span>◎ awaiting you</span>
+            <span>⊙! audit flag</span>
           </div>
         </div>
 
@@ -296,6 +310,20 @@ function NodeDetail({ node }: { node: BrainNode }) {
           <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-2">Why it didn&apos;t run</div>
           <p className="mt-1 leading-relaxed text-muted">
             You declined it. Nothing consequential executes without your yes — and the crew factors the rejection into its next shift.
+          </p>
+        </div>
+      )}
+
+      {node.auditIssues && node.auditIssues.length > 0 && (
+        <div className="rounded-xl border border-border bg-surface/60 p-2.5">
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-2">⚠ Office audit flag</div>
+          <ul className="mt-1 list-disc space-y-0.5 pl-4 leading-relaxed text-text">
+            {node.auditIssues.map((issue, i) => (
+              <li key={i}>{issue}</li>
+            ))}
+          </ul>
+          <p className="mt-1.5 text-[11px] leading-relaxed text-muted-2">
+            The Chief Audit Officer reviews every action after the shift; this one tripped a check. Verify it before you trust it.
           </p>
         </div>
       )}
