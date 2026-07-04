@@ -104,19 +104,25 @@ export default function LandingPage() {
       {/* ── Nav: wordmark, one link, one CTA ─────────────────────── */}
       <header className="glass-nav sticky top-0 z-30">
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
-          <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
-            <LogoMark className="h-6 w-6" /> competitor.inc
+          <Link href="/" className="group flex items-center gap-2" aria-label="competitor.inc home">
+            <LogoMark className="h-7 w-7 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3" />
+            <span
+              className="text-[17px] font-bold tracking-tight sm:text-lg"
+              style={{ fontFamily: "var(--font-display, inherit)" }}
+            >
+              competitor<span className="text-muted-2">.inc</span>
+            </span>
           </Link>
-          <div className="ml-auto flex items-center gap-3 text-sm">
+          <div className="ml-auto flex items-center gap-1.5 text-sm sm:gap-3">
             {ready && !user && (
-              <Link href="/login" className="text-muted transition hover:text-text">
+              <Link href="/login" className="px-2 py-1 text-muted transition hover:text-text">
                 Sign in
               </Link>
             )}
             <Link
               href={appHref}
               onClick={() => onLandingCta("nav")}
-              className="rounded-full bg-text px-4 py-1.5 text-sm font-medium text-bg transition hover:opacity-85"
+              className="rounded-full border border-text/25 px-4 py-1.5 text-sm font-medium text-text transition hover:border-text hover:bg-text hover:text-bg"
             >
               {user ? "Dashboard" : "Get started"}
             </Link>
@@ -146,7 +152,7 @@ export default function LandingPage() {
             <button
               onClick={() => runDemo()}
               disabled={running}
-              className="shrink-0 rounded-xl bg-text px-4 py-2.5 text-sm font-medium text-bg transition hover:opacity-85 disabled:opacity-50"
+              className="hover-lift shrink-0 rounded-xl bg-text px-4 py-2.5 text-sm font-medium text-bg transition hover:opacity-90 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
             >
               {running ? "Running…" : "Run validation"}
             </button>
@@ -156,7 +162,7 @@ export default function LandingPage() {
               <button
                 key={s}
                 onClick={() => runDemo(s)}
-                className="rounded-full border border-border px-3 py-1 text-xs text-muted transition hover:border-text hover:text-text"
+                className="rounded-full border border-border px-3 py-1 text-xs text-muted transition duration-200 hover:-translate-y-0.5 hover:border-text hover:bg-surface hover:text-text"
               >
                 {s}
               </button>
@@ -167,14 +173,14 @@ export default function LandingPage() {
           {(lines.length > 0 || verdict || running) && (
             <div className="glass-panel mx-auto mt-6 max-w-xl rounded-2xl p-4 text-left font-mono text-xs leading-7">
               {lines.map((l, i) => (
-                <div key={i} className="text-muted">
+                <div key={i} className="reveal text-muted">
                   <Check size={12} className="mr-1.5 inline-block" aria-hidden />
                   <span className="font-semibold text-text">{l.agent}</span> — {l.text}
                 </div>
               ))}
               {running && <div className="animate-pulse text-muted-2">the crew is working…</div>}
               {verdict && (
-                <div className="mt-2 border-t border-border pt-2">
+                <div className="reveal mt-2 border-t border-border pt-2">
                   <span className="font-semibold">Apex — verdict:</span>{" "}
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -192,9 +198,9 @@ export default function LandingPage() {
                     <Link
                       href={appHref}
                       onClick={() => onLandingCta(`keep:${verdict.verdict}`)}
-                      className="rounded-full bg-text px-3.5 py-1.5 text-xs font-medium text-bg transition hover:opacity-85"
+                      className="group hover-lift rounded-full bg-text px-3.5 py-1.5 text-xs font-medium text-bg transition hover:opacity-90"
                     >
-                      Keep this crew <ArrowRight size={12} className="ml-0.5 inline" aria-hidden />
+                      Keep this crew <ArrowRight size={12} className="ml-0.5 inline transition-transform group-hover:translate-x-0.5" aria-hidden />
                     </Link>
                     <span className="text-[10px] text-muted-2">
                       Simulated run — the real crew works your idea overnight.
@@ -280,9 +286,10 @@ export default function LandingPage() {
           <Link
             href={appHref}
             onClick={() => onLandingCta("footer")}
-            className="rounded-full bg-text px-6 py-2.5 text-sm font-medium text-bg transition hover:opacity-85"
+            className="group hover-lift rounded-full bg-text px-6 py-2.5 text-sm font-medium text-bg transition hover:opacity-90"
           >
             Put a crew on your idea
+            <ArrowRight size={14} className="ml-1 inline transition-transform group-hover:translate-x-0.5" aria-hidden />
           </Link>
           <span className="text-xs text-muted-2">Free to validate. You approve anything that costs money.</span>
         </div>
@@ -329,7 +336,7 @@ function Box({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`glass-panel rounded-3xl p-5 ${wide ? "md:col-span-2" : ""}`}>
+    <div className={`glass-panel hover-lift rounded-3xl p-5 ${wide ? "md:col-span-2" : ""}`}>
       <div className="flex items-center gap-2 text-sm font-semibold">
         <Icon size={15} aria-hidden /> {title}
       </div>

@@ -158,6 +158,16 @@ h1, h2, h3, h4 {
   .dg-walker-r { transform: translateX(360px); }
 }
 
+/* Landing polish — content reveals in smoothly; interactive things lift + light up on hover. */
+@keyframes fade-up { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+.reveal { animation: fade-up 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.hover-lift { transition: transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.2s ease; }
+.hover-lift:hover { transform: translateY(-3px); box-shadow: 0 22px 44px -26px rgba(20, 19, 14, 0.45); }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { animation: none; }
+  .hover-lift:hover { transform: none; }
+}
+
 /* sticky translucent header — frosts the cream scrolling beneath it */
 .glass-nav {
   @apply backdrop-blur-xl backdrop-saturate-150;
