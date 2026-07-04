@@ -815,7 +815,7 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
                       <div className="truncate text-xs text-muted-2">{A.blurb}</div>
                       <div className="mt-0.5 truncate text-[10px] text-muted-2">
                         Plays <span className="text-muted">{A.playbook}</span>
-                        <span className="text-muted-2"> · runs on </span>
+                        <span className="text-muted-2"> · routes to </span>
                         <span className="text-muted">{getModel(modelForAgent(role)).name}</span>
                       </div>
                     </div>
