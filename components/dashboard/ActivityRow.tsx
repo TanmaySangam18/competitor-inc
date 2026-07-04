@@ -1,15 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Lock, Undo2 } from "lucide-react";
+import { Check, Lock, Undo2, Ban } from "lucide-react";
 import { AGENTS, type Activity } from "@/lib/engine/types";
 import { rationaleFor } from "@/lib/engine/rationale";
 import { agentStyle } from "@/components/dashboard/agentStyle";
+import { reversibility, canOfferUndo } from "@/lib/engine/reversibility";
 
 export function ActivityRow({ a, onUndo, lockedUrl }: { a: Activity; onUndo: () => void; lockedUrl?: string }) {
   const S = agentStyle[a.agent];
   const A = AGENTS[a.agent];
   const failed = a.status === "failed-credited";
+  // Honest undo: only offer it where a real reversal exists; otherwise say plainly it can't be recalled.
+  const rev = reversibility(a);
+  const offerUndo = canOfferUndo(a);
+  const showCantRecall = !a.undone && a.status === "done" && !rev.reversible;
   return (
     <motion.div
       layout
@@ -58,10 +63,15 @@ export function ActivityRow({ a, onUndo, lockedUrl }: { a: Activity; onUndo: () 
       </div>
       <div className="flex flex-col items-end gap-1.5">
         <span className={`text-xs ${failed ? "text-muted-2 line-through" : "text-muted"}`}>{a.cost > 0 ? "$" + a.cost.toFixed(2) : "—"}</span>
-        {!a.undone && a.status === "done" && a.cost > 0 && (
-          <button onClick={onUndo} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted transition hover:text-text">
+        {offerUndo && (
+          <button onClick={onUndo} title={rev.reason} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted transition hover:text-text">
             <Undo2 size={11} /> undo
           </button>
+        )}
+        {showCantRecall && (
+          <span title={rev.reason} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-2">
+            <Ban size={11} /> can&apos;t recall
+          </span>
         )}
         {failed && <span className="rounded-md bg-mint/12 px-2 py-1 text-[11px] text-mint">credited back</span>}
         {a.undone && <span className="text-[11px] text-muted-2">undone</span>}

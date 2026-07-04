@@ -7,7 +7,8 @@ import { fetchOperate } from "@/lib/engine/db";
 import { generateWeeklyDigest, sendWeeklyDigest } from "@/lib/engine/weekly-review-digest";
 import { saveScorecardSnapshot, type ScorecardMetric } from "@/lib/engine/scorecard-persistence";
 import { auditShiftActivities } from "@/lib/engine/office-house-architecture";
-import { budgetBreaches, wouldExceedAllocation } from "@/lib/engine/office-budget";
+import { performanceWeightedAllocations, overageForAllocation, breachesForAllocations, spendByAgent } from "@/lib/engine/office-budget";
+import { successRateByAgent } from "@/lib/engine/agent-performance";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY } from "@/lib/engine/policy";
 import type { Company, Activity, AgentRole } from "@/lib/engine/types";
@@ -67,7 +68,7 @@ export async function GET(req: Request) {
       // on-read from its own activity history (no new table). Both feed the next shift's context.
       const history = await sb
         .from("activities")
-        .select("action,meta,agent,cost")
+        .select("action,meta,agent,cost,status")
         .eq("company_id", company.id)
         .order("created_at", { ascending: false })
         .limit(60);
@@ -118,21 +119,29 @@ export async function GET(req: Request) {
       const { activities, approvals } = await withTrace("shift", () => runShift(company, undefined, priorContext, growthContext), { companyId: company.id, night: company.night });
       await insertActivities(sb, company.id, activities);
 
-      // Office · Resource Allocator + Policy Enforcer — allocate the monthly cap across the crew by
-      // role weight, then, BEFORE a consequential spend is queued for approval, check whether it would
-      // push that agent past its allocation. If so, annotate the Approval-Inbox item with the Office's
-      // veto recommendation so the founder sees it at decision time (governance BEFORE the money moves).
+      // Office · Resource Allocator + Policy Enforcer — allocate the monthly cap across the crew,
+      // PERFORMANCE-WEIGHTED by each agent's real ship-vs-fail rate (agents that convert spend into
+      // shipped work earn more budget; bounded ±25% so one night never starves anyone). Then, BEFORE
+      // a consequential spend is queued, check whether it would push that agent past its allocation
+      // and annotate the Approval-Inbox item with the Office's veto recommendation.
       const crewRoles = rolesForIdea(company.idea);
-      const priorSpend = ((history.data ?? []) as { agent?: string; cost?: number }[]).map((h) => ({
+      const priorActivities = ((history.data ?? []) as { agent?: string; cost?: number; status?: string }[]).map((h) => ({
+        id: "",
+        night: 0,
         agent: (h.agent ?? "engineering") as AgentRole,
+        action: "",
         cost: typeof h.cost === "number" ? h.cost : 0,
-      })) as unknown as Activity[];
+        status: (h.status === "failed-credited" ? "failed-credited" : "done") as Activity["status"],
+      })) as Activity[];
+      const cumulative = [...priorActivities, ...activities];
+      const allocations = performanceWeightedAllocations(POLICY.spend.monthlyCapUsd, crewRoles, successRateByAgent(cumulative));
+      const spentSoFar = spendByAgent(cumulative);
       const overBudgetApprovals: string[] = [];
       for (const ap of approvals) {
         if (ap.kind !== "spend" || ap.amount == null) continue;
-        const over = wouldExceedAllocation(ap.agent, ap.amount, POLICY.spend.monthlyCapUsd, crewRoles, priorSpend);
+        const over = overageForAllocation(allocations[ap.agent] ?? 0, spentSoFar[ap.agent] ?? 0, ap.amount);
         if (over > 0) {
-          ap.detail = `${ap.detail} ⚠ Office: this would put ${ap.agent} ~$${over.toFixed(0)} over its monthly budget allocation — recommend reject or rebalance.`;
+          ap.detail = `${ap.detail} ⚠ Office: this would put ${ap.agent} ~$${over.toFixed(0)} over its performance-weighted budget allocation — recommend reject or rebalance.`;
           overBudgetApprovals.push(`${ap.agent} +$${over.toFixed(0)}`);
         }
       }
@@ -145,8 +154,8 @@ export async function GET(req: Request) {
         });
       }
 
-      // Enforcer (after the fact): flag any agent whose spend THIS shift already blew its allocation.
-      const breaches = budgetBreaches(POLICY.spend.monthlyCapUsd, crewRoles, activities);
+      // Enforcer (after the fact): flag any agent whose spend already blew its (reweighted) allocation.
+      const breaches = breachesForAllocations(allocations, cumulative);
       if (breaches.length > 0) {
         raiseAlert("cap_breach", `Budget breach: ${breaches.map((b) => b.agent).join(", ")} over allocation for ${company.name}`, {
           companyId: company.id,

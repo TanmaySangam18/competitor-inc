@@ -99,6 +99,39 @@ export function wouldExceedAllocation(
   return projected > alloc ? Math.round((projected - alloc) * 100) / 100 : 0;
 }
 
+/** Allocation with the performance reweight applied — the Allocator's live output. */
+export function performanceWeightedAllocations(
+  monthlyCapUsd: number,
+  roles: AgentRole[],
+  successRateByAgent: Record<string, number>
+): Record<string, number> {
+  return reweightByPerformance(allocateMonthlyBudget(monthlyCapUsd, roles), successRateByAgent);
+}
+
+/** Overage for a proposed spend against a PRECOMPUTED allocation (used with reweighted allocations). */
+export function overageForAllocation(allocationUsd: number, alreadyUsd: number, addUsd: number): number {
+  const projected = alreadyUsd + Math.max(0, addUsd);
+  return projected > allocationUsd ? Math.round((projected - allocationUsd) * 100) / 100 : 0;
+}
+
+/** Breaches computed against a PRECOMPUTED allocation map (reweighted). */
+export function breachesForAllocations(
+  allocations: Record<string, number>,
+  activities: Activity[]
+): AgentBudget[] {
+  const spent = spendByAgent(activities);
+  const out: AgentBudget[] = [];
+  for (const agent of Object.keys(allocations)) {
+    const allocatedUsd = allocations[agent];
+    const spentUsd = spent[agent] ?? 0;
+    const remainingUsd = Math.round((allocatedUsd - spentUsd) * 100) / 100;
+    if (remainingUsd < 0) {
+      out.push({ agent: agent as AgentRole, allocatedUsd, spentUsd, remainingUsd, overUsd: Math.round(-remainingUsd * 100) / 100 });
+    }
+  }
+  return out;
+}
+
 /**
  * Deterministic ROI hook (kept honest): once per-agent success data exists, nudge weights toward
  * agents that convert spend into shipped/verified work. successRate in [0,1]; adjustment is bounded
