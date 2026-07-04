@@ -116,8 +116,9 @@ export default function DelegationPage() {
       `Reply in-character: concise, specific, action-oriented — name the concrete next steps you'd take for ${co.name}. ` +
       `Anything consequential (spending money, outreach, posting publicly, deploying) you DRAFT and queue for the founder's approval — say so; never claim you already shipped it.`;
 
-    // Streaming bubble: append one floor entry for this agent and update it live as tokens arrive.
-    setTranscript((t) => [...t, { role, text: "…" }].slice(-40));
+    // Echo the customer's OWN message first (so it's obvious they were heard), then the agent's
+    // streaming reply bubble that updates live as tokens arrive.
+    setTranscript((t) => [...t, { role: "you" as AgentRole, text }, { role, text: "…" }].slice(-40));
     const update = (txt: string) => {
       setSpeaker({ role, text: txt });
       setTranscript((t) => { const copy = t.slice(); copy[copy.length - 1] = { role, text: txt }; return copy; });
@@ -378,14 +379,15 @@ export default function DelegationPage() {
             ) : (
               transcript.map((t, i) => {
                 const a = BY_ROLE[t.role];
+                const isYou = !a; // the customer's own echoed message
                 return (
                   <div key={i} className="flex items-start gap-2">
                     <span
                       className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-white/15"
-                      style={{ background: toneHex(a.tone) }}
+                      style={{ background: isYou ? "var(--color-text)" : toneHex(a.tone) }}
                     />
                     <div className="min-w-0 text-[12px] leading-snug">
-                      <span className="font-mono text-[11px] font-semibold text-text">{a.name}</span>
+                      <span className="font-mono text-[11px] font-semibold text-text">{isYou ? "You" : a.name}</span>
                       <span className="text-muted"> {t.text}</span>
                     </div>
                   </div>

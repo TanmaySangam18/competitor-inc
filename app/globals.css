@@ -119,6 +119,29 @@ h1, h2, h3, h4 {
   .delegation-bubble { animation: none; }
 }
 
+/* The Delegation (2D) — living, cute crew: gentle idle bob, a hop when speaking, blinking eyes,
+   typing hands. transform-box:fill-box makes % / transform-origin resolve against each <g>'s own box. */
+@keyframes dg-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes dg-hop {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-13px); }
+  45% { transform: translateY(-4px); }
+  65% { transform: translateY(-9px); }
+}
+@keyframes dg-blink { 0%, 91%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.12); } }
+@keyframes dg-type { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(2px) rotate(-2deg); } }
+@keyframes dg-antenna { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.6; } }
+
+.dg-figure { animation: dg-bob 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+.dg-figure.dg-speaking { animation: dg-hop 0.95s ease-in-out infinite; }
+.dg-eyes { animation: dg-blink 4.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.dg-hand { animation: dg-type 1.6s ease-in-out infinite; transform-box: fill-box; }
+.dg-hand-2 { animation-delay: 0.4s; }
+.dg-antenna { animation: dg-antenna 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+  .dg-figure, .dg-figure.dg-speaking, .dg-eyes, .dg-hand, .dg-antenna { animation: none; }
+}
+
 /* sticky translucent header — frosts the cream scrolling beneath it */
 .glass-nav {
   @apply backdrop-blur-xl backdrop-saturate-150;
