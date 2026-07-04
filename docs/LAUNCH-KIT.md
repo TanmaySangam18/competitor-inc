@@ -11,9 +11,10 @@ that will tell you NOT to build. Written by the AI exec team; the founder publis
 
 ## 0. Flip to live (the 3 founder actions) — ~15 min
 
-1. **Run the pending migrations** (Supabase → SQL editor, in order — all idempotent):
-   `0016_landing_demo_events` · `0017_scorecard_and_digests` · `0018_business_wallet` ·
-   `0019_demo_cta_event`. (Files in `supabase/migrations/`. 0019 finalizes the events type CHECK.)
+1. **Run the pending migrations** — one paste: open `supabase/migrations/LAUNCH_BUNDLE_0016-0020.sql`,
+   copy all, run it in Supabase → SQL editor. It bundles `0016_landing_demo_events` ·
+   `0017_scorecard_and_digests` · `0018_business_wallet` · `0019_demo_cta_event` (finalizes the events
+   type CHECK) · `0020_build_in_public_consent`, in order, all idempotent (safe to re-run).
 2. **Open crawling:** set `NEXT_PUBLIC_SITE_PUBLIC=1` in Vercel env → redeploy. (robots flips from
    Disallow-all to allow; the sitemap/FAQ/canonical work starts indexing.)
 3. **Publish one post** below (start with Show HN or the niche subreddit — warmest, highest-intent).
