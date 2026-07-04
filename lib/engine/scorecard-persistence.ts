@@ -8,7 +8,10 @@
  * 4. Inform Rock progress assessment (are we on track quarterly?)
  */
 
-import { getServerSupabase } from "@/lib/supabase/server";
+// Service-role client: these run in the nightly cron (no request/cookies), so we use the service
+// factory, not the cookie-bound server client. Reads filter by company_id explicitly; the digest
+// path is founder-triggered background work, not a public surface.
+import { serviceClient } from "@/lib/engine/service";
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 
@@ -53,7 +56,7 @@ export async function saveScorecardSnapshot(
   constraint: string,
   notes: string
 ): Promise<ScorecardSnapshot | null> {
-  const sb = await getServerSupabase();
+  const sb = serviceClient();
   if (!sb) return null;
 
   const snapshot: ScorecardSnapshot = {
@@ -94,7 +97,7 @@ export async function fetchScorecardHistory(
   companyId: string,
   limit: number = 30
 ): Promise<ScorecardSnapshot[]> {
-  const sb = await getServerSupabase();
+  const sb = serviceClient();
   if (!sb) return [];
 
   try {

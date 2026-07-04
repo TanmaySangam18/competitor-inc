@@ -15,6 +15,7 @@ import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
 import { getByok } from "@/lib/engine/config";
 import { FOUNDER_EMAILS } from "@/lib/engine/founders";
+import { SignupsWidget } from "@/components/house/SignupsWidget";
 
 const DelegationScene = dynamic(() => import("../delegation/DelegationScene"), {
   ssr: false,
@@ -282,6 +283,9 @@ export default function House() {
           )}
         </div>
       </div>
+
+      {/* Founder-only launch metric — top right */}
+      <SignupsWidget app="lockin" label="Lockin signups" />
 
       {/* Crew (vivid) — bottom left */}
       <aside className="glass-panel pointer-events-auto absolute bottom-4 left-4 z-20 w-[17rem] max-w-[calc(100vw-2rem)] rounded-2xl p-4">

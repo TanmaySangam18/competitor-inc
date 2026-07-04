@@ -149,6 +149,29 @@ export function auditActivity(
 }
 
 /**
+ * Chief Audit Officer — shift-level sweep (the version wired into the nightly cron).
+ * Unlike auditActivity(), this needs no external "actual" proof oracle: it runs the checks the
+ * Office CAN make at shift time — suspicious/hallucination patterns and high-cost-without-proof —
+ * over every activity a shift produced, and returns the flagged ones for the founder's alert feed.
+ */
+export function auditShiftActivities(
+  activities: Activity[]
+): { flagged: Array<{ activity: Activity; issues: string[] }>; clean: number } {
+  const flagged: Array<{ activity: Activity; issues: string[] }> = [];
+  for (const a of activities) {
+    const issues: string[] = [];
+    if (a.cost > 100000 && !a.proof) {
+      issues.push(`High-cost action ($${a.cost}) with no proof of completion`);
+    }
+    if (isSuspiciousPattern(a)) {
+      issues.push("Suspicious pattern (possible hallucination / overclaim)");
+    }
+    if (issues.length > 0) flagged.push({ activity: a, issues });
+  }
+  return { flagged, clean: activities.length - flagged.length };
+}
+
+/**
  * Policy Enforcer (Office)
  *   - Vetoes House proposals that violate governance
  *   - Applies veto BEFORE action executes (not after)
