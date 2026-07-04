@@ -21,6 +21,16 @@ work moving in the meantime._
   = SEO/playbooks (mine). SKIP = TikTok / Instagram / Facebook / Threads (wrong audience+format for a
   B2B founder tool; content cost > ROI). Handle: @competitorinc. I prep profiles/bios/content; founder
   creates accounts (identity) + posts (their voice) = escalations.
+- **Happenstance.ai (network-search / warm-intro engine): INTEGRATE post-launch, don't build.**
+  Founder-flagged as high customer value — and it is: it targets our customers' two hardest steps,
+  finding real people to run validation interviews with, and warm intros to first customers/investors.
+  Verdict: an optional, consent-gated **integration** of their REST API (they expose one + Claude/agent
+  hooks), NOT a build (a contact-graph is off-moat, expensive, privacy-heavy; data sources are paid or
+  ToS-restricted, so there's no clean OSS drop-in — integrate beats build). Same timing trigger as the
+  Lead Desk (first paying users); it's the Lead Desk's *sourcing* layer. Guardrails unchanged: customer
+  connects their OWN accounts via OAuth (least-privilege), explicit consent + a data-processing addendum
+  (third-party contact data = a founder/legal item), no scraping, human approves every intro/outreach.
+  Best first scope = validation-interview sourcing (more core to us than generic sales prospecting).
 - **Paid ads + ad-creative tooling (Montage/etc.): DEFERRED.** Pre-OPT, pre-revenue, our own playbook
   is demand-first/organic before paid. Committing to a creative tool now is premature spend. Trigger to
   revisit: ≥ proven demand + budget; then AI generates/tests/iterates creative + landing variants on the
