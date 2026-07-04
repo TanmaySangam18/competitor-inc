@@ -26,12 +26,16 @@ export interface DelegationScene2DProps {
 
 const INK = "#14130e";
 
-// Ambient office life: a few little robots stroll the back walkway, at different speeds/depths, so the
-// room feels alive behind the seated crew. Pure CSS motion (translate across + leg scissor + bob).
-const WALKERS: { dir: "r" | "l"; dur: string; delay: string; s: number; y: number; box?: boolean }[] = [
-  { dir: "r", dur: "19s", delay: "0s", s: 0.62, y: 120 },
-  { dir: "l", dur: "26s", delay: "-9s", s: 0.5, y: 104, box: true },
-  { dir: "r", dur: "23s", delay: "-15s", s: 0.56, y: 112 },
+// Ambient office life: little robots stroll the back walkway, at different speeds/depths, each carrying
+// something, so the room feels busy behind the seated crew. Pure CSS motion (translate + leg scissor + bob).
+type Carry = "briefcase" | "box" | "coffee" | "clipboard" | "wrench";
+const WALKERS: { dir: "r" | "l"; dur: string; delay: string; s: number; y: number; carry?: Carry }[] = [
+  { dir: "r", dur: "20s", delay: "0s", s: 0.94, y: 138, carry: "briefcase" },
+  { dir: "l", dur: "27s", delay: "-6s", s: 0.82, y: 122, carry: "coffee" },
+  { dir: "r", dur: "24s", delay: "-12s", s: 0.88, y: 132, carry: "box" },
+  { dir: "l", dur: "31s", delay: "-19s", s: 0.72, y: 112, carry: "clipboard" },
+  { dir: "r", dur: "29s", delay: "-24s", s: 0.85, y: 134, carry: "wrench" },
+  { dir: "l", dur: "35s", delay: "-3s", s: 0.76, y: 118 },
 ];
 
 export default function DelegationScene2D({
@@ -72,7 +76,6 @@ export default function DelegationScene2D({
 
         {/* ambient office life — little robots strolling the back walkway (behind the seated crew) */}
         <g fill="none" stroke={INK} strokeLinecap="round" strokeLinejoin="round">
-          <line x1={60} y1={128} x2={W - 60} y2={128} strokeWidth={2} opacity={0.16} />
           {WALKERS.map((wk, i) => (
             <g
               key={`wk${i}`}
@@ -80,7 +83,7 @@ export default function DelegationScene2D({
               style={{ animationDuration: wk.dur, animationDelay: wk.delay }}
             >
               <g transform={`translate(0 ${wk.y}) scale(${wk.dir === "l" ? -wk.s : wk.s} ${wk.s})`}>
-                <WalkingBot box={wk.box} />
+                <WalkingBot carry={wk.carry} />
               </g>
             </g>
           ))}
@@ -255,12 +258,14 @@ function Monitor({ cx }: { cx: number }) {
   );
 }
 
-/* ── Walking robot (full-body, tiny) — drawn feet-at-y=0, centered on x=0 ─────
+/* ── Walking robot (full-body) — drawn feet-at-y=0, centered on x=0 ───────────
    Legs scissor (opposite phase) while the body gently bobs → reads as walking as the
-   parent group translates across the floor. Optional little briefcase. */
-function WalkingBot({ box }: { box?: boolean }) {
+   parent group translates across the floor. Each carries a little prop. */
+function WalkingBot({ carry }: { carry?: Carry }) {
   return (
     <g strokeWidth={2.6} stroke={INK} fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {/* grounding shadow — keeps them planted at any depth */}
+      <ellipse cx={0} cy={1} rx={11} ry={2.2} fill={INK} stroke="none" opacity={0.09} />
       {/* legs — pivot at the hip (each leg drawn from 0,0 downward, rotated about its top) */}
       <g transform="translate(-3 -14)">
         <g className="dg-leg dg-leg-a">
@@ -276,18 +281,62 @@ function WalkingBot({ box }: { box?: boolean }) {
       <g className="dg-stride">
         {/* torso */}
         <path d="M -8 -14 Q -9 -30 0 -32 Q 9 -30 8 -14 Z" fill="#fff" />
-        {/* arm + optional briefcase */}
-        <path d="M 8 -27 L 12 -19" />
-        {box && <rect x="9" y="-19" width="8" height="7" rx="1.5" fill="#fff" />}
+        {/* carrying arm + the prop it holds */}
+        <path d="M 8 -27 L 13 -18" />
+        <CarryProp kind={carry} />
         {/* head */}
         <line x1="0" y1="-51" x2="0" y2="-54" />
         <circle cx="0" cy="-56" r="2.4" fill={INK} stroke="none" />
         <rect x="-9" y="-50" width="18" height="16" rx="6" fill="#fff" />
-        <circle cx="-4" cy="-42" r="1.8" fill={INK} stroke="none" />
-        <circle cx="4" cy="-42" r="1.8" fill={INK} stroke="none" />
+        {/* ears */}
+        <rect x="-12" y="-46" width="3.5" height="7" rx="1.5" fill="#fff" />
+        <rect x="8.5" y="-46" width="3.5" height="7" rx="1.5" fill="#fff" />
+        {/* eyes + smile */}
+        <circle cx="-4" cy="-42" r="1.9" fill={INK} stroke="none" />
+        <circle cx="4" cy="-42" r="1.9" fill={INK} stroke="none" />
+        <path d="M -3 -38 Q 0 -36 3 -38" strokeWidth={1.6} />
       </g>
     </g>
   );
+}
+
+/* The little prop a walker carries, drawn at the leading hand (~13,-18). */
+function CarryProp({ kind }: { kind?: Carry }) {
+  switch (kind) {
+    case "briefcase":
+      return (
+        <g>
+          <rect x={9} y={-18} width={10} height={8} rx={1.5} fill="#fff" />
+          <path d="M 12 -18 Q 12 -21 14 -21 Q 16 -21 16 -18" strokeWidth={1.8} />
+        </g>
+      );
+    case "box":
+      return (
+        <g>
+          <rect x={8} y={-22} width={11} height={10} rx={1} fill="#fff" />
+          <line x1={8} y1={-17} x2={19} y2={-17} strokeWidth={1.6} />
+        </g>
+      );
+    case "coffee":
+      return (
+        <g>
+          <path d="M 10 -20 L 17 -20 L 16 -12 L 11 -12 Z" fill="#fff" />
+          <path d="M 11 -22 Q 13.5 -24 16 -22" strokeWidth={1.4} />
+        </g>
+      );
+    case "clipboard":
+      return (
+        <g>
+          <rect x={10} y={-23} width={9} height={12} rx={1} fill="#fff" />
+          <line x1={12} y1={-19} x2={17} y2={-19} strokeWidth={1.4} />
+          <line x1={12} y1={-16} x2={17} y2={-16} strokeWidth={1.4} />
+        </g>
+      );
+    case "wrench":
+      return <path d="M 9 -11 L 15 -17 Q 17 -19 15 -21 Q 13 -19 15 -17" strokeWidth={2} fill="#fff" />;
+    default:
+      return null;
+  }
 }
 
 /* ── Speech bubble (foreignObject lets the text wrap cleanly) ────────────── */
