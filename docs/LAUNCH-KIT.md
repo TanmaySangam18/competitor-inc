@@ -9,7 +9,7 @@ that will tell you NOT to build. Written by the AI exec team; the founder publis
 
 ---
 
-## 0. Flip to live (the 3 founder actions) — ~15 min
+## 0. Flip to live (the founder actions) — ~15 min
 
 1. **Run the pending migrations** — one paste: open `supabase/migrations/LAUNCH_BUNDLE_0016-0020.sql`,
    copy all, run it in Supabase → SQL editor. It bundles `0016_landing_demo_events` ·
@@ -17,7 +17,12 @@ that will tell you NOT to build. Written by the AI exec team; the founder publis
    type CHECK) · `0020_build_in_public_consent`, in order, all idempotent (safe to re-run).
 2. **Open crawling:** set `NEXT_PUBLIC_SITE_PUBLIC=1` in Vercel env → redeploy. (robots flips from
    Disallow-all to allow; the sitemap/FAQ/canonical work starts indexing.)
-3. **Publish one post** below (start with Show HN or the niche subreddit — warmest, highest-intent).
+3. **⚠️ F1-safe until EAD: turn checkout OFF.** Remove `NEXT_PUBLIC_CHECKOUT_URL` (+ `_FOUNDER`,
+   `_SPRINT` if set) from Vercel prod. Billing is fail-soft — with the URL unset, `billingLive()` is
+   false and every "Upgrade →" auto-falls back to "Apply →" (intent capture, no charge). Collecting
+   subscription income while on F1 with no OPT/EAD is the risk; don't. Day the EAD lands → re-add the
+   one var → paid is live. (Not legal advice — confirm with your DSO + an immigration attorney.)
+4. **Publish one post** below (start with Show HN or the niche subreddit — warmest, highest-intent).
 
 Verify after: fire the hero demo on the live site, then check `/house/board` → Landing Funnel shows
 `landed → ran demo` climbing, and a `demo_verdict` POST persists.
