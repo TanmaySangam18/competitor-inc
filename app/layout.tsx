@@ -4,6 +4,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { StorageMigrator } from "@/components/StorageMigrator";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
+import { SITE_URL } from "@/lib/site";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -32,9 +33,8 @@ const jetBrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-// Canonical site URL for absolute Open Graph image URLs (link-preview scrapers reject relative ones).
-// Defaults to the Vercel URL; set NEXT_PUBLIC_SITE_URL to the custom domain at launch.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://competitor-inc.vercel.app";
+// Canonical site URL (single source of truth in @/lib/site) — absolute OG image URLs need it, and
+// canonical/share URLs must point at the founder's live domain, not the stale account.
 const TITLE = "competitor.inc — Prove it before you build it";
 const DESCRIPTION =
   "competitor.inc is the AI co-founder that validates your idea — honestly — before it builds the winner. Real demand tests, proof-of-work, and human-in-control. You stay the founder.";

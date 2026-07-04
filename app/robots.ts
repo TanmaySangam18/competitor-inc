@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://competitor-inc.vercel.app";
+import { SITE_URL } from "@/lib/site";
 // Surprise-launch by default: stay out of search indexes during the private beta. Flip
 // NEXT_PUBLIC_SITE_PUBLIC=1 at launch to allow crawling so the SEO content (playbooks) can rank.
 const PUBLIC = process.env.NEXT_PUBLIC_SITE_PUBLIC === "1";

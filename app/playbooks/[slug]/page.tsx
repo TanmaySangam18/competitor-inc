@@ -4,13 +4,13 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Clock, Lock, Check } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { PLAYBOOKS, getPlaybook } from "@/lib/engine/playbooks";
+import { SITE_URL } from "@/lib/site";
 
 export function generateStaticParams() {
   return PLAYBOOKS.map((p) => ({ slug: p.slug }));
 }
 
 // Playbooks are the long-tail SEO engine — give each rich metadata + a canonical URL so it ranks.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://competitor-inc-zeta.vercel.app";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
