@@ -37,6 +37,14 @@ work moving in the meantime._
   pixel data, spending within the Wallet's `ads` budget + approval rules (exactly what the Wallet enables).
 
 ## Recently Shipped (rolling)
+- In-app LIVE SITE PREVIEW + founding-member capture (2026-07-04, deployed + verified on prod).
+  Reveal now renders the built site *inside* competitor via a sandboxed SSRF-guarded relay
+  (/api/site-preview, frame-ancestors self, base-href rewrite) instead of a blurred decoy. Below it an
+  adaptive CTA: checkout OFF (F1) → founding-member RESERVATION (reuses /api/interest, would-pay signal,
+  founder ping + /house/board tally); checkout ON (post-EAD) → existing Polar pay CTA. **Checkout turned
+  OFF in prod** (removed NEXT_PUBLIC_CHECKOUT_URL) so no charge path exists pre-EAD — re-add one var to
+  go paid. Honest ceiling documented (preview = wow, not DRM).
+- Agent specs enriched (workflow + success metrics) + chat routes to each agent's model tier (5cd734a).
 - Agent-spec enrichment (borrowed template concept, NOT the roster): AgentSpec gains `workflow` +
   `successMetrics`; all 6 agents populated; fed into the delegation chat soul so each agent answers
   following its own process + bar; surfaced in the dashboard "Your team" card. AND made per-agent
