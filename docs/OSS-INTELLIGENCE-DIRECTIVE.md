@@ -75,3 +75,56 @@ attribution*, but VERIFY the LICENSE file first. (3) Don't cite their metrics (u
 **Rollout:** **post-launch, low-medium priority.** Borrow the *template concept* (success metrics +
 workflow on our specs) when we next touch the agent layer; mine the division taxonomy as reference for
 future benchmark-org crews. Do **not** import the roster. No action pre-launch.
+_Update 2026-07-04: the template borrow shipped — AgentSpec now has `workflow` + `successMetrics`, all
+six agents populated + wired into the chat soul + shown in the dashboard "Your team" card._
+
+---
+
+## Worked example #2 — `decolua/9router`
+_(Founder-flagged 2026-07-04. Also the session where the founder extended this directive to apply to
+**me, the co-founder AI**, proactively — not only the in-product agents. So the two "proactively found"
+alternatives below were surfaced by me, unprompted, as the directive now requires.)_
+
+**Repo:** `decolua/9router` — **MIT**, ~19.7K⭐ / 3.2K forks, very active (v0.5.18 shipped 2026-07-03,
+71 releases, 895+ commits). A **local model-routing proxy** for coding tools (Claude Code / Cursor /
+Cline / Copilot). Notably: **same stack as us** — Next.js 16 / React 19 / Tailwind 4 / SQLite.
+
+**Why useful:** it does two things our per-agent routing does **not**:
+1. **Quota/error fallback chain** — 3-tier auto-fallback (subscription → budget → free) when a provider
+   rate-limits or errors, plus round-robin multi-account load balancing.
+2. **Token savings** — "RTK" tool-output compression (git diffs / grep results) claiming 20-40% input
+   reduction, plus output-reduction prompt modes. Directly lowers per-shift cost — on-brand for our
+   $0-AI / student-founder positioning. We only have a basic `truncateContextForModel`.
+It also transparently translates OpenAI ⇄ Claude ⇄ Gemini ⇄ Cursor request formats.
+
+**Where it fits:** `lib/engine/server.ts` `callModel` (add a fallback ladder to `modelForAgent`) +
+a richer compression pass than `truncateContextForModel`. **Concepts only.**
+
+**Complexity:** medium to borrow the two concepts. High/inappropriate to adopt wholesale.
+
+**Customer impact:** medium-high on **cost** (fallback resilience + token savings), low on visible UX.
+
+**Risks (the reason this is borrow-concepts, not adopt):**
+- **Bloat / wrong shape** — it's a full standalone app (its own dashboard, OAuth, SQLite, cloud sync).
+  Running it as a sidecar next to our Vercel-serverless deploy adds a heavy operational dependency.
+- **ToS** — its headline value is routing through a developer's *personal* Claude Code / Copilot /
+  free-tier **subscription quota**. That's fine for one dev's machine; using personal-subscription quota
+  to serve a multi-tenant SaaS's traffic very likely violates those providers' terms. **Not usable** as
+  our server-side routing model. The output-reduction modes also risk degrading customer-facing quality.
+- License MIT = fine to borrow concepts with attribution.
+- **Moat:** cost-optimization infra, not our moat (validate-first + verifiable revenue). Borrow to save
+  money; don't build identity around it.
+
+**Rollout:** **borrow the fallback + compression *concepts*, post-launch, medium priority. PASS on
+running 9router itself as a sidecar** (bloat + ToS + serverless mismatch); revisit only if we ever
+self-host the engine.
+
+**Proactively-found better-fit alternatives (surfaced by me, not handed to me):**
+- **`Portkey-AI/gateway`** — Apache-2.0, TypeScript, ~7K⭐, went fully OSS March 2026. A blazing-fast AI
+  **gateway** (not a local app) with fallback, load-balancing, retries, guardrails; edge/serverless-
+  deployable. **Architecturally the right shape for us** (TS, deployable alongside our stack) if we ever
+  want a real gateway instead of borrowing concepts. This is the one I'd evaluate first.
+- **Vercel AI Gateway** — edge-optimized, JS/TS-native, and **already one of our engine's real-model
+  options**. Lowest-friction path to multi-provider + fallback on our existing Vercel deploy.
+
+_Net: the founder handed me 9router; the higher-fit answer for our stack is Portkey / Vercel AI Gateway._
