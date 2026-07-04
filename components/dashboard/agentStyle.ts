@@ -6,6 +6,7 @@ export const agentStyle: Record<AgentRole, { icon: typeof Gauge; color: string; 
   ceo: { icon: Gauge, color: "text-violet", ring: "bg-violet/12" },
   engineering: { icon: Code2, color: "text-mint", ring: "bg-mint/12" },
   marketing: { icon: Megaphone, color: "text-amber", ring: "bg-amber/12" },
+  manufacturing: { icon: Gauge, color: "text-amber", ring: "bg-amber/12" },
   support: { icon: LifeBuoy, color: "text-coral", ring: "bg-coral/12" },
   growth: { icon: TrendingUp, color: "text-mint", ring: "bg-mint/12" },
 };

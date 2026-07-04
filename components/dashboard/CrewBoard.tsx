@@ -1,8 +1,10 @@
 "use client";
 
-import { Loader2, Inbox, CheckCircle2, Moon } from "lucide-react";
+import { useMemo } from "react";
+import { Loader2, Inbox, CheckCircle2, Moon, Network } from "lucide-react";
 import type { useEngine } from "@/lib/engine/useEngine";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
+import { generateCrewFromIdea, matchBenchmarkCompany } from "@/lib/engine/dynamic-crew";
 
 // The Crew Board — the board metaphor done natively (no Miro dependency). One glanceable strip of what
 // the crew is doing, fed entirely from real engine state: nothing invented. Three honest columns:
@@ -18,12 +20,57 @@ export function CrewBoard({ r }: { r: ReturnType<typeof useEngine> }) {
   const pending = r.pendingApprovals;
   const shipped = r.activities.filter((a) => a.status === "done" && !a.undone).slice(0, 6);
 
+  // Dynamic crew (deterministic — same idea, same crew) when the idea matches a benchmark we hold
+  // real org data for; otherwise the default five and no roster strip. Computed on the fly, no storage.
+  const crew = useMemo(() => {
+    const idea = r.company?.idea;
+    if (!idea || !matchBenchmarkCompany(idea)) return null;
+    try {
+      return generateCrewFromIdea(idea);
+    } catch {
+      return null;
+    }
+  }, [r.company?.idea]);
+
   return (
     <div className="rounded-3xl glass-panel p-5 sm:p-6">
       <div className="flex items-center gap-2 text-sm font-semibold">
         Crew board
         <span className="text-muted-2">· what everyone&apos;s on</span>
       </div>
+
+      {crew && (
+        <div className="mt-4 rounded-2xl border border-border bg-bg/30 p-3">
+          <div className="flex items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-2">
+            <Network size={13} className="text-violet" /> Custom crew · modeled on {crew.benchmarkCompany}
+          </div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {crew.agents.map((a) => (
+              <div key={a.role} className="rounded-xl border border-border bg-surface/60 p-2.5">
+                <div className="truncate text-xs font-medium text-text">
+                  {agentName(a.role)}
+                  {a.name.toLowerCase() !== agentName(a.role).toLowerCase() && (
+                    <span className="text-muted-2"> · {a.name.toLowerCase()}</span>
+                  )}
+                </div>
+                <div className="mt-0.5 truncate text-[10px] text-muted-2" title={a.playbook}>
+                  Plays {a.playbook}
+                </div>
+                {a.subAgents && a.subAgents.length > 0 && (
+                  <ul className="mt-1.5 space-y-0.5 border-l border-border pl-2">
+                    {a.subAgents.map((s) => (
+                      <li key={s.name} className="truncate text-[10px] text-muted" title={s.focus}>
+                        {s.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="mt-4 grid gap-4 md:grid-cols-3">
         {/* Working */}
         <Column icon={working ? Loader2 : Moon} spin={working} tone="text-violet" label="Working tonight" count={working ? 1 : 0}>
@@ -61,11 +108,16 @@ export function CrewBoard({ r }: { r: ReturnType<typeof useEngine> }) {
             <Empty>Nothing shipped yet — verified work shows up here.</Empty>
           ) : (
             shipped.map((a) => (
-              <Card key={a.id} accent="mint">
-                <div className="text-[10px] font-semibold uppercase tracking-wide text-mint">{agentName(a.agent)}</div>
-                <div className="mt-0.5 truncate text-xs text-text" title={a.action}>{a.action}</div>
-                {a.proof && <div className="mt-1 truncate text-[10px] text-mint">✓ {a.proof.kind === "metric" ? a.proof.value : a.proof.kind}</div>}
-              </Card>
+              <div key={a.id} className={a.parentActivityId ? "pl-3" : undefined}>
+                <Card accent="mint">
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-mint">
+                    {agentName(a.agent)}
+                    {a.parentActivityId && <span className="ml-1 normal-case text-muted-2">· sub-agent</span>}
+                  </div>
+                  <div className="mt-0.5 truncate text-xs text-text" title={a.action}>{a.action}</div>
+                  {a.proof && <div className="mt-1 truncate text-[10px] text-mint">✓ {a.proof.kind === "metric" ? a.proof.value : a.proof.kind}</div>}
+                </Card>
+              </div>
             ))
           )}
         </Column>

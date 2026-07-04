@@ -11,12 +11,14 @@
   --color-surface-2: #e6dcc0;
   --color-border: rgba(20, 19, 14, 0.16);
 
-  /* coral = the single accent (used sparingly). amber/mint/violet kept for semantic + the House crew,
-     retuned to read on cream. */
-  --color-coral: #ff5a36;
-  --color-amber: #b5760e;
-  --color-mint: #1f8f5f;
-  --color-violet: #6a4bc0;
+  /* Monochrome pass (2026-07-03): the public product is ink-only — emphasis via black inverted
+     cards, weight, and tone, never hue. The old accent names stay as a warm grayscale ladder so
+     every existing text-coral/bg-mint/… class keeps working; only the House (private floor) keeps
+     real color, via its own inline hexes. */
+  --color-coral: #14130e; /* accent → ink */
+  --color-amber: #8a846e; /* warm light gray */
+  --color-mint: #3f3b2d; /* success → dark warm gray */
+  --color-violet: #5b5644; /* mid warm gray */
 
   --color-text: #14130e;
   --color-muted: #5b5644;
@@ -56,7 +58,7 @@ h1, h2, h3, h4 {
   font-weight: 800;
 }
 
-::selection { background: rgba(255, 90, 54, 0.22); }
+::selection { background: rgba(20, 19, 14, 0.16); }
 
 ::-webkit-scrollbar { width: 7px; }
 ::-webkit-scrollbar-track { background: #efe7cd; }
@@ -77,16 +79,34 @@ h1, h2, h3, h4 {
    ink edge + soft shadow. Content leads; emphasis goes to black cards. */
 .glass,
 .glass-panel {
-  @apply backdrop-blur-xl backdrop-saturate-150;
-  background: rgba(255, 253, 247, 0.66);
-  border: 1px solid var(--color-border);
+  @apply backdrop-blur-2xl backdrop-saturate-200;
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.74),
+    rgba(255, 253, 247, 0.5) 40%,
+    rgba(255, 253, 247, 0.62)
+  );
+  border: 1px solid rgba(20, 19, 14, 0.12);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(20, 19, 14, 0.04),
+    inset 1px 0 0 rgba(255, 255, 255, 0.35),
     0 1px 2px rgba(20, 19, 14, 0.05),
-    0 14px 30px -22px rgba(20, 19, 14, 0.35);
+    0 18px 44px -26px rgba(20, 19, 14, 0.42);
 }
 .glass-panel {
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* ChatOps marks + small ornaments — tiny, alive. */
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.bob { animation: bob 2.6s ease-in-out infinite; }
+.bob-late { animation-delay: 1.3s; }
+@media (prefers-reduced-motion: reduce) {
+  .bob { animation: none; }
 }
 
 /* sticky translucent header — frosts the cream scrolling beneath it */

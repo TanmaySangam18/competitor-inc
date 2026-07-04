@@ -29,6 +29,7 @@ const agentMeta: Record<AgentRole, { name: string; icon: LucideIcon; accent: str
   ceo: { name: "Apex", icon: TrendingUp, accent: "text-violet", ring: "bg-violet/12" },
   engineering: { name: "Forge", icon: Code2, accent: "text-mint", ring: "bg-mint/12" },
   marketing: { name: "Pitch", icon: Megaphone, accent: "text-amber", ring: "bg-amber/12" },
+  manufacturing: { name: "Rig", icon: Code2, accent: "text-amber", ring: "bg-amber/12" },
   support: { name: "Guard", icon: LifeBuoy, accent: "text-coral", ring: "bg-coral/12" },
   growth: { name: "Surge", icon: TrendingUp, accent: "text-mint", ring: "bg-mint/12" },
 };

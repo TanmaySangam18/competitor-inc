@@ -29,6 +29,7 @@ const TONE: Record<AgentRole, number> = {
   engineering: 0.8, // Forge
   growth: 0.7, // Surge
   marketing: 0.62, // Pitch
+  manufacturing: 0.66, // Rig (dynamic-crew role; not in the default floor ORDER)
 };
 
 // Vivid per-agent identity colors (hue) — distinct, friendly, easy to tell apart on the House floor.
@@ -38,6 +39,7 @@ const COLOR: Record<AgentRole, string> = {
   marketing: "#ffb84d", // Pitch — amber
   support: "#46d39a", // Guard — mint
   growth: "#a78bfa", // Surge — violet
+  manufacturing: "#8a99ab", // Rig — steel
 };
 
 // Desks arranged in an arc around the central table, all facing the middle.
@@ -47,6 +49,7 @@ const DESK: Record<AgentRole, [number, number]> = {
   marketing: [3.8, -1.5],
   support: [-2.7, 2.7],
   growth: [2.7, 2.7],
+  manufacturing: [0, 3.6],
 };
 
 export const DELEGATION: DelegationAgent[] = ORDER.map((role) => ({
@@ -59,6 +62,29 @@ export const DELEGATION: DelegationAgent[] = ORDER.map((role) => ({
   color: COLOR[role],
   desk: DESK[role],
 }));
+
+/** Map a dynamic crew (see lib/engine/dynamic-crew.ts) onto the office floor. Canonical play names
+ *  (Apex, Forge, Rig, …) stay on the figures so banter/labels never drift; the crew decides WHICH
+ *  roles are on the floor. Every role has a desk/tone/color (the Records are exhaustive). */
+export function delegationForCrew(profiles: Array<{ role: AgentRole; playbook?: string }>): DelegationAgent[] {
+  const seen = new Set<AgentRole>();
+  const out: DelegationAgent[] = [];
+  for (const p of profiles) {
+    if (seen.has(p.role)) continue; // one figure per role on the floor
+    seen.add(p.role);
+    out.push({
+      role: p.role,
+      name: AGENTS[p.role].name,
+      label: AGENTS[p.role].label,
+      blurb: AGENTS[p.role].blurb,
+      playbook: p.playbook || AGENTS[p.role].playbook,
+      tone: TONE[p.role],
+      color: COLOR[p.role],
+      desk: DESK[p.role],
+    });
+  }
+  return out.length > 0 ? out : DELEGATION;
+}
 
 /** A grayscale hex for a given tone (0..1). Keeps everything monochrome. */
 export function toneHex(tone: number): string {

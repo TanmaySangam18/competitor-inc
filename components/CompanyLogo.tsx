@@ -11,8 +11,9 @@ export function CompanyLogo({
   className?: string;
 }) {
   const m = monogram(name);
-  const gid = `cg${m.hue}-${m.hue2}`; // shared across identical companies (same gradient) — safe
   const fontSize = m.initials.length > 1 ? 40 : 50;
+  // Ink monogram (monochrome pass): a black inverted card with cream initials — same emphasis
+  // language as the rest of the system, no auto-generated gradient.
   return (
     <svg
       width={size}
@@ -22,13 +23,7 @@ export function CompanyLogo({
       role="img"
       aria-label={`${name} logo`}
     >
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={`hsl(${m.hue} 55% 58%)`} />
-          <stop offset="100%" stopColor={`hsl(${m.hue2} 52% 44%)`} />
-        </linearGradient>
-      </defs>
-      <rect x="2" y="2" width="96" height="96" rx="26" fill={`url(#${gid})`} />
+      <rect x="2" y="2" width="96" height="96" rx="26" fill="#14130e" />
       <text
         x="50"
         y="52"
@@ -36,7 +31,7 @@ export function CompanyLogo({
         textAnchor="middle"
         fontSize={fontSize}
         fontWeight={700}
-        fill="#fff"
+        fill="#f7f0da"
         fontFamily="var(--font-display, ui-sans-serif), sans-serif"
       >
         {m.initials}

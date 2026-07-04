@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FlaskConical, GraduationCap, ShieldCheck, Wallet } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import NuCapture from "@/components/NuCapture";
+import TrackBeacon from "@/components/TrackBeacon";
 
 export const metadata: Metadata = {
   title: "competitor.inc × Northeastern — prove your idea before you build it",
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
 export default function NuPage() {
   return (
     <main id="main" className="relative grid min-h-[100dvh] place-items-center overflow-hidden mesh px-6 py-10">
+      <TrackBeacon slug="nu" />
       <div className="absolute inset-0 grid-bg" />
       <div className="relative w-full max-w-3xl">
         <Link href="/" className="flex w-fit items-center gap-2 font-mono text-sm font-bold tracking-tight">

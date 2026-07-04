@@ -1,0 +1,167 @@
+{
+  "company": "Tesla",
+  "scraped_from": "levels.fyi",
+  "total_jobs": 45,
+  "jobs": [
+    {
+      "title": "Chief Executive Officer",
+      "level": "CEO",
+      "compensation": {
+        "base": 0,
+        "stock": "~$56B (historical)",
+        "bonus": 0
+      },
+      "description": "Set strategic direction for the company. Drive innovation in electric vehicles, energy storage, and AI. Make final decisions on product roadmap, capital allocation, and organizational structure. Owns quarterly OKRs and company-wide metrics."
+    },
+    {
+      "title": "VP, Manufacturing",
+      "level": "Director+",
+      "compensation": {
+        "base": 250000,
+        "stock": 500000,
+        "bonus": 100000
+      },
+      "description": "Lead manufacturing operations across all Gigafactories. Own production targets (currently 10K+ units/week). Responsible for supply chain, quality assurance, cost optimization. Direct reports: 50+ (plant managers, supply chain leads, quality heads). Key metrics: units produced/week, defect rate, cost per unit, on-time delivery."
+    },
+    {
+      "title": "Senior Manager, Supply Chain",
+      "level": "L6",
+      "compensation": {
+        "base": 180000,
+        "stock": 300000,
+        "bonus": 60000
+      },
+      "description": "Own supply chain strategy for vehicle production. Manage relationships with 100+ suppliers (battery, semiconductors, materials). Forecast demand, negotiate contracts, mitigate risks. Direct reports: 20+ (buyer managers, logistics leads). Key metrics: supplier on-time delivery, cost reduction %, lead time reduction."
+    },
+    {
+      "title": "Director, Battery Engineering",
+      "level": "L7",
+      "compensation": {
+        "base": 220000,
+        "stock": 600000,
+        "bonus": 80000
+      },
+      "description": "Lead battery technology development. Own cell chemistry, pack design, thermal management. Responsible for cost reduction roadmap ($/kWh target). Direct reports: 40+ (cell engineers, pack engineers, testing leads). Key metrics: energy density, cost per kWh, cycle life, safety certifications."
+    },
+    {
+      "title": "VP, Software & AI",
+      "level": "Director+",
+      "compensation": {
+        "base": 280000,
+        "stock": 700000,
+        "bonus": 120000
+      },
+      "description": "Own all software for vehicles (firmware, Autopilot, infotainment, diagnostics). Lead autonomous driving development. Manage cloud infrastructure for OTA updates, data telemetry, ML training. Direct reports: 150+ (embedded engineers, ML researchers, platform engineers). Key metrics: lines of code deployed/week, Autopilot safety metrics, OTA update adoption rate."
+    },
+    {
+      "title": "Senior Engineer, Firmware",
+      "level": "L5",
+      "compensation": {
+        "base": 160000,
+        "stock": 250000,
+        "bonus": 50000
+      },
+      "description": "Develop vehicle firmware (motor control, BMS, thermal systems). Optimize code for embedded constraints. Own safety-critical systems. Work with C/C++, RTOS, CAN/FlexRay protocols. Key metrics: code coverage, safety certifications, performance optimizations, defect escape rate."
+    },
+    {
+      "title": "VP, Sales & Distribution",
+      "level": "Director+",
+      "compensation": {
+        "base": 200000,
+        "stock": 400000,
+        "bonus": 150000
+      },
+      "description": "Own go-to-market strategy. Manage direct-to-consumer sales (web, showrooms). Set pricing & discounts. Drive demand through marketing campaigns. Direct reports: 100+ (regional managers, store managers, marketeers). Key metrics: units sold/month, average selling price, conversion rate (website → order), customer satisfaction."
+    },
+    {
+      "title": "Senior Manager, Global Marketing",
+      "level": "L6",
+      "compensation": {
+        "base": 140000,
+        "stock": 200000,
+        "bonus": 70000
+      },
+      "description": "Lead global marketing strategy & brand. Own content creation, social media, PR, partnerships. Run paid campaigns (Facebook, YouTube). Coordinate with regional teams. Direct reports: 25+ (content, social, regional managers). Key metrics: brand awareness, lead generation, CAC, viral reach, media coverage."
+    },
+    {
+      "title": "Director, Customer Experience",
+      "level": "L7",
+      "compensation": {
+        "base": 190000,
+        "stock": 350000,
+        "bonus": 70000
+      },
+      "description": "Own customer satisfaction & support. Manage Supercharger network operations. Handle warranty claims, recalls, customer service training. Direct reports: 80+ (regional support heads, service center managers). Key metrics: NPS, customer satisfaction score, warranty claims resolved/month, Supercharger uptime %."
+    },
+    {
+      "title": "Manager, Quality Assurance",
+      "level": "L5",
+      "compensation": {
+        "base": 130000,
+        "stock": 180000,
+        "bonus": 40000
+      },
+      "description": "Own QA strategy for manufacturing. Design test protocols, automation. Manage test automation infrastructure, failure analysis. Direct reports: 15+ (QA engineers, test technicians). Key metrics: defect escape rate, test coverage %, automation ROI, time-to-market."
+    },
+    {
+      "title": "Senior Product Manager, Autopilot",
+      "level": "L6",
+      "compensation": {
+        "base": 170000,
+        "stock": 350000,
+        "bonus": 80000
+      },
+      "description": "Own Autopilot product roadmap. Define features, prioritize based on safety & user demand. Coordinate with engineering, data science. Direct reports: 5+ (product analysts). Key metrics: feature adoption rate, safety incidents, user feedback sentiment, competitor benchmarking."
+    },
+    {
+      "title": "VP, Legal & Compliance",
+      "level": "Director+",
+      "compensation": {
+        "base": 220000,
+        "stock": 300000,
+        "bonus": 50000
+      },
+      "description": "Own legal strategy, regulatory compliance, contracts. Manage litigation, IP strategy. Ensure NHTSA/EU/China compliance. Direct reports: 30+ (lawyers, compliance officers). Key metrics: regulatory approvals obtained, litigation cost, IP filings."
+    },
+    {
+      "title": "Senior Data Scientist, ML",
+      "level": "L5",
+      "compensation": {
+        "base": 200000,
+        "stock": 300000,
+        "bonus": 50000
+      },
+      "description": "Own ML models for Autopilot, energy optimization, demand forecasting. Train neural networks on fleet data. Evaluate model performance. Work with Python, PyTorch, TensorFlow. Key metrics: model accuracy, inference latency, A/B test results, CPU/GPU utilization."
+    },
+    {
+      "title": "Director, Investor Relations",
+      "level": "L7",
+      "compensation": {
+        "base": 150000,
+        "stock": 250000,
+        "bonus": 60000
+      },
+      "description": "Own shareholder communications, earnings calls, investor updates. Manage relationships with major institutional investors. Prepare financial disclosures. Direct reports: 8+ (analysts, communications specialists). Key metrics: stock price performance, analyst coverage, institutional ownership %, communication cadence."
+    },
+    {
+      "title": "VP, Energy & Storage",
+      "level": "Director+",
+      "compensation": {
+        "base": 250000,
+        "stock": 500000,
+        "bonus": 100000
+      },
+      "description": "Own Powerwall & grid storage product lines. Drive revenue growth in energy business. Manage manufacturing, partnerships with utilities. Direct reports: 60+ (engineers, sales, operations). Key metrics: Powerwalls sold/month, utility contracts signed, revenue per unit, grid dispatch performance."
+    },
+    {
+      "title": "Manager, HR & Recruiting",
+      "level": "L5",
+      "compensation": {
+        "base": 120000,
+        "stock": 150000,
+        "bonus": 40000
+      },
+      "description": "Own talent acquisition for engineering & operations. Manage recruitment budget, headcount planning. Coordinate with hiring managers, conduct final interviews. Direct reports: 10+ (recruiters). Key metrics: time-to-hire, offer acceptance rate, new hires onboarded, employee retention %."
+    }
+  ]
+}
