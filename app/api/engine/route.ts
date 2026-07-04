@@ -5,7 +5,8 @@ import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
 import { runGrowthStep, type FunnelSnapshot, type GrowthExperiment } from "@/lib/engine/growth";
 import { readFunnel } from "@/lib/engine/funnel";
-import type { ByokConfig, Company } from "@/lib/engine/types";
+import type { AgentRole, ByokConfig, Company } from "@/lib/engine/types";
+import { AGENTS } from "@/lib/engine/types";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,7 @@ export async function GET() {
 type Body =
   | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig }
   | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig }
-  | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; byok?: ByokConfig };
+  | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; agent?: AgentRole; byok?: ByokConfig };
 
 // The funnel used when no DB is configured (or the read fails): every stage missing. The growth step
 // then closes due experiments as "inconclusive — connect the signal" instead of inventing numbers.
@@ -113,6 +114,10 @@ export async function POST(req: Request) {
         return Response.json({ error: "`company` and `message` are required" }, { status: 400 });
       }
       const message = body.message.trim();
+      // The addressed agent routes to ITS model tier (Apex/Rig → mid, Forge → strong, Pitch/Guard/Surge
+      // → cheap) via modelForAgent(agent) inside the chat fns. Validate against the real roster; default
+      // to ceo. (With a single BYOK key that has no tiers, every agent shares that one model — expected.)
+      const agent: AgentRole = body.agent && body.agent in AGENTS ? body.agent : "ceo";
       // Consequential asks get a real ApprovalItem queued client-side; pass the seed in a header so
       // the reply can still stream. (encodeURIComponent keeps the value header-safe + unicode-safe.)
       const approval = detectChatApproval(message);
@@ -123,10 +128,10 @@ export async function POST(req: Request) {
       if (approval) headers["x-approval"] = encodeURIComponent(JSON.stringify(approval));
       // Real model → stream its tokens as they arrive (model speed). No model / any failure →
       // fake-stream the simulated reply with a typewriter cadence so it still feels live.
-      const live = await streamChatReply(body.company, message, body.soul, body.byok);
+      const live = await streamChatReply(body.company, message, body.soul, body.byok, agent);
       const stream = live
         ? streamTokens(live)
-        : streamText(await runChat(body.company, message, body.soul, body.byok));
+        : streamText(await runChat(body.company, message, body.soul, body.byok, agent));
       return new Response(stream, { headers });
     }
 

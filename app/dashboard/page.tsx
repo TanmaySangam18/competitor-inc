@@ -39,6 +39,7 @@ import {
 import { useEngine } from "@/lib/engine/useEngine";
 import { useConfig, getByok } from "@/lib/engine/config";
 import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/engine/types";
+import { modelForAgent, getModel } from "@/lib/engine/per-agent-model-routing";
 import { LogoMark } from "@/components/Logo";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import ActionBell from "@/components/ActionBell";
@@ -812,7 +813,11 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
                         {A.name} <span className="text-muted-2">· {A.label}</span>
                       </div>
                       <div className="truncate text-xs text-muted-2">{A.blurb}</div>
-                      <div className="mt-0.5 truncate text-[10px] text-muted-2">Plays <span className="text-muted">{A.playbook}</span></div>
+                      <div className="mt-0.5 truncate text-[10px] text-muted-2">
+                        Plays <span className="text-muted">{A.playbook}</span>
+                        <span className="text-muted-2"> · runs on </span>
+                        <span className="text-muted">{getModel(modelForAgent(role)).name}</span>
+                      </div>
                     </div>
                     <ChevronDown size={14} className="shrink-0 text-muted-2 transition group-open:rotate-180" />
                   </summary>
@@ -825,6 +830,26 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
                         ))}
                       </ul>
                     </div>
+                    {A.workflow && A.workflow.length > 0 && (
+                      <div>
+                        <div className="font-semibold uppercase tracking-wide text-muted-2">How they work</div>
+                        <ol className="mt-1.5 space-y-1">
+                          {A.workflow.map((x, i) => (
+                            <li key={i} className="flex gap-1.5 text-muted"><span className="text-muted-2">{i + 1}.</span><span>{x}</span></li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                    {A.successMetrics && A.successMetrics.length > 0 && (
+                      <div>
+                        <div className="font-semibold uppercase tracking-wide text-muted-2">Measured by</div>
+                        <ul className="mt-1.5 space-y-1">
+                          {A.successMetrics.map((x, i) => (
+                            <li key={i} className="flex gap-1.5 text-muted"><span className="text-muted-2">·</span><span>{x}</span></li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     {A.icp && (
                       <div>
                         <span className="font-semibold uppercase tracking-wide text-muted-2">Talks to </span>

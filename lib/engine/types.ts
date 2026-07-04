@@ -185,6 +185,11 @@ export interface AgentSpec {
   blurb: string;
   playbook: string;
   responsibilities: string[];
+  // Enriched agent definition (borrowed template concept, 2026-07-04): the step-by-step process the
+  // agent follows, and the measurable bar its work is judged against. Fed into the agent's prompt so
+  // behavior follows the workflow, and surfaced so the founder sees how success is measured.
+  workflow?: string[];
+  successMetrics?: string[];
   icp?: string;
   objections?: string[];
 }
@@ -199,6 +204,17 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
       "Define what 'good' and 'done' mean for each goal in measurable terms (the bar work is judged against)",
       "Independently review other agents' work — never let an agent grade its own (generator/evaluator separation)",
     ],
+    workflow: [
+      "Diagnose the single binding constraint this shift (traffic, conversion, or monetization)",
+      "Point the crew + budget at that one constraint — cut what doesn't serve it",
+      "Independently verify each agent's output before it counts as done",
+      "Set the measurable bar for the next shift",
+    ],
+    successMetrics: [
+      "The binding constraint moves every shift",
+      "No agent grades its own work",
+      "Spend maps to the north-star metric, not to activity",
+    ],
   },
   engineering: {
     name: "Forge",
@@ -208,6 +224,17 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     responsibilities: [
       "Ship the smallest real version of the validated winner",
       "Verify work before marking it done (verify-before-done); deploy only after the check passes",
+    ],
+    workflow: [
+      "Scope the smallest real version of the validated winner",
+      "Build it",
+      "Verify it works — a resolving URL or a passing check, not a claim",
+      "Deploy only after the check passes; attach the proof",
+    ],
+    successMetrics: [
+      "Every shipped item carries verifiable proof (commit, URL, or metric)",
+      "Zero unverified 'done'",
+      "Deploys are reversible",
     ],
   },
   marketing: {
@@ -220,6 +247,17 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
       "Run real demand tests; find the one channel that converts, then pour into it",
       "Be prescriptive about how to buy — show the happy path from the first touch",
       "Obsess over implementation/activation — the first 'aha' is where users are kept",
+    ],
+    workflow: [
+      "Generate demand first — demand is the usual bottleneck",
+      "Run one real demand test",
+      "Find the single channel that converts, then pour into it",
+      "Make the buy path obvious from the first touch",
+    ],
+    successMetrics: [
+      "A real demand signal, not vanity likes",
+      "One channel beating the target cost-per-signup",
+      "Activation of the first 'aha'",
     ],
     icp: "First-time / student founders building their first company",
     objections: ["Is this a scam?", "Will it spend my money without asking?", "Am I locked in?", "What if it tells me not to build?"],
@@ -234,6 +272,17 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
       "Own quality — test protocols, defect analysis, verify-before-ship",
       "Drive cost per unit down without cutting the quality bar",
     ],
+    workflow: [
+      "Source suppliers; lock in lead times",
+      "Set the quality bar + test protocol before producing at scale",
+      "Verify against that bar before anything ships",
+      "Drive cost per unit down without touching the bar",
+    ],
+    successMetrics: [
+      "Defect rate under the set bar",
+      "Cost per unit trending down",
+      "No untested unit ships",
+    ],
   },
   support: {
     name: "Guard",
@@ -244,6 +293,17 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
       "Handle users — can issue refunds, cannot touch payment rails",
       "Act as an independent, read-only verifier of shipped work + outgoing messages before they reach a user",
       "Turn friction into trust; log recurring issues as signals for the rest of the crew",
+    ],
+    workflow: [
+      "Read the user's actual friction",
+      "Resolve it with the least user effort",
+      "Independently review shipped work + outgoing messages before they reach a user",
+      "Log recurring issues as signals for the crew",
+    ],
+    successMetrics: [
+      "Low customer-effort score",
+      "Issues resolved fast",
+      "Recurring problems fed back as product signals",
     ],
     objections: ["Will a human help me?", "Can I get a refund?", "Can I export my data and leave?"],
   },
@@ -257,6 +317,17 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
       "Turn happy users into new ones (referrals / word-of-mouth) — the compounding growth loop",
       "Draft demand-capture posts for the founder's sign-off — never auto-post",
       "Spot trends and load the surprise-launch blitz",
+    ],
+    workflow: [
+      "Treat the launch as the start of the work, not the finish",
+      "Turn happy users into referrals — the compounding loop",
+      "Draft demand-capture posts for the founder's sign-off (never auto-post)",
+      "Spot trends; load the surprise-launch blitz",
+    ],
+    successMetrics: [
+      "Referral / word-of-mouth rate climbing",
+      "Retention of activated users",
+      "Drafts shipped for approval — nothing auto-posted",
     ],
     icp: "First-time / student founders building their first company",
     objections: ["I have no audience", "I'm not a marketer", "Will this come across as spammy?"],

@@ -341,11 +341,12 @@ export async function runChat(
   company: { name: string; idea: string },
   message: string,
   soul?: string,
-  byok?: ByokConfig
+  byok?: ByokConfig,
+  agent: AgentRole = "ceo"
 ): Promise<string> {
   if (modelAvailable(byok)) {
     try {
-      const text = await callModel(chatSystem(company, soul), message, byok, modelForAgent("ceo"));
+      const text = await callModel(chatSystem(company, soul), message, byok, modelForAgent(agent));
       if (text.trim()) return text.trim();
     } catch {
       /* fall through */
@@ -362,11 +363,12 @@ export async function streamChatReply(
   company: { name: string; idea: string },
   message: string,
   soul?: string,
-  byok?: ByokConfig
+  byok?: ByokConfig,
+  agent: AgentRole = "ceo"
 ): Promise<AsyncGenerator<string> | null> {
   if (!modelAvailable(byok)) return null;
   try {
-    const gen = await callModelStream(chatSystem(company, soul), message, byok, modelForAgent("ceo"));
+    const gen = await callModelStream(chatSystem(company, soul), message, byok, modelForAgent(agent));
     const first = await gen.next();
     if (first.done || !first.value) return null; // empty completion → simulated fallback
     return (async function* () {

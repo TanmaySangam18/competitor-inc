@@ -110,6 +110,8 @@ export default function DelegationPage() {
     const soul =
       `You are ${a.name}, the ${a.label} agent at competitor.inc, working on ${co.name} — "${co.idea}". ` +
       `Your playbook: ${a.playbook}. Your responsibilities: ${a.responsibilities.join("; ")}. ` +
+      (a.workflow ? `Follow your workflow, in order: ${a.workflow.join(" → ")}. ` : "") +
+      (a.successMetrics ? `Judge your own answer against these success metrics: ${a.successMetrics.join("; ")}. ` : "") +
       (a.objections ? `Reassure these common worries when relevant: ${a.objections.join("; ")}. ` : "") +
       `Reply in-character: concise, specific, action-oriented — name the concrete next steps you'd take for ${co.name}. ` +
       `Anything consequential (spending money, outreach, posting publicly, deploying) you DRAFT and queue for the founder's approval — say so; never claim you already shipped it.`;
@@ -124,7 +126,7 @@ export default function DelegationPage() {
       const res = await fetch("/api/engine", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ kind: "chat", company: { name: co.name, idea: co.idea }, message: text, soul, byok: getByok() ?? undefined }),
+        body: JSON.stringify({ kind: "chat", company: { name: co.name, idea: co.idea }, message: text, soul, agent: role, byok: getByok() ?? undefined }),
       });
       const consequential = !!res.headers.get("x-approval");
       let acc = "";
