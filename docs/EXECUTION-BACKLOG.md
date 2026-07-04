@@ -5,10 +5,14 @@ _Last updated: 2026-07-04._
 
 ## What I'm Owning Next (Not Asking — Doing) — priority order
 
-1. **Playbook content depth** — quality pass on the highest-intent free intros (no new slop).
-2. **Weekly operating cadence** — run the growth/ops review; surface decisions + numbers proactively.
-3. **Wallet persistence + `/api/wallet`** — parked until migration 0018 applied + a wallet funded.
-4. **Agent spend-execution plumbing** — parked behind #3 and a first customer.
+1. **Weekly operating cadence** — run the growth/ops review; surface decisions + numbers proactively.
+2. **Wallet persistence + `/api/wallet`** — parked until migration 0018 applied + a wallet funded.
+3. **Agent spend-execution plumbing** — parked behind #2 and a first customer.
+
+_Honest state: the product is launch-ready and the funnel is fully instrumented. Remaining internal
+work is either polish that compounds only post-launch, or parked on founder launch actions. The single
+highest-leverage move is the free-tier soft-launch (founder-gated). I keep the compounding, no-escalation
+work moving in the meantime._
 
 ## Decisions made (as the exec team) — 2026-07-04
 - **Social platforms (ROI-scoped, NOT all):** TIER 1 = X + Reddit + Hacker News + Product Hunt (where
@@ -23,6 +27,8 @@ _Last updated: 2026-07-04._
   pixel data, spending within the Wallet's `ads` budget + approval rules (exactly what the Wallet enables).
 
 ## Recently Shipped (rolling)
+- Playbook FAQs + FAQPage structured data on the 3 highest-intent playbooks (validate / zero-budget /
+  distribution) — long-tail question intent + rich-results eligibility (2026-07-04, deployed).
 - Signup-completion attribution: landing CTA marks a referral; SignupAttribution fires one real
   `signup` for `home` once auth completes (returning sign-ins never counted). Funnel now end-to-end
   (2026-07-04, deployed).

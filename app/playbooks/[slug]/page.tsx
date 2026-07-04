@@ -49,6 +49,23 @@ export default async function PlaybookDetail({ params }: { params: Promise<{ slu
           }),
         }}
       />
+      {/* FAQ structured data → FAQPage rich results in search (long-tail question intent). */}
+      {pb.faqs && pb.faqs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: pb.faqs.map((f) => ({
+                "@type": "Question",
+                name: f.q,
+                acceptedAnswer: { "@type": "Answer", text: f.a },
+              })),
+            }),
+          }}
+        />
+      )}
       <header className="glass-nav sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
@@ -86,6 +103,21 @@ export default async function PlaybookDetail({ params }: { params: Promise<{ slu
             ))}
           </ul>
         </div>
+
+        {/* FAQ — public, indexable, long-tail question intent (pairs with the FAQPage schema above). */}
+        {pb.faqs && pb.faqs.length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-2">Frequently asked</h2>
+            <div className="mt-4 space-y-3">
+              {pb.faqs.map((f) => (
+                <details key={f.q} className="rounded-2xl glass-panel p-5">
+                  <summary className="cursor-pointer list-none font-medium leading-snug">{f.q}</summary>
+                  <p className="mt-2 text-[15px] leading-relaxed text-muted">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Paywall — body is genuinely withheld (server doesn't render it); $3 unlock ships in Phase 3 */}
         <div className="mt-6 rounded-2xl border border-coral/30 bg-coral/[0.05] p-8 text-center">

@@ -7,6 +7,10 @@ export interface PlaybookSection {
   heading: string;
   paragraphs: string[];
 }
+export interface PlaybookFaq {
+  q: string;
+  a: string;
+}
 export interface Playbook {
   slug: string;
   title: string;
@@ -14,6 +18,9 @@ export interface Playbook {
   readMins: number;
   freeIntro: string[]; // public
   body: PlaybookSection[]; // gated (Phase 3)
+  // Public FAQ — targets long-tail question searches + powers FAQPage rich results. Honest answers
+  // in our own voice; no fabricated stats. Optional (only the highest-intent playbooks carry it).
+  faqs?: PlaybookFaq[];
 }
 
 export const PLAYBOOKS: Playbook[] = [
@@ -84,6 +91,20 @@ export const PLAYBOOKS: Playbook[] = [
     title: "Validate before you build",
     summary: "How to know if anyone wants your idea — before you spend a month and your savings building it.",
     readMins: 6,
+    faqs: [
+      {
+        q: "How do I validate a startup idea before building it?",
+        a: "Run the cheapest test that produces an honest signal: talk to 5–10 real potential users about what they do today (never \"would you use my idea?\"), look for evidence demand already exists (what they pay for now, the workarounds they hack together), then make one costly ask — a pre-order, deposit, or reserved spot with a card. Decide the pass/fail threshold in writing before you run it.",
+      },
+      {
+        q: "How many signups mean an idea is validated?",
+        a: "There's no universal number — set it before you test. What matters is the strength of the signal, not the count: a like is free (weak), an email is mild interest, a pre-order or a click on a real price is money-adjacent (strongest). Ten people who paid beats a thousand who liked.",
+      },
+      {
+        q: "What if the validation test fails?",
+        a: "A weak signal is a win, not a failure — it's the cheapest \"no\" you'll ever get. Change the idea or the audience and test again. You just saved yourself the month and the savings you'd have spent building the wrong thing.",
+      },
+    ],
     freeIntro: [
       "Most first-time founders do it backwards: they fall in love with an idea, disappear for three months to build it, launch to silence, and only then ask whether anyone wanted it. By then the money and the months are gone. The single highest-leverage thing you can do is invert that order — find out if there's real demand first, while it's still cheap to be wrong.",
       "Validation isn't a survey of your friends (they'll lie to be nice) and it isn't \"I just feel like this should exist.\" It's a small, real test that produces an honest signal: would a stranger give you their email, their click, or their money for this — today, before it fully exists? This playbook is the exact sequence we use to get that answer in days, not months.",
@@ -141,6 +162,20 @@ export const PLAYBOOKS: Playbook[] = [
     title: "Distribution for first-time founders",
     summary: "The honest reach game — a credibility anchor, founder-led short-form, and one channel that works.",
     readMins: 7,
+    faqs: [
+      {
+        q: "How do I get my first customers with no audience?",
+        a: "Start with the warmest circle, not the widest: direct conversations with people who already have the problem, then the communities where they gather (contribute first, mention the product last), then one honest founder story. You don't need an audience to get the first ten customers — you need ten real conversations.",
+      },
+      {
+        q: "Which marketing channel should a first-time founder use?",
+        a: "One — the one that converts for your specific buyer, found by testing a few cheaply and pouring into the winner (Bullseye/Traction). Spreading thin across every platform is the classic first-timer mistake. For founder tools that usually means where founders already are: niche communities, Reddit, X, and a launch on Hacker News / Product Hunt — not consumer-visual platforms.",
+      },
+      {
+        q: "Is a launch a one-time event?",
+        a: "No — a launch is the start of the distribution work, not the finish. The compounding growth comes after: turning the first happy users into referrals, and treating distribution as importantly as the product every week thereafter.",
+      },
+    ],
     freeIntro: [
       "Here's the uncomfortable truth nobody tells first-time founders: the product is rarely what kills you — distribution is. You can build something genuinely good and still hear crickets, because building and being-heard are two completely different skills, and you only practiced one.",
       "The good news: reach is learnable, and it's mostly mechanics, not magic. The funded players didn't win on a product millions use — they won on a credibility anchor, founder-led content with a shareable hook, and a relentless focus on the one channel that actually converts. You can run the same machine on a zero budget.",
@@ -190,6 +225,20 @@ export const PLAYBOOKS: Playbook[] = [
     title: "Build it on a zero budget",
     summary: "How to ship a real AI product with $0 — free-tier inference, student credits, and a smart compute mix.",
     readMins: 6,
+    faqs: [
+      {
+        q: "Can I build an AI startup with no money?",
+        a: "Yes. The two real costs are compute and distribution, and both have zero-dollar paths: run on free-tier and open models, claim student/startup credits (most major providers offer them), and let users bring their own API key so their usage runs on their bill, not yours. Distribution is organic — one honest founder story beats an ad budget you don't have.",
+      },
+      {
+        q: "What's the cheapest way to run AI inference for a product?",
+        a: "Mix tiers by task: a small/cheap model for routine work, a stronger model only where quality is the product, and a deterministic fallback so the app works even with no key at all. Cache aggressively and pass through the user's own key when you can. The goal is that your marginal cost per user rounds to zero until you have revenue.",
+      },
+      {
+        q: "Do I need to raise money before building?",
+        a: "Almost never at the idea stage. Raising before you have demand evidence trades equity for a question you could have answered for free. Validate first, ship the smallest real version on a zero budget, and let paying users — not a deck — decide whether the thing deserves capital.",
+      },
+    ],
     freeIntro: [
       "The myth that stops broke founders cold: \"I need money for the AI before I can even start.\" You don't. \"Open-source models are free\" is half the story — the weights are free, the GPU to run them isn't — but there's a real $0 path, and it's mostly about using compute that already exists at no cost to you.",
       "The trick is to stop asking \"how do I pay for AI?\" and start asking \"whose idle compute and unused credits am I allowed to use?\" Answer that, and you can deliver a real experience to your first users without spending a cent — funding the heavier moments with credits you're entitled to but haven't claimed.",
