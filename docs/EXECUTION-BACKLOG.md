@@ -27,6 +27,12 @@ work moving in the meantime._
   pixel data, spending within the Wallet's `ads` budget + approval rules (exactly what the Wallet enables).
 
 ## Recently Shipped (rolling)
+- GTM consolidated: Launch Kit + Ad Campaign merged into one doc (docs/LAUNCH-KIT.md). Standalone
+  AD-CAMPAIGN.md removed (2026-07-04).
+- Adopted the permanent OSS-Intelligence directive (docs/OSS-INTELLIGENCE-DIRECTIVE.md) as a standing
+  build-vs-borrow lens; reviewed msitarzewski/agency-agents (borrow agent-def template + division
+  taxonomy; do NOT import roster — post-launch, low-med). Automated OSS scanner = backlog build.
+- Decision: onboarding uses OAuth/GitHub App scoped tokens, NOT browser-session takeover (security).
 - Build-in-public auto-distribution: opt-in consent toggle (Company.shareInPublic, migration 0020) →
   cron posts a company's REAL verified milestone to competitor.inc's OWN Bluesky/Mastodon (never the
   customer's; never fabricated). The public stream is the platform's marketing (2026-07-04, deployed).
