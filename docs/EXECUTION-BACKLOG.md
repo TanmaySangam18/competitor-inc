@@ -5,17 +5,13 @@ _Last updated: 2026-07-04._
 
 ## What I'm Owning Next (Not Asking — Doing) — priority order
 
-1. **Agent spend wiring** — route the executor's real-money actions (domains, hosting, ads, SaaS,
-   APIs) through the Wallet (`decideSpend` → policy floor → execute → log txn attributable to
-   agent+task). The Wallet engine + UI + schema are DONE; this connects it to real execution.
-2. **Wallet spend API + Supabase persistence** — `/api/wallet` (config CRUD, txn log) writing through
-   the service role; the settings card is currently local-first, mirror it to `wallets` /
-   `wallet_transactions` (migration 0018).
-3. **Compounding organic growth** — deepen the highest-intent playbook content + internal linking so
-   the (now-correct) SEO base ranks and funnels to the demo. No founder posts, no ad spend.
-4. **Conversion instrumentation review** — confirm the demo→signup funnel events answer "where do
-   visitors drop," so launch traffic teaches us something.
-5. **Weekly operating cadence** — run the growth/ops review; surface decisions + numbers proactively.
+1. **Signup-completion attribution** — fire a `signup` event for slug `home` at /auth/callback when a
+   visitor who clicked a landing CTA completes signup, so the funnel's last stage is real (currently
+   demo_cta is the deepest measured step). Small /auth/callback + referral-marker change.
+2. **Playbook content depth** — quality pass on the highest-intent free intros (no new slop).
+3. **Weekly operating cadence** — run the growth/ops review; surface decisions + numbers proactively.
+4. **Wallet persistence + `/api/wallet`** — parked until migration 0018 applied + a wallet funded.
+5. **Agent spend-execution plumbing** — parked behind #4 and a first customer.
 
 ## Decisions made (as the exec team) — 2026-07-04
 - **Social platforms (ROI-scoped, NOT all):** TIER 1 = X + Reddit + Hacker News + Product Hunt (where
@@ -30,8 +26,12 @@ _Last updated: 2026-07-04._
   pixel data, spending within the Wallet's `ads` budget + approval rules (exactly what the Wallet enables).
 
 ## Recently Shipped (rolling)
-- Business Wallet: engine + 17 tests + schema (0018) + Settings UI (limits/budgets/pause/revoke/
-  preview/txn-log) (2026-07-04, deployed).
+- Conversion instrumentation: `demo_cta` event on all landing CTAs (closes the demo→intent cliff) +
+  /api/track returns every funnel stage + founder Landing-Funnel readout on /house/board with step
+  conversion + biggest-drop callout. Needs migration 0019 (demo_cta type) (2026-07-04, deployed).
+- Playbooks: contextual "Read next" internal linking + demo-first CTA (2026-07-04, deployed).
+- Business Wallet: engine + 21 tests + schema (0018) + Settings UI + fail-safe cron spend gate
+  (unfunded wallet blocks all real spend) (2026-07-04, deployed).
 - SEO: unified canonical/OG domain via lib/site.ts; sitemap 18→38 URLs (2026-07-03, deployed).
 - Honest undo (reversibility classifier) + performance-weighted budget allocation (2026-07-03).
 - Office budget governance (Allocator + Enforcer) + Brain audit badges (2026-07-03).

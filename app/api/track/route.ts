@@ -45,10 +45,10 @@ export async function POST(req: Request) {
   // Public pixel may only report views, signups, and hero-demo events. Purchases come from the
   // payment webhook alone. Demo events are restricted to OUR first-party pages (reserved slugs) —
   // they measure the attention-first playbook's triggers, never a customer's demand test.
-  const isDemoType = type === "demo_start" || type === "demo_verdict";
+  const isDemoType = type === "demo_start" || type === "demo_verdict" || type === "demo_cta";
   const isReservedSlug = slug === "home" || slug === "nu";
   if (type !== "view" && type !== "signup" && !isDemoType) {
-    return Response.json({ ok: false, error: "type must be view|signup|demo_start|demo_verdict" }, { status: 400, headers: CORS });
+    return Response.json({ ok: false, error: "type must be view|signup|demo_start|demo_verdict|demo_cta" }, { status: 400, headers: CORS });
   }
   if (isDemoType && !isReservedSlug) {
     return Response.json({ ok: false, error: "demo events are first-party only" }, { status: 400, headers: CORS });
@@ -98,14 +98,19 @@ export async function GET(req: Request) {
   const slug = (url.searchParams.get("slug") ?? "").trim().toLowerCase();
   if (!SLUG_RE.test(slug)) return Response.json({ ok: false, error: "bad slug" }, { status: 400 });
   const client = sb();
-  if (!client) return Response.json({ ok: true, persisted: false, views: 0, signups: 0 });
+  const empty = { ok: true as const, persisted: false, views: 0, demoStarts: 0, demoVerdicts: 0, demoCtas: 0, signups: 0 };
+  if (!client) return Response.json(empty);
   try {
-    const [v, s] = await Promise.all([
-      client.from("events").select("id", { count: "exact", head: true }).eq("slug", slug).eq("type", "view"),
-      client.from("events").select("id", { count: "exact", head: true }).eq("slug", slug).eq("type", "signup"),
+    const count = (type: string) =>
+      client.from("events").select("id", { count: "exact", head: true }).eq("slug", slug).eq("type", type);
+    const [v, ds, dv, dc, s] = await Promise.all([
+      count("view"), count("demo_start"), count("demo_verdict"), count("demo_cta"), count("signup"),
     ]);
-    return Response.json({ ok: true, persisted: true, views: v.count ?? 0, signups: s.count ?? 0 });
+    return Response.json({
+      ok: true, persisted: true,
+      views: v.count ?? 0, demoStarts: ds.count ?? 0, demoVerdicts: dv.count ?? 0, demoCtas: dc.count ?? 0, signups: s.count ?? 0,
+    });
   } catch {
-    return Response.json({ ok: true, persisted: false, views: 0, signups: 0 });
+    return Response.json(empty);
   }
 }

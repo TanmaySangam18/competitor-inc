@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, RefreshCw, KeyRound, BarChart3, ShieldCheck, GraduationCap } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
+import { LandingFunnel } from "@/components/house/LandingFunnel";
 
 // Founder KPI board (Block 9). Reads aggregate funnel counts from /api/metrics (bearer-guarded by
 // METRICS_SECRET) and shows them against the growth-model thresholds. No PII; numbers load only with
@@ -206,6 +207,9 @@ export default function Board() {
           />
           <Stat label="PMF score" value="—" target="≥40%" hint="Needs the Sean-Ellis survey" />
         </div>
+
+        {/* Landing funnel — where launch visitors drop (public aggregate pixel, no PII). */}
+        <LandingFunnel slug="home" />
 
         <p className="mt-8 text-xs text-muted-2">
           North Star + thresholds: kill signups as a goal; chase Proven Paying Users (50–150 in 4 weeks). A hundred

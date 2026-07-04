@@ -19,7 +19,7 @@ import TrackBeacon from "@/components/TrackBeacon";
 
 // Playbook triggers (docs/PLAYBOOK-attention-first-landing.md): measure demo starts,
 // time-to-first-interaction, and verdicts — not just views. First-party pixel, reserved slug.
-function fireDemoEvent(type: "demo_start" | "demo_verdict", extra: string) {
+function fireDemoEvent(type: "demo_start" | "demo_verdict" | "demo_cta", extra: string) {
   try {
     const payload = JSON.stringify({ slug: "home", type, source: extra.slice(0, 60) });
     if (navigator.sendBeacon) {
@@ -107,6 +107,7 @@ export default function LandingPage() {
             )}
             <Link
               href={appHref}
+              onClick={() => fireDemoEvent("demo_cta", "nav")}
               className="rounded-full bg-text px-4 py-1.5 text-sm font-medium text-bg transition hover:opacity-85"
             >
               {user ? "Dashboard" : "Get started"}
@@ -182,6 +183,7 @@ export default function LandingPage() {
                   <div className="mt-2.5 flex items-center gap-3 font-sans">
                     <Link
                       href={appHref}
+                      onClick={() => fireDemoEvent("demo_cta", `keep:${verdict.verdict}`)}
                       className="rounded-full bg-text px-3.5 py-1.5 text-xs font-medium text-bg transition hover:opacity-85"
                     >
                       Keep this crew <ArrowRight size={12} className="ml-0.5 inline" aria-hidden />
@@ -269,6 +271,7 @@ export default function LandingPage() {
         <div className="mt-12 flex flex-col items-center gap-2 text-center">
           <Link
             href={appHref}
+            onClick={() => fireDemoEvent("demo_cta", "footer")}
             className="rounded-full bg-text px-6 py-2.5 text-sm font-medium text-bg transition hover:opacity-85"
           >
             Put a crew on your idea
