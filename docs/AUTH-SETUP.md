@@ -1,21 +1,30 @@
 # Auth setup — making Google / GitHub / magic-link sign-in work on prod
 
-**Why sign-in fails today (verified 2026-07-02):** the CODE path is complete and aligned —
-cookie-based `@supabase/ssr` on browser + server, session-refresh middleware, and (new) the
-canonical `/auth/callback` exchange route. What's missing is **Supabase dashboard configuration**:
-the Google and GitHub providers were never enabled, so `signInWithOAuth` is rejected by Supabase
-before any redirect happens. That's a founder-only action (it needs your Google/GitHub accounts).
+**STATUS (2026-07-04):**
+- ✅ **GitHub OAuth — ENABLED + verified.** Authorize returns `302 → github.com` (client_id
+  `Ov23liT48Lh1ulreqHZV`). Signup via GitHub works.
+- ✅ **Client config bug fixed.** `NEXT_PUBLIC_SUPABASE_URL` was missing from the browser build (auth
+  ran in "guest" mode → all sign-in dead). Now set in Vercel as a **non-sensitive** var
+  (`https://nfxqlyidxrncfawakhuw.supabase.co`) and redeployed. NOTE: Vercel "Sensitive" vars do NOT
+  inline into the client bundle and read back empty on `pull` — always use `--no-sensitive` for
+  `NEXT_PUBLIC_*`.
+- ⬜ **Google OAuth — TODO** (optional; not needed to launch — GitHub + magic-link cover it). §3 below.
+- ✅ **Redirect URLs allow-list** includes `https://competitor-inc-zeta.vercel.app/**`.
 
-Everything below happens at **supabase.com/dashboard → your project**. ~20 minutes total.
+**Original diagnosis (2026-07-02):** the CODE path is complete — cookie-based `@supabase/ssr`,
+session-refresh middleware, canonical `/auth/callback` exchange route. The blockers were all
+**Supabase dashboard configuration** (providers not enabled) + the client env bug above.
+
+Everything below happens at **supabase.com/dashboard → your project**.
 
 ## 0. The one URL you'll paste everywhere
 
-Your Supabase **OAuth callback URL** (find it under *Authentication → Providers → any provider*):
+Your Supabase **OAuth callback URL** (the redirect URI every provider needs):
 
-    https://<your-project-ref>.supabase.co/auth/v1/callback
+    https://nfxqlyidxrncfawakhuw.supabase.co/auth/v1/callback
 
-(`<your-project-ref>` is in the dashboard URL / Settings → API. This is Supabase's endpoint —
-distinct from the app's own `/auth/callback` route, which Supabase redirects back to afterward.)
+(This is Supabase's endpoint — distinct from the app's own `/auth/callback` route, which Supabase
+redirects back to afterward.)
 
 ## 1. URL configuration (once)
 
@@ -25,24 +34,33 @@ distinct from the app's own `/auth/callback` route, which Supabase redirects bac
   - `https://competitor-inc-zeta.vercel.app/**`
   - `http://localhost:3000/**` (dev)
 
-## 2. GitHub sign-in (~5 min — do this one first; our beachhead lives on GitHub)
+## 2. GitHub sign-in — ✅ DONE (2026-07-04)
 
+Enabled + verified. For reference, this is what was done:
 1. github.com → Settings → Developer settings → **OAuth Apps → New OAuth App**
    - Homepage URL: `https://competitor-inc-zeta.vercel.app`
    - **Authorization callback URL:** the Supabase callback from §0
 2. Register → copy the **Client ID**, generate a **Client secret**.
 3. Supabase → *Authentication → Providers → GitHub* → Enable → paste ID + secret → Save.
 
-## 3. Google sign-in (~10 min)
+## 3. Google sign-in — ⬜ TODO (~10 min; optional, not a launch blocker)
 
-1. console.cloud.google.com → create/select a project → *APIs & Services → OAuth consent screen*
-   - External · app name `competitor.inc` · your support email · add domain `vercel.app` · Save.
-2. *Credentials → Create credentials → OAuth client ID → Web application*
+⚠️ Google needs its OWN credentials — the GitHub client ID does NOT work (Google IDs look like
+`1234567890-abc.apps.googleusercontent.com`).
+
+1. console.cloud.google.com → **New Project** (`competitor-inc`) → select it. (New Google Cloud
+   accounts must accept Google's Terms of Service — that's yours to accept.)
+2. Search **"Google Auth Platform"** (or *APIs & Services → OAuth consent screen*) → **Get started**
+   - **External** · app name `competitor.inc` · your support email · dev contact = you → Finish.
+3. *Clients* (or *Credentials → Create credentials → OAuth client ID*) → **Web application**
    - Authorized JavaScript origins: `https://competitor-inc-zeta.vercel.app`
-   - **Authorized redirect URIs:** the Supabase callback from §0
-3. Copy Client ID + secret → Supabase → *Providers → Google* → Enable → paste → Save.
-4. Consent screen can stay in "Testing" while it's just you — add your emails as test users.
-   Publish it before launch (unverified-app warning is cosmetic until ~100 users).
+   - **Authorized redirect URIs (exact, no trailing slash):** the Supabase callback from §0
+4. **Create** → copy the **Client ID** (`...apps.googleusercontent.com`) + **Client Secret**.
+5. ⚠️ **Publish it:** Google Auth Platform → *Audience → Publishing status* → if "Testing", click
+   **Publish app → Confirm**. In Testing mode only manually-added test users can sign in; publishing
+   lets any Google user in (unverified-app warning is cosmetic until Google verification later).
+6. Supabase → *Providers → Google* → Enable → **Client IDs** = the `...apps.googleusercontent.com`
+   ID, **Client Secret (for OAuth)** = the secret → Save.
 
 ## 4. Magic link (email)
 
