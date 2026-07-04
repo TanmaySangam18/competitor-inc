@@ -8,6 +8,7 @@ import {
   Users,
   Cpu,
   CreditCard,
+  Wallet as WalletIcon,
   Plug,
   UserCircle,
   Check,
@@ -23,14 +24,16 @@ import { useConfig, validateByok } from "@/lib/engine/config";
 import { useAuth } from "@/lib/engine/useAuth";
 import { checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/engine/types";
+import { WalletCard } from "@/components/dashboard/WalletCard";
 
-type Section = "brand" | "agents" | "engine" | "billing" | "integrations" | "account";
+type Section = "brand" | "agents" | "engine" | "billing" | "wallet" | "integrations" | "account";
 
 const NAV: { id: Section; label: string; icon: typeof Mic }[] = [
   { id: "brand", label: "Brand voice", icon: Mic },
   { id: "agents", label: "Your team", icon: Users },
   { id: "engine", label: "Engine", icon: Cpu },
   { id: "billing", label: "Billing", icon: CreditCard },
+  { id: "wallet", label: "Business Wallet", icon: WalletIcon },
   { id: "integrations", label: "Integrations", icon: Plug },
   { id: "account", label: "Account", icon: UserCircle },
 ];
@@ -41,6 +44,7 @@ const NAV: { id: Section; label: string; icon: typeof Mic }[] = [
 const HASH_SECTION: Record<string, Section> = {
   "connect-accounts": "integrations",
   billing: "billing",
+  wallet: "wallet",
   brand: "brand",
   agents: "agents",
   engine: "engine",
@@ -96,6 +100,7 @@ export default function Settings() {
           {section === "agents" && <Agents cfg={cfg} />}
           {section === "engine" && <Engine cfg={cfg} />}
           {section === "billing" && <Billing />}
+          {section === "wallet" && <WalletCard />}
           {section === "integrations" && <Integrations cfg={cfg} />}
           {section === "account" && <Account auth={auth} resetAllConfig={cfg.reset} />}
         </div>
