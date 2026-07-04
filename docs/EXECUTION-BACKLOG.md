@@ -27,6 +27,12 @@ work moving in the meantime._
   pixel data, spending within the Wallet's `ads` budget + approval rules (exactly what the Wallet enables).
 
 ## Recently Shipped (rolling)
+- Agent-spec enrichment (borrowed template concept, NOT the roster): AgentSpec gains `workflow` +
+  `successMetrics`; all 6 agents populated; fed into the delegation chat soul so each agent answers
+  following its own process + bar; surfaced in the dashboard "Your team" card. AND made per-agent
+  model routing true for CHAT — the addressed agent's role now threads delegation → /api/engine →
+  runChat/streamChatReply → modelForAgent(role) (was hardcoded to ceo). Honest nuance: a single BYOK
+  key with no tiers means every agent shares that one model (2026-07-04, QA green, pushed).
 - GTM consolidated: Launch Kit + Ad Campaign merged into one doc (docs/LAUNCH-KIT.md). Standalone
   AD-CAMPAIGN.md removed (2026-07-04).
 - Adopted the permanent OSS-Intelligence directive (docs/OSS-INTELLIGENCE-DIRECTIVE.md) as a standing
