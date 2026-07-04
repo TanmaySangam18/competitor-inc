@@ -50,6 +50,27 @@ function Stat({ label, value, target, hint }: { label: string; value: string; ta
   );
 }
 
+// Founding-member reservation count — reads the public aggregate from /api/interest (no PII, no auth).
+function FoundingTally() {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    let on = true;
+    fetch("/api/interest?app=founding-operator")
+      .then((r) => r.json())
+      .then((d: { count?: number }) => { if (on) setCount(typeof d.count === "number" ? d.count : 0); })
+      .catch(() => {});
+    return () => { on = false; };
+  }, []);
+  return (
+    <Stat
+      label="Founding members"
+      value={count === null ? "…" : String(count)}
+      target="proven intent"
+      hint="Reserved to pay when paid opens (F1-safe capture)"
+    />
+  );
+}
+
 export default function Board() {
   const [token, setToken] = useState("");
   const [m, setM] = useState<Metrics | null>(null);
@@ -206,6 +227,11 @@ export default function Board() {
             hint="Net spend ÷ PPU — keep under your cap"
           />
           <Stat label="PMF score" value="—" target="≥40%" hint="Needs the Sean-Ellis survey" />
+        </div>
+
+        {/* Founding-member reservations — the F1-safe "want to pay" capture (pre-EAD proven intent). */}
+        <div className="mt-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <FoundingTally />
         </div>
 
         {/* Landing funnel — where launch visitors drop (public aggregate pixel, no PII). */}

@@ -70,9 +70,11 @@ import { Stat } from "@/components/dashboard/Stat";
 import { agentStyle } from "@/components/dashboard/agentStyle";
 import { netSpend } from "@/lib/engine/ledger";
 import { useAuth } from "@/lib/engine/useAuth";
-import { billingLive, checkEntitled, checkoutUrlFor } from "@/lib/engine/billing";
+import { billingLive, checkEntitled, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { isFounderEmail } from "@/lib/engine/founders";
 import { repoFromUrl } from "@/lib/engine/hosting";
+import LivePreview from "@/components/dashboard/LivePreview";
+import FoundingMember from "@/components/dashboard/FoundingMember";
 
 const verdictStyle = {
   strong: { ring: "border-white/30 bg-white/[0.06]", text: "text-text", label: "strong signal" },
@@ -633,7 +635,11 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
           (value-first: they've already watched the crew build it). Until billing is live, `entitled` is
           true for everyone, so this stays an open clickable card (pre-launch demo). Never a fake link. */}
       {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
-        entitled ? (
+        <>
+        {/* The live site, previewed INSIDE competitor (relayed via /api/site-preview) — the reveal. */}
+        <LivePreview url={c.product.url} />
+        {entitled ? (
+          <>
           <div className="mt-6 rounded-2xl border border-mint/25 bg-mint/[0.05] p-4">
             <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between">
               <div className="flex min-w-0 items-center gap-3">
@@ -665,6 +671,9 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
               );
             })()}
           </div>
+          {/* Checkout OFF (F1 pre-EAD): capture "want to pay" as a founding reservation, never a charge. */}
+          {!checkoutLiveFor("operator") && <FoundingMember tier="operator" email={userEmail} />}
+          </>
         ) : (
           <div className="mt-6 overflow-hidden rounded-2xl border border-coral/30 bg-coral/[0.05] p-4">
             <div className="flex items-center justify-between gap-3">
@@ -694,7 +703,8 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
               It&apos;s real and already deployed — paying just opens it. Cancel anytime, own the repo, no lock-in.
             </p>
           </div>
-        )
+        )}
+        </>
       ) : c.product ? (
         <div className="mt-6 flex items-center gap-3 rounded-2xl border border-amber/25 bg-amber/[0.05] p-4">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber/12 text-amber">
