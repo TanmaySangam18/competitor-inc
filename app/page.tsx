@@ -32,6 +32,14 @@ function fireDemoEvent(type: "demo_start" | "demo_verdict" | "demo_cta", extra: 
   }
 }
 
+// Clicking a landing CTA fires the demo_cta intent event AND marks the referral, so the completed
+// signup can be attributed back to the landing (see components/SignupAttribution.tsx). Fires once
+// per completion; a returning sign-in (no marker) is never counted as a home signup.
+function onLandingCta(source: string) {
+  fireDemoEvent("demo_cta", source);
+  try { localStorage.setItem("cofounder:ref", "home"); } catch { /* ignore */ }
+}
+
 const SAMPLE_IDEAS = ["campus meal-prep service", "niche newsletter for machinists", "tutoring marketplace"];
 
 // Which crew member narrates each demo line — flavor only; the numbers come from the real engine.
@@ -107,7 +115,7 @@ export default function LandingPage() {
             )}
             <Link
               href={appHref}
-              onClick={() => fireDemoEvent("demo_cta", "nav")}
+              onClick={() => onLandingCta("nav")}
               className="rounded-full bg-text px-4 py-1.5 text-sm font-medium text-bg transition hover:opacity-85"
             >
               {user ? "Dashboard" : "Get started"}
@@ -183,7 +191,7 @@ export default function LandingPage() {
                   <div className="mt-2.5 flex items-center gap-3 font-sans">
                     <Link
                       href={appHref}
-                      onClick={() => fireDemoEvent("demo_cta", `keep:${verdict.verdict}`)}
+                      onClick={() => onLandingCta(`keep:${verdict.verdict}`)}
                       className="rounded-full bg-text px-3.5 py-1.5 text-xs font-medium text-bg transition hover:opacity-85"
                     >
                       Keep this crew <ArrowRight size={12} className="ml-0.5 inline" aria-hidden />
@@ -271,7 +279,7 @@ export default function LandingPage() {
         <div className="mt-12 flex flex-col items-center gap-2 text-center">
           <Link
             href={appHref}
-            onClick={() => fireDemoEvent("demo_cta", "footer")}
+            onClick={() => onLandingCta("footer")}
             className="rounded-full bg-text px-6 py-2.5 text-sm font-medium text-bg transition hover:opacity-85"
           >
             Put a crew on your idea

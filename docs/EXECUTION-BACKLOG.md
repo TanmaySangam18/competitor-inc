@@ -5,13 +5,10 @@ _Last updated: 2026-07-04._
 
 ## What I'm Owning Next (Not Asking — Doing) — priority order
 
-1. **Signup-completion attribution** — fire a `signup` event for slug `home` at /auth/callback when a
-   visitor who clicked a landing CTA completes signup, so the funnel's last stage is real (currently
-   demo_cta is the deepest measured step). Small /auth/callback + referral-marker change.
-2. **Playbook content depth** — quality pass on the highest-intent free intros (no new slop).
-3. **Weekly operating cadence** — run the growth/ops review; surface decisions + numbers proactively.
-4. **Wallet persistence + `/api/wallet`** — parked until migration 0018 applied + a wallet funded.
-5. **Agent spend-execution plumbing** — parked behind #4 and a first customer.
+1. **Playbook content depth** — quality pass on the highest-intent free intros (no new slop).
+2. **Weekly operating cadence** — run the growth/ops review; surface decisions + numbers proactively.
+3. **Wallet persistence + `/api/wallet`** — parked until migration 0018 applied + a wallet funded.
+4. **Agent spend-execution plumbing** — parked behind #3 and a first customer.
 
 ## Decisions made (as the exec team) — 2026-07-04
 - **Social platforms (ROI-scoped, NOT all):** TIER 1 = X + Reddit + Hacker News + Product Hunt (where
@@ -26,6 +23,9 @@ _Last updated: 2026-07-04._
   pixel data, spending within the Wallet's `ads` budget + approval rules (exactly what the Wallet enables).
 
 ## Recently Shipped (rolling)
+- Signup-completion attribution: landing CTA marks a referral; SignupAttribution fires one real
+  `signup` for `home` once auth completes (returning sign-ins never counted). Funnel now end-to-end
+  (2026-07-04, deployed).
 - Conversion instrumentation: `demo_cta` event on all landing CTAs (closes the demo→intent cliff) +
   /api/track returns every funnel stage + founder Landing-Funnel readout on /house/board with step
   conversion + biggest-drop callout. Needs migration 0019 (demo_cta type) (2026-07-04, deployed).

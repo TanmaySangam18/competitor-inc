@@ -4,6 +4,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { StorageMigrator } from "@/components/StorageMigrator";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
+import { SignupAttribution } from "@/components/SignupAttribution";
 import { SITE_URL } from "@/lib/site";
 
 const spaceGrotesk = Space_Grotesk({
@@ -81,6 +82,7 @@ export default function RootLayout({
     >
       <body>
         <StorageMigrator />
+        <SignupAttribution />
         <Analytics />
         <a
           href="#main"
