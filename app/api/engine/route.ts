@@ -4,6 +4,7 @@ import { runSupervisedGoal } from "@/lib/engine/orchestrator";
 import { githubBuildExecutor } from "@/lib/engine/build-github";
 import type { ExecuteFn } from "@/lib/engine/supervisor";
 import { capabilities } from "@/lib/engine/execution";
+import { connectorStatus } from "@/lib/engine/connectors";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
 import { runGrowthStep, type FunnelSnapshot, type GrowthExperiment } from "@/lib/engine/growth";
@@ -30,6 +31,7 @@ export async function GET(req: Request) {
     provider: process.env.MODEL_PROVIDER ?? "simulated",
     realModelConfigured: realModelConfigured(),
     capabilities: capabilities(),
+    connectors: connectorStatus(capabilities()),
   });
 }
 
@@ -37,7 +39,7 @@ type Body =
   | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig }
   | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig }
   | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; agent?: AgentRole; byok?: ByokConfig }
-  | { kind: "goal"; goal: string; roles?: AgentRole[]; build?: boolean; connections?: Connections; byok?: ByokConfig };
+  | { kind: "goal"; goal: string; roles?: AgentRole[]; build?: boolean; operate?: boolean; connections?: Connections; byok?: ByokConfig };
 
 // The funnel used when no DB is configured (or the read fails): every stage missing. The growth step
 // then closes due experiments as "inconclusive — connect the signal" instead of inventing numbers.
@@ -175,7 +177,7 @@ export async function POST(req: Request) {
       }
       const outcome = await withTrace(
         "goal",
-        () => runSupervisedGoal(body.goal.trim(), { roles, modelForRole: modelForAgent, makeId: () => crypto.randomUUID(), execute }),
+        () => runSupervisedGoal(body.goal.trim(), { roles, modelForRole: modelForAgent, makeId: () => crypto.randomUUID(), execute, operate: body.operate === true }),
         { len: body.goal.length },
       );
       return Response.json({ outcome, mode });

@@ -5,13 +5,18 @@
 
 import type { AgentRole } from "./types";
 
+// "Your desk" = anything needing the human's YES: the irreducible legal/financial acts only a human can
+// do, PLUS consequential drafts an agent prepared but must not send without approval (Phase D outbound).
 export type SpineActKind =
   | "sign_contract"
   | "file_tax"
   | "kyc"
   | "vendor_review"
   | "move_money"
-  | "legal_other";
+  | "legal_other"
+  | "approve_outreach" // a drafted email/DM — approve to send
+  | "approve_publish" // a drafted public post — approve to publish
+  | "approve_support"; // a drafted support reply — approve to send
 
 export type PacketStatus = "prepared" | "in_review" | "completed";
 

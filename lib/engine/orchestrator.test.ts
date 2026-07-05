@@ -27,4 +27,16 @@ describe("orchestrator", () => {
     expect(out.packets[0].kind).toBe("move_money");
     expect(out.refundedCents).toBe(4 * (5000 - 25)); // 4 tasks, each 5000 budget minus 25 spent
   });
+
+  it("operate=true adds the ongoing GTM/support functions as drafts on the desk", async () => {
+    const t = decomposeGoal("x", ["ceo", "engineering", "support", "marketing", "growth"], { operate: true });
+    expect(t.map((x) => x.id)).toEqual(["plan", "build", "verify", "launch", "announce", "retain", "care"]);
+    expect(t.find((x) => x.id === "announce")!.blockingOn).toEqual(["launch"]);
+
+    const out = await runSupervisedGoal("x", { ...opts(), operate: true });
+    expect(out.completed).toContain("announce");
+    expect(out.completed).toContain("retain");
+    // launch (fund) + announce/retain/care drafts all land on the human's desk
+    expect(out.packets.map((p) => p.kind).sort()).toEqual(["approve_outreach", "approve_publish", "approve_support", "move_money"]);
+  });
 });

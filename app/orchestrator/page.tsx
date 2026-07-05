@@ -46,6 +46,7 @@ export default function OrchestratorPage() {
   const [goal, setGoal] = useState("");
   const [busy, setBusy] = useState(false);
   const [buildReal, setBuildReal] = useState(false);
+  const [operate, setOperate] = useState(false);
   const [out, setOut] = useState<Outcome | null>(null);
   const [mode, setMode] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -63,6 +64,7 @@ export default function OrchestratorPage() {
         body.build = true;
         body.connections = getConnections();
       }
+      if (operate) body.operate = true;
       const res = await fetch("/api/engine", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -119,6 +121,10 @@ export default function OrchestratorPage() {
         <label className="mt-3 flex items-center gap-2 text-xs text-muted">
           <input type="checkbox" checked={buildReal} onChange={(e) => setBuildReal(e.target.checked)} />
           Build for real — ship a live site to your connected GitHub (else a $0 simulated run)
+        </label>
+        <label className="mt-2 flex items-center gap-2 text-xs text-muted">
+          <input type="checkbox" checked={operate} onChange={(e) => setOperate(e.target.checked)} />
+          Run the ongoing org — GTM &amp; support drafts land on your desk for approval
         </label>
 
         {err && <p className="mt-4 text-sm text-coral">{err}</p>}

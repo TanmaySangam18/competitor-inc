@@ -6,27 +6,44 @@ import type { AgentRole, Proof } from "./types";
 import { type AgentTask } from "./task-queue";
 import { runSupervisor, type ExecuteFn, type SupervisorOutcome, type TaskResult } from "./supervisor";
 import { type AgentInstance } from "./agent-lifecycle";
-import { preparePacket } from "./accountability-spine";
+import { preparePacket, type SpineActKind } from "./accountability-spine";
 
-const DEFAULT_ROLES: AgentRole[] = ["ceo", "engineering", "support", "marketing"];
+const DEFAULT_ROLES: AgentRole[] = ["ceo", "engineering", "support", "marketing", "growth"];
 
-// A standard software pipeline mapped onto whichever crew roles exist: plan → build → verify → launch.
-// Tasks whose role isn't in the crew are skipped, and deps are rewired to the previous present step.
-export function decomposeGoal(goal: string, roles: AgentRole[] = DEFAULT_ROLES): AgentTask[] {
-  const steps: { id: string; role: AgentRole; verb: string; priority: number }[] = (
+type Step = { id: string; role: AgentRole; verb: string; priority: number };
+
+// Phase A/B core pipeline: plan → build → verify → launch. Phase D (operate=true) appends the ONGOING
+// company functions — announce (GTM) / retain (growth) / care (support) — which run AFTER launch and
+// produce drafts for the founder's desk. Tasks whose role isn't in the crew are skipped.
+export function decomposeGoal(goal: string, roles: AgentRole[] = DEFAULT_ROLES, opts?: { operate?: boolean }): AgentTask[] {
+  const core: Step[] = (
     [
-      { id: "plan", role: "ceo", verb: "Plan", priority: 5 },
-      { id: "build", role: "engineering", verb: "Build", priority: 4 },
-      { id: "verify", role: "support", verb: "Verify", priority: 3 },
-      { id: "launch", role: "marketing", verb: "Launch", priority: 2 },
-    ] as { id: string; role: AgentRole; verb: string; priority: number }[]
+      { id: "plan", role: "ceo", verb: "Plan", priority: 9 },
+      { id: "build", role: "engineering", verb: "Build", priority: 8 },
+      { id: "verify", role: "support", verb: "Verify", priority: 7 },
+      { id: "launch", role: "marketing", verb: "Launch", priority: 6 },
+    ] as Step[]
   ).filter((s) => roles.includes(s.role));
 
   const tasks: AgentTask[] = [];
   let prev: string | null = null;
-  for (const s of steps) {
+  for (const s of core) {
     tasks.push({ id: s.id, goal: `${s.verb}: ${goal}`, role: s.role, blockingOn: prev ? [prev] : [], priority: s.priority });
     prev = s.id;
+  }
+
+  if (opts?.operate && prev) {
+    const lastCore = prev;
+    const ops: Step[] = (
+      [
+        { id: "announce", role: "marketing", verb: "Announce", priority: 5 },
+        { id: "retain", role: "growth", verb: "Build a retention loop for", priority: 4 },
+        { id: "care", role: "support", verb: "Prepare support for", priority: 3 },
+      ] as Step[]
+    ).filter((s) => roles.includes(s.role));
+    for (const s of ops) {
+      tasks.push({ id: s.id, goal: `${s.verb}: ${goal}`, role: s.role, blockingOn: [lastCore], priority: s.priority });
+    }
   }
   return tasks;
 }
@@ -36,20 +53,30 @@ function verifierFor(producer: AgentRole): AgentRole {
   return producer === "support" ? "ceo" : "support";
 }
 
+// Which tasks produce something for the human's desk (a spend to fund, or a draft to approve before it
+// goes out). The org prepares everything; the human just says yes. Nothing outbound auto-fires.
+const DESK: Record<string, { kind: SpineActKind; title: string; action: string }> = {
+  launch: { kind: "move_money", title: "Fund launch budget", action: "Review and approve the launch spend on your own rail" },
+  announce: { kind: "approve_publish", title: "Approve the launch post", action: "Review the drafted post, then approve to publish" },
+  retain: { kind: "approve_outreach", title: "Approve the referral email", action: "Review the drafted email, then approve to send" },
+  care: { kind: "approve_support", title: "Approve support replies", action: "Review the drafted macros, then approve to enable" },
+};
+
 // Deterministic simulated execution: honest self-describing (metric) proof, a small real spend, an
-// independent verifier, and — on the launch step — a gated money act escalated to the human spine.
+// independent verifier, and — for spend/outbound steps — a prepared item escalated to the human's desk.
 export const simulatedExecute: ExecuteFn = (inst: AgentInstance, task: AgentTask): TaskResult => {
   const proof: Proof = { kind: "metric", value: `simulated — ${task.goal}` };
   const res: TaskResult = { ok: true, spentCents: 25, proof, verifierRole: verifierFor(task.role) };
-  if (task.id === "launch") {
+  const desk = DESK[task.id];
+  if (desk) {
     res.gatedActs = [
       preparePacket({
-        id: `${inst.id}-spend`,
-        kind: "move_money",
-        title: "Fund launch budget",
-        summary: `Ad/launch spend for: ${task.goal}`,
+        id: `${inst.id}-${task.id}`,
+        kind: desk.kind,
+        title: desk.title,
+        summary: task.goal,
         preparedBy: task.role,
-        actionRequired: "Review and approve the launch spend on your own rail",
+        actionRequired: desk.action,
         now: inst.createdAt,
       }),
     ];
@@ -62,12 +89,13 @@ export interface RunGoalOptions {
   modelForRole: (role: AgentRole) => string;
   makeId: () => string;
   execute?: ExecuteFn; // Phase B injects a model-backed / OpenHands executor
+  operate?: boolean; // Phase D: also run the ongoing GTM/support functions (drafts → your desk)
   budgetCentsPerTask?: number;
   now?: () => number;
 }
 
 export function runSupervisedGoal(goal: string, opts: RunGoalOptions): Promise<SupervisorOutcome> {
-  const tasks = decomposeGoal(goal, opts.roles ?? DEFAULT_ROLES);
+  const tasks = decomposeGoal(goal, opts.roles ?? DEFAULT_ROLES, { operate: opts.operate });
   return runSupervisor(tasks, opts.execute ?? simulatedExecute, {
     modelForRole: opts.modelForRole,
     makeId: opts.makeId,
