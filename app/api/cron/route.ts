@@ -1,6 +1,8 @@
 import crypto from "node:crypto";
 import { serviceClient } from "@/lib/engine/service";
-import { runShift } from "@/lib/engine/server";
+import { runShift, modelForAgent } from "@/lib/engine/server";
+import { runOperatingCycle } from "@/lib/engine/operating-loop";
+import { packContext } from "@/lib/engine/context-compression";
 import { insertActivities, insertApprovals, insertExperiments, closeExperiment, fetchExperiments, updateCompany, toCompany } from "@/lib/engine/db";
 import { sendEmail } from "@/lib/engine/execution";
 import { fetchOperate } from "@/lib/engine/db";
@@ -56,6 +58,8 @@ export async function GET(req: Request) {
 
   const EMPTY = { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 };
   let ran = 0;
+  let supervised = 0; // companies advanced by the ephemeral-agent supervised cycle (flag-gated)
+  let deskFromCycles = 0; // desk items the supervised cycle prepared for the human across all companies
   let failed_companies = 0;
   // Friday (UTC): collect each company's growth diagnosis during the loop for the weekly digest.
   const isFriday = new Date().getUTCDay() === 5;
@@ -119,7 +123,10 @@ export async function GET(req: Request) {
         console.error("[/api/cron] growth step failed:", e instanceof Error ? e.message : "unknown");
       }
 
-      const priorContext = [recalled, graphSummary, growthNotes].filter(Boolean).join(" • ");
+      // COGS discipline: bound the prior-context blob (recall + graph + growth notes) before it hits
+      // the model, and dedupe across fragments, so a company's growing history can't balloon the
+      // per-shift token bill. compressContext is pure/deterministic — no extra model call.
+      const priorContext = packContext([recalled, graphSummary, growthNotes], 6000).text;
       const { activities, approvals } = await withTrace("shift", () => runShift(company, undefined, priorContext, growthContext), { companyId: company.id, night: company.night });
       await insertActivities(sb, company.id, activities);
 
@@ -217,6 +224,43 @@ export async function GET(req: Request) {
         "shift",
         `Night ${company.night + 1}: ${done.length} done, ${failed.length} failed. ${activities.map((a) => a.action).slice(0, 4).join("; ")}`,
       );
+
+      // ── Supervised operating cycle (flag-gated: SUPERVISED_CYCLE=1) ──────────────────────────────
+      // The newer ephemeral-agent engine, driven by the scheduler with PERSISTED memory: each nightly
+      // tick = one cycle. A supervisor decomposes the company's goal → spawns an agent per task →
+      // independently verifies → hands off → terminates (returning unspent budget), and escalates the
+      // irreducible acts (spend / outbound) as prepared packets for the founder's desk. Memory carries
+      // across ticks via recall/remember (bound to the company), so the org builds on prior nights.
+      // Off by default (execution is the deterministic simulated path — $0, no real spend/deploys); this
+      // is the honest first wiring of long-horizon operation for the ephemeral-agent org. Fail-soft: a
+      // cycle error never affects the mature nightly shift above or the rest of the run.
+      if (process.env.SUPERVISED_CYCLE === "1") {
+        try {
+          const { outcome, note } = await withTrace(
+            "operating-cycle",
+            () =>
+              runOperatingCycle(company.idea, {
+                roles: rolesForIdea(company.idea),
+                modelForRole: modelForAgent,
+                makeId: () => crypto.randomUUID(),
+                operate: true,
+                recall: () => recall(sb, company.id, "supervised operating cycle", 5),
+                remember: (n: string) =>
+                  remember(sb, company.id, company.night, "operating-cycle", n).then(() => undefined),
+              }),
+            { companyId: company.id, night: company.night + 1 },
+          );
+          supervised++;
+          deskFromCycles += outcome.packets.length;
+          // Continuity note persisted inside runOperatingCycle (deps.remember). Prepared packets are
+          // counted here and reported in the overnight summary; persisting them into the Approval Inbox
+          // (so they render on the founder board) is the next wiring step — tracked in the scorecard.
+          void note;
+        } catch (e) {
+          console.error("[/api/cron] supervised cycle failed:", e instanceof Error ? e.message : "unknown");
+        }
+      }
+
       ran++;
     } catch (err) {
       failed_companies++;
@@ -236,7 +280,7 @@ export async function GET(req: Request) {
     await sendEmail({
       to,
       subject: `competitor.inc — overnight: ${ran} ${ran === 1 ? "company" : "companies"} advanced`,
-      html: `<p>Ran <b>${ran}</b> overnight shift${ran === 1 ? "" : "s"}${failed_companies ? `, <b>${failed_companies}</b> skipped` : ""}. Open your dashboard for the Glass Box and any approvals waiting on you.</p>`,
+      html: `<p>Ran <b>${ran}</b> overnight shift${ran === 1 ? "" : "s"}${failed_companies ? `, <b>${failed_companies}</b> skipped` : ""}${supervised ? `; the agent org advanced <b>${supervised}</b> company cycle${supervised === 1 ? "" : "s"}, preparing <b>${deskFromCycles}</b> item${deskFromCycles === 1 ? "" : "s"} for your review` : ""}. Open your dashboard for the Glass Box and any approvals waiting on you.</p>`,
     });
   }
 
@@ -265,5 +309,11 @@ export async function GET(req: Request) {
     }
   }
 
-  return Response.json({ ran, failed: failed_companies, digests: isFriday ? fridayDigests.length : 0 });
+  return Response.json({
+    ran,
+    supervised, // companies advanced by the ephemeral-agent supervised cycle (0 unless SUPERVISED_CYCLE=1)
+    deskItems: deskFromCycles, // prepared packets awaiting the founder's review from those cycles
+    failed: failed_companies,
+    digests: isFriday ? fridayDigests.length : 0,
+  });
 }
