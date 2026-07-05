@@ -35,6 +35,7 @@ import {
   Target,
   AlertTriangle,
   Copy,
+  Eye,
 } from "lucide-react";
 import { useEngine } from "@/lib/engine/useEngine";
 import { useConfig, getByok } from "@/lib/engine/config";
@@ -193,6 +194,12 @@ function TopBar({ r }: { r: ReturnType<typeof useEngine> }) {
           {r.company?.status === "operating" && (
             <AutopilotToggle on={r.autopilot} onToggle={() => r.setAutopilot(!r.autopilot)} paused={r.autopilotPaused} />
           )}
+          <Link
+            href="/watch"
+            className="hidden h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs text-muted transition hover:text-text sm:flex"
+          >
+            <Eye size={14} /> Watch the org
+          </Link>
           <Link
             href="/delegation"
             className="hidden h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs text-muted transition hover:text-text sm:flex"

@@ -11,7 +11,9 @@ Everything below is founder-side; the code is shipped and QA-green. Total time: 
 - ❌ **`0017` is NOT applied** — it's brand new this session (scorecard_snapshots + weekly_review_digests).
 
 **Pending set (run in order, all idempotent):** `0016_landing_demo_events` · `0017_scorecard_and_digests`
-· `0018_business_wallet` · `0019_demo_cta_event` · `0020_build_in_public_consent`. No CLI/psql from the dev machine, so apply via the
+· `0018_business_wallet` · `0019_demo_cta_event` · `0020_build_in_public_consent` · `0021_operating_cycles`
+(NEW 2026-07-05 — powers the `/watch` nightly history; the page works without it, just shows the empty
+state). No CLI/psql from the dev machine, so apply via the
 dashboard — Supabase → prod project → **SQL Editor** → paste + run each file. Everything is
 `if not exists` / `drop … if exists` guarded, so re-running the older ones (0009–0015) if you're unsure
 is a harmless no-op. (0019 finalizes the events type CHECK to include demo_start/demo_verdict/demo_cta,
@@ -51,7 +53,11 @@ cd "$TMP" && vercel --prod --yes
    `demo_start` (source `tti:…s`) and `demo_verdict` (source `verdict:…`) rows.
 3. `/nu` — loads, and `view` rows appear for slug `nu`.
 4. Dashboard → Brain tab renders; Delegation floor shows suits + the construction site.
-5. Friday only: check `CRON_SUMMARY_EMAIL` inbox for the weekly review digest.
+5. Dashboard → **"Watch the org"** (new nav link) → `/watch`: type a goal → the 8-role crew (ceo,
+   engineering, marketing, support, growth, finance, legal, ops) spawns, each verified by a different
+   role, and desk items appear (incl. finance/legal/ops packets). Nightly history fills in once 0021 is
+   applied + a company runs a supervised cycle (`SUPERVISED_CYCLE=1`).
+6. Friday only: check `CRON_SUMMARY_EMAIL` inbox for the weekly review digest.
 
 ## Known limitations (honest)
 - Scorecard **snapshot writes** still use the cookie-bound client — trend history stays empty until
