@@ -13,7 +13,9 @@ Crossing the Chasm (niche-first). NOTE: this is a template + strategy, not legal
    structure this; go in honest. **This is a DSO + immigration-attorney conversation.**
 
 ## The one-pager (memo — paste into an email or a 1-page PDF)
-**competitor.inc — the AI co-founder that validates before it builds, and runs the company as an agent org.**
+**competitor.inc — the first company built with _orgware engineering_: your business runs on a governed
+agent workforce, and every action is provable.** (The category we coin + own — see
+[`docs/ORGWARE-MANIFESTO.md`](ORGWARE-MANIFESTO.md).) It validates before it builds, then runs the company as an agent org.
 
 - **The bet:** code is commoditized; *knowing what to build* + *trust* are scarce. We validate demand
   first and give an honest verdict — including "don't build this."

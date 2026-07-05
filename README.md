@@ -1,6 +1,10 @@
 # competitor.inc
 
 > **Prove it before you build it.**
+>
+> **The first company built with _orgware engineering_** — a business that runs on a **governed agent
+> workforce**, where every action is **provable**. (What orgware is + why it's a new discipline:
+> [`docs/ORGWARE-MANIFESTO.md`](docs/ORGWARE-MANIFESTO.md).)
 
 > **Founder & creator: [Tanmay Sangam](https://www.linkedin.com/in/tanmaysangam/).** © 2026 Tanmay Sangam — all rights reserved. Proprietary &
 > confidential: no use, copying, or distribution without written permission. See [LICENSE](LICENSE).

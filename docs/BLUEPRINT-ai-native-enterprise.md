@@ -7,6 +7,10 @@ readiness. Owner: Tanmay Sangam. Companion docs: [[BLUEPRINT]] extends docs/ARCH
 + the plan file; the engine that makes this feasible is Phases A→D (lib/engine/{supervisor,agent-lifecycle,
 orchestrator,connectors,accountability-spine}.ts)._
 
+**The category we coin + own:** _orgware engineering_ — engineering a company as a governed system of
+autonomous agents (canonical: [`docs/ORGWARE-MANIFESTO.md`](ORGWARE-MANIFESTO.md)). This blueprint is the
+enterprise-scale build-out of an orgware company.
+
 ## 0 · Honest current state (the baseline we measure gaps from)
 - **Product:** competitor.inc — live, pre-launch, **0 customers, $0 revenue**, free tiers (Vercel/Supabase/Groq).
 - **AI operating engine:** ~**42%** of the autonomous-company "machine" built + proven for *small* runs

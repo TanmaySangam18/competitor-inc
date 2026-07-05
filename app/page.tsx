@@ -299,6 +299,9 @@ export default function LandingPage() {
               competitor<span className="text-muted-2">.inc</span>
             </span>
           </SecretHouseDoor>
+          <p className="mt-4 text-center text-xs text-muted-2">
+            The first company built with <span className="text-muted">orgware engineering</span> — a business that runs itself, provably.
+          </p>
         </div>
       </section>
 
