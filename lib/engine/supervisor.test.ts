@@ -41,6 +41,8 @@ describe("supervisor — end to end", () => {
     // gated act escalated to the human spine, not auto-run
     expect(out.packets).toHaveLength(1);
     expect(out.packets[0].kind).toBe("move_money");
+    // the build task's live URL is captured as a verified artifact
+    expect(out.artifacts.map((a) => a.url)).toContain("https://x.dev/build-42");
     // refund = 3 tasks * (1000 - 100 spent)
     expect(out.refundedCents).toBe(2700);
   });

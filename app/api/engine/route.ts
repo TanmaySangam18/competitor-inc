@@ -1,12 +1,14 @@
 import { serviceClient } from "@/lib/engine/service";
 import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel, modelForAgent } from "@/lib/engine/server";
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
+import { githubBuildExecutor } from "@/lib/engine/build-github";
+import type { ExecuteFn } from "@/lib/engine/supervisor";
 import { capabilities } from "@/lib/engine/execution";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
 import { runGrowthStep, type FunnelSnapshot, type GrowthExperiment } from "@/lib/engine/growth";
 import { readFunnel } from "@/lib/engine/funnel";
-import type { AgentRole, ByokConfig, Company } from "@/lib/engine/types";
+import type { AgentRole, ByokConfig, Company, Connections } from "@/lib/engine/types";
 import { AGENTS } from "@/lib/engine/types";
 
 export const runtime = "nodejs";
@@ -35,7 +37,7 @@ type Body =
   | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig }
   | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig }
   | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; agent?: AgentRole; byok?: ByokConfig }
-  | { kind: "goal"; goal: string; roles?: AgentRole[] };
+  | { kind: "goal"; goal: string; roles?: AgentRole[]; build?: boolean; connections?: Connections; byok?: ByokConfig };
 
 // The funnel used when no DB is configured (or the read fails): every stage missing. The growth step
 // then closes due experiments as "inconclusive — connect the signal" instead of inventing numbers.
@@ -155,12 +157,28 @@ export async function POST(req: Request) {
       // escalating irreducible acts to the human spine. Deterministic simulated execution ($0, keyless);
       // Phase B injects a model-backed / OpenHands executor. Returns the full outcome for the crew view.
       const roles = Array.isArray(body.roles) ? body.roles.filter((r): r is AgentRole => r in AGENTS) : undefined;
+      // Opt-in REAL build (build:true + a GitHub token) → agents ship a live site to the caller's own repo
+      // (authorized by initiation); else the deterministic simulated run. OpenHands plugs into the same
+      // executor for full apps. Kept opt-in so a goal-run never creates repos unless explicitly asked.
+      let execute: ExecuteFn | undefined;
+      let mode = "simulated";
+      if (body.build === true) {
+        const conn: Connections | undefined =
+          body.connections && typeof body.connections === "object"
+            ? { githubToken: String(body.connections.githubToken ?? "").trim(), resendApiKey: "", resendFrom: "", adsWebhookUrl: "" }
+            : undefined;
+        const real = githubBuildExecutor(conn, body.byok);
+        if (real) {
+          execute = real;
+          mode = "real";
+        }
+      }
       const outcome = await withTrace(
         "goal",
-        () => runSupervisedGoal(body.goal.trim(), { roles, modelForRole: modelForAgent, makeId: () => crypto.randomUUID() }),
+        () => runSupervisedGoal(body.goal.trim(), { roles, modelForRole: modelForAgent, makeId: () => crypto.randomUUID(), execute }),
         { len: body.goal.length },
       );
-      return Response.json({ outcome });
+      return Response.json({ outcome, mode });
     }
 
     return Response.json({ error: "Unknown `kind` (expected 'validate' | 'shift' | 'chat' | 'goal')" }, { status: 400 });

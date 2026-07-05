@@ -48,6 +48,7 @@ export interface SupervisorOutcome {
   completed: string[]; // task ids that finished done or handed_off
   failed: string[];
   packets: PreparedPacket[]; // escalated to the Accountability Spine
+  artifacts: { taskId: string; role: AgentRole; url: string }[]; // real, verified live URLs produced
   refundedCents: number; // unspent budget returned across all instances
   log: string[]; // human-readable trace for the Glass Box
 }
@@ -74,6 +75,7 @@ export async function runSupervisor(
   const completed: string[] = [];
   const failed: string[] = [];
   const packets: PreparedPacket[] = [];
+  const artifacts: { taskId: string; role: AgentRole; url: string }[] = [];
   const log: string[] = [];
   const contextForTask: Record<string, string> = {};
   const done = new Set<string>();
@@ -120,6 +122,7 @@ export async function runSupervisor(
 
     inst = transition(inst, "verifying");
     const why = verifyFailure(res, task.role);
+    if (!why && res.proof?.kind === "url") artifacts.push({ taskId: task.id, role: task.role, url: res.proof.value });
     if (why) {
       inst = transition(inst, "failed");
       failed.push(task.id);
@@ -142,5 +145,5 @@ export async function runSupervisor(
     instances.push(t.instance);
   }
 
-  return { instances, completed, failed, packets, refundedCents, log };
+  return { instances, completed, failed, packets, artifacts, refundedCents, log };
 }

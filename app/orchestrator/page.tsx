@@ -7,7 +7,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Play } from "lucide-react";
+import { ArrowLeft, ExternalLink, Loader2, Play } from "lucide-react";
+import { getConnections } from "@/lib/engine/config";
 
 interface Instance {
   id: string;
@@ -29,6 +30,7 @@ interface Outcome {
   completed: string[];
   failed: string[];
   packets: Packet[];
+  artifacts: { taskId: string; role: string; url: string }[];
   refundedCents: number;
   log: string[];
 }
@@ -43,7 +45,9 @@ const STATUS_TONE: Record<string, string> = {
 export default function OrchestratorPage() {
   const [goal, setGoal] = useState("");
   const [busy, setBusy] = useState(false);
+  const [buildReal, setBuildReal] = useState(false);
   const [out, setOut] = useState<Outcome | null>(null);
+  const [mode, setMode] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   async function run() {
@@ -52,15 +56,22 @@ export default function OrchestratorPage() {
     setBusy(true);
     setErr(null);
     setOut(null);
+    setMode(null);
     try {
+      const body: Record<string, unknown> = { kind: "goal", goal: g };
+      if (buildReal) {
+        body.build = true;
+        body.connections = getConnections();
+      }
       const res = await fetch("/api/engine", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ kind: "goal", goal: g }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "run failed");
       setOut(data.outcome as Outcome);
+      setMode(typeof data.mode === "string" ? data.mode : null);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "run failed");
     } finally {
@@ -105,16 +116,46 @@ export default function OrchestratorPage() {
           </button>
         </div>
 
+        <label className="mt-3 flex items-center gap-2 text-xs text-muted">
+          <input type="checkbox" checked={buildReal} onChange={(e) => setBuildReal(e.target.checked)} />
+          Build for real — ship a live site to your connected GitHub (else a $0 simulated run)
+        </label>
+
         {err && <p className="mt-4 text-sm text-coral">{err}</p>}
 
         {out && (
           <div className="reveal mt-8 space-y-6">
-            <div className="flex flex-wrap gap-4 text-xs text-muted">
+            <div className="flex flex-wrap items-center gap-4 text-xs text-muted">
               <span><b className="text-text">{out.completed.length}</b> completed</span>
               <span><b className="text-text">{out.failed.length}</b> failed</span>
               <span><b className="text-text">{out.packets.length}</b> for you (spine)</span>
               <span><b className="text-text">${(out.refundedCents / 100).toFixed(2)}</b> unspent budget returned</span>
+              {mode && (
+                <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${mode === "real" ? "bg-text text-bg" : "border border-border text-muted-2"}`}>
+                  {mode === "real" ? "real build" : "simulated"}
+                </span>
+              )}
             </div>
+
+            {out.artifacts.length > 0 && (
+              <div>
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-2">Shipped · live sites (click to verify)</h2>
+                <div className="mt-3 space-y-2">
+                  {out.artifacts.map((a) => (
+                    <a
+                      key={a.taskId}
+                      href={a.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="glass-panel hover-lift flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm text-text"
+                    >
+                      <ExternalLink size={14} className="shrink-0 text-muted" />
+                      <span className="truncate font-mono text-[12px]">{a.url}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div>
               <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-2">The org · one agent per task</h2>
