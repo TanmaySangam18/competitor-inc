@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runOperatingLoop } from "./operating-loop";
+import { runOperatingLoop, runOperatingCycle } from "./operating-loop";
 import type { ExecuteFn } from "./supervisor";
 
 let n = 0;
@@ -36,5 +36,17 @@ describe("operating-loop (long-horizon v1)", () => {
     expect(res.cycles).toHaveLength(2);
     expect(res.deskItems).toBeGreaterThan(0); // launch spend + GTM/support drafts each cycle
     expect(res.refundedCents).toBeGreaterThan(0);
+  });
+
+  it("runOperatingCycle carries persisted memory in and out (scheduler unit)", async () => {
+    const saved: string[] = [];
+    const { outcome, note } = await runOperatingCycle("a habit tracker", {
+      ...base(),
+      recall: async () => ["cycle 1: 4 done, 0 failed, 1 to desk"],
+      remember: async (n) => { saved.push(n); },
+    });
+    expect(outcome.completed.length).toBeGreaterThan(0);
+    expect(saved).toHaveLength(1); // this cycle's summary was persisted for the next tick
+    expect(note).toMatch(/done/);
   });
 });

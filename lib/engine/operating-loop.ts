@@ -11,6 +11,28 @@
 import { runSupervisedGoal, type RunGoalOptions } from "./orchestrator";
 import type { SupervisorOutcome } from "./supervisor";
 
+// A SINGLE operating cycle with PERSISTED memory — the unit a scheduler (cron) calls each tick so the
+// agent org runs day-to-day continuously, not just on a manual goal-run. Memory is injected (recall/
+// remember bound to lib/engine/memory.ts per company), so this stays pure/testable and needs no new
+// migration. Wiring it into the cron loop (fail-soft, flag-gated) is the final step toward a truly
+// self-running agent org.
+export interface OperatingCycleDeps extends RunGoalOptions {
+  recall: () => Promise<string[]>; // load prior cycles' summaries (continuity)
+  remember: (note: string) => Promise<void>; // persist this cycle's summary
+}
+
+export async function runOperatingCycle(
+  goal: string,
+  deps: OperatingCycleDeps,
+): Promise<{ outcome: SupervisorOutcome; note: string }> {
+  const prior = await deps.recall().catch(() => [] as string[]);
+  const cycleGoal = prior.length ? `${goal}\n[prior cycles: ${prior.join(" | ")}]` : goal;
+  const outcome = await runSupervisedGoal(cycleGoal, deps);
+  const note = `${outcome.completed.length} done, ${outcome.failed.length} failed, ${outcome.packets.length} to desk`;
+  await deps.remember(note).catch(() => {});
+  return { outcome, note };
+}
+
 export interface OperatingLoopOptions extends RunGoalOptions {
   cycles: number; // how many operating cycles to run
   maxRetries?: number; // per-cycle retries when tasks failed (self-heal)
