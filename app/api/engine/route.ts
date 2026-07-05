@@ -2,6 +2,7 @@ import { serviceClient } from "@/lib/engine/service";
 import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel, modelForAgent } from "@/lib/engine/server";
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
 import { githubBuildExecutor } from "@/lib/engine/build-github";
+import { openhandsBuildExecutor } from "@/lib/engine/openhands";
 import type { ExecuteFn } from "@/lib/engine/supervisor";
 import { capabilities } from "@/lib/engine/execution";
 import { connectorStatus } from "@/lib/engine/connectors";
@@ -169,10 +170,17 @@ export async function POST(req: Request) {
           body.connections && typeof body.connections === "object"
             ? { githubToken: String(body.connections.githubToken ?? "").trim(), resendApiKey: "", resendFrom: "", adsWebhookUrl: "" }
             : undefined;
-        const real = githubBuildExecutor(conn, body.byok);
-        if (real) {
-          execute = real;
-          mode = "real";
+        // Prefer OpenHands (full apps) when configured; else our GitHub static-site builder; else simulated.
+        const oh = openhandsBuildExecutor(body.byok);
+        if (oh) {
+          execute = oh;
+          mode = "openhands";
+        } else {
+          const gh = githubBuildExecutor(conn, body.byok);
+          if (gh) {
+            execute = gh;
+            mode = "github";
+          }
         }
       }
       const outcome = await withTrace(

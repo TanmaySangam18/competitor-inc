@@ -137,8 +137,8 @@ export default function OrchestratorPage() {
               <span><b className="text-text">{out.packets.length}</b> for you (spine)</span>
               <span><b className="text-text">${(out.refundedCents / 100).toFixed(2)}</b> unspent budget returned</span>
               {mode && (
-                <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${mode === "real" ? "bg-text text-bg" : "border border-border text-muted-2"}`}>
-                  {mode === "real" ? "real build" : "simulated"}
+                <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium ${mode !== "simulated" ? "bg-text text-bg" : "border border-border text-muted-2"}`}>
+                  {mode === "simulated" ? "simulated" : `real build · ${mode}`}
                 </span>
               )}
             </div>
