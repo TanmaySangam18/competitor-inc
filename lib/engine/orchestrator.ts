@@ -8,7 +8,9 @@ import { runSupervisor, type ExecuteFn, type SupervisorOutcome, type TaskResult 
 import { type AgentInstance } from "./agent-lifecycle";
 import { preparePacket, type SpineActKind } from "./accountability-spine";
 
-const DEFAULT_ROLES: AgentRole[] = ["ceo", "engineering", "support", "marketing", "growth"];
+// Every function that applies to any company. Manufacturing is intentionally omitted (physical-product
+// only). finance/legal/ops run in the operate phase (drafts → your desk). Governance keeps them safe.
+const DEFAULT_ROLES: AgentRole[] = ["ceo", "engineering", "support", "marketing", "growth", "finance", "legal", "ops"];
 
 type Step = { id: string; role: AgentRole; verb: string; priority: number };
 
@@ -39,6 +41,10 @@ export function decomposeGoal(goal: string, roles: AgentRole[] = DEFAULT_ROLES, 
         { id: "announce", role: "marketing", verb: "Announce", priority: 5 },
         { id: "retain", role: "growth", verb: "Build a retention loop for", priority: 4 },
         { id: "care", role: "support", verb: "Prepare support for", priority: 3 },
+        // Back-office functions — each DRAFTS its work and routes the irreducible act to your desk.
+        { id: "budget", role: "finance", verb: "Prepare the budget + unit economics for", priority: 5 },
+        { id: "comply", role: "legal", verb: "Draft the terms, privacy, and compliance for", priority: 4 },
+        { id: "process", role: "ops", verb: "Set up operations and vendors for", priority: 3 },
       ] as Step[]
     ).filter((s) => roles.includes(s.role));
     for (const s of ops) {
@@ -60,6 +66,10 @@ const DESK: Record<string, { kind: SpineActKind; title: string; action: string }
   announce: { kind: "approve_publish", title: "Approve the launch post", action: "Review the drafted post, then approve to publish" },
   retain: { kind: "approve_outreach", title: "Approve the referral email", action: "Review the drafted email, then approve to send" },
   care: { kind: "approve_support", title: "Approve support replies", action: "Review the drafted macros, then approve to enable" },
+  // Back-office desk items — irreducible human acts (finance/legal/ops prepare 100%, you execute the last step).
+  budget: { kind: "move_money", title: "Approve the budget", action: "Review the prepared budget + unit economics, then approve the spend on your own rail" },
+  comply: { kind: "sign_contract", title: "Review and sign the terms", action: "Review the drafted terms / privacy / compliance, then sign — only a human can" },
+  process: { kind: "vendor_review", title: "Approve the vendor / process change", action: "Review the prepared vendor + process change, then approve" },
 };
 
 // Deterministic simulated execution: honest self-describing (metric) proof, a small real spend, an

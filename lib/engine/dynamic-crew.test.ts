@@ -67,8 +67,12 @@ describe("dynamic-crew", () => {
   });
 
   describe("rolesForIdea", () => {
-    it("returns the default five for unmatched ideas", () => {
-      expect(rolesForIdea("a saas for accountants")).toEqual(["ceo", "engineering", "marketing", "support", "growth"]);
+    it("returns the universal default crew (no manufacturing) for unmatched ideas", () => {
+      // finance/legal/ops are first-class defaults (2026-07-05); manufacturing stays physical-product-only.
+      expect(rolesForIdea("a saas for accountants")).toEqual([
+        "ceo", "engineering", "marketing", "support", "growth", "finance", "legal", "ops",
+      ]);
+      expect(rolesForIdea("a saas for accountants")).not.toContain("manufacturing");
     });
 
     it("includes manufacturing (ceo first) for EV ideas", () => {

@@ -36,7 +36,10 @@ describe("orchestrator", () => {
     const out = await runSupervisedGoal("x", { ...opts(), operate: true });
     expect(out.completed).toContain("announce");
     expect(out.completed).toContain("retain");
-    // launch (fund) + announce/retain/care drafts all land on the human's desk
-    expect(out.packets.map((p) => p.kind).sort()).toEqual(["approve_outreach", "approve_publish", "approve_support", "move_money"]);
+    // Default crew is now 8 roles: launch(fund)+announce/retain/care PLUS the back-office desk items —
+    // budget(move_money), comply(sign_contract), process(vendor_review). All land on the human's desk.
+    expect(out.packets.map((p) => p.kind).sort()).toEqual([
+      "approve_outreach", "approve_publish", "approve_support", "move_money", "move_money", "sign_contract", "vendor_review",
+    ]);
   });
 });

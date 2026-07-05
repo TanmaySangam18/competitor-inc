@@ -65,7 +65,13 @@ export function matchBenchmarkCompany(idea: string): string | null {
 
 // The roles a shift should prompt with: the default five, or the dynamic crew's roles when the idea
 // matches a supported benchmark (e.g. EV ideas add the manufacturing agent).
-const DEFAULT_ROLES: AgentRole[] = ["ceo", "engineering", "marketing", "support", "growth"];
+// The default crew = every function that applies to ANY company (2026-07-05: finance/legal/ops are
+// now first-class, not benchmark-gated). Manufacturing is the one deliberately-excluded role — it runs
+// a physical supply chain, so it only makes sense for a physical-product idea and is added by the
+// benchmark matcher below, never by default (it would generate nonsense "source suppliers" work on a
+// pure-software company). Governance keeps a fuller crew safe: finance/legal/ops are locked to NEVER on
+// every consequential act (see policy.ts), so more roles = more drafting/coverage, not more risk.
+const DEFAULT_ROLES: AgentRole[] = ["ceo", "engineering", "marketing", "support", "growth", "finance", "legal", "ops"];
 
 export function rolesForIdea(idea: string): AgentRole[] {
   if (!matchBenchmarkCompany(idea)) return DEFAULT_ROLES;
