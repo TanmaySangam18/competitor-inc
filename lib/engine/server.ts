@@ -37,6 +37,11 @@ const MODEL_MID = process.env.MODEL_MID || "claude-sonnet-5";
 // lives in ./per-agent-model-routing (shared with cost estimation + telemetry); this resolver adds
 // the env-overridable model ids. The managed engine honors this; BYOK always uses the user's model.
 import { AGENT_MODEL_TIER } from "./per-agent-model-routing";
+// Runtime cost governance: trim/dedupe/budget any prior-context blob before it enters a model prompt,
+// so a company's growing history can't balloon the per-shift token bill. Pure/deterministic, and
+// idempotent-safe (compressing an already-compressed blob stays within budget), so it's safe to apply
+// here centrally even when a caller (e.g. the nightly cron) already compressed.
+import { compressContext } from "./context-compression";
 
 export function modelForAgent(role: AgentRole): string {
   const tier = AGENT_MODEL_TIER[role] ?? "cheap";
@@ -525,6 +530,8 @@ async function withSubAgentBreakdown(result: ShiftResult, company: Company, nigh
 export async function runShift(company: Company, byok?: ByokConfig, context?: string, growth?: GrowthShiftContext): Promise<ShiftResult> {
   if (!modelAvailable(byok)) return withSubAgentBreakdown(governShift(getProvider().shift(company)), company, company.night + 1);
   const night = company.night + 1;
+  // COGS: bound the prior-context blob centrally so every caller (cron + any UI path) is protected.
+  const ctx = context ? compressContext(context, { maxChars: 6000 }).text : context;
   const isImported = company.product?.status === "live";
   const distributionConstraint = isImported
     ? " CRITICAL: this product is ALREADY BUILT AND LIVE. The crew's ONLY job is getting it customers. DO NOT propose engineering or build activities. Focus exclusively on: outreach drafts, positioning, programmatic SEO, community posts, and referral mechanics."
@@ -538,7 +545,7 @@ export async function runShift(company: Company, byok?: ByokConfig, context?: st
         "Produce 3-5 realistic actions taken overnight. Build on priorContext (what earlier nights did) — stay consistent; don't repeat or contradict past decisions. " +
         "Consequential actions (spend>$100, outreach, deploy, delete, twitter posts, linkedin posts) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
         '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-credited","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete"|"twitter"|"linkedin","title":string,"detail":string,"amount":number}]}',
-      JSON.stringify({ idea: company.idea, night, priorContext: context || "(none yet)" }),
+      JSON.stringify({ idea: company.idea, night, priorContext: ctx || "(none yet)" }),
       byok,
       modelForAgent("engineering")
     );

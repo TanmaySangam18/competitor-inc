@@ -26,13 +26,13 @@ Conflating the two is how people fake a "98% autonomous" claim. We don't.
 | 6 | Memory & continuity (recall/remember, night-to-night, knowledge graph) | 1 | **65%** | `memory.ts` (pgvector + recent fallback), `bkg.ts`, wired in cron + cycle |
 | 7 | **Connectors / real-world action** (github/email/ads/social/stripe, gated) | 2 | **55%** | `connectors.ts`, `execution.ts` — real executors, all policy+approval gated. Gap: each needs per-company OAuth to run unattended |
 | 8 | Company-function coverage (PM/eng/QA/GTM/support/growth/finance/legal/ops) | 1 | **55%** | 6 roles in `types.ts` + `dynamic-crew.ts`; GTM/support/growth = drafts→desk. Gap: finance/legal-assist/ops roles |
-| 9 | Cost governance (per-agent routing, spend caps, context compression) | 1 | **65%** | `per-agent-model-routing.ts`, `policy` caps, **+ NEW: `context-compression.ts`** trims context before model calls |
+| 9 | Cost governance (per-agent routing, spend caps, context compression) | 1 | **70%** | `per-agent-model-routing.ts`, `policy` caps, **+ NEW: `context-compression.ts` wired centrally into `runShift`** — every caller (cron + UI) is budgeted, not just the nightly path |
 | 10 | Observability & proof (traces, alerts, Glass Box, proof artifacts, audit) | 1 | **60%** | `observability.ts`, `alerts.ts`, `office-audit`, `proof.ts`. Gap: no live "watch the org run" cycle surface |
 
-**Weighted machine-built score (2026-07-05): ≈ 61%** — computed
-`(85+80+85 + 50×2 + 55×2 + 65 + 55×2 + 55 + 65 + 60) / 13 = 62.7`, rounded down for honesty on the
-simulated-execution caveat in #5. Up from ≈ 53% before this session (this session added #5 cron-wiring
-and #9 compression).
+**Weighted machine-built score (2026-07-05): ≈ 62%** — computed
+`(85+80+85 + 50×2 + 55×2 + 65 + 55×2 + 55 + 70 + 60) / 13 = 63.1`, rounded down for honesty on the
+simulated-execution caveat in #5. Up from ≈ 53% before this session (this session added #5 cron-wiring,
+#9 context compression wired centrally into the engine hot path, and this scorecard itself).
 
 > Why higher than the old "~53%" gut number: the codebase gained a real `SupabaseBackendProvider` and a
 > mature nightly loop since that estimate. A real rubric finds work the gut under-counted. The **reliably-
@@ -43,7 +43,7 @@ Each item lists what it lifts and **who can do it** — because ~half the remain
 
 **Code we can write (lifts to ~75%):**
 1. **Persist prepared packets → Approval Inbox** so supervised-cycle desk items render on the founder board (#5, #10). _Small._
-2. **Wire per-agent context compression into every model call** in `server.ts` (not just the nightly priorContext) (#9). _Small._
+2. ~~Wire context compression into the engine hot path (`runShift`) so every caller is budgeted~~ ✅ done 2026-07-05. Remaining: extend to the chat/build prompts if they grow (#9). _Small._
 3. **Add finance / legal-assist / ops roles** (ripples through the `AgentRole` maps + tests) (#8). _Medium._
 4. **A live "watch the org run" surface** reading lifecycle + supervisor outcomes (#10). _Medium._
 5. **Implement a second real `BackendProvider` path + wire it into the build** so generated apps ship with real persistence, not just localStorage (#4). _Medium._
