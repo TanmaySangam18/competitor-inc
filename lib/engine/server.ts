@@ -285,7 +285,15 @@ export async function generateSiteFiles(
       `Requirements: include index.html (required) that <link>s styles.css; a hero (name + what it does), 3 feature points, ` +
       `and an email capture form; clean responsive CSS; 2–4 files max; each file under 12000 characters; absolutely no external scripts or CDNs.`;
   try {
-    const raw = await callModel(system, user, byok, undefined, app ? 16000 : 8000);
+    // Builds need reliable JSON-of-code, which weaker/free models mangle. If an Anthropic key is set,
+    // route the BUILD (only) to Claude — the rest of the engine stays on the cheap managed model, so we
+    // pay Claude tokens ONLY for the high-value build step. BYOK still wins when provided.
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    const maxTokens = app ? 16000 : 8000;
+    const raw =
+      anthropicKey && !byok?.apiKey
+        ? await callAnthropic(system, user, anthropicKey, process.env.ANTHROPIC_BUILD_MODEL || "claude-sonnet-5", maxTokens)
+        : await callModel(system, user, byok, undefined, maxTokens);
     const parsed = extractJson<{ files?: Record<string, unknown> }>(raw);
     const files = parsed?.files;
     if (!files || typeof files !== "object") return null;
