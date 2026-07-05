@@ -151,6 +151,15 @@ That single principle shapes every feature:
 - **`/how-it-works`** — A plain‑language, illustrated walkthrough of the whole product for newcomers.
 - **Operate layer (EOS)** — A "company operating system" surface (Scorecard, Rocks, Issues,
   Weekly Review) inspired by EOS/Traction. *On by default; set `NEXT_PUBLIC_OPERATE=0` to freeze it.*
+- **The autonomous‑company engine (`/orchestrator`)** — give the company a **goal** and a *supervisor*
+  decomposes it into a task DAG, spawns an **ephemeral agent per task** that does the work, gets its
+  output **independently verified** (never self‑graded), hands off to a successor, and **terminates**
+  (returning unspent budget). It can **build for real** — a live, verified site via GitHub today, and
+  **full apps via a pluggable OpenHands backend** (`OPENHANDS_API_URL`/`_KEY`) — and **run the ongoing
+  functions** (announce/retain/support) as **drafts routed to your desk** for approval. Irreducible
+  legal/financial acts route to the **Accountability Spine** — the human "2%". Everything is governed
+  (policy + wallet + kill‑switch), and nothing consequential ever auto‑fires. See
+  `lib/engine/{supervisor,agent-lifecycle,task-queue,orchestrator,accountability-spine,connectors,build-github,openhands}.ts`.
 - **Settings** — Your **brand voice** (`soul.md`), your **team** (`agents.md`, toggle/scope each
   agent), the **engine** (which model runs it + bring‑your‑own‑key), **billing**, **integrations**,
   and **one‑click data export** (no lock‑in).
@@ -171,7 +180,7 @@ That single principle shapes every feature:
 │   • useAuth()    → Supabase session OR local "guest" mode          │
 │   • persistence: localStorage (cofounder:*)  ⇄  Supabase (if env set) │
 └───────────────┬────────────────────────────────────────────────────┘
-                │ fetch /api/engine  { kind: validate | shift | chat } │
+                │ fetch /api/engine  { kind: validate | shift | chat | goal } │
                 ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │  Server (Next.js route handlers, Node runtime)                     │
@@ -370,7 +379,8 @@ app/                     Next.js routes
   live/                  Public real-time board
   join/                  Founding-member offer + waitlist
   login/                 Magic-link (Supabase) or guest mode
-  api/engine/            The engine endpoint (validate | shift | chat)
+  orchestrator/          The autonomous-company engine UI — give a goal, watch the org run it
+  api/engine/            The engine endpoint (validate | shift | chat | goal)
   api/billing/polar      Polar (MoR) webhook → subscription entitlements (Standard Webhooks)
   api/billing/webhook    LemonSqueezy webhook (legacy, kept as a no-op until removed)
   api/cron/              Nightly heartbeat (Vercel Cron, fail-closed without CRON_SECRET)
@@ -432,9 +442,19 @@ For the person deploying this (the "techie friend"):
   sub‑agent orchestration, the Company Brain decision graph, the bento monochrome landing with a live
   demo, Slack ChatOps, persistent Scorecard history + an automated Friday review digest, and the
   Office/House two‑layer governance model. Feature deep‑dives in [`docs/FEATURES-COMPLETE.md`](docs/FEATURES-COMPLETE.md).
-- **Post‑launch v2 candidates:** wire the v0.5 governance libs (Office/House, Scorecard snapshots via
-  the service client) into the live loop, more benchmark orgs, real coding agent (Forge → Claude Agent
-  SDK). See [`docs/ROADMAP-V2.md`](docs/ROADMAP-V2.md).
+- **The autonomous‑company engine (A→D, shipped + proven live):** a goal → the org decomposes → an
+  ephemeral agent per task spawns/verifies/hands‑off/terminates → real builds (a live GitHub‑Pages site,
+  verified) → ongoing GTM/support drafts to your desk → irreducible acts to the Accountability Spine.
+  Driveable at `/orchestrator`. Full‑app builds plug in via **OpenHands** (adapter shipped, gated on
+  `OPENHANDS_API_URL`/`_KEY`; **self‑host is the durable long‑term path** — see
+  [`docs/OPENHANDS-SELF-HOST.md`](docs/OPENHANDS-SELF-HOST.md)). Architecture + roadmap:
+  [`docs/ARCHITECTURE-autonomous-company`] (plan).
+- **Honest infrastructure progress (customers/income aside): ~40% of the autonomous‑company machine.**
+  The control plane (orchestration + governance + spine + small builds) is built and proven for small
+  runs; the remaining ~60% is the hard‑to‑perfect part — **reliable full‑app builds (OpenHands live)**
+  and **long‑horizon unsupervised operation**. Those two move the number most.
+- **Post‑launch v2 candidates:** wire the governance libs into the live cron loop, more benchmark orgs,
+  the long‑horizon operating loop. See [`docs/ROADMAP-V2.md`](docs/ROADMAP-V2.md).
 
 ---
 
