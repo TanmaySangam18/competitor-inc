@@ -30,8 +30,9 @@ export function githubBuildExecutor(conn?: Connections, byok?: ByokConfig): Exec
   return makeBuildExecute({
     build: async (goal) => {
       const name = goal.slice(0, 60);
-      // Model authors a small real site when a model is configured; else the safe single-file template.
-      const files = (await generateSiteFiles(name, goal, byok)) ?? { "index.html": siteHtml(name, goal) };
+      // "app" mode: the model authors a REAL functional client-side app (localStorage-backed), $0 via
+      // GitHub Pages; falls back to the safe single-file template if the model is unavailable/returns junk.
+      const files = (await generateSiteFiles(name, goal, byok, "app")) ?? { "index.html": siteHtml(name, goal) };
       const out = await buildOnGitHub({ repo: repoName(goal), description: goal.slice(0, 120), files }, token);
       return out.ok && out.proof?.kind === "url" ? { url: out.proof.value } : null;
     },

@@ -260,28 +260,43 @@ export async function generateSiteFiles(
   name: string,
   idea: string,
   byok?: ByokConfig,
+  kind: "site" | "app" = "site",
 ): Promise<Record<string, string> | null> {
   if (!modelAvailable(byok)) return null;
-  const system =
-    "You are a senior front-end engineer. Output ONLY raw JSON, no markdown, no prose. Build a small, real, " +
-    "static marketing site — no build step, no external JS/CDN deps, CSS linked or inline. It must look modern and be genuinely usable.";
-  const user =
-    `Company: ${name}\nWhat it does: ${idea}\n\n` +
-    `Return JSON exactly like {"files":{"index.html":"<!doctype html>…","styles.css":"…"}}. ` +
-    `Requirements: include index.html (required) that <link>s styles.css; a hero (name + what it does), 3 feature points, ` +
-    `and an email capture form; clean responsive CSS; 2–4 files max; each file under 12000 characters; absolutely no external scripts or CDNs.`;
+  const app = kind === "app";
+  // "app" mode = a REAL, functional client-side app ($0: static + localStorage, served by GitHub Pages),
+  // so agents ship working tools/trackers/dashboards — not just a landing page — with no backend cost.
+  // (Backend/DB/auth SaaS still needs the compute path; that's the OpenHands upgrade.)
+  const system = app
+    ? "You are a senior front-end engineer. Output ONLY raw JSON, no markdown, no prose. Build a small but REAL, " +
+      "FUNCTIONAL client-side web app: multiple views/features, interactive, state persisted in localStorage. " +
+      "Vanilla HTML/CSS/JS only — no build step, no frameworks, no external JS/CDN deps. It must actually WORK when opened."
+    : "You are a senior front-end engineer. Output ONLY raw JSON, no markdown, no prose. Build a small, real, " +
+      "static marketing site — no build step, no external JS/CDN deps, CSS linked or inline. It must look modern and be genuinely usable.";
+  const user = app
+    ? `App to build: ${name}\nWhat it does: ${idea}\n\n` +
+      `Return JSON exactly like {"files":{"index.html":"<!doctype html>…","styles.css":"…","app.js":"…"}}. ` +
+      `Requirements: index.html (required) that links styles.css AND app.js; implement the CORE features so it genuinely works ` +
+      `(e.g. add/edit/delete + list, with localStorage persistence); clean responsive UI; up to 6 files; each file under ` +
+      `22000 characters; absolutely no external scripts, CDNs, or frameworks — vanilla JS only.`
+    : `Company: ${name}\nWhat it does: ${idea}\n\n` +
+      `Return JSON exactly like {"files":{"index.html":"<!doctype html>…","styles.css":"…"}}. ` +
+      `Requirements: include index.html (required) that <link>s styles.css; a hero (name + what it does), 3 feature points, ` +
+      `and an email capture form; clean responsive CSS; 2–4 files max; each file under 12000 characters; absolutely no external scripts or CDNs.`;
   try {
-    const raw = await callModel(system, user, byok, undefined, 8000);
+    const raw = await callModel(system, user, byok, undefined, app ? 16000 : 8000);
     const parsed = extractJson<{ files?: Record<string, unknown> }>(raw);
     const files = parsed?.files;
     if (!files || typeof files !== "object") return null;
     const out: Record<string, string> = {};
     let count = 0;
+    const maxFiles = app ? 8 : 6;
+    const maxLen = app ? 24000 : 14000;
     for (const [path, content] of Object.entries(files)) {
-      if (count >= 6) break;
+      if (count >= maxFiles) break;
       if (typeof path !== "string" || typeof content !== "string") continue;
       if (path.includes("..") || path.startsWith("/") || path.length > 80) continue; // no traversal/abs paths
-      if (content.length < 1 || content.length > 14000) continue;
+      if (content.length < 1 || content.length > maxLen) continue;
       out[path] = content;
       count++;
     }
