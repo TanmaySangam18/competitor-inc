@@ -24,6 +24,9 @@ const ROLE_WEIGHT: Record<AgentRole, number> = {
   marketing: 0.15,
   growth: 0.15,
   support: 0.05,
+  ops: 0.05,
+  finance: 0.04,
+  legal: 0.03,
 };
 
 export interface AgentBudget {

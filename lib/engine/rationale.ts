@@ -18,6 +18,9 @@ const PRINCIPLES: Record<AgentRole, string> = {
   manufacturing: "Quality and cost-down move together — verify before ship, never cut the bar to hit a date.",
   support: "Help first; never make a promise the company can't keep.",
   growth: "Test small, bounded, and reversible — then scale only what actually converts.",
+  finance: "Prepare the money act in full; the human moves the money — the ledger stays honest.",
+  legal: "Draft everything, sign nothing — the irreducible legal act stays with the human.",
+  ops: "Find the one binding constraint and remove it — keep every change reversible.",
 };
 
 // A one-line why tied to what the action actually was.

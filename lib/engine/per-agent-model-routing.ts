@@ -79,11 +79,14 @@ export const AGENT_MODEL_TIER: Record<AgentRole, "strong" | "mid" | "cheap"> = {
   // Mid tier (agentic judgment, complex analysis)
   ceo: "mid", // nightly judgment + growth diagnosis
   manufacturing: "mid", // supply chain decisions
+  finance: "mid", // runway + unit-economics reasoning
+  legal: "mid", // contract / compliance drafting
 
   // Cheap tier (copy, routine help, light analysis)
   marketing: "cheap",
   growth: "cheap",
   support: "cheap",
+  ops: "cheap", // internal process / scheduling drafts
 };
 
 /**

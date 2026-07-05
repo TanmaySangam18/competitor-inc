@@ -111,6 +111,12 @@ export const POLICY: Policy = {
     growth: { spend: "APPROVE", payments: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", build: "NEVER", deploy: "NEVER", outreach: "NEVER", delete: "NEVER" },
     // Manufacturing (dynamic-crew role) — runs ops & supply. May propose spend with sign-off; never ships code or posts.
     manufacturing: { spend: "APPROVE", build: "NEVER", deploy: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    // Finance — prepares the money act; the HUMAN moves money. May propose spend for sign-off; never touches payment rails.
+    finance: { spend: "APPROVE", payments: "NEVER", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    // Legal — drafts + prepares only. Nothing legal auto-fires; every act routes to the human spine.
+    legal: { spend: "NEVER", payments: "NEVER", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    // Ops — runs internal process & vendors. May propose spend/vendor commitments with sign-off; never ships or posts.
+    ops: { spend: "APPROVE", payments: "NEVER", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
   },
   channels: {
     email: { allowed: "opted_in_only", compliance: ["unsubscribe_link", "sender_identity", "consent_basis"], autoSend: false },

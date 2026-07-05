@@ -18,7 +18,7 @@ import { draftProgressPost, shouldShare } from "@/lib/engine/buildinpublic";
 import { postToBluesky, postToMastodon } from "@/lib/engine/execution";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY } from "@/lib/engine/policy";
-import type { Company, Activity, AgentRole } from "@/lib/engine/types";
+import type { Company, Activity, AgentRole, ApprovalItem, ApprovalKind } from "@/lib/engine/types";
 import type { FunnelDiagnosis } from "@/lib/engine/growth";
 import { remember, recall } from "@/lib/engine/memory";
 import { buildGraph, summarizeGraph } from "@/lib/engine/bkg";
@@ -256,6 +256,30 @@ export async function GET(req: Request) {
           // Persist a bounded snapshot so the founder can watch this cycle at /watch (fail-soft: no-ops
           // without the operating_cycles table). Continuity note already persisted inside the cycle.
           await persistCycle(sb, company.id, company.night + 1, company.idea, outcome).catch(() => false);
+          // Mirror the OUTBOUND DRAFTS (approve-to-send) into the durable Approval Inbox so they show on
+          // the founder's main board and survive a reload. Money/legal/spine acts are deliberately NOT
+          // mirrored — those stay in the accountability-spine lane (persisted in the snapshot above),
+          // never as a board item whose approval could fire an executor. Fail-soft.
+          const OUTBOUND: Partial<Record<string, ApprovalKind>> = {
+            approve_outreach: "outreach",
+            approve_publish: "outreach",
+            approve_support: "outreach",
+          };
+          const inboxItems: ApprovalItem[] = outcome.packets
+            .filter((p) => OUTBOUND[p.kind])
+            .map((p) => ({
+              id: p.id,
+              night: company.night + 1,
+              agent: p.preparedBy,
+              kind: OUTBOUND[p.kind] as ApprovalKind,
+              title: p.title,
+              detail: `${p.summary} — ${p.actionRequired}`,
+            }));
+          if (inboxItems.length) {
+            await insertApprovals(sb, company.id, inboxItems).catch((e) =>
+              console.error("[/api/cron] mirror desk packets:", e instanceof Error ? e.message : "unknown"),
+            );
+          }
           void note;
         } catch (e) {
           console.error("[/api/cron] supervised cycle failed:", e instanceof Error ? e.message : "unknown");

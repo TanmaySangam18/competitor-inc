@@ -21,6 +21,9 @@ import {
   Heart,
   MessageCircle,
   Repeat2,
+  Landmark,
+  Scale,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import type { AgentRole, Company } from "@/lib/engine/types";
@@ -32,6 +35,9 @@ const agentMeta: Record<AgentRole, { name: string; icon: LucideIcon; accent: str
   manufacturing: { name: "Rig", icon: Code2, accent: "text-amber", ring: "bg-amber/12" },
   support: { name: "Guard", icon: LifeBuoy, accent: "text-coral", ring: "bg-coral/12" },
   growth: { name: "Surge", icon: TrendingUp, accent: "text-mint", ring: "bg-mint/12" },
+  finance: { name: "Ledger", icon: Landmark, accent: "text-mint", ring: "bg-mint/12" },
+  legal: { name: "Counsel", icon: Scale, accent: "text-violet", ring: "bg-violet/12" },
+  ops: { name: "Pulse", icon: Settings, accent: "text-amber", ring: "bg-amber/12" },
 };
 
 type Screen = { role: AgentRole; doing: string; node: React.ReactNode };

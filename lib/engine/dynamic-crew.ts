@@ -86,6 +86,9 @@ const SPEND_CAP_BY_ROLE: Record<AgentRole, number> = {
   marketing: 100000, // Marketing (campaigns, content, brand)
   growth: 100000, // Growth (ads, marketing, partnerships)
   support: 50000, // Support (customer service, training)
+  ops: 100000, // Operations (vendors, logistics, process)
+  finance: 50000, // Finance PREPARES money acts; the human moves money — small operating cap
+  legal: 50000, // Legal drafts + prepares; never signs — small operating cap
 };
 
 /* ── Sub-Agent Templates ──────────────────────────────────────────── */
@@ -172,6 +175,12 @@ const PLAYBOOK_BY_ROLE: Record<AgentRole, string> = {
     "Bullseye/Traction (Weinberg & Mares) — focus on one channel, test, scale; demand-first",
   support:
     "The Effortless Experience (CEB) — minimize customer effort, empower agents, measure effort score",
+  finance:
+    "Financial Intelligence (Berman & Knight) — runway, unit economics; prepare the money act, human moves money",
+  legal:
+    "Compliance-by-design — least-privilege, consent-first; draft + prepare, never auto-sign",
+  ops:
+    "The Goal / Theory of Constraints (Goldratt) — find the binding constraint, remove it, keep flow reversible",
 };
 
 function generateAgentProfile(jobRole: JobRole, role: AgentRole): AgentProfile {

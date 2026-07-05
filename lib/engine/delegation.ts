@@ -30,6 +30,9 @@ const TONE: Record<AgentRole, number> = {
   growth: 0.7, // Surge
   marketing: 0.62, // Pitch
   manufacturing: 0.66, // Rig (dynamic-crew role; not in the default floor ORDER)
+  ops: 0.58, // Pulse (back-office role; not in the default floor ORDER)
+  finance: 0.54, // Ledger
+  legal: 0.5, // Counsel
 };
 
 // Vivid per-agent identity colors (hue) — distinct, friendly, easy to tell apart on the House floor.
@@ -40,6 +43,9 @@ const COLOR: Record<AgentRole, string> = {
   support: "#46d39a", // Guard — mint
   growth: "#a78bfa", // Surge — violet
   manufacturing: "#8a99ab", // Rig — steel
+  ops: "#6ac4d0", // Pulse — cyan
+  finance: "#3fbf87", // Ledger — green
+  legal: "#e879a6", // Counsel — pink
 };
 
 // Desks arranged in an arc around the central table, all facing the middle.
@@ -50,6 +56,9 @@ const DESK: Record<AgentRole, [number, number]> = {
   support: [-2.7, 2.7],
   growth: [2.7, 2.7],
   manufacturing: [0, 3.6],
+  ops: [-4.6, 0.6],
+  finance: [4.6, 0.6],
+  legal: [4.6, 2.7],
 };
 
 export const DELEGATION: DelegationAgent[] = ORDER.map((role) => ({
