@@ -278,8 +278,10 @@ export async function generateSiteFiles(
       `Return JSON exactly like {"files":{"index.html":"<!doctype html>…","styles.css":"…","app.js":"…"}}. ` +
       `Requirements: exactly 2 files — index.html and app.js (put CSS in a <style> tag inside index.html); ` +
       `index.html must load app.js with <script src="app.js"></script>; implement the CORE features so it genuinely works ` +
-      `(add/edit/delete + list, with localStorage persistence); clean responsive UI. Keep it COMPACT — each file under ` +
-      `7000 characters — and return COMPLETE, valid JSON (do not truncate). No external scripts, CDNs, or frameworks — vanilla JS only.`
+      `(add/edit/delete + list, with localStorage persistence). Make it POLISHED: clean responsive UI, accessible (labelled ` +
+      `inputs + keyboard support), a tasteful empty state, and NO console errors — the app must run correctly with no runtime ` +
+      `bugs. Keep it COMPACT — each file under 7000 characters — and return COMPLETE, valid JSON (do not truncate). ` +
+      `No external scripts, CDNs, or frameworks — vanilla JS only.`
     : `Company: ${name}\nWhat it does: ${idea}\n\n` +
       `Return JSON exactly like {"files":{"index.html":"<!doctype html>…","styles.css":"…"}}. ` +
       `Requirements: include index.html (required) that <link>s styles.css; a hero (name + what it does), 3 feature points, ` +
