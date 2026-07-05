@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { serviceClient } from "@/lib/engine/service";
 import { runShift, modelForAgent } from "@/lib/engine/server";
 import { runOperatingCycle } from "@/lib/engine/operating-loop";
+import { persistCycle } from "@/lib/engine/cycle-store";
 import { packContext } from "@/lib/engine/context-compression";
 import { insertActivities, insertApprovals, insertExperiments, closeExperiment, fetchExperiments, updateCompany, toCompany } from "@/lib/engine/db";
 import { sendEmail } from "@/lib/engine/execution";
@@ -252,9 +253,9 @@ export async function GET(req: Request) {
           );
           supervised++;
           deskFromCycles += outcome.packets.length;
-          // Continuity note persisted inside runOperatingCycle (deps.remember). Prepared packets are
-          // counted here and reported in the overnight summary; persisting them into the Approval Inbox
-          // (so they render on the founder board) is the next wiring step — tracked in the scorecard.
+          // Persist a bounded snapshot so the founder can watch this cycle at /watch (fail-soft: no-ops
+          // without the operating_cycles table). Continuity note already persisted inside the cycle.
+          await persistCycle(sb, company.id, company.night + 1, company.idea, outcome).catch(() => false);
           void note;
         } catch (e) {
           console.error("[/api/cron] supervised cycle failed:", e instanceof Error ? e.message : "unknown");

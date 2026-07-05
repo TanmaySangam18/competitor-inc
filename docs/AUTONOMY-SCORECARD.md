@@ -22,17 +22,18 @@ Conflating the two is how people fake a "98% autonomous" claim. We don't.
 | 2 | Goal decomposition & supervision (goal→DAG→route→verify→escalate) | 1 | **80%** | `orchestrator.ts`, `supervisor.ts`, `task-queue.ts` (+tests) |
 | 3 | Governance spine (5 gates, wallet, approvals, kill-switch, keystone) | 1 | **85%** | `policy.ts`, `wallet.ts`, `app/api/execute` `authorize()` |
 | 4 | **Real product build** (idea→code→live URL, with a backend) | 2 | **50%** | `generateSiteFiles` (static + Claude apps), `build-github.ts`, `backend-provider.ts` (SupabaseBackendProvider provisions per-tenant tables). Gap: OpenHands full-app builds not wired |
-| 5 | **Long-horizon operation** (scheduled, memory-carry, self-heal) | 2 | **55%** | `app/api/cron` nightly shift (mature) **+ NEW: supervised operating cycle wired to the scheduler** (flag `SUPERVISED_CYCLE=1`), `operating-loop.ts` retry. Gap: cycle execution still simulated; multi-day reliability is frontier-bound |
+| 5 | **Long-horizon operation** (scheduled, memory-carry, self-heal) | 2 | **58%** | `app/api/cron` nightly shift (mature) **+ supervised operating cycle wired to the scheduler** (flag `SUPERVISED_CYCLE=1`) **+ per-cycle snapshots persisted** (`cycle-store.ts`, migration 0021), `operating-loop.ts` retry. Gap: cycle execution still simulated; multi-day reliability is frontier-bound |
 | 6 | Memory & continuity (recall/remember, night-to-night, knowledge graph) | 1 | **65%** | `memory.ts` (pgvector + recent fallback), `bkg.ts`, wired in cron + cycle |
 | 7 | **Connectors / real-world action** (github/email/ads/social/stripe, gated) | 2 | **55%** | `connectors.ts`, `execution.ts` — real executors, all policy+approval gated. Gap: each needs per-company OAuth to run unattended |
 | 8 | Company-function coverage (PM/eng/QA/GTM/support/growth/finance/legal/ops) | 1 | **55%** | 6 roles in `types.ts` + `dynamic-crew.ts`; GTM/support/growth = drafts→desk. Gap: finance/legal-assist/ops roles |
 | 9 | Cost governance (per-agent routing, spend caps, context compression) | 1 | **70%** | `per-agent-model-routing.ts`, `policy` caps, **+ NEW: `context-compression.ts` wired centrally into `runShift`** — every caller (cron + UI) is budgeted, not just the nightly path |
-| 10 | Observability & proof (traces, alerts, Glass Box, proof artifacts, audit) | 1 | **60%** | `observability.ts`, `alerts.ts`, `office-audit`, `proof.ts`. Gap: no live "watch the org run" cycle surface |
+| 10 | Observability & proof (traces, alerts, Glass Box, proof artifacts, audit) | 1 | **70%** | `observability.ts`, `alerts.ts`, `office-audit`, `proof.ts` **+ NEW: live "watch the org run" surface** (`/watch` — lifecycle + verify + desk, reads `/api/cycles`, desk approvals hit the `/api/execute` keystone) |
 
-**Weighted machine-built score (2026-07-05): ≈ 62%** — computed
-`(85+80+85 + 50×2 + 55×2 + 65 + 55×2 + 55 + 70 + 60) / 13 = 63.1`, rounded down for honesty on the
-simulated-execution caveat in #5. Up from ≈ 53% before this session (this session added #5 cron-wiring,
-#9 context compression wired centrally into the engine hot path, and this scorecard itself).
+**Weighted machine-built score (2026-07-05): ≈ 64%** — computed
+`(85+80+85 + 50×2 + 58×2 + 65 + 55×2 + 55 + 70 + 70) / 13 = 64.3`, rounded to honesty on the
+simulated-execution caveat in #5. Up from ≈ 53% at the start of the session. This session added: #5
+cron-wiring + per-cycle snapshot persistence, #9 context compression wired centrally into the engine hot
+path, #10 the live "watch the org run" surface (`/watch`), and this scorecard itself.
 
 > Why higher than the old "~53%" gut number: the codebase gained a real `SupabaseBackendProvider` and a
 > mature nightly loop since that estimate. A real rubric finds work the gut under-counted. The **reliably-
@@ -42,10 +43,10 @@ simulated-execution caveat in #5. Up from ≈ 53% before this session (this sess
 Each item lists what it lifts and **who can do it** — because ~half the remaining gap is NOT more code.
 
 **Code we can write (lifts to ~75%):**
-1. **Persist prepared packets → Approval Inbox** so supervised-cycle desk items render on the founder board (#5, #10). _Small._
+1. ~~Persist supervised-cycle snapshots + surface them~~ ✅ done 2026-07-05 (`cycle-store.ts`, migration 0021, `/api/cycles`, `/watch`). Remaining: also mirror desk packets into the durable Approval Inbox so they survive a page reload / show on the main board (#5, #10). _Small._
 2. ~~Wire context compression into the engine hot path (`runShift`) so every caller is budgeted~~ ✅ done 2026-07-05. Remaining: extend to the chat/build prompts if they grow (#9). _Small._
 3. **Add finance / legal-assist / ops roles** (ripples through the `AgentRole` maps + tests) (#8). _Medium._
-4. **A live "watch the org run" surface** reading lifecycle + supervisor outcomes (#10). _Medium._
+4. ~~A live "watch the org run" surface reading lifecycle + supervisor outcomes~~ ✅ done 2026-07-05 (`/watch`) (#10). _Medium._
 5. **Implement a second real `BackendProvider` path + wire it into the build** so generated apps ship with real persistence, not just localStorage (#4). _Medium._
 
 **Infra-gated (needs keys/self-host; lifts to ~82%):**
