@@ -1,5 +1,6 @@
 import { serviceClient } from "@/lib/engine/service";
-import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel } from "@/lib/engine/server";
+import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel, modelForAgent } from "@/lib/engine/server";
+import { runSupervisedGoal } from "@/lib/engine/orchestrator";
 import { capabilities } from "@/lib/engine/execution";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
@@ -33,7 +34,8 @@ export async function GET(req: Request) {
 type Body =
   | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig }
   | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig }
-  | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; agent?: AgentRole; byok?: ByokConfig };
+  | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; agent?: AgentRole; byok?: ByokConfig }
+  | { kind: "goal"; goal: string; roles?: AgentRole[] };
 
 // The funnel used when no DB is configured (or the read fails): every stage missing. The growth step
 // then closes due experiments as "inconclusive — connect the signal" instead of inventing numbers.
@@ -145,7 +147,23 @@ export async function POST(req: Request) {
       return new Response(stream, { headers });
     }
 
-    return Response.json({ error: "Unknown `kind` (expected 'validate' | 'shift' | 'chat')" }, { status: 400 });
+    if (body.kind === "goal") {
+      if (typeof body.goal !== "string" || !body.goal.trim()) {
+        return Response.json({ error: "`goal` (non-empty string) is required" }, { status: 400 });
+      }
+      // Run the agent org over the goal: decompose → supervisor spawns/verifies/hands-off/terminates,
+      // escalating irreducible acts to the human spine. Deterministic simulated execution ($0, keyless);
+      // Phase B injects a model-backed / OpenHands executor. Returns the full outcome for the crew view.
+      const roles = Array.isArray(body.roles) ? body.roles.filter((r): r is AgentRole => r in AGENTS) : undefined;
+      const outcome = await withTrace(
+        "goal",
+        () => runSupervisedGoal(body.goal.trim(), { roles, modelForRole: modelForAgent, makeId: () => crypto.randomUUID() }),
+        { len: body.goal.length },
+      );
+      return Response.json({ outcome });
+    }
+
+    return Response.json({ error: "Unknown `kind` (expected 'validate' | 'shift' | 'chat' | 'goal')" }, { status: 400 });
   } catch (err) {
     // Log only the message — never the raw error/body, since this path handles the BYOK key.
     console.error("[/api/engine] engine error:", err instanceof Error ? err.message : "unknown");

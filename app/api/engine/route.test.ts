@@ -38,6 +38,28 @@ describe("/api/engine route", () => {
     expect(res.status).toBe(400);
   });
 
+  it("kind:goal runs the agent org and returns an outcome", async () => {
+    const res = await POST(new Request("http://localhost/api/engine", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ kind: "goal", goal: "a PM-tools aggregator with simple UX" }),
+    }));
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(Array.isArray(data.outcome.completed)).toBe(true);
+    expect(data.outcome.completed.length).toBeGreaterThan(0);
+    expect(data.outcome.instances.every((i: { status: string }) => i.status === "terminated")).toBe(true);
+  });
+
+  it("400 on goal with no text", async () => {
+    const res = await POST(new Request("http://localhost/api/engine", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ kind: "goal", goal: "  " }),
+    }));
+    expect(res.status).toBe(400);
+  });
+
   it("400 on unknown kind", async () => {
     expect((await POST(post({ kind: "nope" }))).status).toBe(400);
   });
