@@ -70,6 +70,10 @@ export function useAuth() {
     const sb = getBrowserSupabase();
     if (sb) await sb.auth.signOut();
     if (!configured) setUser({ email: "you@local", guest: true });
+    // Return to the homepage with a FULL reload so no signed-in state (or cached page) lingers — the
+    // visitor lands on the public home and can sign in fresh. Without this, sign-out left you on a
+    // stale dashboard that never updated.
+    if (typeof window !== "undefined") window.location.assign("/");
   }, [configured]);
 
   return { user, ready, configured, signInWithEmail, signInWithOAuth, signOut };
