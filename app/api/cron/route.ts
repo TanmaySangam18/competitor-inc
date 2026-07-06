@@ -26,6 +26,8 @@ import { withTrace } from "@/lib/engine/observability";
 import { raiseAlert } from "@/lib/engine/alerts";
 import { runGrowthStep } from "@/lib/engine/growth";
 import { readFunnel } from "@/lib/engine/funnel";
+import { organicShift, toChannelInputs } from "@/lib/engine/organic-shift";
+import { attributeChannels } from "@/lib/engine/attribution";
 
 export const runtime = "nodejs";
 
@@ -120,6 +122,26 @@ export async function GET(req: Request) {
         await saveScorecardSnapshot(company.id, company.night + 1, metrics, g.diagnosis.constraint, g.diagnosis.signal).catch(
           (e) => console.error("[/api/cron] scorecard snapshot:", e?.message)
         );
+
+        // ── Organic Growth Engine, operationalized (the "get the first real user a real result" loop). ──
+        // Read per-channel attribution from the pixel, run the constraint-matched content plan, and post
+        // the plan to the Glass Box every night. Surface ready-to-post DRAFTS to the desk on a batch cadence
+        // (every other night, ≤2) so the desk stays clean while matching a realistic posting rhythm. Nothing
+        // auto-posts — draft → the founder approves → posts. Rationale: docs/PLAYBOOK-organic-growth.md.
+        try {
+          const evQ = await sb.from("events").select("type, source").eq("slug", company.slug);
+          const channelStats = attributeChannels(
+            ((evQ.data ?? []) as { type: "view" | "signup" | "purchase"; source: string | null }[]).map((e) => ({ type: e.type, source: e.source })),
+          );
+          const surfaceDrafts = (company.night + 1) % 2 === 0; // batch cadence + desk hygiene
+          const org = organicShift(company, funnel, toChannelInputs(channelStats), company.night + 1, surfaceDrafts ? 2 : 0);
+          await insertActivities(sb, company.id, org.activities).catch((e) => console.error("[/api/cron] organic activity:", e?.message));
+          if (org.approvals.length) {
+            await insertApprovals(sb, company.id, org.approvals).catch((e) => console.error("[/api/cron] organic drafts:", e?.message));
+          }
+        } catch (e) {
+          console.error("[/api/cron] organic shift failed:", e instanceof Error ? e.message : "unknown");
+        }
       } catch (e) {
         console.error("[/api/cron] growth step failed:", e instanceof Error ? e.message : "unknown");
       }

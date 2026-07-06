@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "verify": "tsc --noEmit && vitest run && next build",
-    "qa": "tsc --noEmit && vitest run && next build && node scripts/smoke.mjs"
+    "qa": "tsc --noEmit && vitest run && next build && node scripts/smoke.mjs",
+    "ship": "bash scripts/ship-prod.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",
