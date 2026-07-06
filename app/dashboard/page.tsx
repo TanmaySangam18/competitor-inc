@@ -73,6 +73,7 @@ import { netSpend } from "@/lib/engine/ledger";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { isFounderEmail } from "@/lib/engine/founders";
+import { continueLocked, previewedCount, waitlistGateOn } from "@/lib/engine/access-gate";
 import { repoFromUrl } from "@/lib/engine/hosting";
 import LivePreview from "@/components/dashboard/LivePreview";
 import FoundingMember from "@/components/dashboard/FoundingMember";
@@ -505,6 +506,17 @@ function Rejected({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBuild: ()
 /* ── Operating ───────────────────────────────────────────────── */
 function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<typeof useEngine>; tab: Tab; setTab: (t: Tab) => void; entitled: boolean; userEmail?: string }) {
   const c = r.company!;
+  // Post-preview "continue" gate (build order #2). OFF unless NEXT_PUBLIC_WAITLIST_GATE=1, so the current
+  // pre-launch demo is unaffected. Founders + truly-paid users are never gated. Once a user has previewed
+  // a product live, further building locks behind the waitlist — their project stays saved (the view
+  // below still renders), so unlocking resumes exactly where they left off. `paid` = REAL entitlement
+  // only (billing must be live), never the billing-off demo bypass.
+  const locked = continueLocked({
+    gateOn: waitlistGateOn(process.env.NEXT_PUBLIC_WAITLIST_GATE),
+    founder: isFounderEmail(userEmail),
+    paid: billingLive() ? entitled : false,
+    previewedCount: previewedCount(r.companies),
+  });
   const [blitzDone, setBlitzDone] = useState(false);
   function doBlitz() {
     r.launchBlitz();
@@ -537,6 +549,22 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
             <GoalChip goal={c.growthGoal} imported={c.product?.status === "live"} onSet={r.setGrowthGoal} />
           </div>
         </div>
+        {locked ? (
+          <div className="max-w-sm rounded-2xl border border-coral/30 bg-coral/[0.06] px-5 py-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-text">
+              <Lock size={15} className="text-coral" /> You&apos;ve previewed it live
+            </div>
+            <p className="mt-1 text-xs text-muted">
+              Your project is saved. Join the waitlist to keep building — you&apos;ll pick up right where you left off.
+            </p>
+            <a
+              href="/join"
+              className="mt-3 inline-flex items-center gap-2 rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110"
+            >
+              Join the waitlist to continue
+            </a>
+          </div>
+        ) : (
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={r.revalidate}
@@ -578,6 +606,7 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
             )}
           </button>
         </div>
+        )}
       </div>
 
       <CoachCard company={c} />
