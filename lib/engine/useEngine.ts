@@ -8,6 +8,7 @@ import { getByok, getConnections, pingCustomerUpdate, pingApprovalRequest, fetch
 import { draftBlitz } from "./blitz";
 import { generateSocialDrafts, generateDistributionActivities } from "./distribution";
 import { canRun, recordRun, FREE_CAPS } from "./usage";
+import { markTrialStart } from "./trial";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "./useAuth";
 import { useDbSync, type SyncState } from "./sync";
@@ -186,6 +187,7 @@ export function useEngine() {
       night: 0,
       ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
     };
+    markTrialStart(); // reverse trial starts at the user's first real company (the aha)
     setStore((s) => ({
       ...s,
       companies: [c, ...s.companies],
@@ -243,6 +245,7 @@ export function useEngine() {
       ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
       product: { url: cleanUrl, status: "live" }, // already built + live — born with proof-of-work
     };
+    markTrialStart(); // reverse trial starts at the user's first real company (the aha)
     setStore((s) => ({
       ...s,
       companies: [c, ...s.companies],
@@ -790,6 +793,7 @@ export function useEngine() {
         },
       };
     }
+    markTrialStart(); // reverse trial starts at the user's first real company (the aha)
     setStore((s) => ({
       ...s,
       companies: [c, ...s.companies],

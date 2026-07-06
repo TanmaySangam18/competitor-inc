@@ -72,7 +72,8 @@ import { netSpend } from "@/lib/engine/ledger";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { isFounderEmail } from "@/lib/engine/founders";
-import { continueLocked, previewedCount, waitlistGateOn } from "@/lib/engine/access-gate";
+import { continueLocked, previewedCount, waitlistGateOn, premiumUnlocked, trialActive, trialDaysLeft, companyCreateLocked } from "@/lib/engine/access-gate";
+import { getTrialStart } from "@/lib/engine/trial";
 import { repoFromUrl } from "@/lib/engine/hosting";
 import LivePreview from "@/components/dashboard/LivePreview";
 import FoundingMember from "@/components/dashboard/FoundingMember";
@@ -131,6 +132,18 @@ export default function Dashboard() {
     };
   }, [user?.email]);
 
+  // Reverse-trial + premium gate (CPO tiering). OFF unless NEXT_PUBLIC_WAITLIST_GATE=1, so the current
+  // demo is unaffected. premiumUnlocked = founder OR real-paid OR an active trial → autopilot + real
+  // actions. Read the trial clock client-side after hydration (re-read when the company list changes so a
+  // just-created first company flips it on).
+  const gateOn = waitlistGateOn(process.env.NEXT_PUBLIC_WAITLIST_GATE);
+  const [trialStartedAt, setTrialStartedAt] = useState<number | null>(null);
+  useEffect(() => {
+    setTrialStartedAt(getTrialStart());
+  }, [r.companies.length, r.hydrated]);
+  const paid = billingLive() ? entitled : false;
+  const premium = premiumUnlocked({ founder: isFounderEmail(user?.email), paid, trialStartedAt });
+
   // Approving a build ships the MVP, then takes the founder straight to the live agent floor so they
   // watch the crew go to work (Nielsen H1). No paywall here — the reveal is where they pay.
   const goBuild = async () => {
@@ -148,7 +161,7 @@ export default function Dashboard() {
 
   return (
     <div id="main" className="min-h-screen">
-      <TopBar r={r} />
+      <TopBar r={r} premium={premium} gateOn={gateOn} />
       <SelfEnrichPanel />
       {r.blocked && (
         <div className="mx-auto max-w-6xl px-6 pt-4">
@@ -167,18 +180,40 @@ export default function Dashboard() {
       )}
       <div className="mx-auto max-w-6xl px-6 py-10">
         <EntitlementNotice email={user?.email} />
-        {!r.company && <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} onDemo={r.loadDemo} onImport={r.importCompany} />}
+        {!r.company && (
+          companyCreateLocked({ gateOn, founder: isFounderEmail(user?.email), paid, currentCount: r.companies.length })
+            ? <UpgradeToAddCompany count={r.companies.length} onBack={() => r.switchCompany(r.companies[0]?.id ?? null)} />
+            : <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} onDemo={r.loadDemo} onImport={r.importCompany} />
+        )}
         {r.company?.status === "validating" && <ValidationRunning idea={r.company.idea} />}
         {r.company?.status === "validated" && <ValidationGate r={r} onBuild={goBuild} />}
         {r.company?.status === "rejected" && <Rejected r={r} onBuild={goBuild} />}
-        {r.company?.status === "operating" && <Operating r={r} tab={tab} setTab={setTab} entitled={entitled} userEmail={user?.email} />}
+        {r.company?.status === "operating" && <Operating r={r} tab={tab} setTab={setTab} entitled={entitled} userEmail={user?.email} trialStartedAt={trialStartedAt} />}
+      </div>
+    </div>
+  );
+}
+
+/* ── Upgrade prompt: 2nd company (the value metric) ──────────── */
+function UpgradeToAddCompany({ count, onBack }: { count: number; onBack: () => void }) {
+  return (
+    <div className="mx-auto max-w-lg rounded-3xl border border-coral/30 bg-coral/[0.05] p-8 text-center">
+      <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-coral/12 text-coral"><Lock size={22} /></div>
+      <h1 className="mt-4 text-2xl font-bold">One company on the free plan</h1>
+      <p className="mt-2 text-sm text-muted">
+        You&apos;ve got {count === 1 ? "a company" : `${count} companies`} running. A portfolio of companies is a
+        premium feature — join the waitlist to run more (and keep autopilot going).
+      </p>
+      <div className="mt-5 flex items-center justify-center gap-2.5">
+        <a href="/join" className="hover-lift rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110">Join the waitlist</a>
+        <button onClick={onBack} className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium text-muted transition hover:text-text">Back to my company</button>
       </div>
     </div>
   );
 }
 
 /* ── Top bar ─────────────────────────────────────────────────── */
-function TopBar({ r }: { r: ReturnType<typeof useEngine> }) {
+function TopBar({ r, premium, gateOn }: { r: ReturnType<typeof useEngine>; premium: boolean; gateOn: boolean }) {
   const { user, signOut } = useAuth();
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-bg/70 backdrop-blur-xl">
@@ -192,7 +227,17 @@ function TopBar({ r }: { r: ReturnType<typeof useEngine> }) {
         </div>
         <div className="flex items-center gap-2">
           {r.company?.status === "operating" && (
-            <AutopilotToggle on={r.autopilot} onToggle={() => r.setAutopilot(!r.autopilot)} paused={r.autopilotPaused} />
+            gateOn && !premium ? (
+              <a
+                href="/join"
+                title="Autopilot is a premium feature — start your trial or upgrade"
+                className="hidden h-9 items-center gap-1.5 rounded-lg border border-coral/40 px-3 text-xs font-medium text-coral transition hover:bg-coral/10 sm:flex"
+              >
+                <Lock size={13} /> Autopilot — upgrade
+              </a>
+            ) : (
+              <AutopilotToggle on={r.autopilot} onToggle={() => r.setAutopilot(!r.autopilot)} paused={r.autopilotPaused} />
+            )
           )}
           <Link
             href="/watch"
@@ -497,19 +542,23 @@ function Rejected({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBuild: ()
 }
 
 /* ── Operating ───────────────────────────────────────────────── */
-function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<typeof useEngine>; tab: Tab; setTab: (t: Tab) => void; entitled: boolean; userEmail?: string }) {
+function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r: ReturnType<typeof useEngine>; tab: Tab; setTab: (t: Tab) => void; entitled: boolean; userEmail?: string; trialStartedAt: number | null }) {
   const c = r.company!;
   // Post-preview "continue" gate (build order #2). OFF unless NEXT_PUBLIC_WAITLIST_GATE=1, so the current
-  // pre-launch demo is unaffected. Founders + truly-paid users are never gated. Once a user has previewed
-  // a product live, further building locks behind the waitlist — their project stays saved (the view
-  // below still renders), so unlocking resumes exactly where they left off. `paid` = REAL entitlement
-  // only (billing must be live), never the billing-off demo bypass.
+  // pre-launch demo is unaffected. Founders + truly-paid users are never gated, and an active reverse
+  // trial keeps it unlocked (they're mid-taste). Once the trial ends + a product is previewed, further
+  // building locks behind the waitlist — the project stays saved (the view still renders), so unlocking
+  // resumes. `paid` = REAL entitlement only (billing must be live), never the billing-off demo bypass.
+  const gateOn = waitlistGateOn(process.env.NEXT_PUBLIC_WAITLIST_GATE);
+  const paid = billingLive() ? entitled : false;
   const locked = continueLocked({
-    gateOn: waitlistGateOn(process.env.NEXT_PUBLIC_WAITLIST_GATE),
+    gateOn,
     founder: isFounderEmail(userEmail),
-    paid: billingLive() ? entitled : false,
+    paid,
     previewedCount: previewedCount(r.companies),
+    trialStartedAt,
   });
+  const onTrial = gateOn && !isFounderEmail(userEmail) && !paid && trialActive(trialStartedAt);
   const [blitzDone, setBlitzDone] = useState(false);
   function doBlitz() {
     r.launchBlitz();
@@ -601,6 +650,14 @@ function Operating({ r, tab, setTab, entitled, userEmail }: { r: ReturnType<type
         </div>
         )}
       </div>
+
+      {onTrial && (
+        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-mint/30 bg-mint/[0.06] px-4 py-2.5 text-sm text-text">
+          <Sparkles size={15} className="shrink-0 text-mint" />
+          <span><b className="font-medium">Free trial</b> — {trialDaysLeft(trialStartedAt)} days left of full autopilot + real actions.</span>
+          <a href="/join" className="ml-auto font-medium text-mint underline-offset-2 hover:underline">Upgrade to keep it →</a>
+        </div>
+      )}
 
       <CoachCard company={c} />
 
