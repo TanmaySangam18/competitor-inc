@@ -32,6 +32,14 @@ const MODEL_CHEAP = process.env.MODEL_CHEAP || "claude-haiku-4-5";
 // 2026-08-31) vs Opus 4.8's $5/$25. Override with MODEL_MID.
 const MODEL_MID = process.env.MODEL_MID || "claude-sonnet-5";
 
+// Hybrid routing (cost): route the CHEAP tier (routine copy — marketing/growth/support/ops) to a FREE
+// OpenAI-compatible provider (e.g. Groq) while MID/STRONG stay on Claude (the validation verdict + code
+// builds — the quality that earns trust). Off unless FREE_TIER_BASE_URL + FREE_TIER_API_KEY are set;
+// then cheap-tier calls cost ≈$0. BYOK and mid/strong tiers are unaffected. See freemium-flow decision.
+const FREE_TIER_URL = process.env.FREE_TIER_BASE_URL; // e.g. https://api.groq.com/openai/v1
+const FREE_TIER_KEY = process.env.FREE_TIER_API_KEY; // your Groq/OpenRouter/etc. key (reuse a free one)
+const FREE_TIER_MODEL = process.env.FREE_TIER_MODEL || "llama-3.3-70b-versatile";
+
 // Per-agent model routing — three tiers, chosen to minimize cost per shift without dumbing down the
 // work that earns trust (2026-07-03 token-savings pass). The tier map's single source of truth
 // lives in ./per-agent-model-routing (shared with cost estimation + telemetry); this resolver adds
@@ -66,6 +74,31 @@ function managedModel(): Managed | null {
 
 export function realModelConfigured(): boolean {
   return managedModel() !== null;
+}
+
+function freeTierConfigured(): boolean {
+  return !!(FREE_TIER_URL && FREE_TIER_KEY);
+}
+
+// Pure (exported for tests): should this per-agent model id route to the free tier? Only the CHEAP model,
+// and only when a free provider is configured. Mid/strong (verdict + builds) never route free.
+export function shouldUseFreeTier(
+  model: string | undefined,
+  cheapModel: string = MODEL_CHEAP,
+  freeConfigured: boolean = freeTierConfigured(),
+): boolean {
+  return !!model && model === cheapModel && freeConfigured;
+}
+
+// Resolve the real call target for a per-agent model id: cheap tier → the free provider (when set),
+// else the managed provider carrying the requested model. Null when nothing is configured.
+function targetForModel(model?: string): Managed | null {
+  if (shouldUseFreeTier(model)) {
+    return { kind: "openai", baseUrl: FREE_TIER_URL as string, key: FREE_TIER_KEY as string, model: FREE_TIER_MODEL };
+  }
+  const managed = managedModel();
+  if (!managed) return null;
+  return { ...managed, model: model ?? managed.model };
 }
 
 
@@ -227,10 +260,10 @@ async function callModel(system: string, user: string, byok?: ByokConfig, model?
   if (byok?.apiKey && byok.provider === "anthropic") {
     return callAnthropic(system, user, byok.apiKey, byok.model || MODEL, maxTokens);
   }
-  // 2) Managed (operator-configured) engine: per-agent `model` override → else the managed default.
-  const managed = managedModel();
-  if (managed?.kind === "anthropic") return callAnthropic(system, user, managed.key, model ?? managed.model, maxTokens);
-  if (managed?.kind === "openai") return callOpenAICompat(managed.baseUrl, managed.key, model ?? managed.model, system, user, false, maxTokens);
+  // 2) Managed engine with HYBRID routing: cheap tier → free provider (when set), mid/strong → Claude.
+  const target = targetForModel(model);
+  if (target?.kind === "anthropic") return callAnthropic(system, user, target.key, target.model, maxTokens);
+  if (target?.kind === "openai") return callOpenAICompat(target.baseUrl, target.key, target.model, system, user, false, maxTokens);
   throw new Error("no model configured");
 }
 
@@ -243,9 +276,9 @@ async function callModelStream(system: string, user: string, byok?: ByokConfig, 
   if (byok?.apiKey && byok.provider === "anthropic") {
     return streamAnthropic(system, user, byok.apiKey, byok.model || MODEL);
   }
-  const managed = managedModel();
-  if (managed?.kind === "anthropic") return streamAnthropic(system, user, managed.key, model ?? managed.model);
-  if (managed?.kind === "openai") return streamOpenAICompat(managed.baseUrl, managed.key, model ?? managed.model, system, user, false);
+  const target = targetForModel(model);
+  if (target?.kind === "anthropic") return streamAnthropic(system, user, target.key, target.model);
+  if (target?.kind === "openai") return streamOpenAICompat(target.baseUrl, target.key, target.model, system, user, false);
   throw new Error("no model configured");
 }
 
