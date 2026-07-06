@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { ArrowLeft, ExternalLink, Inbox, Loader2, MessagesSquare, Play, Power, Send, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, ExternalLink, Inbox, Loader2, MessagesSquare, Pencil, Play, Power, Send, Sparkles, X } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { useEngine } from "@/lib/engine/useEngine";
 import { DELEGATION, delegationForCrew, toneHex } from "@/lib/engine/delegation";
@@ -76,6 +76,16 @@ export default function DelegationPage() {
   // ── Ambient conversation ───────────────────────────────────────
   const [speaker, setSpeaker] = useState<Turn | null>(null);
   const [transcript, setTranscript] = useState<Turn[]>([]);
+
+  // Rename the company inline — the auto-derived name is just a starting point; the founder owns it.
+  const [renaming, setRenaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const startRename = () => { setNameDraft(r.company?.name ?? ""); setRenaming(true); };
+  const commitRename = () => {
+    const n = nameDraft.trim();
+    if (n && n !== r.company?.name) r.renameCompany(n);
+    setRenaming(false);
+  };
 
   // The customer avatar — man or woman, the founder's pick, remembered on this device.
   const [customerGender, setCustomerGender] = useState<CustomerGender>("man");
@@ -216,7 +226,34 @@ export default function DelegationPage() {
           <div className="hidden items-center gap-2 text-xs text-muted-2 sm:flex">
             {r.company ? (
               <>
-                <span className="text-muted">{r.company.name}</span>
+                {renaming ? (
+                  <span className="pointer-events-auto flex items-center gap-1">
+                    <input
+                      autoFocus
+                      value={nameDraft}
+                      onChange={(e) => setNameDraft(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenaming(false); }}
+                      maxLength={60}
+                      aria-label="Company name"
+                      className="w-40 rounded-md border border-border bg-bg/70 px-2 py-1 text-xs text-text outline-none focus:border-white/30"
+                    />
+                    <button onClick={commitRename} aria-label="Save name" className="grid h-6 w-6 place-items-center rounded-md bg-text text-bg transition hover:brightness-110">
+                      <Check size={12} />
+                    </button>
+                    <button onClick={() => setRenaming(false)} aria-label="Cancel rename" className="grid h-6 w-6 place-items-center rounded-md border border-border text-muted transition hover:text-text">
+                      <X size={12} />
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    onClick={startRename}
+                    title="Rename company"
+                    className="pointer-events-auto group flex items-center gap-1 text-muted transition hover:text-text"
+                  >
+                    <span>{r.company.name}</span>
+                    <Pencil size={11} className="opacity-0 transition group-hover:opacity-70" />
+                  </button>
+                )}
                 <span>·</span>
                 {busy ? (
                   <span className="inline-flex items-center gap-1.5 text-text">

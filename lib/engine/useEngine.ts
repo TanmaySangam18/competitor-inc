@@ -686,6 +686,17 @@ export function useEngine() {
     });
   }, []);
 
+  // Rename the active company. Trimmed + capped at 60 chars; empty is ignored (keeps the old name).
+  // Persistence rides the normal localStorage + sync path (companyChanged compares name → db.updateCompany).
+  const renameCompany = useCallback((name: string) => {
+    const n = name.trim().slice(0, 60);
+    if (!n) return;
+    setStore((s) => {
+      if (!s.activeId) return s;
+      return { ...s, companies: s.companies.map((c) => (c.id === s.activeId ? { ...c, name: n } : c)) };
+    });
+  }, []);
+
   // Build-in-public consent — lets the crew share this company's real milestones on competitor.inc's
   // own channels. Off by default; the customer flips it. Persists + syncs like any company field.
   const setShareInPublic = useCallback((on: boolean) => {
@@ -836,6 +847,7 @@ export function useEngine() {
     revalidate,
     launchBlitz,
     setGrowthGoal,
+    renameCompany,
     setShareInPublic,
     resolveApproval,
     addApproval,
