@@ -117,7 +117,14 @@ export function useConfig() {
           setConfig({
             ...DEFAULT_CONFIG,
             ...parsed,
-            agents: parsed.agents && typeof parsed.agents === "object" ? parsed.agents : DEFAULT_CONFIG.agents,
+            // Merge PER-ROLE, not wholesale: a config saved before a new agent existed (e.g. finance/
+            // legal/ops added 2026-07-06) is missing those keys — using it as-is makes config.agents[role]
+            // undefined and crashes "Your team". Keep saved state for known roles; default any missing one.
+            agents: ROLES.reduce((acc, r) => {
+              const saved = (parsed.agents as Partial<Record<AgentRole, AgentConfig>> | undefined)?.[r];
+              acc[r] = saved && typeof saved === "object" ? { ...DEFAULT_CONFIG.agents[r], ...saved } : DEFAULT_CONFIG.agents[r];
+              return acc;
+            }, {} as Record<AgentRole, AgentConfig>),
             byok: parsed.byok && typeof parsed.byok === "object" ? { ...DEFAULT_CONFIG.byok, ...parsed.byok } : DEFAULT_CONFIG.byok,
             connections: parsed.connections && typeof parsed.connections === "object" ? { ...DEFAULT_CONFIG.connections, ...parsed.connections } : DEFAULT_CONFIG.connections,
             notify: parsed.notify && typeof parsed.notify === "object" ? { ...DEFAULT_CONFIG.notify, ...parsed.notify } : DEFAULT_CONFIG.notify,
