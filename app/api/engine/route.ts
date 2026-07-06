@@ -11,6 +11,7 @@ import { connectorStatus } from "@/lib/engine/connectors";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
 import { runGrowthStep, type FunnelSnapshot, type GrowthExperiment } from "@/lib/engine/growth";
+import { organicGrowthPlan, type ChannelInput } from "@/lib/engine/organic-growth";
 import { readFunnel } from "@/lib/engine/funnel";
 import type { AgentRole, ByokConfig, Company, Connections } from "@/lib/engine/types";
 import { AGENTS } from "@/lib/engine/types";
@@ -42,7 +43,8 @@ type Body =
   | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig }
   | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig }
   | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; agent?: AgentRole; byok?: ByokConfig }
-  | { kind: "goal"; goal: string; roles?: AgentRole[]; build?: boolean; operate?: boolean; connections?: Connections; byok?: ByokConfig };
+  | { kind: "goal"; goal: string; roles?: AgentRole[]; build?: boolean; operate?: boolean; connections?: Connections; byok?: ByokConfig }
+  | { kind: "organic"; funnel: FunnelSnapshot; channels?: ChannelInput[]; byok?: ByokConfig };
 
 // The funnel used when no DB is configured (or the read fails): every stage missing. The growth step
 // then closes due experiments as "inconclusive — connect the signal" instead of inventing numbers.
@@ -223,7 +225,17 @@ export async function POST(req: Request) {
       return Response.json({ outcome, mode });
     }
 
-    return Response.json({ error: "Unknown `kind` (expected 'validate' | 'shift' | 'chat' | 'goal')" }, { status: 400 });
+    if (body.kind === "organic") {
+      // Organic Growth Engine — pure/deterministic ($0, no model). Turns the brand's REAL funnel + channel
+      // attribution into a content plan, winners/losers, and next organic experiments (organic-growth.ts).
+      if (!body.funnel || typeof body.funnel !== "object") {
+        return Response.json({ error: "`funnel` (a FunnelSnapshot) is required" }, { status: 400 });
+      }
+      const channels = Array.isArray(body.channels) ? body.channels.slice(0, 12) : [];
+      return Response.json({ plan: organicGrowthPlan({ funnel: body.funnel, channels }) });
+    }
+
+    return Response.json({ error: "Unknown `kind` (expected 'validate' | 'shift' | 'chat' | 'goal' | 'organic')" }, { status: 400 });
   } catch (err) {
     // Log only the message — never the raw error/body, since this path handles the BYOK key.
     console.error("[/api/engine] engine error:", err instanceof Error ? err.message : "unknown");
