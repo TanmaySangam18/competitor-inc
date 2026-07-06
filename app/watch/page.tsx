@@ -228,10 +228,11 @@ export default function WatchPage() {
               </div>
             )}
 
+            <div className="grid items-start gap-6 lg:grid-cols-2">
             {/* live agents */}
             <div>
               <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-2">The org · one agent per task</h2>
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 max-h-[46vh] space-y-2 overflow-y-auto pr-1">
                 {out.instances.map((i) => {
                   const Icon = ROLE_ICON[i.role] ?? Code2;
                   const st = out.completed.includes(i.taskId) ? "done" : out.failed.includes(i.taskId) ? "failed" : i.status;
@@ -270,7 +271,7 @@ export default function WatchPage() {
                   <Lock size={12} className="text-muted-2" />
                   <span className="text-[11px] text-muted-2">nothing sends until you approve</span>
                 </div>
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 max-h-[46vh] space-y-2 overflow-y-auto pr-1">
                   {out.packets.map((p) => {
                     const ui = pkt[p.id] ?? { status: "idle" as const };
                     const humanOnly = !EXECUTABLE[p.kind];
@@ -296,6 +297,7 @@ export default function WatchPage() {
                 </div>
               </div>
             )}
+            </div>
 
             <details className="text-xs text-muted-2">
               <summary className="cursor-pointer">Trace</summary>
