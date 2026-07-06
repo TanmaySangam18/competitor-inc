@@ -18,7 +18,7 @@ import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
 import { getByok } from "@/lib/engine/config";
 
-const DelegationScene = dynamic(() => import("./DelegationScene2D"), {
+const DelegationScene = dynamic(() => import("./DelegationScenePixel"), {
   ssr: false,
   loading: () => (
     <div className="grid h-full w-full place-items-center">
