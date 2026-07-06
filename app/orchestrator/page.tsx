@@ -163,9 +163,10 @@ export default function OrchestratorPage() {
               </div>
             )}
 
+            <div className="grid items-start gap-6 lg:grid-cols-2">
             <div>
               <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-2">The org · one agent per task</h2>
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 max-h-[46vh] space-y-2 overflow-y-auto pr-1">
                 {out.instances.map((i) => (
                   <div key={i.id} className="glass-panel flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm">
                     <span className="font-mono text-[11px] text-muted-2">{i.taskId}</span>
@@ -182,7 +183,7 @@ export default function OrchestratorPage() {
             {out.packets.length > 0 && (
               <div>
                 <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-2">Your desk · only you can do these</h2>
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 max-h-[46vh] space-y-2 overflow-y-auto pr-1">
                   {out.packets.map((p) => (
                     <div key={p.id} className="clay-chip rounded-xl px-4 py-2.5 text-sm">
                       <div className="font-medium">{p.title} <span className="text-[11px] text-muted-2">· {p.kind}</span></div>
@@ -192,6 +193,7 @@ export default function OrchestratorPage() {
                 </div>
               </div>
             )}
+            </div>
 
             <details className="text-xs text-muted-2">
               <summary className="cursor-pointer">Trace</summary>
