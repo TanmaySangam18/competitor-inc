@@ -4,6 +4,7 @@ import { runSupervisedGoal } from "@/lib/engine/orchestrator";
 import { githubBuildExecutor } from "@/lib/engine/build-github";
 import { openhandsBuildExecutor } from "@/lib/engine/openhands";
 import { aiderBuildExecutor } from "@/lib/engine/aider-build";
+import { checkUserLimit } from "@/lib/engine/user-limits";
 import type { ExecuteFn } from "@/lib/engine/supervisor";
 import { capabilities } from "@/lib/engine/execution";
 import { connectorStatus } from "@/lib/engine/connectors";
@@ -73,6 +74,23 @@ export async function POST(req: Request) {
 
   if (!body || typeof body !== "object") {
     return Response.json({ error: "Body must be an object" }, { status: 400 });
+  }
+
+  // Per-user daily cap — server-enforced, so a shared group can't drain the operator's model budget.
+  // Only applies to model-heavy kinds run on the OPERATOR's key; BYOK users are uncapped (own bill).
+  // Fail-open: no DB / not signed in / migration 0022 absent ⇒ allowed (see user-limits.ts).
+  const byokKey = body.byok?.apiKey;
+  if (!byokKey && (body.kind === "validate" || body.kind === "shift" || body.kind === "goal")) {
+    const lim = await checkUserLimit(body.kind);
+    if (!lim.allowed) {
+      return Response.json(
+        {
+          error: `Daily limit reached — ${lim.limit} ${body.kind} runs/day on the shared key. Add your own model key in Settings to keep going, or come back tomorrow.`,
+          limited: true,
+        },
+        { status: 429 },
+      );
+    }
   }
 
   try {
