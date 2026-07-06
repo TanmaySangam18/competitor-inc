@@ -4,6 +4,8 @@ import { getServerSupabase, isSupabaseConfigured } from "@/lib/supabase/server";
 import { executionRefusal, type ActionContext, type Refusal } from "@/lib/engine/policy";
 import { raiseAlert } from "@/lib/engine/alerts";
 import { spendWouldExceed, recordSpend } from "@/lib/engine/spendguard";
+import { isPremiumAction, serverPremium } from "@/lib/engine/access-server";
+import { waitlistGateOn } from "@/lib/engine/access-gate";
 import type { AgentRole, Connections } from "@/lib/engine/types";
 
 // Runs a real, gated agent action (build / deploy / outreach / spend / payments / delete) server-side.
@@ -150,6 +152,14 @@ export async function POST(req: Request) {
       console.warn(`[/api/execute] refused real action (${gate.error}) action=${action}`);
       return Response.json({ ok: false, disabled: true, error: "not authorized" });
     }
+  }
+
+  // ── Gate 3: PREMIUM (server enforcement of the tiering). Real external actions require founder-or-paid
+  // when the monetization gate is on, so the UI tiering can't be bypassed via the API. Off by default
+  // (flag), and fail-safe (withheld actions just stay simulated — nothing breaks).
+  if (waitlistGateOn(process.env.NEXT_PUBLIC_WAITLIST_GATE) && isPremiumAction(action) && !(await serverPremium())) {
+    console.warn(`[/api/execute] withheld premium action=${action} (not founder/paid)`);
+    return Response.json({ ok: false, disabled: true, error: "premium required" });
   }
 
   try {
