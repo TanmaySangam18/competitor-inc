@@ -99,10 +99,26 @@ const RAW: Omit<Exchange, "id">[] = [
 
 const EXCHANGES: Exchange[] = RAW.map((e, id) => ({ id, ...e }));
 
+// Banter lines are written for a SHORT idea ("build {idea}", "{idea} goes viral", "want {idea}"). A long
+// idea paragraph (a real, detailed pitch) would stuff a wall of text into every line and make the crew look
+// broken. So {idea} resolves to a SHORT label: the company name when we have a usable one, else the first
+// short clause of the idea with any leading "Name — " prefix stripped. Deterministic; never dumps the para.
+function shortLabel(ctx: BanterCtx): string {
+  const name = (ctx.company || "").trim();
+  if (name && name.toLowerCase() !== "the company" && name.length <= 28) return name;
+  const idea = (ctx.idea || "").trim();
+  if (!idea) return "the idea";
+  const stripped = idea.replace(/^["'\s]*[^—:–-]{1,32}\s*[—:–-]\s*/, ""); // drop a leading "Tattva — " prefix
+  const clause = (stripped || idea).split(/[.,;:—–]/)[0].trim();
+  const short = clause.split(/\s+/).slice(0, 6).join(" ");
+  return short || "the idea";
+}
+
 function fill(text: string, ctx: BanterCtx): string {
+  const label = shortLabel(ctx);
   return text
-    .replace(/\{company\}/g, ctx.company || "the company")
-    .replace(/\{idea\}/g, ctx.idea || "the idea")
+    .replace(/\{company\}/g, (ctx.company || label))
+    .replace(/\{idea\}/g, label)
     .replace(/\{action\}/g, ctx.action || "Shipped something solid");
 }
 
