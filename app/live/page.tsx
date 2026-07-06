@@ -56,7 +56,7 @@ export default function Live() {
             competitor.inc
           </Link>
           <div className="flex items-center gap-4 text-sm text-muted">
-            <Link href="/delegation" className="transition hover:text-text">The Office</Link>
+            <Link href="/dashboard" className="transition hover:text-text">Your crew</Link>
             <Link href="/" className="inline-flex items-center gap-2 transition hover:text-text">
               <ArrowLeft size={15} /> Home
             </Link>

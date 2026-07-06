@@ -78,6 +78,22 @@ $$;
 revoke all on function public.bump_usage(text, integer) from public;
 grant execute on function public.bump_usage(text, integer) to authenticated;
 
--- Confirm (optional): these should both return a row.
+-- ── 0023: chatops_messages (Slack/Telegram reflected into the web CrewBox) ──────────────────────────
+create table if not exists public.chatops_messages (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    uuid references auth.users (id) on delete cascade,
+  source     text not null,
+  direction  text not null,
+  text       text not null,
+  agent      text,
+  created_at timestamptz not null default now()
+);
+alter table public.chatops_messages add column if not exists user_id uuid references auth.users (id) on delete cascade;
+create index if not exists chatops_messages_created_idx on public.chatops_messages (created_at desc);
+alter table public.chatops_messages enable row level security;
+-- No policies: read via the founder-gated /api/chatops/messages (service role); write via the webhooks (service role).
+
+-- Confirm (optional): these should all return a row.
 --   select 'operating_cycles' as t, count(*) from public.operating_cycles;
---   select 'usage_counters' as t, count(*) from public.usage_counters;
+--   select 'usage_counters'  as t, count(*) from public.usage_counters;
+--   select 'chatops_messages' as t, count(*) from public.chatops_messages;

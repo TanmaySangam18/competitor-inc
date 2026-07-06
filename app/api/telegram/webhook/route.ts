@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { serviceClient } from "@/lib/engine/service";
 import { parseApprovalCallback, telegramAck, telegramEditText, notifyCustomer } from "@/lib/engine/notify";
 import { runChat, detectChatApproval } from "@/lib/engine/server";
+import { recordChatOps } from "@/lib/engine/chatops";
 
 export const runtime = "nodejs";
 
@@ -46,6 +47,9 @@ export async function POST(req: Request) {
         const appr = detectChatApproval(text);
         const note = appr ? `\n\n🔔 That's consequential — I'll queue “${appr.title}” in your Approval Inbox for your yes.` : "";
         await notifyCustomer({ telegramChatId: chatId }, `${reply}${note}`);
+        // Reflect the exchange in the web CrewBox (fail-soft).
+        const sbT = serviceClient();
+        if (sbT) { await recordChatOps(sbT, { source: "telegram", direction: "in", text }); await recordChatOps(sbT, { source: "telegram", direction: "out", text: reply, agent: "ceo" }); }
       } catch { /* fail-soft */ }
     }
     return Response.json({ ok: true });

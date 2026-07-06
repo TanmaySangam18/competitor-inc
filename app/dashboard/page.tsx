@@ -36,6 +36,7 @@ import {
   AlertTriangle,
   Copy,
   Eye,
+  Pencil,
 } from "lucide-react";
 import { useEngine } from "@/lib/engine/useEngine";
 import { useConfig, getByok } from "@/lib/engine/config";
@@ -67,7 +68,7 @@ import { ActivityRow } from "@/components/dashboard/ActivityRow";
 import { ApprovalCard } from "@/components/dashboard/ApprovalCard";
 import { BarChart } from "@/components/dashboard/BarChart";
 import { Stat } from "@/components/dashboard/Stat";
-import { PixelCrew } from "@/components/PixelCrew";
+import { CrewBox } from "@/components/CrewBox";
 import { netSpend } from "@/lib/engine/ledger";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
@@ -144,11 +145,11 @@ export default function Dashboard() {
   const paid = billingLive() ? entitled : false;
   const premium = premiumUnlocked({ founder: isFounderEmail(user?.email), paid, trialStartedAt });
 
-  // Approving a build ships the MVP, then takes the founder straight to the live agent floor so they
-  // watch the crew go to work (Nielsen H1). No paywall here — the reveal is where they pay.
+  // Approving a build ships the MVP; the founder stays on the dashboard, where the live CrewBox + Glass Box
+  // now show the crew going to work (no separate full-page office). The reveal is where they pay.
   const goBuild = async () => {
     r.decideBuild(true);
-    router.push("/delegation");
+    router.push("/dashboard");
   };
 
   if (!r.hydrated) {
@@ -239,12 +240,6 @@ function TopBar({ r, premium, gateOn }: { r: ReturnType<typeof useEngine>; premi
               <AutopilotToggle on={r.autopilot} onToggle={() => r.setAutopilot(!r.autopilot)} paused={r.autopilotPaused} />
             )
           )}
-          <Link
-            href="/watch"
-            className="hidden h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs text-muted transition hover:text-text sm:flex"
-          >
-            <Eye size={14} /> Watch the org
-          </Link>
           {user && !user.guest && (
             <button
               onClick={() => void signOut()}
@@ -269,6 +264,37 @@ function TopBar({ r, premium, gateOn }: { r: ReturnType<typeof useEngine>; premi
         </div>
       </div>
     </header>
+  );
+}
+
+// Inline rename for the company title — the auto-derived name is a starting point; the founder owns it.
+// (Lives here now that the /delegation page, which used to host rename, is retired.)
+function RenameTitle({ name, onRename }: { name: string; onRename: (n: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(name);
+  const commit = () => { const n = draft.trim(); if (n && n !== name) onRename(n); setEditing(false); };
+  if (editing) {
+    return (
+      <span className="flex items-center gap-1.5">
+        <input
+          autoFocus
+          value={draft}
+          maxLength={60}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") setEditing(false); }}
+          aria-label="Company name"
+          className="w-56 rounded-lg border border-border bg-bg/70 px-2 py-1 text-2xl font-bold outline-none focus:border-white/30"
+        />
+        <button onClick={commit} aria-label="Save name" className="grid h-7 w-7 place-items-center rounded-md bg-text text-bg transition hover:brightness-110"><Check size={14} /></button>
+        <button onClick={() => setEditing(false)} aria-label="Cancel rename" className="grid h-7 w-7 place-items-center rounded-md border border-border text-muted transition hover:text-text"><X size={14} /></button>
+      </span>
+    );
+  }
+  return (
+    <button onClick={() => { setDraft(name); setEditing(true); }} title="Rename company" className="group flex items-center gap-2 text-left">
+      <h1 className="text-3xl font-bold">{name}</h1>
+      <Pencil size={14} className="opacity-0 transition group-hover:opacity-60" />
+    </button>
   );
 }
 
@@ -586,7 +612,7 @@ function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r:
         <div className="flex items-center gap-3.5">
           <CompanyLogo name={c.name} size={48} className="shrink-0 rounded-xl shadow-sm" />
           <div>
-            <h1 className="text-3xl font-bold">{c.name}</h1>
+            <RenameTitle name={c.name} onRename={r.renameCompany} />
             <p className="mt-1 max-w-xl text-sm text-muted">{c.idea}</p>
             <GoalChip goal={c.growthGoal} imported={c.product?.status === "live"} onSet={r.setGrowthGoal} />
           </div>
@@ -891,7 +917,7 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
           </div>
         )}
         {r.company && <GTMPanel company={r.company} activities={r.activities} />}
-        <PixelCrew roles={roles} />
+        <CrewBox />
         <CrewCard idea={r.company!.idea} />
       </aside>
     </div>

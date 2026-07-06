@@ -309,7 +309,7 @@ export default function LandingPage() {
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-5 gap-y-2 px-4 py-6 text-xs text-muted">
           <Link href="/how-it-works" className="transition hover:text-text">How it works</Link>
-          <Link href="/delegation" className="transition hover:text-text">The Delegation</Link>
+          <Link href="/dashboard" className="transition hover:text-text">Your crew</Link>
           <Link href="/playbooks" className="transition hover:text-text">Playbooks</Link>
           <Link href="/compare" className="transition hover:text-text">Compare</Link>
           <Link href="/blog" className="transition hover:text-text">Blog</Link>

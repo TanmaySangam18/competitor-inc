@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { runChat, detectChatApproval } from "@/lib/engine/server";
 import { serviceClient } from "@/lib/engine/service";
+import { recordChatOps } from "@/lib/engine/chatops";
 import { postToSlack } from "@/lib/engine/slack";
 
 export const runtime = "nodejs";
@@ -67,6 +68,9 @@ export async function POST(req: Request) {
         const appr = detectChatApproval(text);
         const note = appr ? `\n\n🔔 That's consequential — I'll queue "${appr.title}" in your Approval Inbox for your yes.` : "";
         await postToSlack(event.channel, `${reply}${note}`, event.thread_ts || event.ts);
+        // Reflect the exchange in the web CrewBox (fail-soft).
+        const sbS = serviceClient();
+        if (sbS) { await recordChatOps(sbS, { source: "slack", direction: "in", text }); await recordChatOps(sbS, { source: "slack", direction: "out", text: reply, agent: "ceo" }); }
       } catch {
         /* fail-soft */
       }

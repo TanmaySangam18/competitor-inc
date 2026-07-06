@@ -299,7 +299,14 @@ export function useDbSync({ enabled, hydrated, companies, activities, approvals,
     const next: SyncState = { companies, activities, approvals, operate, experiments };
     const ops = diffStore(syncedRef.current ?? EMPTY_STATE, next);
     if (isEmptyOps(ops)) return;
-    syncedRef.current = next; // optimistic; best-effort push below
-    void applyOps(sb, uid, ops);
+    const prevSynced = syncedRef.current;
+    syncedRef.current = next; // optimistic
+    // A failed write must NOT be silent: roll back the optimistic "synced" marker so the next store change
+    // re-diffs and RETRIES this delta (instead of the local store silently drifting ahead of the DB), and
+    // log it so a persistent failure is diagnosable.
+    applyOps(sb, uid, ops).catch((e) => {
+      syncedRef.current = prevSynced;
+      console.error("[sync] write-through failed — will retry on next change:", e instanceof Error ? e.message : "unknown");
+    });
   }, [enabled, hydrated, companies, activities, approvals, operate, experiments]);
 }

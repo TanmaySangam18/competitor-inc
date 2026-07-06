@@ -29,6 +29,11 @@ if [ ! -f .vercel/project.json ]; then
   echo "✗ .vercel/project.json missing — repo isn't linked. Run: vercel link"; exit 1
 fi
 
+# This script deploys `git archive HEAD`, so a dirty tree would silently ship the OLD commit. Refuse.
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "✗ Working tree is dirty — commit (or stash) before shipping; ship deploys git HEAD, not your edits."; exit 1
+fi
+
 echo "▶ 1/3  QA gate (tsc + tests + build + smoke) — never ship red…"
 npm run qa
 
