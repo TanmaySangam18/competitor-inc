@@ -36,6 +36,20 @@ describe("diffStore — centralized write-through delta", () => {
     expect(ops.insertActivities).toEqual([{ companyId: "c1", items: [act()] }]);
   });
 
+  it("detects a deleted company (in the DB snapshot, gone from the store) → delete op", () => {
+    const prev = state({ companies: [co(), co({ id: "c2", slug: "c2" })], activities: { c1: [act()] } });
+    const next = state({ companies: [co()], activities: { c1: [act()] } }); // c2 removed
+    const ops = diffStore(prev, next);
+    expect(ops.deleteCompanies).toEqual(["c2"]);
+    expect(ops.createCompanies).toHaveLength(0);
+    expect(ops.updateCompanies).toHaveLength(0);
+  });
+
+  it("no delete op when nothing was removed", () => {
+    const s = state({ companies: [co()], activities: { c1: [act()] } });
+    expect(diffStore(s, s).deleteCompanies).toEqual([]);
+  });
+
   it("detects a changed company as an update, not a create", () => {
     const prev = state({ companies: [co({ status: "validating" })] });
     const next = state({ companies: [co({ status: "operating", night: 1 })] });

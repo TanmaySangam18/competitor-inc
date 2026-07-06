@@ -26,8 +26,11 @@ interface Store {
   activeId: string | null;
   operate: Record<string, OperateData>;
   experiments: Record<string, GrowthExperiment[]>;
+  // Tombstones: ids of companies the user explicitly deleted. A deleted id is NEVER re-hydrated from
+  // the cloud (see overlayFromDb), so "delete" stays deleted even if a stale DB row lingers.
+  deletedIds: string[];
 }
-const empty: Store = { companies: [], activities: {}, approvals: {}, activeId: null, operate: {}, experiments: {} };
+const empty: Store = { companies: [], activities: {}, approvals: {}, activeId: null, operate: {}, experiments: {}, deletedIds: [] };
 
 function load(): Store {
   if (typeof window === "undefined") return empty;
@@ -44,6 +47,7 @@ function load(): Store {
           approvals: parsed.approvals && typeof parsed.approvals === "object" ? parsed.approvals : {},
           operate: parsed.operate && typeof parsed.operate === "object" ? parsed.operate : {},
           experiments: parsed.experiments && typeof parsed.experiments === "object" ? parsed.experiments : {},
+          deletedIds: Array.isArray(parsed.deletedIds) ? parsed.deletedIds : [],
         };
       }
       // corrupted — fall through to legacy/empty
@@ -60,6 +64,7 @@ function load(): Store {
           activeId: old.company.id,
           operate: {},
           experiments: {},
+          deletedIds: [],
         };
       }
     }
@@ -128,17 +133,22 @@ export function useEngine() {
   const { user, ready: authReady } = useAuth();
   const dbEnabled = isSupabaseConfigured() && authReady && !!user && !user.guest;
   const overlayFromDb = useCallback((s: SyncState) => {
-    // Merge cloud state in, including operate (Rocks/Issues now persist). Preserve the active
-    // selection, falling back to the first cloud company.
-    setStore((prev) => ({
-      ...prev,
-      companies: s.companies,
-      activities: s.activities,
-      approvals: s.approvals,
-      operate: { ...prev.operate, ...s.operate },
-      experiments: { ...prev.experiments, ...s.experiments },
-      activeId: prev.activeId ?? s.companies[0]?.id ?? null,
-    }));
+    // Merge cloud state in, including operate (Rocks/Issues now persist). CRITICAL: never re-hydrate a
+    // company the user deleted — filter out tombstoned ids so a stale cloud row can't resurrect it.
+    // Preserve the active selection, falling back to the first (non-deleted) cloud company.
+    setStore((prev) => {
+      const tomb = new Set(prev.deletedIds);
+      const companies = s.companies.filter((c) => !tomb.has(c.id));
+      return {
+        ...prev,
+        companies,
+        activities: s.activities,
+        approvals: s.approvals,
+        operate: { ...prev.operate, ...s.operate },
+        experiments: { ...prev.experiments, ...s.experiments },
+        activeId: prev.activeId ?? companies[0]?.id ?? null,
+      };
+    });
   }, []);
   useDbSync({
     enabled: dbEnabled,
@@ -177,6 +187,7 @@ export function useEngine() {
       ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
     };
     setStore((s) => ({
+      ...s,
       companies: [c, ...s.companies],
       activities: { ...s.activities, [c.id]: [] },
       approvals: { ...s.approvals, [c.id]: [] },
@@ -233,6 +244,7 @@ export function useEngine() {
       product: { url: cleanUrl, status: "live" }, // already built + live — born with proof-of-work
     };
     setStore((s) => ({
+      ...s,
       companies: [c, ...s.companies],
       activities: { ...s.activities, [c.id]: [] },
       approvals: { ...s.approvals, [c.id]: [] },
@@ -275,7 +287,10 @@ export function useEngine() {
       delete approvals[id];
       delete operate[id];
       delete experiments[id];
-      return { companies, activities, approvals, operate, experiments, activeId: s.activeId === id ? companies[0]?.id ?? null : s.activeId };
+      // Tombstone the id so a lingering cloud row can never resurrect it (see overlayFromDb). The DB
+      // row itself is removed by the sync layer's delete op (diffStore detects the removed company).
+      const deletedIds = s.deletedIds.includes(id) ? s.deletedIds : [...s.deletedIds, id];
+      return { companies, activities, approvals, operate, experiments, deletedIds, activeId: s.activeId === id ? companies[0]?.id ?? null : s.activeId };
     });
   }, []);
 

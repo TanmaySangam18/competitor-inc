@@ -26,6 +26,7 @@ import {
   fetchExperiments,
   createCompany,
   updateCompany,
+  deleteCompany,
   insertActivities,
   insertApprovals,
   insertExperiments,
@@ -50,6 +51,7 @@ export interface SyncState {
 export interface SyncOps {
   createCompanies: Company[];
   updateCompanies: Company[];
+  deleteCompanies: string[]; // company ids removed locally → delete from the DB (children cascade)
   insertActivities: { companyId: string; items: Activity[] }[];
   undoActivities: string[];
   insertApprovals: { companyId: string; items: ApprovalItem[] }[];
@@ -92,6 +94,10 @@ export function diffStore(prev: SyncState, next: SyncState): SyncOps {
     if (!p) createCompanies.push(c);
     else if (companyChanged(p, c)) updateCompanies.push(c);
   }
+  // Deletes: a company that was in the DB snapshot (prev) but is gone from the store (next) was deleted
+  // by the user → remove it from the DB so it stays gone. Without this the row survives + re-hydrates.
+  const nextIds = new Set(next.companies.map((c) => c.id));
+  const deleteCompanies = prev.companies.filter((c) => !nextIds.has(c.id)).map((c) => c.id);
 
   const insertActs: SyncOps["insertActivities"] = [];
   const undoActivities: string[] = [];
@@ -151,7 +157,7 @@ export function diffStore(prev: SyncState, next: SyncState): SyncOps {
   }
 
   return {
-    createCompanies, updateCompanies, insertActivities: insertActs, undoActivities,
+    createCompanies, updateCompanies, deleteCompanies, insertActivities: insertActs, undoActivities,
     insertApprovals: insertApps, resolveApprovals,
     insertExperiments: insertExps, closeExperiments: closeExps,
     upsertRocks: upRocks, deleteRockIds, upsertIssues: upIssues, deleteIssueIds,
@@ -162,6 +168,7 @@ export function isEmptyOps(o: SyncOps): boolean {
   return (
     o.createCompanies.length === 0 &&
     o.updateCompanies.length === 0 &&
+    o.deleteCompanies.length === 0 &&
     o.insertActivities.length === 0 &&
     o.undoActivities.length === 0 &&
     o.insertApprovals.length === 0 &&
@@ -220,6 +227,7 @@ export async function applyOps(sb: SupabaseClient, userId: string, ops: SyncOps)
   };
   for (const c of ops.createCompanies) await guard("createCompany", () => createCompany(sb, userId, c));
   for (const c of ops.updateCompanies) await guard("updateCompany", () => updateCompany(sb, c));
+  for (const id of ops.deleteCompanies) await guard("deleteCompany", () => deleteCompany(sb, id));
   for (const g of ops.insertActivities) await guard("insertActivities", () => insertActivities(sb, g.companyId, g.items));
   for (const id of ops.undoActivities) await guard("setActivityUndone", () => setActivityUndone(sb, id));
   for (const g of ops.insertApprovals) await guard("insertApprovals", () => insertApprovals(sb, g.companyId, g.items));

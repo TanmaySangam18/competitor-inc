@@ -160,6 +160,14 @@ export async function updateCompany(sb: SupabaseClient, c: Company): Promise<voi
   if (error) throw error;
 }
 
+// Delete a company (and, via ON DELETE CASCADE, its activities/approvals/rocks/issues). RLS ensures a
+// user can only delete a company they own. This is what makes a deletion STICK — without it the row
+// survives in the DB and the next sync re-hydrates it (the "deleted companies reappear" bug).
+export async function deleteCompany(sb: SupabaseClient, companyId: string): Promise<void> {
+  const { error } = await sb.from("companies").delete().eq("id", companyId);
+  if (error) throw error;
+}
+
 export async function insertActivities(sb: SupabaseClient, companyId: string, items: Activity[]): Promise<void> {
   if (items.length === 0) return;
   const { error } = await sb.from("activities").insert(
