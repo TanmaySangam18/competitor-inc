@@ -768,8 +768,8 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
       <div className="rounded-3xl glass-panel p-5 sm:p-7">
         <LiveGlassBox company={r.company ?? undefined} />
       </div>
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <section>
+    <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
+      <section className="flex min-h-0 flex-col">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
           <ShieldCheck size={15} className="text-violet" /> The Glass Box · every action, logged
         </h2>
@@ -779,7 +779,7 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
               Nothing yet. Hit <span className="text-muted">Run tonight&apos;s shift</span> (or flip on Autopilot) and watch it work.
             </div>
           ) : (
-            <div className="max-h-[60vh] space-y-2.5 overflow-y-auto pr-1">
+            <div className="max-h-[calc(100vh-14rem)] space-y-2.5 overflow-y-auto pr-1">
               <AnimatePresence initial={false}>
                 {r.activities.map((a) => (
                   <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} lockedUrl={lockedUrl} />
@@ -790,7 +790,7 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
         </div>
       </section>
 
-      <aside className="space-y-6">
+      <aside className="space-y-6 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto lg:pr-1">
         {r.pendingApprovals.length > 0 && (
           <div id="approval-inbox" className="scroll-mt-24">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-coral">
