@@ -51,7 +51,12 @@ Each item lists what it lifts and **who can do it** — because ~half the remain
 5. **Implement a second real `BackendProvider` path + wire it into the build** so generated apps ship with real persistence, not just localStorage (#4). _Medium._
 
 **Infra-gated (needs keys/self-host; lifts to ~82%):**
-6. **OpenHands wired as the full-app build backend** (`openhands.ts` seam exists) → real multi-file apps, sandboxed, behind verify-before-deploy (#4). _Needs OPENHANDS_API_URL/KEY or self-host._
+6. Full-app builds — two backends wired into the same seam:
+   - **FREE path ✅ wired 2026-07-05** (`aider-build.ts`): GitHub Actions + Aider + a free model, $0
+     (`FREE_BUILDS=1` + a free model key as the repo secret `LLM_API_KEY`). Real multi-file apps at zero
+     cost; live proof needs only that free key. See [`FREE-FULLAPP-BUILDS.md`](FREE-FULLAPP-BUILDS.md).
+   - **OpenHands** (`openhands.ts`): the paid/self-host alternative — more autonomous; needs
+     `OPENHANDS_API_URL/KEY` or a self-host endpoint (#4).
 7. **Per-company OAuth for connectors** so the org acts in real tools unattended (#7). _Needs the OAuth apps + a human clearing each vendor gate once._
 
 **Frontier- & customer-gated (the last ~8%, not pure code):**

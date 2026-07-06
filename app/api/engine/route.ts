@@ -3,6 +3,7 @@ import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
 import { githubBuildExecutor } from "@/lib/engine/build-github";
 import { openhandsBuildExecutor } from "@/lib/engine/openhands";
+import { aiderBuildExecutor } from "@/lib/engine/aider-build";
 import type { ExecuteFn } from "@/lib/engine/supervisor";
 import { capabilities } from "@/lib/engine/execution";
 import { connectorStatus } from "@/lib/engine/connectors";
@@ -170,12 +171,25 @@ export async function POST(req: Request) {
           body.connections && typeof body.connections === "object"
             ? { githubToken: String(body.connections.githubToken ?? "").trim(), resendApiKey: "", resendFrom: "", adsWebhookUrl: "" }
             : undefined;
-        // Prefer OpenHands (full apps) when configured; else our GitHub static-site builder; else simulated.
+        // Build backend preference, best → fallback:
+        //   1. OpenHands (paid/self-host) if configured — most autonomous full-app builds.
+        //   2. FREE full-app builds via GitHub Actions + Aider (FREE_BUILDS=1 + a GitHub token) — real
+        //      multi-file apps at $0, borrowing GitHub's own free compute (docs/FREE-FULLAPP-BUILDS.md).
+        //   3. Our GitHub static/client-side builder.
+        //   4. Simulated ($0, keyless).
         const oh = openhandsBuildExecutor(body.byok);
         if (oh) {
           execute = oh;
           mode = "openhands";
-        } else {
+        }
+        if (!execute && process.env.FREE_BUILDS === "1") {
+          const fa = aiderBuildExecutor(conn);
+          if (fa) {
+            execute = fa;
+            mode = "aider-actions";
+          }
+        }
+        if (!execute) {
           const gh = githubBuildExecutor(conn, body.byok);
           if (gh) {
             execute = gh;
