@@ -55,6 +55,7 @@ import DemandRadarPanel from "@/components/DemandRadarPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import MomTestKit from "@/components/MomTestKit";
 import SpecialistCrew from "@/components/dashboard/SpecialistCrew";
+import BringYourKeysNudge from "@/components/dashboard/BringYourKeysNudge";
 import CampaignPanel from "@/components/CampaignPanel";
 import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
 import { rationaleFor } from "@/lib/engine/rationale";
@@ -188,6 +189,7 @@ function DashboardInner() {
           </div>
         </div>
       )}
+      {r.company && <BringYourKeysNudge />}
       <div className="mx-auto max-w-6xl px-6 py-10">
         <EntitlementNotice email={user?.email} />
         {!r.company && (
