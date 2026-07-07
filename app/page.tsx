@@ -136,7 +136,7 @@ export default function LandingPage() {
               onClick={() => onLandingCta("nav")}
               className="rounded-full border border-text/25 px-4 py-1.5 text-sm font-medium text-text transition hover:border-text hover:bg-text hover:text-bg"
             >
-              {user ? "Dashboard" : "Get started"}
+              {user ? "Dashboard" : "Start free"}
             </Link>
           </div>
         </div>
@@ -146,10 +146,11 @@ export default function LandingPage() {
         {/* ── Hero: one sentence, one input, one live demo ────────── */}
         <div className="mx-auto max-w-2xl pt-14 text-center sm:pt-20">
           <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-            Type your idea. Watch a crew validate it — live.
+            An AI crew that builds and runs your startup.
           </h1>
-          <p className="mt-3 text-sm text-muted sm:text-base">
-            No signup. A verdict with receipts, from a crew of five that will honestly tell you not to build.
+          <p className="mt-3 text-balance text-sm text-muted sm:text-base">
+            Describe your idea. The crew validates it, ships a real product, and works the growth — and nothing
+            spends or ships without your yes. Built for first-time founders.
           </p>
 
           <div className="mx-auto mt-7 flex max-w-xl gap-2">
@@ -167,7 +168,7 @@ export default function LandingPage() {
               title={!idea.trim() ? "Type your idea first" : undefined}
               className="hover-lift shrink-0 rounded-xl bg-text px-4 py-2.5 text-sm font-medium text-bg transition hover:opacity-90 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none disabled:hover:opacity-50"
             >
-              {running ? "Running…" : "Run validation"}
+              {running ? "Working…" : "See it work"}
             </button>
           </div>
           <div className="mt-3 flex flex-wrap justify-center gap-2">
@@ -213,10 +214,10 @@ export default function LandingPage() {
                       onClick={() => onLandingCta(`keep:${verdict.verdict}`)}
                       className="group hover-lift rounded-full bg-text px-3.5 py-1.5 text-xs font-medium text-bg transition hover:opacity-90"
                     >
-                      Keep this crew <ArrowRight size={12} className="ml-0.5 inline transition-transform group-hover:translate-x-0.5" aria-hidden />
+                      Build this for real <ArrowRight size={12} className="ml-0.5 inline transition-transform group-hover:translate-x-0.5" aria-hidden />
                     </Link>
                     <span className="text-[10px] text-muted-2">
-                      Simulated run — the real crew works your idea overnight.
+                      That was the 60-second validation. Next, the crew builds it — you approve every step.
                     </span>
                   </div>
                 </div>
@@ -225,8 +226,29 @@ export default function LandingPage() {
           )}
         </div>
 
-        {/* ── Bento: six glanceable proofs, nothing to study ───────── */}
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
+        {/* ── How it works: the 3-step mental model ────────────────── */}
+        <div className="mx-auto mt-16 max-w-4xl">
+          <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-muted-2">How it works</h2>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {[
+              ["1", "Describe it", "One sentence. The crew gives you an honest demand verdict — with receipts."],
+              ["2", "Approve the plan", "You're the founder. Nothing spends or ships without your yes."],
+              ["3", "The crew builds & runs it", "A real, live product — then daily growth work, drafted for your approval."],
+            ].map(([n, title, desc]) => (
+              <div key={n} className="glass-panel rounded-3xl p-5">
+                <div className="grid h-7 w-7 place-items-center rounded-full bg-text text-xs font-bold text-bg">{n}</div>
+                <div className="mt-3 text-sm font-semibold">{title}</div>
+                <p className="mt-1 text-xs text-muted">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Why it's safe to hand a company to AI: glanceable proofs ─ */}
+        <h2 className="mt-16 text-center text-sm font-semibold uppercase tracking-wide text-muted-2">
+          Why it&apos;s safe to hand a company to AI
+        </h2>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
           <Box wide icon={Eye} title="Glass box" sub="Every action logged, with cost and proof.">
             <div className="font-mono text-[11px] leading-7 text-muted">
               <div>
@@ -280,13 +302,13 @@ export default function LandingPage() {
             </span>
           </Box>
 
-          <Box icon={BarChart3} title="Revenue loop" sub="Judged on outcomes, not tasks.">
+          <Box icon={BarChart3} title="Built to earn" sub="It optimizes for real revenue, not busywork.">
             <div className="font-mono text-[11px] text-muted">
               views → signups → <span className="rounded bg-text px-1.5 py-0.5 text-bg">paying ← the goal</span>
             </div>
           </Box>
 
-          <Box icon={ShieldCheck} title="Verifiable. Governed." sub="Spend caps, kill switch, policy gates.">
+          <Box icon={ShieldCheck} title="Capped & reversible" sub="Hard limits on every dollar; kill switch anytime.">
             <div className="font-mono text-[11px] leading-6 text-muted">
               <div>five gates before any action</div>
               <div>hard caps on every dollar</div>
@@ -301,10 +323,10 @@ export default function LandingPage() {
             onClick={() => onLandingCta("footer")}
             className="group hover-lift rounded-full bg-text px-6 py-2.5 text-sm font-medium text-bg transition hover:opacity-90"
           >
-            Put a crew on your idea
+            Start your company — free
             <ArrowRight size={14} className="ml-1 inline transition-transform group-hover:translate-x-0.5" aria-hidden />
           </Link>
-          <span className="text-xs text-muted-2">Free to validate. You approve anything that costs money.</span>
+          <span className="text-xs text-muted-2">Free to start. You approve anything that costs money.</span>
         </div>
 
         {/* ── Wordmark (the House door stays on the wordmark) ─────── */}
@@ -315,7 +337,7 @@ export default function LandingPage() {
             </span>
           </SecretHouseDoor>
           <p className="mt-4 text-center text-xs text-muted-2">
-            The first company built with <span className="text-muted">orgware engineering</span> — a business that runs itself, provably.
+            You own the company. The AI crew does the work. <span className="text-muted">You approve the big calls.</span>
           </p>
         </div>
       </section>
