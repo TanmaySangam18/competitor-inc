@@ -130,21 +130,25 @@ That single principle shapes every feature:
   company's actual roles — adding agents like a Manufacturing lead and nesting **sub‑agents**
   (Paperclip‑style: Manufacturing → Supply Chain + Quality). Ideas without a matching benchmark get
   the default five — we never invent a crew we can't back with data. See `lib/engine/dynamic-crew.ts`.
-- **The Delegation (living 3D office)** — `/delegation`: the crew as tiny suited figures with
-  briefcases, walking, collaborating, and cracking jokes, while a company‑being‑built construction
-  site rises in the background. Wired to real engine state; the destination after a build is approved.
+- **The crew, in a box (live)** — the agent crew renders as a compact **pixel‑art panel on the
+  dashboard** (not a separate page): colorful bots that talk in real time — ambient banter plus a chat
+  box to direct them — with the current speaker spotlit. Crucially, anything you type to the crew in
+  **Slack or Telegram reflects back in the box** (`/api/chatops/messages`, founder‑gated). *(The old
+  full‑page `/delegation` office is retired — it now redirects to the dashboard, where the box lives.)*
 - **The Company Brain** — A dashboard tab that renders the company's whole decision history as a
   tappable graph (center = company, ring = nights, leaves = every action & approval). Tap any node
   for the **why** (rationale), **how** (proof + cost), and a playbook‑grounded **founder lesson** —
   including *why* a rejected action never ran. Operating knowledge founders usually pay years to learn.
 - **The Glass Box** — A public, real‑time log of *every* action, each with a cost and a proof artifact
   (a URL, a build result, or a metric). Total transparency.
-- **Approval Inbox** — Anything consequential (spend over a threshold, outreach, deploys, deletions)
-  is **queued for your approval** instead of done automatically.
-- **Auto‑credit (not a cash refund)** — When a task fails, its cost is **credited back to your plan's
-  work allowance** — you're simply never charged for work that didn't land (competitor.inc absorbs its
-  own compute cost). It is *not* money returned to your card, and it's separate from real ad spend on
-  your own connected accounts. You pay for work that worked.
+- **Approval Inbox** — Anything consequential (spend, outreach, deploys, deletions) is **queued for
+  your approval** instead of done automatically. Approving is a **governance decision — it never charges
+  you.** Real spend only ever moves through a funded wallet on *your own* connected account; with none
+  connected, an approved spend is just a recorded plan.
+- **Trial credits (play‑money, not dollars)** — the 14‑day trial gives **1,000 credits**. Approving a
+  spend draws down credits so you can rehearse the governed‑spend loop; the dashboard shows *credits
+  left / used*, never a fabricated dollar total. **No real money moves anywhere in the app** (spend
+  displays are $0) — credits map to real dollars only if/when the payment gates are deliberately opened.
 - **Chat with your co‑founder + ChatOps** — A streaming chat to ask questions and direct the work; it
   queues consequential requests for approval rather than just doing them. Approve from your phone via
   **Telegram or Slack** (`docs/SLACK-CHATOPS-SETUP.md`) — same audit trail, buttons on the message.
@@ -155,15 +159,14 @@ That single principle shapes every feature:
 - **`/how-it-works`** — A plain‑language, illustrated walkthrough of the whole product for newcomers.
 - **Operate layer (EOS)** — A "company operating system" surface (Scorecard, Rocks, Issues,
   Weekly Review) inspired by EOS/Traction. *On by default; set `NEXT_PUBLIC_OPERATE=0` to freeze it.*
-- **The autonomous‑company engine (`/orchestrator`)** — give the company a **goal** and a *supervisor*
-  decomposes it into a task DAG, spawns an **ephemeral agent per task** that does the work, gets its
-  output **independently verified** (never self‑graded), hands off to a successor, and **terminates**
-  (returning unspent budget). It can **build for real** — a live, verified site via GitHub today, and
-  **full apps via a pluggable OpenHands backend** (`OPENHANDS_API_URL`/`_KEY`) — and **run the ongoing
-  functions** (announce/retain/support) as **drafts routed to your desk** for approval. Irreducible
-  legal/financial acts route to the **Accountability Spine** — the human "2%". Everything is governed
-  (policy + wallet + kill‑switch), and nothing consequential ever auto‑fires. See
-  `lib/engine/{supervisor,agent-lifecycle,task-queue,orchestrator,accountability-spine,connectors,build-github,openhands}.ts`.
+- **One engine, one surface (the crew runs the business)** — the company runs on a single engine
+  (`runShift`), surfaced on the **dashboard**: the crew ships work overnight, everything lands in the
+  Glass Box, and consequential moves queue in the Approval Inbox. *(The earlier duplicate goal‑runner
+  surfaces `/orchestrator` and `/watch` were consolidated away — they redirect to the dashboard.)* The
+  deeper **supervisor / ephemeral‑agent‑per‑task** engine (decompose a goal → spawn → independently
+  verify → hand off → terminate; irreducible acts → the **Accountability Spine**) remains in‑tree,
+  governed (policy + wallet + kill‑switch) and flag‑gated, as the long‑horizon path. See
+  `lib/engine/{server,supervisor,agent-lifecycle,task-queue,accountability-spine,build-github}.ts`.
 - **Settings** — Your **brand voice** (`soul.md`), your **team** (`agents.md`, toggle/scope each
   agent), the **engine** (which model runs it + bring‑your‑own‑key), **billing**, **integrations**,
   and **one‑click data export** (no lock‑in).
@@ -232,6 +235,17 @@ is a commodity brain we plug in. Most users run the managed default; BYOK is an 
 privacy‑ or cost‑conscious. This also means our **marginal inference cost is ~$0**, which is how the
 project stays viable on a tiny budget without VC‑subsidized pricing.
 
+**The build step — real apps, on a free key.** Turning an idea into working software is the
+highest‑value model call, so it gets its own override: set **`BUILD_API_KEY`** (defaults to Google AI
+Studio's OpenAI‑compatible endpoint + `gemini-2.5-flash`) and the *build step* routes to that capable
+**free** model, producing a **real, functional client‑side web app** (working views + localStorage) —
+while chat/shifts stay on the cheap managed model. Priority: your BYOK key → `BUILD_API_KEY` (Gemini) →
+`ANTHROPIC_API_KEY` → the default. If no capable build model is set (a weak model can't emit valid app
+code), it falls back to a **credible product site**, never a broken page. **Honest ceiling:** functional
+**web apps** build for real; **native / camera / ML** apps and full‑stack backends are the guided,
+advanced path (a pluggable coding agent + `BackendProvider`), not a one‑shot from a sentence — and we
+say so rather than fake it.
+
 ---
 
 ## 7 · Security & privacy
@@ -283,10 +297,12 @@ real features, copy `.env.example` → `.env.local` and fill in what you want �
 
 | Variable | Enables |
 | --- | --- |
-| `ANTHROPIC_API_KEY` + `MODEL_PROVIDER=anthropic` | A real frontier‑model engine (server‑side) |
+| `MODEL_PROVIDER` + key (`GROQ_API_KEY` / `ANTHROPIC_API_KEY` / …) | The managed engine for chat, shifts & validation (Groq's free tier works) |
+| **`BUILD_API_KEY`** | **Real app builds** — routes the build step to a capable free coder (defaults to Google AI Studio / `gemini-2.5-flash`). Optional: `BUILD_MODEL`, `BUILD_BASE_URL` |
 | `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Real auth + persistent multi‑company store |
-| `SUPABASE_SERVICE_ROLE_KEY` (+ `CRON_SECRET`) | The nightly heartbeat cron |
-| `NEXT_PUBLIC_CHECKOUT_URL` | The "Claim a Founding seat" checkout link (Polar) |
+| `SUPABASE_SERVICE_ROLE_KEY` (+ `CRON_SECRET`) | The nightly heartbeat cron + server‑enforced per‑user caps + ChatOps reflection |
+| `NEXT_PUBLIC_WAITLIST_GATE=1` | The freemium flow (reverse trial + 1‑free‑company + waitlist gate) |
+| `NEXT_PUBLIC_CHECKOUT_URL` | The Founding‑seat checkout (Polar). **Leave unset to keep payments off** (no charge path) |
 | `POLAR_WEBHOOK_SECRET` | Polar billing webhooks → subscription entitlements |
 
 See `.env.example` for the full annotated list (model routing, Telegram/ChatOps, Resend, observability, feature flags).
@@ -379,17 +395,21 @@ app/                     Next.js routes
   how-it-works/          Plain-language product walkthrough
   dashboard/             The workspace: Validation Gate, Glass Box, Approvals, Chat, Operate
     settings/            Brand voice, team, engine/BYOK, billing, integrations, export
-  delegation/            The Delegation — a 3D office where the agent crew works (three.js, original assets)
+  delegation/            Retired → redirects to /dashboard (the crew now renders as the CrewBox there)
   live/                  Public real-time board
   join/                  Founding-member offer + waitlist
   login/                 Magic-link (Supabase) or guest mode
-  orchestrator/          The autonomous-company engine UI — give a goal, watch the org run it
-  api/engine/            The engine endpoint (validate | shift | chat | goal)
+  orchestrator/, watch/  Retired → redirect to /dashboard (consolidated into the one engine)
+  api/engine/            The engine endpoint (validate | shift | chat | goal | organic)
+  api/chatops/messages/  Slack/Telegram messages reflected into the CrewBox (founder-gated)
+  api/site-preview/      Sandboxed relay that frames the built site inside the app
   api/billing/polar      Polar (MoR) webhook → subscription entitlements (Standard Webhooks)
-  api/billing/webhook    LemonSqueezy webhook (legacy, kept as a no-op until removed)
   api/cron/              Nightly heartbeat (Vercel Cron, fail-closed without CRON_SECRET)
   opengraph-image.tsx    Social/link-preview image
-lib/engine/              Domain types, simulated provider, server engine, store, config, usage, db
+components/CrewBox.tsx   The live pixel-art crew box (banter + chat + Slack/Telegram reflection)
+lib/engine/              Domain types, provider (validate + credible site fallback), server engine
+                         (build-model override), organic-growth/organic-shift, chatops, access-gate
+                         (trial credits), store, config, db
 lib/supabase/            Client/server Supabase wiring (gated)
 components/              LogoMark, route-loading fallback
 supabase/migrations/     SQL schema (companies/activities/approvals + RLS)
@@ -434,31 +454,36 @@ For the person deploying this (the "techie friend"):
 
 ## 16 · Status & roadmap
 
-- **Status:** feature‑complete, hardened, and deployed to Vercel (`competitor-inc-zeta.vercel.app`).
-  Runs end‑to‑end today — attention‑first landing with a live demo, validation, dynamic crews +
-  sub‑agents, the Delegation office, the Company Brain, Glass Box, Approvals, ChatOps
-  (Telegram **and** Slack), per‑agent model routing (Opus/Sonnet/Haiku), and Polar billing.
-- **Before launch (needs the owner's credentials):** provision Supabase and **run the pending
-  migrations** (`0009`–`0017`) via the SQL editor — see [`docs/GO-LIVE-RUNBOOK.md`](docs/GO-LIVE-RUNBOOK.md);
-  set the Polar checkout link (`NEXT_PUBLIC_CHECKOUT_URL`) + webhook secret (`POLAR_WEBHOOK_SECRET`),
-  finish Polar KYC; optional Slack keys (`docs/SLACK-CHATOPS-SETUP.md`).
-- **Shipped since v0.3:** dynamic agent generation (Tesla/Notion benchmarks), Paperclip‑style
-  sub‑agent orchestration, the Company Brain decision graph, the bento monochrome landing with a live
-  demo, Slack ChatOps, persistent Scorecard history + an automated Friday review digest, and the
-  Office/House two‑layer governance model. Feature deep‑dives in [`docs/FEATURES-COMPLETE.md`](docs/FEATURES-COMPLETE.md).
-- **The autonomous‑company engine (A→D, shipped + proven live):** a goal → the org decomposes → an
-  ephemeral agent per task spawns/verifies/hands‑off/terminates → real builds (a live GitHub‑Pages site,
-  verified) → ongoing GTM/support drafts to your desk → irreducible acts to the Accountability Spine.
-  Driveable at `/orchestrator`. Full‑app builds plug in via **OpenHands** (adapter shipped, gated on
-  `OPENHANDS_API_URL`/`_KEY`; **self‑host is the durable long‑term path** — see
-  [`docs/OPENHANDS-SELF-HOST.md`](docs/OPENHANDS-SELF-HOST.md)). Architecture + roadmap:
-  [`docs/ARCHITECTURE-autonomous-company`] (plan).
-- **Honest infrastructure progress (customers/income aside): ~40% of the autonomous‑company machine.**
-  The control plane (orchestration + governance + spine + small builds) is built and proven for small
-  runs; the remaining ~60% is the hard‑to‑perfect part — **reliable full‑app builds (OpenHands live)**
-  and **long‑horizon unsupervised operation**. Those two move the number most.
-- **Post‑launch v2 candidates:** wire the governance libs into the live cron loop, more benchmark orgs,
-  the long‑horizon operating loop. See [`docs/ROADMAP-V2.md`](docs/ROADMAP-V2.md).
+- **Status:** live at `competitor-inc-zeta.vercel.app`. Runs end‑to‑end — landing with a **real,
+  model‑backed** live validation, the dashboard workspace, the live **crew‑in‑a‑box** (with Slack/
+  Telegram reflection), Glass Box, Approvals, the Company Brain, and per‑agent model routing. The
+  freemium flow is on (`NEXT_PUBLIC_WAITLIST_GATE=1`); **payments are intentionally OFF** — no checkout
+  URL is set, so there is no charge path (see the money model below).
+- **Recently shipped (current arc):** one‑engine consolidation (retired the duplicate `/orchestrator`
+  and `/watch` surfaces → the dashboard is the single surface); the **crew as a compact pixel box** with
+  **Slack/Telegram → box reflection**; **trial credits** (play‑money) + honest **$0** spend everywhere
+  (no fabricated dollars); **real functional web‑app builds** via a free build‑model override
+  (`BUILD_API_KEY` → Gemini) with a credible product‑site fallback; the **Organic Growth Engine** (a
+  content→traffic→revenue loop wired into the nightly shift); server‑enforced per‑user caps;
+  rename‑company; and a founder‑gated, dirty‑tree‑guarded deploy (`npm run ship`).
+- **Before charging (needs the owner's credentials + work authorization):**
+  1. Apply the DB migrations — paste `supabase/migrations/LAUNCH_BUNDLE_0021-0022.sql` (includes `0023`
+     chatops) in the Supabase SQL editor.
+  2. Set `BUILD_API_KEY` (free Gemini key) so builds produce real apps.
+  3. **Payments stay off until the founder has US work authorization (F1 → OPT/EAD).** When cleared, set
+     `NEXT_PUBLIC_CHECKOUT_URL` + `POLAR_WEBHOOK_SECRET` (one env flip) to turn on Polar checkout.
+- **Primary benchmark:** **Time‑to‑First‑Proven‑Outcome (TTFPO)** — days from a real user creating their
+  company to their first *real* funnel milestone (real views → real signup → real result), all measured
+  from the first‑party pixel, never invented. **PPU** (Proven Paying Users) becomes primary the day
+  charging unlocks. (`docs/BENCHMARK-first-user-outcome.md`.)
+- **Honest capability line:** the control plane (validation, one‑engine crew, governance, Glass Box,
+  small **web‑app** builds) is built and live. What's *not* one‑shot — and we say so — is **native /
+  camera / ML apps and full‑stack backends** (the guided/advanced path: a pluggable coding agent +
+  `BackendProvider`) and **reliable long‑horizon unsupervised operation**. Those are the frontier, not
+  a checkbox.
+- **Post‑launch candidates:** an iterative coding‑agent build path (Aider/OpenHands on free GitHub
+  Actions, on the customer's own keys — no lock‑in), more benchmark orgs, and the long‑horizon
+  operating loop.
 
 ---
 
