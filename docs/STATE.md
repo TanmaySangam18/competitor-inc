@@ -180,11 +180,18 @@ only sees companies that synced to the DB, and it only PROPOSES (founder approve
   `supabase/migrations/0024_realtime.sql` (adds 6 tables to `supabase_realtime`, idempotent; REPLICA IDENTITY
   FULL on child tables). Cron/multi-device changes appear live; idempotent reconcile (no echo loop).
 - **586 tests green; flag-off browser-verified (dashboard + CrewBox render, no errors).**
-- **Slice 3 (NOT done — gated):** unify `/api/engine` shift persistence + flip flag default-ON + remove old
-  diff-sync. **Do NOT flip the source-of-truth for real users unverified.** Founder-gated to unlock:
-  (1) paste `0024_realtime.sql` on prod Supabase; (2) enable `NEXT_PUBLIC_SERVER_AUTHORITATIVE=1` on a
-  preview/staging with real auth; (3) I verify authoritative reads/writes + no-loss upload + realtime E2E
-  against the real DB; THEN flip default-on + delete the old path.
+- **FLAG NOW LIVE (2026-07-07):** founder set `NEXT_PUBLIC_SERVER_AUTHORITATIVE=1` on Prod + Preview
+  (Encrypted, not Sensitive ✓) and I redeployed — `ship` deploys via `vercel --prod` which REBUILDS on
+  Vercel with the prod env, so the flag baked in and authoritative mode is ACTIVE for signed-in users. Guest
+  path unchanged. Blast radius ~just the founder (pre-launch). **Rollback = set the env to `0` (or remove) +
+  redeploy** — the CODE default is still off, so this is instant/safe.
+- **Two things still open on the migration:** (a) **founder signed-in verification** — I can't OAuth, so the
+  E2E check (create company → row exists in Supabase BEFORE UI says "operating" → overnight/multi-device
+  reconcile) is a founder task; (b) **paste `0024_realtime.sql`** for live Realtime (authoritative
+  reads/writes/no-loss work WITHOUT it; realtime is fail-soft-silent until applied).
+- **Slice 3 remainder (deferred hardening, NOT blocking):** unify `/api/engine` shift persistence server-side;
+  flip the CODE default on + delete the old best-effort diff-sync — only AFTER authoritative is proven stable
+  in the wild (keep the old path meanwhile so env-rollback works).
 
 ### 5f · Phase-0 reliability arc — status
 The Phase-0 control plane is now hardened across: secret hygiene (scan on every deploy), build QA +
