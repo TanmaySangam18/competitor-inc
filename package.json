@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "verify": "tsc --noEmit && vitest run && next build",
     "qa": "tsc --noEmit && vitest run && next build && node scripts/smoke.mjs",
+    "scan": "node scripts/secret-scan.mjs",
     "ship": "bash scripts/ship-prod.sh"
   },
   "dependencies": {

@@ -34,6 +34,9 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "✗ Working tree is dirty — commit (or stash) before shipping; ship deploys git HEAD, not your edits."; exit 1
 fi
 
+echo "▶ 0/3  Secret detection (VISION §Security — every deploy scans)…"
+node scripts/secret-scan.mjs || { echo "✗ Aborting deploy — secret-scan found a possible secret."; exit 1; }
+
 echo "▶ 1/3  QA gate (tsc + tests + build + smoke) — never ship red…"
 npm run qa
 
