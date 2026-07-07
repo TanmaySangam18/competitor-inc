@@ -13,6 +13,7 @@ import "server-only";
 // live Vercel URL. Flag-gated (FULLSTACK_BUILDS) + fail-soft: null → caller falls back to the static build.
 
 import { makeBuildExecute } from "./build-executor";
+import { setRepoSecret } from "./github-secrets";
 import type { ExecuteFn } from "./supervisor";
 import type { Connections } from "./types";
 import type { FetchLike } from "./aider-build";
@@ -118,6 +119,14 @@ export async function dispatchFullstackBuild(opts: {
     const meta = (await create.json().catch(() => ({}))) as { full_name?: string; html_url?: string };
     const fullName = meta.full_name;
     if (!fullName) return null;
+
+    // Inject the Actions secrets the workflow needs, per-repo (no org required). Values live as the engine's
+    // env (the founder sets them once on Vercel; later, per-user BYOK values). Best-effort: if a key isn't
+    // configured the Action will just surface the missing secret honestly.
+    const llmKey = process.env.FULLSTACK_LLM_API_KEY;
+    const vercelToken = process.env.FULLSTACK_VERCEL_TOKEN;
+    if (llmKey) await setRepoSecret(fetchImpl, opts.token, fullName, "LLM_API_KEY", llmKey);
+    if (vercelToken) await setRepoSecret(fetchImpl, opts.token, fullName, "VERCEL_TOKEN", vercelToken);
 
     const files: Record<string, string> = {
       ".github/workflows/build-fullstack.yml": buildFullstackWorkflowYaml(opts.model ?? FS_MODEL),

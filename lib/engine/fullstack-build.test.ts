@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import _sodium from "libsodium-wrappers";
 import {
   dispatchFullstackBuild,
   buildFullstackWorkflowYaml,
@@ -66,6 +67,31 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
   it("returns null when repo creation fails", async () => {
     const gh = fakeGitHub({ "/user/repos": { ok: false, status: 401 } });
     expect(await dispatchFullstackBuild({ goal: "x", token: "t", fetchImpl: gh.fetchImpl })).toBeNull();
+  });
+
+  it("injects LLM_API_KEY + VERCEL_TOKEN as repo secrets when the engine keys are set (no org needed)", async () => {
+    const prevL = process.env.FULLSTACK_LLM_API_KEY;
+    const prevV = process.env.FULLSTACK_VERCEL_TOKEN;
+    process.env.FULLSTACK_LLM_API_KEY = "groq-xxx";
+    process.env.FULLSTACK_VERCEL_TOKEN = "vc-xxx";
+    await _sodium.ready;
+    const pkB64 = _sodium.to_base64(_sodium.crypto_box_keypair().publicKey, _sodium.base64_variants.ORIGINAL);
+    const calls: string[] = [];
+    const fetchImpl: FetchLike = async (url, init) => {
+      calls.push(`${init?.method ?? "GET"} ${url}`);
+      if (url.endsWith("/user/repos")) return { ok: true, status: 201, json: async () => ({ full_name: "octo/app-x", html_url: "https://github.com/octo/app-x" }) };
+      if (url.includes("/actions/secrets/public-key")) return { ok: true, status: 200, json: async () => ({ key: pkB64, key_id: "kid" }) };
+      return { ok: true, status: 200, json: async () => ({}) };
+    };
+    try {
+      const out = await dispatchFullstackBuild({ goal: "x", token: "t", fetchImpl });
+      expect(out).not.toBeNull();
+      expect(calls.some((c) => c.startsWith("PUT") && c.includes("/actions/secrets/LLM_API_KEY"))).toBe(true);
+      expect(calls.some((c) => c.startsWith("PUT") && c.includes("/actions/secrets/VERCEL_TOKEN"))).toBe(true);
+    } finally {
+      if (prevL === undefined) delete process.env.FULLSTACK_LLM_API_KEY; else process.env.FULLSTACK_LLM_API_KEY = prevL;
+      if (prevV === undefined) delete process.env.FULLSTACK_VERCEL_TOKEN; else process.env.FULLSTACK_VERCEL_TOKEN = prevV;
+    }
   });
 
   it("is inert when the FULLSTACK_BUILDS flag is off (default) — no executor, not configured", () => {
