@@ -1,6 +1,6 @@
 # STATE — Competitor.inc (ground truth)
 
-_Session memory. Read at the start of every session; update before finishing. Last updated: **2026-07-07** (audit-only session, no new features)._
+_Session memory. Read at the start of every session; update before finishing. Last updated: **2026-07-07** — audit + Gate-1 execution (WP-2 reviewer/QA gate + WP-3 hard spend cap shipped; see §5b)._
 
 **Phase:** 0 — Company Zero. **Live:** `competitor-inc-zeta.vercel.app`. **Branch:** `main` @ `3815689` (pre-audit).
 **Payments:** OFF by design (founder is F1 / no US work authorization yet — see risks).
@@ -93,7 +93,29 @@ So the code work below makes Company Zero's loop **reliable and honest** so it c
 - **Risks:** real activation still gated on work-auth (this is preparation, not go-live). Migration paste is founder-gated.
 - **Rollback:** config-only; migrations are idempotent.
 
-**→ Awaiting owner approval (Gate 1) before any feature work.**
+**→ Gate 1 APPROVED 2026-07-07. Execution status below.**
+
+### 5b · Executed post-approval (2026-07-07) — evidence
+- **WP-2 — Reviewer/QA gate on generated code: ✅ DONE + tested.** New `lib/engine/site-review.ts`
+  (`reviewGeneratedSite`) wired into `generateSiteFiles` — a build is rejected (→ falls back to the credible
+  product site) if it's not real HTML, is truncated, references a missing local script, or (app mode) has no
+  JS / is a "coming soon" placeholder. 9 unit tests (`site-review.test.ts`). This closes R4.
+- **WP-3 — Money cap below the prompt: ✅ DONE + tested.** New `lib/engine/spend-cap.ts`
+  (`hardSpendCapCents`/`overHardCap`), enforced in the `runAction("spend")` executor BEFORE any external
+  call — independent of any agent proposal/approval. **Default 0 ⇒ no real money can move** (matches
+  payments-off). Raise via `HARD_SPEND_CAP_CENTS`. 3 unit tests + execution tests updated. Partially closes
+  R3 (outbound spend; a Polar-level cap still wanted when payments turn on).
+- **WP-1 — Prove the loop end-to-end: ◑ PARTIAL.** The automatable part is done (the build→review gate is
+  tested; the loop wiring is sound and QA-green). The **keyed real-build run is founder-gated**: it needs
+  `BUILD_API_KEY` (free Gemini) set on prod, then one founder-triggered build to verify a real, deployed,
+  working web app. Exact 60-sec check: create a web-app-shaped company → Build → open the built URL → confirm
+  it's interactive (not the fallback site).
+- **QA:** `tsc` clean · **561 tests pass (71 files)** · `next build` ok · **SMOKE PASSED**.
+
+### 5c · Next real decisions (founder-gated — not code)
+1. Set **`BUILD_API_KEY`** on prod → then trigger one build so WP-1 can be verified end-to-end.
+2. Paste **`supabase/migrations/LAUNCH_BUNDLE_0021-0022.sql`** (incl `0023`) in Supabase (R6).
+3. **Work authorization (OPT/EAD)** — the only thing blocking the Phase 0 DoD's "≥1 real payment" (R1).
 
 ---
 

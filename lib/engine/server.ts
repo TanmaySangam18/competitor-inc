@@ -132,6 +132,7 @@ async function callAnthropic(system: string, user: string, key: string = KEY ?? 
 // re-exported here so existing importers (and tests) keep working unchanged.
 export { assertSafeBaseUrl } from "./net";
 import { assertSafeBaseUrl, fetchWithTimeout } from "./net";
+import { reviewGeneratedSite } from "./site-review";
 
 // Any OpenAI-compatible endpoint: OpenAI, Groq, OpenRouter, Together, the Vercel AI Gateway, local
 // servers, … `enforceSsrf` is true ONLY for user-supplied (BYOK) URLs; operator-set env URLs are
@@ -371,6 +372,14 @@ export async function generateSiteFiles(
     }
     // Must be a genuine page, or we don't trust it — fall back.
     if (!out["index.html"] || !/<html|<!doctype/i.test(out["index.html"])) return null;
+    // Independent reviewer/QA gate (site-review.ts): reject a broken/placeholder/truncated artifact BEFORE
+    // it's accepted as "live", so the caller falls back to the credible product site instead of shipping a
+    // broken page to a customer. This is the "nothing merges without review" rule, in the build path.
+    const review = reviewGeneratedSite(out, kind);
+    if (!review.ok) {
+      console.warn("[build] generated site failed review — falling back:", review.issues.join("; "));
+      return null;
+    }
     return out;
   } catch {
     return null;

@@ -29,12 +29,17 @@ describe("execution capabilities — every integration OFF without keys", () => 
 });
 
 describe("runAction — gated, falls back to simulated (no live calls without keys)", () => {
-  it("build / deploy / outreach / spend / payments all report disabled", async () => {
-    for (const action of ["build", "deploy", "outreach", "spend", "payments", "bluesky", "mastodon"]) {
+  it("build / deploy / outreach / payments all report disabled in a keyless env", async () => {
+    for (const action of ["build", "deploy", "outreach", "payments", "bluesky", "mastodon"]) {
       const r = await runAction(action, co);
       expect(r.ok).toBe(false);
       expect(r.disabled).toBe(true);
     }
+  });
+  it("spend is blocked by the hard cap (Gate 2, below the prompt) — not merely disabled", async () => {
+    const r = await runAction("spend", co); // default $50 request vs the default $0 cap
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/hard spend cap/i);
   });
   it("delete is acknowledged locally (no destructive API)", async () => {
     const r = await runAction("delete", co);
@@ -50,14 +55,21 @@ describe("runAction — gated, falls back to simulated (no live calls without ke
   });
 
   it("SSRF-guards a user-supplied ads webhook (blocked URL → error, no network, not disabled)", async () => {
-    const r = await runAction("spend", {
-      company: { name: "X", idea: "y" },
-      item: { kind: "spend", title: "t", amount: 10 },
-      connections: { githubToken: "", resendApiKey: "", resendFrom: "", adsWebhookUrl: "https://169.254.169.254/hook" },
-    });
-    expect(r.ok).toBe(false);
-    expect(r.disabled).toBeUndefined();
-    expect(r.error).toMatch(/blocked|private/i);
+    const orig = process.env.HARD_SPEND_CAP_CENTS;
+    process.env.HARD_SPEND_CAP_CENTS = "100000"; // raise the cap so the SSRF guard — not the cap — is what blocks
+    try {
+      const r = await runAction("spend", {
+        company: { name: "X", idea: "y" },
+        item: { kind: "spend", title: "t", amount: 10 },
+        connections: { githubToken: "", resendApiKey: "", resendFrom: "", adsWebhookUrl: "https://169.254.169.254/hook" },
+      });
+      expect(r.ok).toBe(false);
+      expect(r.disabled).toBeUndefined();
+      expect(r.error).toMatch(/blocked|private/i);
+    } finally {
+      if (orig === undefined) delete process.env.HARD_SPEND_CAP_CENTS;
+      else process.env.HARD_SPEND_CAP_CENTS = orig;
+    }
   });
 });
 

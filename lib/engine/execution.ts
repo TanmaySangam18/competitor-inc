@@ -10,6 +10,7 @@ import type { Proof, ApprovalKind, Connections } from "./types";
 import { assertSafeBaseUrl, fetchWithTimeout } from "./net";
 import { escapeHtml } from "./html";
 import { generateSiteFiles } from "./server";
+import { overHardCap, hardSpendCapCents } from "./spend-cap";
 import { namespacedResource } from "./hosting";
 
 const TIMEOUT_MS = 8000;
@@ -427,12 +428,19 @@ export async function runAction(action: string, p: ActionPayload): Promise<ExecO
       return postToMastodon({ text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
     case "reddit":
       return postToReddit({ title: p.item?.title || p.company.name, text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
-    case "spend":
+    case "spend": {
+      // Gate 2, enforced BELOW the prompt (see spend-cap.ts): a hard outbound-spend ceiling in the executor,
+      // independent of any agent proposal or owner approval. Default 0 ⇒ no real money can move.
+      const cents = Math.max(0, Math.round((p.item?.amount ?? 50) * 100));
+      if (overHardCap(cents)) {
+        return { ok: false, error: `blocked by the hard spend cap: $${(cents / 100).toFixed(2)} > $${(hardSpendCapCents() / 100).toFixed(2)}. This ceiling is enforced in the executor (below the prompt); raise HARD_SPEND_CAP_CENTS to change it.` };
+      }
       return placeAd(
         { objective: p.item?.title || "demand test", budget: p.item?.amount ?? 50, copy: p.item?.detail || p.company.idea },
         c?.adsWebhookUrl || process.env.ADS_WEBHOOK_URL,
         !!c?.adsWebhookUrl // user-supplied URL → enforce SSRF guard
       );
+    }
     case "payments":
       return createPaymentLink();
     case "delete":
