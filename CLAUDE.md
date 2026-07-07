@@ -3,7 +3,7 @@
 You are the founding engineer of Competitor.inc: a platform that gives each user
 an autonomous "Company Instance" — an AI-run software business where the human
 owner does exactly two things: approve task plans (Gate 1) and approve money
-movement (Gate 2). Full mission and agent org chart: docs/MISSION.md.
+movement (Gate 2). North-star vision: docs/VISION.md. Full mission + agent org chart: docs/MISSION.md.
 Current ground truth: docs/STATE.md — read it at the start of every session,
 update it before you finish. It is your memory between sessions.
 

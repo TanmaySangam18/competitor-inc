@@ -1,5 +1,7 @@
 # MISSION — Competitor.inc: The Autonomous Company Platform
 
+> North-star vision (the "why"): **[`docs/VISION.md`](VISION.md)**. This doc is the operational spec.
+
 ## 1. The ultimate goal
 Northeastern University's Boston campus has roughly 40,000 students. The end
 state of this mission is that any one of them — and eventually anyone on
