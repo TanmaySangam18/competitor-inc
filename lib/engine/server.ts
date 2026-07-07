@@ -338,23 +338,23 @@ export async function generateSiteFiles(
       `Return JSON exactly like {"files":{"index.html":"<!doctype html>…","styles.css":"…"}}. ` +
       `Requirements: include index.html (required) that <link>s styles.css; a hero (name + what it does), 3 feature points, ` +
       `and an email capture form; clean responsive CSS; 2–4 files max; each file under 12000 characters; absolutely no external scripts or CDNs.`;
-  try {
-    // Builds need reliable JSON-of-code, which weaker/free models mangle. If an Anthropic key is set,
-    // route the BUILD (only) to Claude — the rest of the engine stays on the cheap managed model, so we
-    // pay Claude tokens ONLY for the high-value build step. BYOK still wins when provided.
+  // One model call for the build step. Priority: the user's BYOK key → the dedicated BUILD model (free
+  // Gemini) → Anthropic → the default cheap/managed model — so a capable coder authors the app even when
+  // the rest of the engine runs on a cheap model. (Build URL is operator-set env, so SSRF enforcement off.)
+  const callBuild = (u: string): Promise<string> => {
     const anthropicKey = process.env.ANTHROPIC_API_KEY;
     const build = buildModelConfig();
     const maxTokens = app ? 16000 : 8000;
-    // Priority for the build step: the user's own BYOK key → the dedicated BUILD model (free Gemini) →
-    // Anthropic → the default cheap/managed model. So a good free coder authors the app even when the rest
-    // of the engine runs on a cheap model. (Build URL is operator-set env, so SSRF enforcement is off.)
-    const raw = byok?.apiKey
-      ? await callModel(system, user, byok, undefined, maxTokens)
+    return byok?.apiKey
+      ? callModel(system, u, byok, undefined, maxTokens)
       : build
-        ? await callOpenAICompat(build.baseUrl, build.key, build.model, system, user, false, maxTokens)
+        ? callOpenAICompat(build.baseUrl, build.key, build.model, system, u, false, maxTokens)
         : anthropicKey
-          ? await callAnthropic(system, user, anthropicKey, process.env.ANTHROPIC_BUILD_MODEL || "claude-sonnet-5", maxTokens)
-          : await callModel(system, user, byok, undefined, maxTokens);
+          ? callAnthropic(system, u, anthropicKey, process.env.ANTHROPIC_BUILD_MODEL || "claude-sonnet-5", maxTokens)
+          : callModel(system, u, byok, undefined, maxTokens);
+  };
+  // Parse the model's JSON into a safe file map, or null if it's not usable (bad JSON / not an HTML doc).
+  const parseFiles = (raw: string): Record<string, string> | null => {
     const parsed = extractJson<{ files?: Record<string, unknown> }>(raw);
     const files = parsed?.files;
     if (!files || typeof files !== "object") return null;
@@ -370,17 +370,32 @@ export async function generateSiteFiles(
       out[path] = content;
       count++;
     }
-    // Must be a genuine page, or we don't trust it — fall back.
     if (!out["index.html"] || !/<html|<!doctype/i.test(out["index.html"])) return null;
-    // Independent reviewer/QA gate (site-review.ts): reject a broken/placeholder/truncated artifact BEFORE
-    // it's accepted as "live", so the caller falls back to the credible product site instead of shipping a
-    // broken page to a customer. This is the "nothing merges without review" rule, in the build path.
-    const review = reviewGeneratedSite(out, kind);
-    if (!review.ok) {
-      console.warn("[build] generated site failed review — falling back:", review.issues.join("; "));
-      return null;
-    }
     return out;
+  };
+  // Build → review → self-repair loop (≤2 attempts, cost-bounded). If the independent reviewer/QA gate
+  // (site-review.ts) rejects attempt 1, the EXACT issues are fed back to the model and it retries once;
+  // accept the first attempt that passes, else return null so the caller falls back to the credible product
+  // site. This is the reliability loop the mission needs: no broken artifact reaches a customer, and a
+  // fixable miss self-corrects instead of failing outright.
+  try {
+    let feedback = "";
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      const u = feedback
+        ? `${user}\n\nYour PREVIOUS attempt FAILED an automated review. Fix ALL of these issues and return the COMPLETE corrected files as valid JSON: ${feedback}`
+        : user;
+      const out = parseFiles(await callBuild(u));
+      if (!out) {
+        feedback = "the response was not complete, valid JSON containing an index.html HTML document";
+        console.warn(`[build] attempt ${attempt}: unparseable/incomplete output`);
+        continue;
+      }
+      const review = reviewGeneratedSite(out, kind);
+      if (review.ok) return out;
+      feedback = review.issues.join("; ");
+      console.warn(`[build] attempt ${attempt} failed review: ${feedback}`);
+    }
+    return null; // both attempts failed review → caller uses the credible fallback (honest, not broken)
   } catch {
     return null;
   }
