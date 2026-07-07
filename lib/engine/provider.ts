@@ -174,7 +174,7 @@ class SimulatedProvider implements EngineProvider {
     if (rng() > 0.15) {
       const feat = pick(rng, ["onboarding flow", "billing screen", "search", "share links", "dark mode"]);
       add("engineering", `Shipped the ${feat}`, {
-        cost: round(between(rng, 0.18, 0.7)),
+        cost: 0, // simulated draft — no real money moves; real spend only via an approved wallet txn
         // Simulated shift → a metric, never a fabricated clickable URL. Real builds attach a real,
         // resolvable link (see execution.ts buildOnGitHub); this is the offline preview.
         proof: { kind: "metric", value: "build passed (preview)" },
@@ -192,11 +192,10 @@ class SimulatedProvider implements EngineProvider {
 
     // Marketing — demand test / spend (big spend needs approval)
     if (rng() > 0.2) {
-      const small = round(between(rng, 8, 22));
-      add("marketing", `Ran a $${small} test — ${round(between(rng, 2.1, 6.2), 1)}% CTR`, {
-        cost: small,
-        proof: { kind: "metric", value: `+${Math.round(between(rng, 6, 40))} signups` },
-        meta: "within budget",
+      add("marketing", `Drafted a demand test — ${round(between(rng, 2.1, 6.2), 1)}% projected CTR`, {
+        cost: 0, // no real ad money spent — a real spend goes through an approved wallet txn
+        proof: { kind: "metric", value: `~${Math.round(between(rng, 6, 40))} signups (est.)` },
+        meta: "simulated — nothing spent",
       });
     }
     if (rng() > 0.55) {
@@ -212,14 +211,14 @@ class SimulatedProvider implements EngineProvider {
     // Support — handle users, occasional credit-back on failed work
     if (rng() > 0.25) {
       add("support", `Answered ${Math.round(between(rng, 3, 19))} support emails`, {
-        cost: round(between(rng, 0.02, 0.12)),
+        cost: 0,
         meta: "0 escalations",
       });
     }
     if (rng() > 0.78) {
       // a task failed → credits returned to your allowance, never charged (transparency feature)
-      add("engineering", "A codegen task failed — credited back, not charged", {
-        cost: round(between(rng, 0.2, 0.5)),
+      add("engineering", "A codegen task failed — retried, no charge", {
+        cost: 0,
         status: "failed-credited",
         meta: "no charge for failed work",
       });

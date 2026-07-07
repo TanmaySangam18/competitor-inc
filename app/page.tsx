@@ -63,7 +63,7 @@ export default function LandingPage() {
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  function runDemo(raw?: string) {
+  async function runDemo(raw?: string) {
     const text = (raw ?? idea).trim();
     if (!text) return;
     if (raw) setIdea(raw);
@@ -78,22 +78,36 @@ export default function LandingPage() {
       fireDemoEvent("demo_start", `tti:${Math.min(999, Math.round((Date.now() - mountTs.current) / 1000))}s`);
     }
 
-    // The REAL engine, in the browser: deterministic, keyless, free. Same idea → same verdict.
-    const v = getProvider().validate(text);
+    // The REAL crew: the model-backed engine reads this specific idea (server-side, where the key lives).
+    // Falls back to the deterministic offline read on any error / rate-limit / no-key, so it never breaks
+    // and stays instant + keyless-friendly.
+    let v: ValidationResult;
+    try {
+      const res = await fetch("/api/engine", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ kind: "validate", idea: text }),
+      });
+      const d = (await res.json().catch(() => ({}))) as { validation?: ValidationResult };
+      v = d?.validation ?? getProvider().validate(text);
+    } catch {
+      v = getProvider().validate(text);
+    }
+
     const demoLines: DemoLine[] = v.experiments.slice(0, 4).map((x, i) => ({
       agent: DEMO_AGENTS[i % DEMO_AGENTS.length],
       text: `${x.label} — ${x.metric} (${x.signal})`,
     }));
 
     demoLines.forEach((line, i) => {
-      timers.current.push(setTimeout(() => setLines((prev) => [...prev, line]), 650 * (i + 1)));
+      timers.current.push(setTimeout(() => setLines((prev) => [...prev, line]), 500 * (i + 1)));
     });
     timers.current.push(
       setTimeout(() => {
         setVerdict(v);
         setRunning(false);
         fireDemoEvent("demo_verdict", `verdict:${v.verdict}/conf:${v.confidence}`);
-      }, 650 * (demoLines.length + 1))
+      }, 500 * (demoLines.length + 1))
     );
   }
 

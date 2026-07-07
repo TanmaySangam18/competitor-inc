@@ -33,6 +33,19 @@ interface Store {
 }
 const empty: Store = { companies: [], activities: {}, approvals: {}, activeId: null, operate: {}, experiments: {}, deletedIds: [] };
 
+// No real money moves in this build — every activity cost + ledger total is a drafted ESTIMATE, never
+// actual spend (real spend would go through an approved wallet txn). Normalize money to 0 on load so no
+// legacy/persisted fabricated number is ever shown as money. Removing this line = re-enable spend display.
+function zeroMoney(s: Store): Store {
+  const activities: Store["activities"] = {};
+  for (const [id, list] of Object.entries(s.activities)) activities[id] = list.map((a) => ({ ...a, cost: 0 }));
+  return {
+    ...s,
+    activities,
+    companies: s.companies.map((c) => ({ ...c, ledger: { ...c.ledger, spent: 0, credited: 0 } })),
+  };
+}
+
 function load(): Store {
   if (typeof window === "undefined") return empty;
   try {
@@ -41,7 +54,7 @@ function load(): Store {
       const parsed = JSON.parse(raw) as Partial<Store>;
       // guard a corrupted store: companies must be an array, the maps must be objects
       if (parsed && Array.isArray(parsed.companies)) {
-        return {
+        return zeroMoney({
           ...empty,
           ...parsed,
           activities: parsed.activities && typeof parsed.activities === "object" ? parsed.activities : {},
@@ -49,7 +62,7 @@ function load(): Store {
           operate: parsed.operate && typeof parsed.operate === "object" ? parsed.operate : {},
           experiments: parsed.experiments && typeof parsed.experiments === "object" ? parsed.experiments : {},
           deletedIds: Array.isArray(parsed.deletedIds) ? parsed.deletedIds : [],
-        };
+        });
       }
       // corrupted — fall through to legacy/empty
     }
@@ -58,7 +71,7 @@ function load(): Store {
     if (legacy) {
       const old = JSON.parse(legacy) as { company: Company | null; activities: Activity[]; approvals: ApprovalItem[] };
       if (old.company) {
-        return {
+        return zeroMoney({
           companies: [old.company],
           activities: { [old.company.id]: old.activities ?? [] },
           approvals: { [old.company.id]: old.approvals ?? [] },
@@ -66,7 +79,7 @@ function load(): Store {
           operate: {},
           experiments: {},
           deletedIds: [],
-        };
+        });
       }
     }
     return empty;

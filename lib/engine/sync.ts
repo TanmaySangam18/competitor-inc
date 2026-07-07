@@ -212,6 +212,10 @@ export async function loadFromDb(sb: SupabaseClient, userId: string): Promise<Sy
       }
     })
   );
+  // No real money moves in this build — normalize every drafted cost + ledger total to 0 so a legacy DB
+  // row never surfaces a fabricated spend number (mirrors useEngine's zeroMoney on the localStorage path).
+  for (const list of Object.values(activities)) for (const a of list) a.cost = 0;
+  for (const c of companies) c.ledger = { ...c.ledger, spent: 0, credited: 0 };
   return { companies, activities, approvals, operate, experiments };
 }
 

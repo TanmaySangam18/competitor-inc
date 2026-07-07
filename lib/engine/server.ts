@@ -591,7 +591,9 @@ export async function runShift(company: Company, byok?: ByokConfig, context?: st
         a.proof && (a.proof.kind === "url" || a.proof.kind === "build" || a.proof.kind === "metric")
           ? { kind: a.proof.kind as "url" | "build" | "metric", value: str(a.proof.value) }
           : undefined;
-      return { id: uid(), night, agent: role(a.agent), action: str(a.action, "Did some work"), meta: str(a.meta) || undefined, cost: Math.max(0, num(a.cost)), status, proof };
+      // cost is 0: a drafted shift moves no real money. Real spend only happens through an approved wallet
+      // transaction (execution.ts), never from a model-estimated number — so the ledger never shows fake spend.
+      return { id: uid(), night, agent: role(a.agent), action: str(a.action, "Did some work"), meta: str(a.meta) || undefined, cost: 0, status, proof };
     });
     const approvals: ApprovalItem[] = m.approvals.slice(0, 4).map((p) => ({
       id: uid(),

@@ -69,7 +69,6 @@ import { ApprovalCard } from "@/components/dashboard/ApprovalCard";
 import { BarChart } from "@/components/dashboard/BarChart";
 import { Stat } from "@/components/dashboard/Stat";
 import { CrewBox } from "@/components/CrewBox";
-import { netSpend } from "@/lib/engine/ledger";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { isFounderEmail } from "@/lib/engine/founders";
@@ -594,8 +593,10 @@ function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r:
   const stats = [
     { label: "Nights run", val: c.night },
     { label: "Tasks done", val: c.ledger.tasksDone },
-    { label: "Net spend", val: "$" + netSpend(c).toFixed(2) },
-    { label: "Credited back", val: "$" + (c.ledger.credited ?? 0).toFixed(2) },
+    // No real money moves in this build (drafted shifts cost $0; real spend would go through an approved
+    // wallet txn). Show $0 honestly — never a fabricated total — even for companies with a legacy ledger.
+    { label: "Net spend", val: "$0.00" },
+    { label: "Credited back", val: "$0.00" },
   ];
   const tabs: { id: Tab; label: string; icon: typeof ActivityIcon }[] = [
     { id: "operations", label: "Operations", icon: ActivityIcon },
