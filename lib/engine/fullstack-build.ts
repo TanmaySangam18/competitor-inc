@@ -105,7 +105,11 @@ export async function dispatchFullstackBuild(opts: {
   };
   try {
     const repo = repoName(opts.goal);
-    const create = await fetchImpl("https://api.github.com/user/repos", {
+    // Create under a GitHub ORG when FULLSTACK_GH_ORG is set, so the workflow inherits the ORG SECRETS
+    // (LLM_API_KEY, VERCEL_TOKEN) the founder sets once — no per-repo secret plumbing. Else the user account.
+    const org = process.env.FULLSTACK_GH_ORG?.trim();
+    const createUrl = org ? `https://api.github.com/orgs/${org}/repos` : "https://api.github.com/user/repos";
+    const create = await fetchImpl(createUrl, {
       method: "POST",
       headers,
       body: JSON.stringify({ name: repo, description: opts.goal.slice(0, 120), private: false, auto_init: true }),
