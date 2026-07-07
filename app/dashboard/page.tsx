@@ -39,6 +39,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { useEngine } from "@/lib/engine/useEngine";
+import { EngineProvider, useEngineContext } from "@/lib/engine/EngineContext";
 import { useConfig, getByok } from "@/lib/engine/config";
 import { AGENTS, type AgentRole, type ApprovalKind, type Activity, type Company } from "@/lib/engine/types";
 import { LogoMark } from "@/components/Logo";
@@ -98,7 +99,16 @@ const OPERATE_ENABLED = process.env.NEXT_PUBLIC_OPERATE !== "0";
 type Tab = "operations" | "growth" | "history" | "chat" | "brain" | "operate";
 
 export default function Dashboard() {
-  const r = useEngine();
+  // ONE engine for the whole dashboard subtree (incl. the CrewBox rendered inside it). See EngineContext.
+  return (
+    <EngineProvider>
+      <DashboardInner />
+    </EngineProvider>
+  );
+}
+
+function DashboardInner() {
+  const r = useEngineContext();
   const router = useRouter();
   const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("operations");

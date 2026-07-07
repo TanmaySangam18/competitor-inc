@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, MessagesSquare, Send } from "lucide-react";
-import { useEngine } from "@/lib/engine/useEngine";
+import { useEngineContext } from "@/lib/engine/EngineContext";
 import { DELEGATION, toneHex } from "@/lib/engine/delegation";
 import { pickExchange, type BanterCtx } from "@/lib/engine/banter";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
@@ -37,7 +37,7 @@ type Line = { role: AgentRole | "you"; text: string; via?: "telegram" | "slack" 
 const BY_ROLE = Object.fromEntries(DELEGATION.map((a) => [a.role, a]));
 
 export function CrewBox() {
-  const r = useEngine();
+  const r = useEngineContext();
   const crew = DELEGATION;
 
   const [lines, setLines] = useState<Line[]>([]);
