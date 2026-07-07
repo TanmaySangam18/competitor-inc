@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -25,4 +26,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Wrap with Sentry's build config. SAFE + inert without provisioning: source-map upload auto-skips when
+// SENTRY_AUTH_TOKEN is absent, and the runtime SDK is disabled without a DSN. `silent` keeps the build quiet.
+export default withSentryConfig(nextConfig, {
+  silent: !process.env.CI,
+  // org/project/authToken come from env when you provision Sentry; without them, upload is skipped.
+});
