@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { realExecutionEnabled, verifyProof, buildOnGitHub, runAction, capabilities } from "./execution";
+import { realExecutionEnabled, verifyProof, buildOnGitHub, runAction, capabilities, verifySiteLive } from "./execution";
 
 const co = { company: { name: "Demo Co", idea: "an idea" } };
 
@@ -70,6 +70,27 @@ describe("runAction — gated, falls back to simulated (no live calls without ke
       if (orig === undefined) delete process.env.HARD_SPEND_CAP_CENTS;
       else process.env.HARD_SPEND_CAP_CENTS = orig;
     }
+  });
+});
+
+describe("verifySiteLive — confirm a built URL is reachable before calling it live", () => {
+  it("returns live once a retry succeeds (rides out propagation)", async () => {
+    let n = 0;
+    const fetcher = async () => { n++; return { ok: n >= 2, status: n >= 2 ? 200 : 404 }; };
+    const r = await verifySiteLive("https://x.example/", { attempts: 3, delayMs: 0, fetcher });
+    expect(r.live).toBe(true);
+    expect(n).toBe(2);
+  });
+  it("gives up as NOT live after all attempts fail (→ honest 'deploying')", async () => {
+    const fetcher = async () => ({ ok: false, status: 404 });
+    const r = await verifySiteLive("https://x.example/", { attempts: 3, delayMs: 0, fetcher });
+    expect(r).toEqual({ live: false, status: 404 });
+  });
+  it("rejects a non-https URL up front (no fetch)", async () => {
+    let called = false;
+    const r = await verifySiteLive("http://x.example/", { fetcher: async () => { called = true; return { ok: true, status: 200 }; } });
+    expect(r.live).toBe(false);
+    expect(called).toBe(false);
   });
 });
 

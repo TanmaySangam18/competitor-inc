@@ -69,6 +69,27 @@ export async function verifyProof(proof?: Proof): Promise<boolean> {
   return false;
 }
 
+// Verify a built site is ACTUALLY reachable before we present it as a live receipt (VISION: verify before
+// done — "should work" is not done). Bounded retry to ride out CDN/Pages propagation. The fetcher is
+// injectable so the retry/verdict logic is unit-tested with no network.
+export async function verifySiteLive(
+  url: string,
+  opts: { attempts?: number; delayMs?: number; fetcher?: (u: string) => Promise<{ ok: boolean; status: number }> } = {},
+): Promise<{ live: boolean; status: number }> {
+  const attempts = Math.max(1, opts.attempts ?? 3);
+  const delayMs = opts.delayMs ?? 1500;
+  let u: URL;
+  try { u = new URL(url); } catch { return { live: false, status: 0 }; }
+  if (u.protocol !== "https:") return { live: false, status: 0 };
+  const fetcher = opts.fetcher ?? (async (t: string) => { const r = await timed(t, { method: "HEAD" }); return { ok: r.ok, status: r.status }; });
+  let status = 0;
+  for (let i = 0; i < attempts; i++) {
+    try { const r = await fetcher(url); status = r.status; if (r.ok) return { live: true, status: r.status }; } catch { /* transient — retry */ }
+    if (i < attempts - 1 && delayMs > 0) await new Promise((res) => setTimeout(res, delayMs));
+  }
+  return { live: false, status };
+}
+
 // ── Phase 1: GitHub build ────────────────────────────────────────────────────
 export interface BuildSpec {
   repo: string;
@@ -191,7 +212,14 @@ export async function buildOnGitHub(
     } catch {
       /* keep the repo URL as the artifact */
     }
-    return { ok: true, proof: { kind: "url", value: siteUrl } };
+    // Verify before done: only present a CLICKABLE "live" receipt if the URL actually resolves now. A fresh
+    // Pages site propagates for ~1 min, so an unconfirmed URL is honestly labelled "deploying" (the proof
+    // board's verifyProof + the in-app preview confirm it live shortly) — never a link that 404s.
+    const chk = await verifySiteLive(siteUrl, { attempts: 2, delayMs: 1000 });
+    const proof: Proof = chk.live
+      ? { kind: "url", value: siteUrl }
+      : { kind: "metric", value: `site deploying (propagating) — will be live at ${siteUrl}` };
+    return { ok: true, proof };
   } catch (e) {
     return fail(e);
   }
