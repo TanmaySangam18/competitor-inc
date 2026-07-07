@@ -145,6 +145,23 @@ correctness/reliability/safety over scale (per the Final Objective), shipped:
   `buildOnGitHub` — a build ships a clickable "live" receipt only if the URL actually resolves; an
   unconfirmed (propagating) one is honestly labelled "deploying," never a 404 link. **576 tests green.**
 
+### 5g · WP-1 unlock — build model VERIFIED LIVE on prod (2026-07-07)
+Founder set `BUILD_API_KEY` (Gemini). Verified end-to-end from here:
+- Added `?probe=build` → fires a real ~1k-token ping at the build model. Prod returns
+  `{"ok":true,"configured":true,"model":"gemini-2.5-flash"}` — the key is set AND the model answers.
+  (First pass returned `empty completion` at a 5-token cap: a *thinking-model* artifact, not a key failure;
+  bumped the probe budget to 1024 → clean `ok:true`. Real builds use 8–16k, so they have full headroom.)
+- Added `?probe=buildrun` (FOUNDER-GATED via Supabase session + `isFounderEmail`): runs the REAL
+  generate→review→self-repair loop against Gemini and reports pass/fell-back **without deploying** (no repo,
+  no public artifact, no abuse/cost surface). Unauth returns `HTTP 403` (verified). Safe, repeatable proof
+  that the full build path produces a review-passing app.
+- **Left for the founder** (auth I can't self-serve): open, while signed in,
+  `/api/engine?probe=buildrun` (optionally `&name=…&idea=…`) → expect `ok:true, reviewPassed:true, hasJs:true`.
+  Then one real build in the dashboard deploys it live (GitHub Pages, reachability-verified).
+- **576 tests green** (probes are runtime diagnostics; no test-count change). Local real-build was blocked by
+  the Vercel *sensitive-var* gotcha (`env pull` returns keys empty), so verification was done against prod
+  via the probes above.
+
 ### 5f · Phase-0 reliability arc — status
 The Phase-0 control plane is now hardened across: secret hygiene (scan on every deploy), build QA +
 self-repair, verify-before-done, data-loss-proof reconcile, money capped below the prompt, and a locked
