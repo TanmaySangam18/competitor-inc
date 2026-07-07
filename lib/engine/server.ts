@@ -258,8 +258,10 @@ export async function probeBuildModel(): Promise<{ ok: boolean; configured: bool
   const cfg = buildModelConfig();
   if (!cfg) return { ok: false, configured: false, error: "BUILD_API_KEY not set — builds use the fallback site" };
   try {
-    const out = await callOpenAICompat(cfg.baseUrl, cfg.key, cfg.model, "You are a health check. Reply with the single word: OK.", "ping", false, 5);
-    return { ok: !!out.trim(), configured: true, model: cfg.model, error: out.trim() ? undefined : "empty completion" };
+    // Generous budget: thinking models (Gemini 2.5) spend tokens reasoning before any visible text, so a
+    // tiny cap returns empty even when the key is valid. Builds use 8–16k, so this mirrors real headroom.
+    const out = await callOpenAICompat(cfg.baseUrl, cfg.key, cfg.model, "Health check. Reply with exactly: OK", "Reply OK", false, 1024);
+    return { ok: !!out.trim(), configured: true, model: cfg.model, error: out.trim() ? undefined : "empty completion (model returned no visible text)" };
   } catch (e) {
     return { ok: false, configured: true, model: cfg.model, error: (e instanceof Error ? e.message : "unknown").slice(0, 220) };
   }
