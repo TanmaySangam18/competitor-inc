@@ -1,5 +1,7 @@
 import { serviceClient } from "@/lib/engine/service";
-import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, modelForAgent } from "@/lib/engine/server";
+import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, generateSiteFiles, modelForAgent } from "@/lib/engine/server";
+import { getServerSupabase } from "@/lib/supabase/server";
+import { isFounderEmail } from "@/lib/engine/founders";
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
 import { githubBuildExecutor } from "@/lib/engine/build-github";
 import { openhandsBuildExecutor } from "@/lib/engine/openhands";
@@ -35,6 +37,29 @@ export async function GET(req: Request) {
       return Response.json({ error: "rate limited — wait a minute and retry" }, { status: 429 });
     }
     return Response.json(await probeBuildModel());
+  }
+  // FOUNDER-GATED full-pipeline dry-run: runs the REAL generate → review → self-repair loop against the
+  // live build model (Gemini) and reports whether it produced a review-passing app — WITHOUT deploying (no
+  // repo, no public artifact, no abuse surface). Non-null files = passed the gate; fellBack=true = the
+  // credible static fallback would be used instead. This is the safe way to prove the build path end-to-end.
+  if (url.searchParams.get("probe") === "buildrun") {
+    const ses = await getServerSupabase();
+    const { data } = (await ses?.auth.getUser()) ?? { data: null };
+    if (!data?.user || !isFounderEmail(data.user.email)) {
+      return Response.json({ error: "founder-gated — sign in as the founder first" }, { status: 403 });
+    }
+    const idea = (url.searchParams.get("idea") || "A daily habit tracker: add habits, check them off each day, and see a running streak. Data saved locally on the device.").slice(0, 500);
+    const name = (url.searchParams.get("name") || "Habitry").slice(0, 60);
+    const t0 = Date.now();
+    const files = await generateSiteFiles(name, idea, undefined, "app");
+    const ms = Date.now() - t0;
+    if (!files) {
+      return Response.json({ ok: false, fellBack: true, ms, reason: "no build model, or the generated app failed the review gate — the credible static fallback would be served" });
+    }
+    const names = Object.keys(files);
+    const bytes = names.reduce((n, f) => n + (files[f]?.length ?? 0), 0);
+    const hasJs = names.some((f) => /\.js$/.test(f)) || /<script/i.test(files["index.html"] || "");
+    return Response.json({ ok: true, mode: "app", reviewPassed: true, fileCount: names.length, files: names, bytes, hasJs, ms, indexPreview: (files["index.html"] || "").slice(0, 220) });
   }
   return Response.json({
     ok: true,
