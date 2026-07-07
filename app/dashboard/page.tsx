@@ -54,7 +54,7 @@ import GrowthPanel from "@/components/GrowthPanel";
 import DemandRadarPanel from "@/components/DemandRadarPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import MomTestKit from "@/components/MomTestKit";
-import CrewCard from "@/components/CrewCard";
+import SpecialistCrew from "@/components/dashboard/SpecialistCrew";
 import CampaignPanel from "@/components/CampaignPanel";
 import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
 import { rationaleFor } from "@/lib/engine/rationale";
@@ -887,6 +887,11 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
       <div className="rounded-3xl glass-panel p-5 sm:p-7">
         <LiveGlassBox company={r.company ?? undefined} />
       </div>
+      {/* The crew, brought out as its own two boxes: the live floor + your idea-matched specialists. */}
+      <div className="grid items-stretch gap-6 lg:grid-cols-2">
+        <CrewBox />
+        {r.company && <SpecialistCrew idea={r.company.idea} roles={roles} />}
+      </div>
     <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
       <section className="flex min-h-0 flex-col">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
@@ -934,8 +939,6 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
           </div>
         )}
         {r.company && <GTMPanel company={r.company} activities={r.activities} />}
-        <CrewBox />
-        <CrewCard idea={r.company!.idea} />
       </aside>
     </div>
     </div>
