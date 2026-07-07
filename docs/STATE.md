@@ -141,6 +141,17 @@ correctness/reliability/safety over scale (per the Final Objective), shipped:
 - **Mission-invariants contract:** `lib/engine/mission-invariants.test.ts` locks the non-negotiables in one
   place — Gate-2 money cap ($0 default blocks all spend), no broken/"coming soon" artifact ships, company
   isolation / no-loss reconcile, honesty ($0 drafted-shift costs), secret detection works. **573 tests green.**
+- **Verify-before-done on builds:** `verifySiteLive()` (bounded retry, injectable/tested) wired into
+  `buildOnGitHub` — a build ships a clickable "live" receipt only if the URL actually resolves; an
+  unconfirmed (propagating) one is honestly labelled "deploying," never a 404 link. **576 tests green.**
+
+### 5f · Phase-0 reliability arc — status
+The Phase-0 control plane is now hardened across: secret hygiene (scan on every deploy), build QA +
+self-repair, verify-before-done, data-loss-proof reconcile, money capped below the prompt, and a locked
+invariants contract. **Remaining outcome-movement is FOUNDER-GATED** (set `BUILD_API_KEY` → verify a real
+keyed build; paste `LAUNCH_BUNDLE_0021-0022.sql`; work-auth → first real payment). Further net-new code
+should stay Phase-0-reliability (no Phase-1 scale infra) until those unlock and one company runs the full
+loop for real. Guard against over-engineering — build only what moves a real outcome.
 
 ---
 
