@@ -66,7 +66,7 @@ export interface SyncOps {
   deleteIssueIds: string[];
 }
 
-const EMPTY_STATE: SyncState = { companies: [], activities: {}, approvals: {}, operate: {}, experiments: {} };
+export const EMPTY_STATE: SyncState = { companies: [], activities: {}, approvals: {}, operate: {}, experiments: {} };
 const EMPTY_OPERATE: OperateData = { rocks: [], issues: [] };
 
 // Tracked company fields — a change in any of these triggers an UPDATE. (slug/idea/createdAt are

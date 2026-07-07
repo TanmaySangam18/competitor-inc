@@ -12,6 +12,8 @@ import { markTrialStart } from "./trial";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "./useAuth";
 import { useDbSync, mergeSyncState, type SyncState } from "./sync";
+import { useAuthoritativeSync } from "./authoritative";
+import { SERVER_AUTHORITATIVE } from "./flags";
 
 const KEY = "cofounder:v2";
 const LEGACY_KEY = "cofounder:v1";
@@ -119,6 +121,9 @@ export function useEngine() {
   const [working, setWorking] = useState<null | "validating" | "shift">(null);
   const [autopilot, setAutopilot] = useState(false);
   const [blocked, setBlocked] = useState<string | null>(null);
+  // Server-authoritative mode surfaces a failed/awaited DB write here (best-effort mode never sets it).
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const clearSyncError = useCallback(() => setSyncError(null), []);
 
   const ref = useRef(store);
   const inFlightRef = useRef(false); // prevents overlapping shifts (autopilot interval / double-click)
@@ -166,8 +171,12 @@ export function useEngine() {
       };
     });
   }, []);
+  // Two sync engines, mutually exclusive by `enabled` (so exactly one is ever active — no conditional hooks):
+  // best-effort (today's localStorage-authoritative path) vs server-authoritative (Supabase is the truth).
+  // Guests are never server-authoritative. When SERVER_AUTHORITATIVE is off, this is byte-for-byte today.
+  const authoritativeOn = SERVER_AUTHORITATIVE && dbEnabled;
   useDbSync({
-    enabled: dbEnabled,
+    enabled: dbEnabled && !authoritativeOn,
     hydrated,
     companies: store.companies,
     activities: store.activities,
@@ -176,6 +185,20 @@ export function useEngine() {
     experiments: store.experiments,
     overlay: overlayFromDb,
   });
+  const { flush: flushAuthoritative } = useAuthoritativeSync({
+    enabled: authoritativeOn,
+    hydrated,
+    companies: store.companies,
+    activities: store.activities,
+    approvals: store.approvals,
+    operate: store.operate,
+    experiments: store.experiments,
+    deletedIds: store.deletedIds,
+    overlay: overlayFromDb,
+    onError: setSyncError,
+  });
+  const authoritativeRef = useRef(authoritativeOn);
+  authoritativeRef.current = authoritativeOn;
 
   const company = store.companies.find((c) => c.id === store.activeId) ?? null;
   const activities = company ? store.activities[company.id] ?? [] : [];
@@ -353,6 +376,10 @@ export function useEngine() {
 
   const decideBuild = useCallback((approve: boolean) => {
     const active = ref.current.companies.find((x) => x.id === ref.current.activeId);
+    // Snapshots for a server-authoritative rollback: if the operating flip fails to persist, restore the
+    // company + its activity/approval lists to exactly their pre-build state.
+    const prevActs = active ? ref.current.activities[active.id] ?? [] : [];
+    const prevApps = active ? ref.current.approvals[active.id] ?? [] : [];
     setStore((s) => {
       const c = s.companies.find((x) => x.id === s.activeId);
       if (!c) return s;
@@ -411,20 +438,44 @@ export function useEngine() {
     // Real execution (gated): when keys are set, actually build the MVP on GitHub and log the verified
     // proof. Skipped for imported products (already live — nothing to build). With no keys, /api/execute
     // returns disabled and nothing extra happens.
-    if (approve && active && active.status !== "operating" && active.product?.status !== "live") {
-      void executeAction("build", { company: { name: active.name, idea: active.idea }, companyId: active.id, agent: "engineering" }).then((r) => {
-        if (r?.ok && r.proof) {
-          appendRealResult(active.id, {
-            action: "Shipped the MVP to GitHub",
-            agent: "engineering",
-            proof: r.proof,
-            meta: "real build ✓",
-            productUrl: r.proof.kind === "url" ? r.proof.value : undefined,
-          });
-        }
-      });
+    const fireRealBuild = () => {
+      if (approve && active && active.status !== "operating" && active.product?.status !== "live") {
+        void executeAction("build", { company: { name: active.name, idea: active.idea }, companyId: active.id, agent: "engineering" }).then((r) => {
+          if (r?.ok && r.proof) {
+            appendRealResult(active.id, {
+              action: "Shipped the MVP to GitHub",
+              agent: "engineering",
+              proof: r.proof,
+              meta: "real build ✓",
+              productUrl: r.proof.kind === "url" ? r.proof.value : undefined,
+            });
+          }
+        });
+      }
+    };
+
+    // Server-authoritative: CONFIRM the operating flip actually persisted before the crew "goes to work" —
+    // otherwise the nightly cron (`WHERE status='operating'`) would never see this company and "runs while you
+    // sleep" would silently fail. On persist failure, roll the company back to its pre-build state + surface it.
+    if (authoritativeRef.current && approve && active && active.status !== "operating") {
+      flushAuthoritative()
+        .then(() => {
+          setSyncError(null);
+          fireRealBuild();
+        })
+        .catch(() => {
+          setStore((s) => ({
+            ...s,
+            companies: s.companies.map((x) => (x.id === active.id ? active : x)),
+            activities: { ...s.activities, [active.id]: prevActs },
+            approvals: { ...s.approvals, [active.id]: prevApps },
+          }));
+          setSyncError("Couldn't start building — check your connection and try again.");
+        });
+    } else {
+      fireRealBuild();
     }
-  }, [executeAction, appendRealResult]);
+  }, [executeAction, appendRealResult, flushAuthoritative]);
 
   // Re-test demand on an operating company — continuous validation, not one-shot. Re-runs the gate
   // with a fresh seed (the engine varies the reading), logs the new verdict + a confidence delta to
@@ -851,6 +902,8 @@ export function useEngine() {
     autopilotPaused,
     blocked,
     clearBlocked,
+    syncError,
+    clearSyncError,
     pendingApprovals,
     createCompany,
     importCompany,
