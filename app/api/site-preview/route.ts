@@ -36,12 +36,15 @@ function page(body: string, status = 200): Response {
   });
 }
 
-function unavailable(msg: string): Response {
-  // A graceful in-frame message so the preview never shows a broken/blank box.
+function unavailable(msg: string, sub = ""): Response {
+  // A graceful, on-brand in-frame message so the preview never shows a broken/blank box.
   return page(
     `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>` +
-      `<body style="margin:0;font:14px system-ui,sans-serif;color:#8a8a86;background:#0d0d0d;height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:1.5rem">` +
-      `<div>${escapeAttr(msg)}</div></body></html>`,
+      `<body style="margin:0;font:14px system-ui,-apple-system,sans-serif;color:#57534e;background:#f3eee2;height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:1.5rem">` +
+      `<div style="max-width:22rem">` +
+      `<div style="font-size:15px;font-weight:600;color:#14130e;margin-bottom:.4rem">${escapeAttr(msg)}</div>` +
+      (sub ? `<div style="line-height:1.55">${escapeAttr(sub)}</div>` : "") +
+      `</div></body></html>`,
   );
 }
 
@@ -71,7 +74,8 @@ export async function GET(req: Request): Promise<Response> {
   } catch {
     return unavailable("Couldn't load the live site just now.");
   }
-  if (!res.ok) return unavailable(`The live site returned ${res.status}.`);
+  if (res.status === 404) return unavailable("No live site here yet.", "This idea got a preview build, not a real deploy. Connect a GitHub key in Settings and the crew ships a real, live URL right here.");
+  if (!res.ok) return unavailable("Couldn't load the preview.", "The live site isn't responding right now — try again in a moment.");
   const ctype = res.headers.get("content-type") || "";
   if (!/html/.test(ctype)) return unavailable("This page isn't previewable.");
 

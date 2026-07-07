@@ -32,6 +32,11 @@ export function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }
       ) : (
         <p className="mt-1 text-xs text-muted">{detail}</p>
       )}
+      {kind === "spend" && (
+        <p className="mt-2 rounded-lg border border-border bg-bg/50 px-2.5 py-1.5 text-[11px] leading-relaxed text-muted-2">
+          Approving records your decision — <span className="font-medium text-muted">nothing is charged</span>. Real spend runs on your <em>own</em> connected account with funds you add; until you connect one, this stays a plan.
+        </p>
+      )}
       <div className="mt-3 flex gap-2">
         {isSocial ? (
           <>
