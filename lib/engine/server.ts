@@ -294,13 +294,26 @@ function extractJson<T>(text: string): T {
 // on ANY problem so the caller falls back to the safe single-file template (verify-before-done). Static
 // only — no build step, no external deps — so GitHub Pages serves it directly. Lights up with any model
 // (Groq today); a Claude key makes it markedly better.
+// A dedicated, capable model for the high-value BUILD step only (e.g., a free Google AI Studio / Gemini
+// key), so builds get real quality even when the main chat/shift model is a cheap/free one. Defaults to
+// Gemini's OpenAI-compatible endpoint + gemini-2.5-flash, so the founder only sets BUILD_API_KEY.
+function buildModelConfig(): { baseUrl: string; key: string; model: string } | null {
+  const key = process.env.BUILD_API_KEY;
+  if (!key) return null;
+  return {
+    key,
+    baseUrl: process.env.BUILD_BASE_URL || "https://generativelanguage.googleapis.com/v1beta/openai",
+    model: process.env.BUILD_MODEL || "gemini-2.5-flash",
+  };
+}
+
 export async function generateSiteFiles(
   name: string,
   idea: string,
   byok?: ByokConfig,
   kind: "site" | "app" = "site",
 ): Promise<Record<string, string> | null> {
-  if (!modelAvailable(byok)) return null;
+  if (!modelAvailable(byok) && !buildModelConfig()) return null;
   const app = kind === "app";
   // "app" mode = a REAL, functional client-side app ($0: static + localStorage, served by GitHub Pages),
   // so agents ship working tools/trackers/dashboards — not just a landing page — with no backend cost.
@@ -329,11 +342,18 @@ export async function generateSiteFiles(
     // route the BUILD (only) to Claude — the rest of the engine stays on the cheap managed model, so we
     // pay Claude tokens ONLY for the high-value build step. BYOK still wins when provided.
     const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    const build = buildModelConfig();
     const maxTokens = app ? 16000 : 8000;
-    const raw =
-      anthropicKey && !byok?.apiKey
-        ? await callAnthropic(system, user, anthropicKey, process.env.ANTHROPIC_BUILD_MODEL || "claude-sonnet-5", maxTokens)
-        : await callModel(system, user, byok, undefined, maxTokens);
+    // Priority for the build step: the user's own BYOK key → the dedicated BUILD model (free Gemini) →
+    // Anthropic → the default cheap/managed model. So a good free coder authors the app even when the rest
+    // of the engine runs on a cheap model. (Build URL is operator-set env, so SSRF enforcement is off.)
+    const raw = byok?.apiKey
+      ? await callModel(system, user, byok, undefined, maxTokens)
+      : build
+        ? await callOpenAICompat(build.baseUrl, build.key, build.model, system, user, false, maxTokens)
+        : anthropicKey
+          ? await callAnthropic(system, user, anthropicKey, process.env.ANTHROPIC_BUILD_MODEL || "claude-sonnet-5", maxTokens)
+          : await callModel(system, user, byok, undefined, maxTokens);
     const parsed = extractJson<{ files?: Record<string, unknown> }>(raw);
     const files = parsed?.files;
     if (!files || typeof files !== "object") return null;
