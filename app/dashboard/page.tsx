@@ -180,7 +180,7 @@ function DashboardInner() {
             <span className="text-amber">{r.blocked}</span>
             <div className="flex shrink-0 items-center gap-2">
               <Link href="/dashboard/settings" className="rounded-lg bg-amber/15 px-3 py-1.5 text-xs font-medium text-amber transition hover:bg-amber/25">
-                Add your key
+                Connect keys
               </Link>
               <button onClick={r.clearBlocked} aria-label="Dismiss" className="text-muted-2 transition hover:text-text">
                 <X size={16} />
@@ -189,7 +189,7 @@ function DashboardInner() {
           </div>
         </div>
       )}
-      {r.company && <BringYourKeysNudge />}
+      {r.company && !r.blocked && <BringYourKeysNudge />}
       <div className="mx-auto max-w-6xl px-6 py-10">
         <EntitlementNotice email={user?.email} />
         {!r.company && (
@@ -529,7 +529,7 @@ function ValidationGate({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBui
           ) : (
             <>
               <button onClick={onBuild} className="flex-1 rounded-xl bg-coral px-5 py-3 font-semibold text-bg transition hover:brightness-110">
-                {imported ? "Start getting customers" : "Approve build"}
+                {imported ? "Start getting customers" : "Build it"}
               </button>
               <button onClick={() => r.decideBuild(false)} className="rounded-xl border border-border px-5 py-3 font-medium text-muted transition hover:text-text">
                 Hold for now
@@ -842,7 +842,7 @@ function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r:
             <div className="text-sm font-medium">Shipping your site…</div>
             <div className="text-xs text-muted-2">
               A real, openable link appears here the moment the build finishes (≈1 min once your keys are live).{" "}
-              <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Add your keys →</Link>
+              <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect your keys →</Link>
             </div>
           </div>
         </div>
