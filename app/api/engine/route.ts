@@ -1,5 +1,6 @@
 import { serviceClient } from "@/lib/engine/service";
 import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, generateSiteFiles, modelForAgent } from "@/lib/engine/server";
+import { FULLSTACK_BUILDS, dispatchFullstackBuild } from "@/lib/engine/fullstack-build";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isFounderEmail } from "@/lib/engine/founders";
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
@@ -61,6 +62,31 @@ export async function GET(req: Request) {
     const bytes = names.reduce((n, f) => n + (files[f]?.length ?? 0), 0);
     const hasJs = names.some((f) => /\.js$/.test(f)) || /<script/i.test(files["index.html"] || "");
     return Response.json({ ok: true, mode: "app", reviewPassed: true, fileCount: names.length, files: names, bytes, hasJs, ms, indexPreview: (files["index.html"] || "").slice(0, 220) });
+  }
+  // FOUNDER-GATED: run the FIRST real full-stack build (#1 Slice 2). Creates a repo in FULLSTACK_GH_ORG,
+  // commits the Next.js + Vercel workflow, and dispatches it. Confirms the org + token scope + secrets are
+  // wired; the Action (Aider + Vercel deploy) then runs async in the org's Actions tab. Real side-effect
+  // (creates one repo), so it's founder-gated + only fires when FULLSTACK_BUILDS is on.
+  if (url.searchParams.get("probe") === "fullstack") {
+    const ses = await getServerSupabase();
+    const { data } = (await ses?.auth.getUser()) ?? { data: null };
+    if (!data?.user || !isFounderEmail(data.user.email)) {
+      return Response.json({ error: "founder-gated — sign in as the founder first" }, { status: 403 });
+    }
+    if (!FULLSTACK_BUILDS) {
+      return Response.json({ ok: false, reason: "FULLSTACK_BUILDS is not set — add FULLSTACK_BUILDS=1 + FULLSTACK_GH_ORG=<org> on Vercel (Production) and redeploy first." });
+    }
+    const token = process.env.GITHUB_TOKEN || "";
+    if (!token) return Response.json({ ok: false, reason: "no GITHUB_TOKEN on the server" });
+    const org = process.env.FULLSTACK_GH_ORG?.trim() || null;
+    const goal = (url.searchParams.get("goal") || "a campus tutoring marketplace: post a listing, browse tutors, book a slot — with a real backend").slice(0, 300);
+    const t0 = Date.now();
+    const out = await dispatchFullstackBuild({ goal, token });
+    const ms = Date.now() - t0;
+    if (!out) {
+      return Response.json({ ok: false, ms, org, reason: "dispatch failed — check the GitHub token has repo + workflow scope and can create repos in FULLSTACK_GH_ORG, and that FULLSTACK_GH_ORG is a real org." });
+    }
+    return Response.json({ ok: true, ms, org, repo: out.repo, url: out.url, note: "Repo created + workflow dispatched. Watch the build in the org's Actions tab; the app deploys to Vercel when it finishes." });
   }
   return Response.json({
     ok: true,
