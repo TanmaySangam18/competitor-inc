@@ -164,6 +164,43 @@ export function diffStore(prev: SyncState, next: SyncState): SyncOps {
   };
 }
 
+// Reconcile local (device) state with cloud state WITHOUT losing data (R5). A naive overwrite drops a
+// company created locally but not yet pushed — that's data loss. This UNIONS by id: companies present only
+// locally are kept (the write-through then pushes them up), cloud-only are added, tombstoned ids are
+// excluded, and a company present in both keeps the version with more progress (higher `night`; tie → cloud
+// as the shared source of truth). Per-company activity/approval/experiment lists are merged + deduped by id,
+// so neither a local-only nor a cloud-only item is ever dropped. Pure + deterministic → unit-testable.
+function mergeById<T extends { id: string }>(a: Record<string, T[]>, b: Record<string, T[]>): Record<string, T[]> {
+  const out: Record<string, T[]> = {};
+  for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+    const seen = new Set<string>();
+    const list: T[] = [];
+    for (const item of [...(a[key] ?? []), ...(b[key] ?? [])]) {
+      if (item && !seen.has(item.id)) { seen.add(item.id); list.push(item); }
+    }
+    out[key] = list;
+  }
+  return out;
+}
+
+export function mergeSyncState(local: SyncState, cloud: SyncState, deletedIds: string[] = []): SyncState {
+  const tomb = new Set(deletedIds);
+  const byId = new Map<string, Company>();
+  for (const c of local.companies) if (!tomb.has(c.id)) byId.set(c.id, c);
+  for (const c of cloud.companies) {
+    if (tomb.has(c.id)) continue;
+    const cur = byId.get(c.id);
+    if (!cur || (c.night ?? 0) >= (cur.night ?? 0)) byId.set(c.id, c); // more progress wins; tie → cloud
+  }
+  return {
+    companies: [...byId.values()],
+    activities: mergeById(local.activities, cloud.activities),
+    approvals: mergeById(local.approvals, cloud.approvals),
+    operate: { ...local.operate, ...cloud.operate },
+    experiments: mergeById(local.experiments, cloud.experiments),
+  };
+}
+
 export function isEmptyOps(o: SyncOps): boolean {
   return (
     o.createCompanies.length === 0 &&

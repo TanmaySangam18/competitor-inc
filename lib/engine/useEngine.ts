@@ -11,7 +11,7 @@ import { canRun, recordRun, FREE_CAPS } from "./usage";
 import { markTrialStart } from "./trial";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { useAuth } from "./useAuth";
-import { useDbSync, type SyncState } from "./sync";
+import { useDbSync, mergeSyncState, type SyncState } from "./sync";
 
 const KEY = "cofounder:v2";
 const LEGACY_KEY = "cofounder:v1";
@@ -151,16 +151,18 @@ export function useEngine() {
     // company the user deleted — filter out tombstoned ids so a stale cloud row can't resurrect it.
     // Preserve the active selection, falling back to the first (non-deleted) cloud company.
     setStore((prev) => {
-      const tomb = new Set(prev.deletedIds);
-      const companies = s.companies.filter((c) => !tomb.has(c.id));
+      // Data-preserving reconcile (R5): UNION local ∪ cloud (never overwrite), excluding tombstones — so a
+      // company created on this device but not yet pushed can't be destroyed by a cloud snapshot that lacks
+      // it. The write-through then syncs any local-only rows up. See sync.mergeSyncState.
+      const merged = mergeSyncState(
+        { companies: prev.companies, activities: prev.activities, approvals: prev.approvals, operate: prev.operate, experiments: prev.experiments },
+        s,
+        prev.deletedIds,
+      );
       return {
         ...prev,
-        companies,
-        activities: s.activities,
-        approvals: s.approvals,
-        operate: { ...prev.operate, ...s.operate },
-        experiments: { ...prev.experiments, ...s.experiments },
-        activeId: prev.activeId ?? companies[0]?.id ?? null,
+        ...merged,
+        activeId: prev.activeId ?? merged.companies[0]?.id ?? null,
       };
     });
   }, []);
