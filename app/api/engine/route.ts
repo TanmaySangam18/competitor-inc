@@ -6,6 +6,7 @@ import { runSupervisedGoal } from "@/lib/engine/orchestrator";
 import { githubBuildExecutor } from "@/lib/engine/build-github";
 import { openhandsBuildExecutor } from "@/lib/engine/openhands";
 import { aiderBuildExecutor } from "@/lib/engine/aider-build";
+import { fullstackBuildExecutor } from "@/lib/engine/fullstack-build";
 import { checkUserLimit } from "@/lib/engine/user-limits";
 import type { ExecuteFn } from "@/lib/engine/supervisor";
 import { capabilities } from "@/lib/engine/execution";
@@ -232,6 +233,15 @@ export async function POST(req: Request) {
         if (oh) {
           execute = oh;
           mode = "openhands";
+        }
+        // FULL-STACK (Next.js + API routes → Vercel) via free Actions + Aider. Real backend, not static.
+        // Flag-gated (FULLSTACK_BUILDS) + fail-soft; see docs/plans/fullstack-builds.md.
+        if (!execute) {
+          const fs = fullstackBuildExecutor(conn);
+          if (fs) {
+            execute = fs;
+            mode = "fullstack-actions";
+          }
         }
         if (!execute && process.env.FREE_BUILDS === "1") {
           const fa = aiderBuildExecutor(conn);

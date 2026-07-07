@@ -1,0 +1,76 @@
+import { describe, it, expect } from "vitest";
+import {
+  dispatchFullstackBuild,
+  buildFullstackWorkflowYaml,
+  fullstackPromptFile,
+  fullstackConfigured,
+  fullstackBuildExecutor,
+} from "./fullstack-build";
+import type { FetchLike } from "./aider-build";
+
+// Fake GitHub API that records calls + returns canned responses — the whole dispatch sequence is verified
+// with zero network (mirrors aider-build.test.ts).
+function fakeGitHub(overrides: Record<string, { ok: boolean; status: number; body?: unknown }> = {}) {
+  const calls: { url: string; method?: string; body?: string }[] = [];
+  const fetchImpl: FetchLike = async (url, init) => {
+    calls.push({ url, method: init?.method, body: init?.body });
+    const hit = Object.keys(overrides).find((k) => url.includes(k));
+    if (hit) {
+      const r = overrides[hit];
+      return { ok: r.ok, status: r.status, json: async () => r.body ?? {} };
+    }
+    if (url.endsWith("/user/repos")) {
+      return { ok: true, status: 201, json: async () => ({ full_name: "octocat/tutor-app-abcde", html_url: "https://github.com/octocat/tutor-app-abcde" }) };
+    }
+    return { ok: true, status: 200, json: async () => ({}) };
+  };
+  return { fetchImpl, calls };
+}
+
+describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)", () => {
+  it("runs the full sequence and returns the repo url (honest 'building' artifact — never a guessed live URL)", async () => {
+    const gh = fakeGitHub();
+    const out = await dispatchFullstackBuild({ goal: "a tutoring marketplace", token: "t", fetchImpl: gh.fetchImpl });
+    expect(out).not.toBeNull();
+    expect(out!.url).toBe("https://github.com/octocat/tutor-app-abcde");
+    expect(out!.repo).toBe("octocat/tutor-app-abcde");
+    const urls = gh.calls.map((c) => c.url);
+    expect(urls.some((u) => u.endsWith("/user/repos"))).toBe(true);
+    expect(urls.some((u) => u.includes("/contents/") && u.includes("build-fullstack.yml"))).toBe(true);
+    expect(urls.some((u) => u.includes("/contents/") && u.includes("PROMPT.md"))).toBe(true);
+    expect(urls.some((u) => u.includes("/actions/workflows/build-fullstack.yml/dispatches"))).toBe(true);
+  });
+
+  it("workflow scaffolds Next.js + deploys to Vercel (real backend, not static Pages)", () => {
+    const yaml = buildFullstackWorkflowYaml();
+    expect(yaml).toMatch(/create-next-app/);
+    expect(yaml).toMatch(/vercel deploy --prod/);
+    expect(yaml).toMatch(/aider .*--message-file \.\.\/PROMPT\.md/);
+    expect(yaml).toMatch(/secrets\.LLM_API_KEY/);
+    expect(yaml).toMatch(/secrets\.VERCEL_TOKEN/);
+  });
+
+  it("prompt asks for a REAL backend API route + persistence (not static)", () => {
+    const p = fullstackPromptFile("a tutoring marketplace");
+    expect(p).toMatch(/app\/api\/items\/route\.ts/);
+    expect(p).toMatch(/Supabase|in-memory/);
+    expect(p).toMatch(/next build/);
+  });
+
+  it("returns null when committing the workflow 403s (token lacks `workflow` scope) — caller falls back", async () => {
+    const gh = fakeGitHub({ "build-fullstack.yml": { ok: false, status: 403 } });
+    const out = await dispatchFullstackBuild({ goal: "x", token: "t", fetchImpl: gh.fetchImpl });
+    expect(out).toBeNull();
+  });
+
+  it("returns null when repo creation fails", async () => {
+    const gh = fakeGitHub({ "/user/repos": { ok: false, status: 401 } });
+    expect(await dispatchFullstackBuild({ goal: "x", token: "t", fetchImpl: gh.fetchImpl })).toBeNull();
+  });
+
+  it("is inert when the FULLSTACK_BUILDS flag is off (default) — no executor, not configured", () => {
+    // flag is unset in the test env → the path stays off and the caller uses the static build
+    expect(fullstackConfigured({ githubToken: "ghp_x" } as never)).toBe(false);
+    expect(fullstackBuildExecutor({ githubToken: "ghp_x" } as never)).toBeNull();
+  });
+});
