@@ -190,6 +190,49 @@ export function useAuthoritativeSync(p: UseAuthoritativeSyncParams): Authoritati
       });
   }, [enabled, hydrated, p.companies, p.activities, p.approvals, p.operate, p.experiments]);
 
+  // Realtime: cron (service role) / multi-device changes to THIS user's rows arrive live. Subscribe with the
+  // authed browser client — delivery is RLS-scoped, so only the user's own rows stream in. On any change we
+  // debounce-reload the full state and overlay via mergeSyncState (union-by-id, higher-night wins), which is
+  // idempotent — so our own write-echoes are harmless no-ops and there's no feedback loop. A full reload
+  // (rather than per-row payload mapping) is deliberate: simpler + correct at P0/P1 scale (one user, few
+  // companies); per-row streaming is a later optimization. Child tables (activities/approvals/…) can't filter
+  // by user_id, so we subscribe unfiltered and let RLS scope delivery.
+  useEffect(() => {
+    if (!enabled || !ready) return;
+    const sb = getBrowserSupabase();
+    const uid = uidRef.current;
+    if (!sb || !uid) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const reload = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(async () => {
+        try {
+          const fresh = await loadFromDb(sb, uid);
+          if (cancelled) return;
+          syncedRef.current = fresh;
+          overlayRef.current(fresh);
+        } catch {
+          /* transient — stay on current state, next event retries */
+        }
+      }, 500);
+    };
+    const channel = sb
+      .channel(`own:${uid}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "companies", filter: `user_id=eq.${uid}` }, reload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "activities" }, reload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "approvals" }, reload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "rocks" }, reload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "issues" }, reload)
+      .on("postgres_changes", { event: "*", schema: "public", table: "growth_experiments" }, reload)
+      .subscribe();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      sb.removeChannel(channel);
+    };
+  }, [enabled, ready]);
+
   // Resolves when the write-through cycle triggered by the caller's preceding state change has persisted (or
   // rejects on failure). Callers MUST mutate state before awaiting flush (so a write-through cycle fires).
   const flush = useCallback(
