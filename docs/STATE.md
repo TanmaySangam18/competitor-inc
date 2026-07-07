@@ -132,6 +132,16 @@ correctness/reliability/safety over scale (per the Final Objective), shipped:
 - **State now:** 566 tests green, build clean, smoke + secret-scan pass, deployed. **Risks R4+R5 closed;
   R3 partial; R1/R6 remain founder-gated.** Scale infra (Phase 1+) intentionally NOT built.
 
+### 5e · Autonomous CTO mode + locked invariants (2026-07-07)
+- **Working mode:** CLAUDE.md "How to work" now encodes **Autonomous CTO execution** — decide + build,
+  stop only at the defined conditions (vision change / legal / real money / irreversible / undiscoverable /
+  Gate 1-2). Future sessions won't revert to asking on routine technical choices.
+- **Secret scanner is now itself tested:** patterns extracted to `scripts/secret-patterns.mjs` (shared by
+  the deploy gate + tests). Proven to catch planted key-shaped secrets and ignore prose/env-var names.
+- **Mission-invariants contract:** `lib/engine/mission-invariants.test.ts` locks the non-negotiables in one
+  place — Gate-2 money cap ($0 default blocks all spend), no broken/"coming soon" artifact ships, company
+  isolation / no-loss reconcile, honesty ($0 drafted-shift costs), secret detection works. **573 tests green.**
+
 ---
 
 ## 6 · Open risks / unknowns to resolve
