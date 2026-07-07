@@ -107,3 +107,25 @@ Every dead-control flag was traced to source and disproven:
 **P4 — Housekeeping:** delete the temp `_qa-*.mjs` scripts (and decide keep/remove `playwright`).
 
 **Recommendation:** approve **P1** (the real gap — everything else is polish). I'll hold all changes until you say go.
+
+---
+
+## Resolution — P1–P4 executed (2026-07-07, approved "build it all")
+
+- **P1 — operating-view audit: DONE, result CLEAN.** Drove the operating dashboard (via "load a demo
+  company") + a reusable script (`scripts/qa-ui-audit.mjs`, `npm run qa:ui`). All surfaces render — **CrewBox,
+  SpecialistCrew, Glass Box, Approval Inbox** (this also verified the earlier crew-box layout change) — every
+  tab (Growth/History/Chat/Brain/Operate) changes content, crew chat input works, 7 approval controls seed.
+  No uncaught exceptions. The recurring "404 on `/` and `/dashboard`" was **confirmed a dev-only transient** —
+  zero 4xx on a proper `load` (`waitUntil:"load"`), so **not a real defect**. The only flags were idempotent
+  false-positives (clicking the already-active "Operations" tab). *Local caveat remains: DB-backed form
+  submits + OAuth still need a Supabase-configured preview for a true E2E; the UI/controls are verified.*
+- **P2 — DONE.** Landing CTA now `disabled` + shows a "Type your idea first" hint on an empty field
+  (`app/page.tsx`) — no more silent no-op; matches `/join`'s validation feel.
+- **P3 — DONE.** `middleware.ts` → `proxy.ts` (Next 16 convention; function `proxy`, matcher unchanged). Build
+  now reports `ƒ Proxy (Middleware)` and the deprecation warning is gone.
+- **P4 — DONE.** Deleted the throwaway probes (`_qa-audit.mjs`, `_qa-verify.mjs`); kept `playwright` + promoted
+  the audit to a permanent `scripts/qa-ui-audit.mjs` wired as `npm run qa:ui` for repeatable UI checks.
+
+**Net after fixes:** 0 blockers, 0 confirmed dead controls, 590 tests green, build clean. UI layer verified
+solid across the marketing/auth/legal pages AND the operating view.

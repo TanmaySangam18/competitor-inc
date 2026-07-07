@@ -163,8 +163,9 @@ export default function LandingPage() {
             />
             <button
               onClick={() => runDemo()}
-              disabled={running}
-              className="hover-lift shrink-0 rounded-xl bg-text px-4 py-2.5 text-sm font-medium text-bg transition hover:opacity-90 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none"
+              disabled={running || !idea.trim()}
+              title={!idea.trim() ? "Type your idea first" : undefined}
+              className="hover-lift shrink-0 rounded-xl bg-text px-4 py-2.5 text-sm font-medium text-bg transition hover:opacity-90 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none disabled:hover:opacity-50"
             >
               {running ? "Running…" : "Run validation"}
             </button>

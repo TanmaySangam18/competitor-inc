@@ -13,6 +13,7 @@
     "verify": "tsc --noEmit && vitest run && next build",
     "qa": "tsc --noEmit && vitest run && next build && node scripts/smoke.mjs",
     "scan": "node scripts/secret-scan.mjs",
+    "qa:ui": "node scripts/qa-ui-audit.mjs",
     "ship": "bash scripts/ship-prod.sh"
   },
   "dependencies": {
@@ -37,6 +38,7 @@
     "eslint": "^9",
     "eslint-config-next": "^16.2.9",
     "fast-check": "^4.8.0",
+    "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.8"
