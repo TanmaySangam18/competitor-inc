@@ -117,6 +117,21 @@ So the code work below makes Company Zero's loop **reliable and honest** so it c
 2. Paste **`supabase/migrations/LAUNCH_BUNDLE_0021-0022.sql`** (incl `0023`) in Supabase (R6).
 3. **Work authorization (OPT/EAD)** — the only thing blocking the Phase 0 DoD's "≥1 real payment" (R1).
 
+### 5d · Reliability + safety hardening (2026-07-07, continued autonomously)
+Vision installed as canonical (`docs/VISION.md`, cross-linked in CLAUDE.md/MISSION.md). Then, prioritizing
+correctness/reliability/safety over scale (per the Final Objective), shipped:
+- **Automated secret detection on every deploy** — `scripts/secret-scan.mjs` is step 0 of `ship-prod.sh`
+  (blocks deploy on a hit; prints file+pattern, never the value). `npm run scan`. Makes VISION §Security's
+  "every deploy includes secret detection" real, not manual.
+- **Build self-repair loop** — `generateSiteFiles` now does generate → QA-review → on failure, retry ONCE
+  with the reviewer's exact issues fed back → accept first passing build, else credible fallback (≤2
+  attempts, cost-bounded). Turns single-pass builds into *reliable* ones. **Closes R4.**
+- **R5 CLOSED — data-preserving reconcile** — `sync.mergeSyncState` unions local ∪ cloud by id (excludes
+  tombstones; more-progress wins; lists merged+deduped), wired into `overlayFromDb`. A locally-created,
+  not-yet-synced company can no longer be destroyed by a cloud snapshot. +6 tests.
+- **State now:** 566 tests green, build clean, smoke + secret-scan pass, deployed. **Risks R4+R5 closed;
+  R3 partial; R1/R6 remain founder-gated.** Scale infra (Phase 1+) intentionally NOT built.
+
 ---
 
 ## 6 · Open risks / unknowns to resolve
