@@ -76,29 +76,77 @@ export interface BuildSpec {
 }
 // A real, single-file landing page for the idea — so the build ships an actual OPENABLE website, not a
 // bare repo. Inline CSS, no build step, works as a static GitHub Pages site.
+// Turn a build PROMPT into a clean product tagline: take the first sentence, strip "build me a / I want"
+// lead-ins, so the page reads like a product — never the raw prompt pasted in.
+function productBlurb(idea: string): string {
+  const first = idea.trim().split(/(?<=[.!?])\s+/)[0] || idea.trim();
+  let s = first
+    .replace(/^\s*(please\s+)?(build|make|create|develop|design)\s+(me\s+)?(a|an|the)?\s*/i, "")
+    .replace(/^\s*(i\s+want|i\s+need|i'?d\s+like|i\s+would\s+like)\s+(to\s+have\s+|to\s+)?(a|an|the)?\s*/i, "");
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  return s.slice(0, 160);
+}
+
+// The deterministic fallback when the model can't author a real app (no capable build model connected).
+// NOT a "coming soon" page and NOT the raw prompt dumped — a credible early product site (hero, what-it-
+// does, why, how-it-works, CTA). Real FUNCTIONAL apps come from generateSiteFiles("app") when a capable
+// build model (ANTHROPIC_API_KEY / BYOK) is connected.
 export function siteHtml(name: string, idea: string): string {
   const n = escapeHtml(name);
-  const i = escapeHtml(idea);
+  const blurb = escapeHtml(productBlurb(idea));
+  const desc = escapeHtml(idea.trim().slice(0, 320));
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${n}</title><meta name="description" content="${i}">
+<title>${n}</title><meta name="description" content="${blurb}">
 <style>
-*{box-sizing:border-box;margin:0}body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#faf6ee;color:#1c1917;display:grid;place-items:center;min-height:100vh;padding:24px;line-height:1.5}
-main{max-width:620px;text-align:center}.tag{display:inline-block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:#ea580c;border:1px solid #ea580c33;border-radius:999px;padding:6px 12px;margin-bottom:24px}
-h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:800;letter-spacing:-.02em;line-height:1.05}p.idea{font-size:1.15rem;color:#57534e;margin-top:16px}
-form{margin-top:32px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}input{flex:1;min-width:240px;padding:14px 16px;border:1px solid #00000022;border-radius:12px;font-size:15px;background:#fff}
-button{padding:14px 22px;border:0;border-radius:12px;background:#ea580c;color:#fff;font-weight:600;font-size:15px;cursor:pointer}footer{margin-top:48px;font-size:13px;color:#a8a29e}footer a{color:#78716c}
+*{box-sizing:border-box;margin:0}html{scroll-behavior:smooth}
+body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#faf6ee;color:#1c1917;line-height:1.6}
+.wrap{max-width:900px;margin:0 auto;padding:0 24px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:20px 0}
+nav .brand{font-weight:800;font-size:18px;letter-spacing:-.02em}
+.btn{background:#ea580c;color:#fff;text-decoration:none;padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;display:inline-block}
+header{padding:64px 0 52px;text-align:center}
+header h1{font-size:clamp(2.2rem,6vw,3.6rem);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+header p{font-size:1.2rem;color:#57534e;margin:18px auto 0;max-width:640px}
+.hero-cta{margin-top:30px}
+section{padding:38px 0;border-top:1px solid #00000010}
+h2{font-size:1.5rem;font-weight:700;letter-spacing:-.01em;margin-bottom:10px}
+.lead{color:#57534e;max-width:640px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:22px}
+.card{background:#fff;border:1px solid #00000012;border-radius:16px;padding:20px}
+.card h3{font-size:1rem;margin-bottom:6px}.card p{color:#57534e;font-size:.95rem}
+.steps{margin-top:20px;display:grid;gap:14px}.step{display:flex;gap:14px;align-items:flex-start}
+.step .num{flex:none;width:30px;height:30px;border-radius:50%;background:#ea580c;color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
+form{margin-top:20px;display:flex;gap:8px;flex-wrap:wrap}
+input{flex:1;min-width:240px;padding:14px 16px;border:1px solid #00000022;border-radius:12px;font-size:15px;background:#fff}
+button{padding:14px 22px;border:0;border-radius:12px;background:#ea580c;color:#fff;font-weight:600;font-size:15px;cursor:pointer}
+footer{padding:44px 0;text-align:center;font-size:13px;color:#a8a29e}footer a{color:#78716c}
 </style></head>
-<body><main>
-<span class="tag">Coming soon</span>
+<body><div class="wrap">
+<nav><span class="brand">${n}</span><a class="btn" href="#get-started">Get started</a></nav>
+<header>
 <h1>${n}</h1>
-<p class="idea">${i}</p>
-<form onsubmit="event.preventDefault();this.outerHTML='<p style=&quot;margin-top:32px;color:#16a34a;font-weight:600&quot;>Thanks — you are on the list.</p>'">
+<p>${blurb}</p>
+<div class="hero-cta"><a class="btn" href="#get-started">Get early access</a></div>
+</header>
+<section><h2>What it does</h2><p class="lead">${desc}</p></section>
+<section><h2>Why ${n}</h2><div class="grid">
+<div class="card"><h3>Built around your idea</h3><p>Shaped to exactly what you described — not a generic template.</p></div>
+<div class="card"><h3>Yours to own</h3><p>Your product, your customers, your data. You stay in control the whole way.</p></div>
+<div class="card"><h3>Ships fast</h3><p>Start with a real, working first version and improve from real usage.</p></div>
+</div></section>
+<section><h2>How it works</h2><div class="steps">
+<div class="step"><span class="num">1</span><div><strong>Tell us what you want.</strong> What you described is the spec.</div></div>
+<div class="step"><span class="num">2</span><div><strong>The crew builds &amp; validates.</strong> A working first version plus an honest read on demand.</div></div>
+<div class="step"><span class="num">3</span><div><strong>You launch &amp; grow.</strong> Get it in front of real people and improve from what they do.</div></div>
+</div></section>
+<section id="get-started"><h2>Get early access</h2><p class="lead">Be first to try ${n}.</p>
+<form onsubmit="event.preventDefault();this.outerHTML='<p style=&quot;margin-top:16px;color:#16a34a;font-weight:600&quot;>Thanks — you are on the list.</p>'">
 <input type="email" placeholder="you@email.com" aria-label="Email" required>
-<button type="submit">Get early access</button>
-</form>
-<footer>Validated &amp; shipped by <a href="https://competitor-inc-zeta.vercel.app">competitor.inc</a></footer>
-</main></body></html>`;
+<button type="submit">Notify me</button>
+</form></section>
+<footer>Shipped by <a href="https://competitor-inc-zeta.vercel.app">competitor.inc</a></footer>
+</div></body></html>`;
 }
 
 // `isPublic` defaults true so the resulting site/repo URL is publicly resolvable — which is what makes the
@@ -340,8 +388,10 @@ export async function runAction(action: string, p: ActionPayload): Promise<ExecO
   const c = p.connections;
   switch (action) {
     case "build": {
-      // Forge v2: the model AUTHORS a real multi-file site; any failure falls back to the safe template.
-      const generated = await generateSiteFiles(p.company.name, p.company.idea).catch(() => null);
+      // Forge v2: the model AUTHORS a real, FUNCTIONAL client-side app ("app" mode) — working views +
+      // localStorage, not just a landing page. Needs a capable build model (ANTHROPIC_API_KEY / BYOK);
+      // weaker/free models can't emit valid app JSON, so any failure falls back to a credible product site.
+      const generated = await generateSiteFiles(p.company.name, p.company.idea, undefined, "app").catch(() => null);
       const files = generated ?? { "index.html": siteHtml(p.company.name, p.company.idea) };
       // Per-tenant hosting contract: namespace the repo to this tenant so two founders building the same
       // idea can never collide (and idempotent re-runs hit the same repo). Falls back to the bare slug
