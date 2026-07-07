@@ -162,6 +162,30 @@ Founder set `BUILD_API_KEY` (Gemini). Verified end-to-end from here:
   the Vercel *sensitive-var* gotcha (`env pull` returns keys empty), so verification was done against prod
   via the probes above.
 
+### 5h · Server-authoritative state migration — Slices 0–2 shipped (flag-gated OFF) 2026-07-07
+Founder-approved plan (`~/.claude/plans/temporal-honking-cosmos.md`): make Supabase the source of truth for
+signed-in users so a company runs while the laptop is off. Audit found: browser (`localStorage:cofounder:v2`)
+is authoritative, DB a best-effort mirror; the cron IS real (server-side, `runShift` needs only DB state) but
+only sees companies that synced to the DB, and it only PROPOSES (founder approves/executes). Flag
+`NEXT_PUBLIC_SERVER_AUTHORITATIVE` (default OFF = today's behavior exactly; clean rollback).
+- **Slice 0 (done, pushed):** fixed `useEngine()` mounted TWICE on the dashboard (page + CrewBox) → one
+  `EngineProvider`/`useEngineContext` (`lib/engine/EngineContext.tsx`); `lib/engine/flags.ts`. Browser-verified.
+- **Slice 1 (done, pushed, browser-verified):** `lib/engine/authoritative.ts` — `shouldUploadMigrate`,
+  `uploadLocalToDb` (one-time NO-LOSS upload reusing `diffStore`+`applyOps`), `reconcileRealtime`,
+  `applyOptimisticThenPersist`, and `useAuthoritativeSync` (DB-as-truth hydrate + awaited write-through with
+  rollback + surfaced `syncError` + `flush()`). `useEngine` runs both sync engines mutually-exclusively;
+  guests always local. **`decideBuild` now CONFIRMS the operating flip persisted before the crew starts** (the
+  motivating fix — else cron never sees the company) and rolls back on failure.
+- **Slice 2 (done, pushed):** Realtime subscription in `useAuthoritativeSync` (authed client → RLS-scoped) +
+  `supabase/migrations/0024_realtime.sql` (adds 6 tables to `supabase_realtime`, idempotent; REPLICA IDENTITY
+  FULL on child tables). Cron/multi-device changes appear live; idempotent reconcile (no echo loop).
+- **586 tests green; flag-off browser-verified (dashboard + CrewBox render, no errors).**
+- **Slice 3 (NOT done — gated):** unify `/api/engine` shift persistence + flip flag default-ON + remove old
+  diff-sync. **Do NOT flip the source-of-truth for real users unverified.** Founder-gated to unlock:
+  (1) paste `0024_realtime.sql` on prod Supabase; (2) enable `NEXT_PUBLIC_SERVER_AUTHORITATIVE=1` on a
+  preview/staging with real auth; (3) I verify authoritative reads/writes + no-loss upload + realtime E2E
+  against the real DB; THEN flip default-on + delete the old path.
+
 ### 5f · Phase-0 reliability arc — status
 The Phase-0 control plane is now hardened across: secret hygiene (scan on every deploy), build QA +
 self-repair, verify-before-done, data-loss-proof reconcile, money capped below the prompt, and a locked
