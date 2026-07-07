@@ -34,7 +34,7 @@ export function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }
       )}
       {kind === "spend" && (
         <p className="mt-2 rounded-lg border border-border bg-bg/50 px-2.5 py-1.5 text-[11px] leading-relaxed text-muted-2">
-          Approving records your decision — <span className="font-medium text-muted">nothing is charged</span>. Real spend runs on your <em>own</em> connected account with funds you add; until you connect one, this stays a plan.
+          Approving spends <span className="font-medium text-muted">trial credits</span> (play-money), never real dollars. It becomes real spend on your <em>own</em> connected account only when you open the payment gates.
         </p>
       )}
       <div className="mt-3 flex gap-2">

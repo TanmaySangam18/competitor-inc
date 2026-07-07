@@ -107,6 +107,10 @@ export interface Ledger {
   credited: number;
   tasksDone: number;
   tasksFailed: number;
+  // Trial credits spent this trial (play-money, NOT dollars). Approving a spend action deducts credits
+  // so the founder can rehearse the governed-spend loop; these map 1:1 to real dollars only when the
+  // payment gates open. Optional (legacy companies default to 0).
+  creditsSpent?: number;
 }
 
 // The Revenue Loop's scoreboard (Block R): ONE founder-chosen outcome metric every shift is judged

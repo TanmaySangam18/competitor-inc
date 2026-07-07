@@ -607,7 +607,7 @@ export function useEngine() {
             : item.kind === "outreach"
             ? { kind: "metric", value: "approved — drafted, queued to send" }
             : item.kind === "spend"
-            ? { kind: "metric", value: "approved — queued to your ad account · nothing spent until you connect one" }
+            ? { kind: "metric", value: `approved — ${item.amount ?? 0} trial credits spent (become real $ when you open payments)` }
             : { kind: "metric", value: "approved" },
       };
       return {
@@ -616,7 +616,7 @@ export function useEngine() {
         activities: { ...s.activities, [active.id]: [newActivity, ...(s.activities[active.id] ?? [])] },
         companies: s.companies.map((c) =>
           c.id === active.id
-            ? { ...c, ledger: { ...c.ledger, spent: round(c.ledger.spent + charged), tasksDone: c.ledger.tasksDone + 1 } }
+            ? { ...c, ledger: { ...c.ledger, spent: round(c.ledger.spent + charged), creditsSpent: round((c.ledger.creditsSpent ?? 0) + (item.kind === "spend" ? (item.amount ?? 0) : 0)), tasksDone: c.ledger.tasksDone + 1 } }
             : c
         ),
       };

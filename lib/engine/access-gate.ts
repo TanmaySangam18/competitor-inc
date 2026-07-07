@@ -14,6 +14,12 @@
 export const TRIAL_DAYS = 14;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// Trial credits: a play-money budget for the 14-day trial so the founder can rehearse the governed-spend
+// loop (approving a spend deducts credits, not dollars). 1 credit ≈ $1 — the SAME number becomes a real
+// dollar only when the payment gates open. Pure helpers; display-only.
+export const TRIAL_CREDITS = 1000;
+export const creditsLeft = (spent: number | null | undefined): number => Math.max(0, TRIAL_CREDITS - Math.round(spent ?? 0));
+
 export function trialActive(trialStartedAt: number | null | undefined, now: number = Date.now(), days: number = TRIAL_DAYS): boolean {
   if (!trialStartedAt) return false;
   return now - trialStartedAt < days * DAY_MS;

@@ -72,7 +72,7 @@ import { CrewBox } from "@/components/CrewBox";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { isFounderEmail } from "@/lib/engine/founders";
-import { continueLocked, previewedCount, waitlistGateOn, premiumUnlocked, trialActive, trialDaysLeft, companyCreateLocked } from "@/lib/engine/access-gate";
+import { continueLocked, previewedCount, waitlistGateOn, premiumUnlocked, trialActive, trialDaysLeft, companyCreateLocked, TRIAL_CREDITS, TRIAL_DAYS, creditsLeft } from "@/lib/engine/access-gate";
 import { getTrialStart } from "@/lib/engine/trial";
 import { repoFromUrl } from "@/lib/engine/hosting";
 import LivePreview from "@/components/dashboard/LivePreview";
@@ -593,10 +593,10 @@ function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r:
   const stats = [
     { label: "Nights run", val: c.night },
     { label: "Tasks done", val: c.ledger.tasksDone },
-    // No real money moves in this build (drafted shifts cost $0; real spend would go through an approved
-    // wallet txn). Show $0 honestly — never a fabricated total — even for companies with a legacy ledger.
-    { label: "Net spend", val: "$0.00" },
-    { label: "Credited back", val: "$0.00" },
+    // No real money moves in this build. Instead of a fabricated dollar total, the trial gives play-money
+    // CREDITS: approving a spend deducts credits (not $). They become real dollars only when payments open.
+    { label: "Trial credits left", val: `${creditsLeft(c.ledger.creditsSpent)}` },
+    { label: "Credits used", val: `${Math.round(c.ledger.creditsSpent ?? 0)} / ${TRIAL_CREDITS}` },
   ];
   const tabs: { id: Tab; label: string; icon: typeof ActivityIcon }[] = [
     { id: "operations", label: "Operations", icon: ActivityIcon },
@@ -712,6 +712,9 @@ function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r:
           <Stat key={s.label} label={s.label} val={s.val} />
         ))}
       </div>
+      <p className="mt-2 text-[11px] text-muted-2">
+        Trial credits are play-money for your {TRIAL_DAYS}-day trial — approving a spend deducts credits, never dollars. They become <span className="text-muted">actual dollars only when you open the payment gates</span>. You&apos;re never charged today.
+      </p>
 
       {/* Anti-crowding (Hick's Law): autonomous marketing is advanced — collapsed by default so a
           first-time founder isn't hit with it; one tap reveals it. */}
@@ -902,6 +905,9 @@ function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lock
             <h2 className="flex items-center gap-2 text-sm font-semibold text-coral">
               <Sparkles size={15} /> Approval Inbox · {r.pendingApprovals.length}
             </h2>
+            <p className="mt-1 text-[11px] text-muted-2">
+              Your yes/no keeps you in control — <span className="text-muted">you&apos;re never charged</span>. Spend approvals use trial credits, and nothing real happens until you connect your own account.
+            </p>
             <div className="mt-3 max-h-[44vh] space-y-3 overflow-y-auto pr-1">
               {r.pendingApprovals.map((ap) => (
                 <ApprovalCard
