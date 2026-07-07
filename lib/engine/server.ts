@@ -251,6 +251,20 @@ function modelAvailable(byok?: ByokConfig): boolean {
   return !!byok?.apiKey || realModelConfigured();
 }
 
+// Diagnostic for the BUILD step specifically: is BUILD_API_KEY wired, and does the build model actually
+// answer? Fires a ~5-token ping. Returns the model NAME (not the key) so a misconfigured build model is
+// pinpointable ("model 401" / "404: decommissioned"). Never leaks the key.
+export async function probeBuildModel(): Promise<{ ok: boolean; configured: boolean; model?: string; error?: string }> {
+  const cfg = buildModelConfig();
+  if (!cfg) return { ok: false, configured: false, error: "BUILD_API_KEY not set — builds use the fallback site" };
+  try {
+    const out = await callOpenAICompat(cfg.baseUrl, cfg.key, cfg.model, "You are a health check. Reply with the single word: OK.", "ping", false, 5);
+    return { ok: !!out.trim(), configured: true, model: cfg.model, error: out.trim() ? undefined : "empty completion" };
+  } catch (e) {
+    return { ok: false, configured: true, model: cfg.model, error: (e instanceof Error ? e.message : "unknown").slice(0, 220) };
+  }
+}
+
 // Routes to the user's BYOK provider first (their key, their bill — our marginal cost ~$0),
 // then a server env model, else throws so callers fall back to the simulated engine.
 async function callModel(system: string, user: string, byok?: ByokConfig, model?: string, maxTokens = 1500): Promise<string> {

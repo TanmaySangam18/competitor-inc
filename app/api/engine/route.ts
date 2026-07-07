@@ -1,5 +1,5 @@
 import { serviceClient } from "@/lib/engine/service";
-import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel, modelForAgent } from "@/lib/engine/server";
+import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, modelForAgent } from "@/lib/engine/server";
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
 import { githubBuildExecutor } from "@/lib/engine/build-github";
 import { openhandsBuildExecutor } from "@/lib/engine/openhands";
@@ -29,6 +29,12 @@ export async function GET(req: Request) {
       return Response.json({ error: "rate limited — wait a minute and retry" }, { status: 429 });
     }
     return Response.json(await probeModel());
+  }
+  if (url.searchParams.get("probe") === "build") {
+    if (process.env.VERCEL && rateLimited(clientIp(req))) {
+      return Response.json({ error: "rate limited — wait a minute and retry" }, { status: 429 });
+    }
+    return Response.json(await probeBuildModel());
   }
   return Response.json({
     ok: true,
