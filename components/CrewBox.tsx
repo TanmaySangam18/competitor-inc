@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, MessagesSquare, Send } from "lucide-react";
 import { useEngineContext } from "@/lib/engine/EngineContext";
 import { DELEGATION, toneHex } from "@/lib/engine/delegation";
+import { PERSONA } from "@/lib/engine/specialists";
 import { pickExchange, type BanterCtx } from "@/lib/engine/banter";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
 import { getByok } from "@/lib/engine/config";
@@ -115,7 +116,7 @@ export function CrewBox() {
     setLines((l) => [...l, { role: "you" as const, text }, { role: target, text: "…" }].slice(-24));
     setSpeaker(target);
     const a = AGENTS[target];
-    const soul = `You are ${a.name}, the ${a.label} agent at competitor.inc working on ${co.name} — "${co.idea}". Playbook: ${a.playbook}. Reply concise, specific, in-character; anything consequential you DRAFT and queue for approval (say so), never claim you shipped it.`;
+    const soul = `You are ${a.name}, the ${a.label} agent at competitor.inc working on ${co.name} — "${co.idea}". Playbook: ${a.playbook}. Style: ${PERSONA[target]} Reply concise, specific, in-character; anything consequential you DRAFT and queue for approval (say so), never claim you shipped it.`;
     try {
       const res = await fetch("/api/engine", {
         method: "POST",

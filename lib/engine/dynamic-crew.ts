@@ -8,6 +8,7 @@
 
 import { AGENTS, type AgentRole } from "./types";
 import { parseJobs, type JobRole } from "./job-parser";
+import { specialistsForRole } from "./specialists";
 
 /* ── Benchmark Company Detection ────────────────────────────────── */
 
@@ -97,65 +98,6 @@ const SPEND_CAP_BY_ROLE: Record<AgentRole, number> = {
   legal: 50000, // Legal drafts + prepares; never signs — small operating cap
 };
 
-/* ── Sub-Agent Templates ──────────────────────────────────────────── */
-
-interface SubAgentTemplate {
-  name: string;
-  focus: string;
-  parentRole: AgentRole;
-  portion: number; // % of parent's spend cap
-}
-
-const SUB_AGENT_TEMPLATES: SubAgentTemplate[] = [
-  // Manufacturing sub-agents
-  {
-    name: "Supply Chain Agent",
-    focus: "Sourcing, supplier relationships, logistics",
-    parentRole: "manufacturing",
-    portion: 0.6, // 60% of manufacturing budget
-  },
-  {
-    name: "Quality Agent",
-    focus: "Testing, quality assurance, process improvement",
-    parentRole: "manufacturing",
-    portion: 0.4, // 40% of manufacturing budget
-  },
-
-  // Engineering sub-agents
-  {
-    name: "Firmware Engineer",
-    focus: "Embedded systems, motor control, safety-critical code",
-    parentRole: "engineering",
-    portion: 0.5,
-  },
-  {
-    name: "ML/AI Engineer",
-    focus: "Machine learning models, neural networks, inference optimization",
-    parentRole: "engineering",
-    portion: 0.35,
-  },
-  {
-    name: "Infrastructure Engineer",
-    focus: "Cloud architecture, CI/CD, DevOps, monitoring",
-    parentRole: "engineering",
-    portion: 0.15,
-  },
-
-  // Growth sub-agents
-  {
-    name: "Demand Generation Agent",
-    focus: "Paid ads, conversion optimization, funnel analysis",
-    parentRole: "growth",
-    portion: 0.5,
-  },
-  {
-    name: "Content Agent",
-    focus: "Blog, social media, PR, brand narrative",
-    parentRole: "growth",
-    portion: 0.5,
-  },
-];
-
 /* ── Agent Profile Generation ────────────────────────────────────── */
 
 export interface AgentProfile {
@@ -189,14 +131,15 @@ const PLAYBOOK_BY_ROLE: Record<AgentRole, string> = {
     "The Goal / Theory of Constraints (Goldratt) — find the binding constraint, remove it, keep flow reversible",
 };
 
-function generateAgentProfile(jobRole: JobRole, role: AgentRole): AgentProfile {
+function generateAgentProfile(jobRole: JobRole, role: AgentRole, idea: string): AgentProfile {
   const spendCap = SPEND_CAP_BY_ROLE[role];
-  const subAgentTemplates = SUB_AGENT_TEMPLATES.filter((t) => t.parentRole === role);
-
-  const subAgents = subAgentTemplates.map((template) => ({
-    name: template.name,
-    focus: template.focus,
-    spendCap: Math.round(spendCap * template.portion),
+  // Specialists come from the agency-agents-derived catalog (idea-aware): each role fields the specialists
+  // most relevant to THIS idea, splitting the parent's cap evenly. The CEO fields fewer (it coordinates).
+  const picks = specialistsForRole(role, idea, role === "ceo" ? 2 : 3);
+  const subAgents = picks.map((s) => ({
+    name: s.name,
+    focus: s.focus,
+    spendCap: Math.round(spendCap / Math.max(1, picks.length)),
   }));
 
   const cleanedName = jobRole.title
@@ -255,7 +198,7 @@ export function generateCrewFromIdea(
 
   // 5. Generate agent profiles
   const agentProfiles = selectedJobs.map(({ role, job }) =>
-    generateAgentProfile(job, role)
+    generateAgentProfile(job, role, idea)
   );
 
   // 6. Ensure CEO is always first
