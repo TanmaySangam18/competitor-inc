@@ -48,6 +48,8 @@ export default function SellThis() {
       }
       setAttack(data.attack as SalesAttack);
       setSold(t);
+      // Funnel-proof: log the tool run (top of the funnel). Fire-and-forget.
+      fetch("/api/track", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug: "sell", type: "tool", source: "sell-tool" }) }).catch(() => {});
     } catch {
       setErr("Network hiccup — try again.");
     } finally {

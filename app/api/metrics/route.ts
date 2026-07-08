@@ -137,13 +137,15 @@ export async function GET(req: Request) {
   }
 
   try {
-    const [ppu, mrr, wl, wlRef, dt, ds] = await Promise.all([
+    const [ppu, mrr, wl, wlRef, dt, ds, views, toolRuns] = await Promise.all([
       computePpu(sb),
       computeMrr(sb),
       sb.from("waitlist").select("id", { count: "exact", head: true }),
       sb.from("waitlist").select("id", { count: "exact", head: true }).not("ref", "is", null),
       sb.from("demand_tests").select("slug", { count: "exact", head: true }),
       sb.from("demand_signups").select("id", { count: "exact", head: true }),
+      sb.from("events").select("id", { count: "exact", head: true }).eq("type", "view"),
+      sb.from("events").select("id", { count: "exact", head: true }).eq("type", "tool"),
     ]);
     return Response.json({
       ok: true,
@@ -151,6 +153,13 @@ export async function GET(req: Request) {
       ppu,
       mrr, // list-price MRR from active subs
       goal: MRR_GOAL,
+      // THE FUNNEL — the sales-funnel proof: real counts at every step (0 = a real 0). Settled = mrr above.
+      funnel: {
+        visits: views.count ?? 0,
+        toolRuns: toolRuns.count ?? 0, // /sell + /score runs (type="tool")
+        signups: ppu.signedUpUsers,
+        paid: ppu.paidUsers,
+      },
       // Diagnostics — watch, don't chase.
       waitlist: wl.count ?? 0,
       waitlistReferred: wlRef.count ?? 0,

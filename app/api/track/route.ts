@@ -46,12 +46,14 @@ export async function POST(req: Request) {
   // payment webhook alone. Demo events are restricted to OUR first-party pages (reserved slugs) —
   // they measure the attention-first playbook's triggers, never a customer's demand test.
   const isDemoType = type === "demo_start" || type === "demo_verdict" || type === "demo_cta";
-  const isReservedSlug = slug === "home" || slug === "nu";
-  if (type !== "view" && type !== "signup" && !isDemoType) {
-    return Response.json({ ok: false, error: "type must be view|signup|demo_start|demo_verdict|demo_cta" }, { status: 400, headers: CORS });
+  // "tool" = a run of a first-party free tool (/sell, /score) — the top of the funnel-proof.
+  const isToolType = type === "tool";
+  const isReservedSlug = slug === "home" || slug === "nu" || slug === "sell" || slug === "score";
+  if (type !== "view" && type !== "signup" && !isDemoType && !isToolType) {
+    return Response.json({ ok: false, error: "type must be view|signup|tool|demo_*" }, { status: 400, headers: CORS });
   }
-  if (isDemoType && !isReservedSlug) {
-    return Response.json({ ok: false, error: "demo events are first-party only" }, { status: 400, headers: CORS });
+  if ((isDemoType || isToolType) && !isReservedSlug) {
+    return Response.json({ ok: false, error: "demo/tool events are first-party only" }, { status: 400, headers: CORS });
   }
 
   const client = sb();

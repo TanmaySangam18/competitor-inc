@@ -48,6 +48,8 @@ export default function Scorecard() {
       setResult(data.validation as ValidationResult);
       setCrew(generateCrew(t));
       setScoredIdea(t);
+      // Funnel-proof: log the tool run (top of the funnel). Fire-and-forget.
+      fetch("/api/track", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug: "score", type: "tool", source: "score-tool" }) }).catch(() => {});
     } catch {
       setErr("Network hiccup — try again.");
     } finally {

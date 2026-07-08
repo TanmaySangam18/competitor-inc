@@ -30,6 +30,7 @@ interface Metrics {
   ppu?: Ppu;
   mrr?: number;
   goal?: number;
+  funnel?: { visits: number; toolRuns: number; signups: number; paid: number };
   waitlist?: number;
   waitlistReferred?: number;
   demandTests?: number;
@@ -216,6 +217,37 @@ export default function Board() {
             Estimate off list price; settled revenue lives in revenue_events. Never counts toward PPU without a verified outcome.
           </p>
         </div>
+
+        {/* THE FUNNEL — the proof: real count at every step + conversion between. Zero = a real zero. */}
+        {(() => {
+          const f = m?.funnel;
+          const steps = [
+            { label: "Visits", n: f?.visits ?? 0, hint: "landed" },
+            { label: "Tool runs", n: f?.toolRuns ?? 0, hint: "/sell + /score" },
+            { label: "Signups", n: f?.signups ?? 0, hint: "created an account" },
+            { label: "Paid", n: f?.paid ?? 0, hint: "active subscription" },
+            { label: "Settled", n: Math.round(m?.mrr ?? 0), hint: "$ MRR", money: true },
+          ];
+          const conv = (a: number, b: number) => (a > 0 ? `${Math.round((b / a) * 100)}%` : "—");
+          return (
+            <div className="mt-6 rounded-2xl border border-border bg-bg/40 p-5">
+              <div className="text-xs font-semibold uppercase tracking-wide text-text">The funnel · does it convert?</div>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+                {steps.map((s, i) => (
+                  <div key={s.label}>
+                    <div className="text-[11px] uppercase tracking-wide text-muted-2">{s.label}</div>
+                    <div className="mt-1 font-display text-2xl font-bold">{s.money ? "$" : ""}{s.n.toLocaleString()}</div>
+                    <div className="mt-0.5 text-[11px] text-muted-2">{s.hint}</div>
+                    {i > 0 && <div className="mt-1 text-[11px] text-mint">{conv(steps[i - 1].n, s.n)} of prev</div>}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-[11px] text-muted-2">
+                Real counts (0 is a real 0). Fix the widest leak first: pour effort into the step with the lowest conversion.
+              </p>
+            </div>
+          );
+        })()}
 
         {/* Input funnel — the diagnostics beneath the North Star. */}
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
