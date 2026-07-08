@@ -73,7 +73,8 @@ jobs:
         run: npx --yes create-next-app@latest "\${{ github.event.repository.name }}" --ts --app --no-eslint --use-npm --no-tailwind --no-src-dir --import-alias "@/*" --yes
       - name: Relax the build to transpile-only (agent code must RUN, not pass strict lint/types)
         working-directory: \${{ github.event.repository.name }}
-        run: printf 'const nextConfig = { eslint: { ignoreDuringBuilds: true }, typescript: { ignoreBuildErrors: true } };\\nexport default nextConfig;\\n' > next.config.ts
+        run: |
+          printf 'const nextConfig = { eslint: { ignoreDuringBuilds: true }, typescript: { ignoreBuildErrors: true } };\\nexport default nextConfig;\\n' > next.config.ts
       - name: Install Aider
         run: python -m pip install --upgrade pip && pip install aider-chat
       - name: Implement + self-repair until it builds (free model)

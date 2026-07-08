@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+// @ts-expect-error js-yaml ships no bundled types; used only in this test as a parse guard
+import yaml from "js-yaml";
 import _sodium from "libsodium-wrappers";
 import {
   dispatchFullstackBuild,
@@ -60,6 +62,20 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     expect(yaml).toMatch(/secrets\.LLM_API_KEY/);
     expect(yaml).toMatch(/secrets\.VERCEL_TOKEN/);
     expect(yaml).toMatch(/ssoProtection/); // auto-disables Vercel Deployment Protection → app is public
+  });
+
+  it("generates VALID, parseable YAML with the expected steps (guards against inline `: ` breaking the file)", () => {
+    const doc = yaml.load(buildFullstackWorkflowYaml()) as {
+      jobs: { build: { steps: { name?: string; run?: string }[] } };
+    };
+    // parses at all (an inline `run: printf '...eslint: {...}'` scalar would throw here)
+    const steps = doc.jobs.build.steps;
+    const names = steps.map((s) => s.name).filter(Boolean);
+    expect(names).toContain("Relax the build to transpile-only (agent code must RUN, not pass strict lint/types)");
+    // the config step must be a multi-line block scalar (contains a newline), not a `: `-poisoned inline scalar
+    const cfg = steps.find((s) => s.run?.includes("next.config.ts"));
+    expect(cfg?.run).toContain("ignoreBuildErrors");
+    expect(cfg?.run).toContain("\n"); // block scalar
   });
 
   it("prompt asks for a REAL backend API route + persistence (not static)", () => {
