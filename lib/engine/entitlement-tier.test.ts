@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { tierOf, tierAtLeast, tierUnlocksOperate } from "./entitlement";
+import { tierOf, tierAtLeast, tierUnlocksOperate, tierMonthlyUsd } from "./entitlement";
 
 describe("tier model (Slice A.2 — founder ladder free→builder→operator→founder)", () => {
   it("maps Polar plan strings (metadata.plan or product name) to a tier", () => {
@@ -28,5 +28,12 @@ describe("tier model (Slice A.2 — founder ladder free→builder→operator→f
     expect(tierUnlocksOperate("builder")).toBe(false);
     expect(tierUnlocksOperate("operator")).toBe(true);
     expect(tierUnlocksOperate("founder")).toBe(true);
+  });
+
+  it("prices tiers for MRR (matches the /join list prices)", () => {
+    expect(tierMonthlyUsd("free")).toBe(0);
+    expect(tierMonthlyUsd("builder")).toBe(49);
+    expect(tierMonthlyUsd("operator")).toBe(199);
+    expect(tierMonthlyUsd("founder")).toBe(499);
   });
 });

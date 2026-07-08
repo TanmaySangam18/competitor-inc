@@ -1,5 +1,7 @@
 import crypto from "node:crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { serviceClient } from "@/lib/engine/service";
+import { dueLifecycleEmails, lifecycleEmail, type LifecycleUser } from "@/lib/engine/lifecycle-email";
 import { runShift, modelForAgent } from "@/lib/engine/server";
 import { runOperatingCycle } from "@/lib/engine/operating-loop";
 import { persistCycle } from "@/lib/engine/cycle-store";
@@ -40,6 +42,30 @@ function bearerOk(req: Request, secret: string): boolean {
   const got = Buffer.from(req.headers.get("authorization") || "", "utf8");
   const want = Buffer.from(`Bearer ${secret}`, "utf8");
   return got.length === want.length && crypto.timingSafeEqual(got, want);
+}
+
+// Slice D: send any due lifecycle/retention emails, deduped via lifecycle_sends (migration 0025).
+// DORMANT unless LIFECYCLE_EMAILS=1 AND RESEND is configured AND the table exists — every gap fails soft
+// (returns 0), never breaking the nightly shift. Outward sends stay founder-controlled.
+async function sendDueLifecycleEmails(sb: SupabaseClient, now: number): Promise<number> {
+  const wl = await sb.from("waitlist").select("email, created_at");
+  const users: LifecycleUser[] = (wl.data ?? [])
+    .map((r) => ({ email: String(r.email || "").toLowerCase(), signupAt: new Date(r.created_at as string).getTime() }))
+    .filter((u) => u.email && Number.isFinite(u.signupAt));
+  if (users.length === 0) return 0;
+  const sentRows = await sb.from("lifecycle_sends").select("email, kind");
+  const sent = new Set((sentRows.data ?? []).map((r) => `${r.email}:${r.kind}`));
+  const due = dueLifecycleEmails(users, now, sent).slice(0, 100); // cap per run
+  let n = 0;
+  for (const d of due) {
+    const c = lifecycleEmail(d.kind);
+    const out = await sendEmail({ to: d.email, subject: c.subject, html: c.html });
+    if (out.ok) {
+      await sb.from("lifecycle_sends").insert({ email: d.email, kind: d.kind });
+      n++;
+    }
+  }
+  return n;
 }
 
 export async function GET(req: Request) {
@@ -356,11 +382,22 @@ export async function GET(req: Request) {
     }
   }
 
+  // Lifecycle/retention emails — dormant unless enabled + configured; fail-soft (never breaks the shift).
+  let lifecycleSent = 0;
+  if (process.env.LIFECYCLE_EMAILS === "1" && process.env.RESEND_API_KEY && process.env.RESEND_FROM) {
+    try {
+      lifecycleSent = await sendDueLifecycleEmails(sb, Date.now());
+    } catch (e) {
+      console.error("[/api/cron] lifecycle emails failed:", e instanceof Error ? e.message : "unknown");
+    }
+  }
+
   return Response.json({
     ran,
     supervised, // companies advanced by the ephemeral-agent supervised cycle (0 unless SUPERVISED_CYCLE=1)
     deskItems: deskFromCycles, // prepared packets awaiting the founder's review from those cycles
     failed: failed_companies,
     digests: isFriday ? fridayDigests.length : 0,
+    lifecycleSent, // retention emails sent this run (0 unless LIFECYCLE_EMAILS=1 + RESEND configured)
   });
 }

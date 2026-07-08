@@ -71,3 +71,10 @@ export function tierAtLeast(tier: Tier, min: Tier): boolean {
 export function tierUnlocksOperate(tier: Tier): boolean {
   return tierAtLeast(tier, "operator");
 }
+
+// List-price MRR contribution of a tier, in whole USD (matches the /join TIERS). Used to compute MRR on the
+// KPI board from active entitlements. Display estimate off list price — real settled revenue lives in
+// revenue_events; this never inflates PPU (which needs a verified paid+receipted outcome).
+export function tierMonthlyUsd(tier: Tier): number {
+  return { free: 0, builder: 49, operator: 199, founder: 499 }[tier];
+}

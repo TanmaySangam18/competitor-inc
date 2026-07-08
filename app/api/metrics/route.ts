@@ -1,7 +1,22 @@
 import crypto from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { serviceClient } from "@/lib/engine/service";
-import { isEntitled } from "@/lib/engine/entitlement";
+import { isEntitled, tierOf, tierMonthlyUsd } from "@/lib/engine/entitlement";
+
+const MRR_GOAL = 10_000; // the 60-day target (docs/PLAN-10K-60DAY.md)
+
+// List-price MRR from active subscriptions (Σ tier price). An honest estimate for the board; settled
+// revenue lives in revenue_events. Fail-soft → 0.
+async function computeMrr(sb: SupabaseClient): Promise<number> {
+  try {
+    const ent = await sb.from("entitlements").select("status,current_period_end,plan");
+    return (ent.data ?? [])
+      .filter((e) => isEntitled(e.status as string, (e.current_period_end as string) ?? null))
+      .reduce((sum, e) => sum + tierMonthlyUsd(tierOf(e.plan as string)), 0);
+  } catch {
+    return 0;
+  }
+}
 
 export const runtime = "nodejs";
 
@@ -118,12 +133,13 @@ export async function GET(req: Request) {
 
   const sb = serviceClient();
   if (!sb) {
-    return Response.json({ ok: true, persisted: false, ppu: EMPTY_PPU, waitlist: 0, waitlistReferred: 0, demandTests: 0, demandSignups: 0 });
+    return Response.json({ ok: true, persisted: false, ppu: EMPTY_PPU, mrr: 0, goal: MRR_GOAL, waitlist: 0, waitlistReferred: 0, demandTests: 0, demandSignups: 0 });
   }
 
   try {
-    const [ppu, wl, wlRef, dt, ds] = await Promise.all([
+    const [ppu, mrr, wl, wlRef, dt, ds] = await Promise.all([
       computePpu(sb),
+      computeMrr(sb),
       sb.from("waitlist").select("id", { count: "exact", head: true }),
       sb.from("waitlist").select("id", { count: "exact", head: true }).not("ref", "is", null),
       sb.from("demand_tests").select("slug", { count: "exact", head: true }),
@@ -133,6 +149,8 @@ export async function GET(req: Request) {
       ok: true,
       persisted: true,
       ppu,
+      mrr, // list-price MRR from active subs
+      goal: MRR_GOAL,
       // Diagnostics — watch, don't chase.
       waitlist: wl.count ?? 0,
       waitlistReferred: wlRef.count ?? 0,
@@ -141,6 +159,6 @@ export async function GET(req: Request) {
     });
   } catch (e) {
     console.error("[/api/metrics] failed:", e instanceof Error ? e.message : "unknown");
-    return Response.json({ ok: true, persisted: false, ppu: EMPTY_PPU, waitlist: 0, waitlistReferred: 0, demandTests: 0, demandSignups: 0 });
+    return Response.json({ ok: true, persisted: false, ppu: EMPTY_PPU, mrr: 0, goal: MRR_GOAL, waitlist: 0, waitlistReferred: 0, demandTests: 0, demandSignups: 0 });
   }
 }

@@ -28,6 +28,8 @@ interface Metrics {
   locked?: boolean;
   persisted?: boolean;
   ppu?: Ppu;
+  mrr?: number;
+  goal?: number;
   waitlist?: number;
   waitlistReferred?: number;
   demandTests?: number;
@@ -191,6 +193,27 @@ export default function Board() {
           <p className="mt-2 max-w-xl text-sm text-muted">
             On a paid plan <span className="text-muted-2">(demand)</span> · with a verified, receipted Glass-Box outcome{" "}
             <span className="text-muted-2">(delivery + trust)</span>. Signups test none of these.
+          </p>
+        </div>
+
+        {/* MRR vs the $10K / 60-day goal — the revenue we're driving to (docs/PLAN-10K-60DAY.md). */}
+        <div className="mt-5 rounded-3xl border border-mint/30 bg-mint/[0.05] p-6">
+          <div className="flex items-baseline justify-between">
+            <div className="text-xs uppercase tracking-wide text-mint">MRR · list-price from active subs</div>
+            <div className="text-xs text-muted-2">60-day goal</div>
+          </div>
+          <div className="mt-1 flex items-end gap-2">
+            <span className="font-display text-5xl font-bold">${(m?.mrr ?? 0).toLocaleString()}</span>
+            <span className="mb-1.5 text-sm text-muted-2">/ ${(m?.goal ?? 10000).toLocaleString()}</span>
+          </div>
+          <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-border">
+            <div
+              className="h-full rounded-full bg-mint transition-all"
+              style={{ width: `${Math.min(100, ((m?.mrr ?? 0) / (m?.goal || 10000)) * 100)}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs text-muted-2">
+            Estimate off list price; settled revenue lives in revenue_events. Never counts toward PPU without a verified outcome.
           </p>
         </div>
 
