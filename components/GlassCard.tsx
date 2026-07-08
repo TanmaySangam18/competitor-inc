@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { ChevronDown, type LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-// The single-page workspace primitive: one feature = one liquid-glass card. `collapsible` gives
-// progressive disclosure (secondary features start closed, one tap reveals them) so the page stays clean
-// without hiding anything on a separate route. Uses the existing .glass-panel language.
+// The single-page workspace primitive: one feature = one flat terminal panel. `collapsible` gives
+// progressive disclosure (secondary features start closed, one tap reveals them). Direction B: no icons —
+// the `icon` prop is accepted for back-compat but not rendered (text + structure only).
 export function GlassCard({
   title,
-  icon: Icon,
   children,
   collapsible = false,
   defaultOpen = true,
@@ -20,7 +19,7 @@ export function GlassCard({
   className = "",
 }: {
   title?: string;
-  icon?: LucideIcon;
+  icon?: LucideIcon; // accepted for back-compat, intentionally not rendered
   children: ReactNode;
   collapsible?: boolean;
   defaultOpen?: boolean;
@@ -47,15 +46,12 @@ export function GlassCard({
             className={`group flex min-w-0 items-center gap-2 text-left ${collapsible ? "cursor-pointer" : "cursor-default"}`}
             aria-expanded={collapsible ? open : undefined}
           >
-            {Icon && <Icon size={15} className="shrink-0 text-muted" />}
-            <span className="flex items-baseline gap-2 truncate">
+            <span className="flex items-baseline gap-2 truncate font-mono">
               <span className="truncate text-sm font-semibold text-text">{title}</span>
               {subtitle && <span className="truncate text-xs text-muted-2">{subtitle}</span>}
             </span>
             {badge}
-            {collapsible && (
-              <ChevronDown size={15} className={`shrink-0 text-muted-2 transition group-hover:text-muted ${open ? "rotate-180" : ""}`} />
-            )}
+            {collapsible && <span className="shrink-0 font-mono text-xs text-muted-2">{open ? "[–]" : "[+]"}</span>}
           </button>
           {action && <div className="shrink-0">{action}</div>}
         </div>
