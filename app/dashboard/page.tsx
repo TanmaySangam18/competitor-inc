@@ -79,6 +79,7 @@ import { getTrialStart } from "@/lib/engine/trial";
 import { repoFromUrl } from "@/lib/engine/hosting";
 import LivePreview from "@/components/dashboard/LivePreview";
 import FoundingMember from "@/components/dashboard/FoundingMember";
+import { GlassCard } from "@/components/GlassCard";
 
 const verdictStyle = {
   strong: { ring: "border-white/30 bg-white/[0.06]", text: "text-text", label: "strong signal" },
@@ -97,8 +98,6 @@ const signalStyle = {
 // the launch build keeps it off to shrink the launch surface until v0.2.0, per the blueprint).
 const OPERATE_ENABLED = process.env.NEXT_PUBLIC_OPERATE !== "0";
 
-type Tab = "operations" | "growth" | "history" | "chat" | "brain" | "operate";
-
 export default function Dashboard() {
   // ONE engine for the whole dashboard subtree (incl. the CrewBox rendered inside it). See EngineContext.
   return (
@@ -112,7 +111,6 @@ function DashboardInner() {
   const r = useEngineContext();
   const router = useRouter();
   const { user } = useAuth();
-  const [tab, setTab] = useState<Tab>("operations");
 
   // Value-first funnel: building & watching the crew work is FREE for everyone. The paywall moves
   // DOWNSTREAM — to revealing the live site (the "product is live" card in Operating). A founder
@@ -200,7 +198,7 @@ function DashboardInner() {
         {r.company?.status === "validating" && <ValidationRunning idea={r.company.idea} />}
         {r.company?.status === "validated" && <ValidationGate r={r} onBuild={goBuild} />}
         {r.company?.status === "rejected" && <Rejected r={r} onBuild={goBuild} />}
-        {r.company?.status === "operating" && <Operating r={r} tab={tab} setTab={setTab} entitled={entitled} userEmail={user?.email} trialStartedAt={trialStartedAt} />}
+        {r.company?.status === "operating" && <Operating r={r} entitled={entitled} userEmail={user?.email} trialStartedAt={trialStartedAt} />}
       </div>
     </div>
   );
@@ -579,7 +577,7 @@ function Rejected({ r, onBuild }: { r: ReturnType<typeof useEngine>; onBuild: ()
 }
 
 /* ── Operating ───────────────────────────────────────────────── */
-function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r: ReturnType<typeof useEngine>; tab: Tab; setTab: (t: Tab) => void; entitled: boolean; userEmail?: string; trialStartedAt: number | null }) {
+function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<typeof useEngine>; entitled: boolean; userEmail?: string; trialStartedAt: number | null }) {
   const c = r.company!;
   // Post-preview "continue" gate (build order #2). OFF unless NEXT_PUBLIC_WAITLIST_GATE=1, so the current
   // pre-launch demo is unaffected. Founders + truly-paid users are never gated, and an active reverse
@@ -610,15 +608,6 @@ function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r:
     { label: "Trial credits left", val: `${creditsLeft(c.ledger.creditsSpent)}` },
     { label: "Credits used", val: `${Math.round(c.ledger.creditsSpent ?? 0)} / ${TRIAL_CREDITS}` },
   ];
-  const tabs: { id: Tab; label: string; icon: typeof ActivityIcon }[] = [
-    { id: "operations", label: "Operations", icon: ActivityIcon },
-    { id: "growth", label: "Growth", icon: Target },
-    { id: "history", label: "History", icon: LineChart },
-    { id: "chat", label: "Chat", icon: MessagesSquare },
-    { id: "brain", label: "Brain", icon: BrainIcon },
-    ...(OPERATE_ENABLED ? [{ id: "operate" as Tab, label: "Operate", icon: Gauge }] : []),
-  ];
-
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -712,11 +701,8 @@ function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r:
         activities={r.activities}
         pendingApprovals={r.pendingApprovals}
         experiments={r.experiments}
-        onReviewDecisions={() => {
-          setTab("operations");
-          setTimeout(() => document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth" }), 60);
-        }}
-        onSeeFunnel={() => setTab("growth")}
+        onReviewDecisions={() => document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth" })}
+        onSeeFunnel={() => document.getElementById("card-growth")?.scrollIntoView({ behavior: "smooth" })}
       />
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -848,33 +834,35 @@ function Operating({ r, tab, setTab, entitled, userEmail, trialStartedAt }: { r:
         </div>
       ) : null}
 
-      {/* tabs */}
-      <div className="mt-8 flex gap-1 border-b border-border">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`-mb-px flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition ${
-              tab === t.id ? "border-coral text-text" : "border-transparent text-muted hover:text-text"
-            }`}
-          >
-            <t.icon size={15} /> {t.label}
-            {t.id === "operations" && r.pendingApprovals.length > 0 && (
-              <span className="ml-1 grid h-4 min-w-4 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-bg">
-                {r.pendingApprovals.length}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      {/* Single-page workspace — no tabs. Every feature lives in its own glass card on one page; secondary
+          ones use progressive disclosure (collapsed, one tap to open) so nothing is buried on another route. */}
+      <div className="mt-8 space-y-6">
+        {/* Operations — the primary surface (crew floor + Glass Box + Approval Inbox), always open. */}
+        <div id="card-operations" className="scroll-mt-24">
+          <OperationsTab r={r} lockedUrl={!entitled && c.product?.status === "live" ? c.product?.url : undefined} />
+        </div>
 
-      <div className="mt-6">
-        {tab === "operations" && <OperationsTab r={r} lockedUrl={!entitled && c.product?.status === "live" ? c.product?.url : undefined} />}
-        {tab === "growth" && <GrowthPanel company={c} experiments={r.experiments} />}
-        {tab === "history" && <HistoryTab activities={r.activities} company={c} />}
-        {tab === "chat" && <ChatTab company={c} r={r} />}
-        {tab === "brain" && <BrainTab r={r} />}
-        {tab === "operate" && OPERATE_ENABLED && <OperateTab r={r} c={c} />}
+        <GlassCard id="card-growth" title="Growth" subtitle="funnel & experiments" icon={Target} collapsible defaultOpen>
+          <GrowthPanel company={c} experiments={r.experiments} />
+        </GlassCard>
+
+        <GlassCard title="History" subtitle="nights, tasks & spend" icon={LineChart} collapsible defaultOpen={false}>
+          <HistoryTab activities={r.activities} company={c} />
+        </GlassCard>
+
+        <GlassCard title="Chat with your crew" icon={MessagesSquare} collapsible defaultOpen={false}>
+          <ChatTab company={c} r={r} />
+        </GlassCard>
+
+        <GlassCard title="Company Brain" subtitle="decisions & lessons" icon={BrainIcon} collapsible defaultOpen={false}>
+          <BrainTab r={r} />
+        </GlassCard>
+
+        {OPERATE_ENABLED && (
+          <GlassCard title="Operate" subtitle="rocks, issues & scorecard" icon={Gauge} collapsible defaultOpen={false}>
+            <OperateTab r={r} c={c} />
+          </GlassCard>
+        )}
       </div>
     </div>
   );
