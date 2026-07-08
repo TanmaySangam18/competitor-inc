@@ -55,6 +55,7 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     expect(yaml).toMatch(/aider .*--message-file \.\.\/PROMPT\.md/);
     expect(yaml).toMatch(/secrets\.LLM_API_KEY/);
     expect(yaml).toMatch(/secrets\.VERCEL_TOKEN/);
+    expect(yaml).toMatch(/ssoProtection/); // auto-disables Vercel Deployment Protection → app is public
   });
 
   it("prompt asks for a REAL backend API route + persistence (not static)", () => {

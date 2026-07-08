@@ -68,19 +68,27 @@ jobs:
         with:
           python-version: '3.12'
       - name: Scaffold Next.js (App Router + API routes)
-        run: npx --yes create-next-app@latest web --ts --app --eslint --use-npm --no-tailwind --no-src-dir --import-alias "@/*" --yes
+        run: npx --yes create-next-app@latest "\${{ github.event.repository.name }}" --ts --app --eslint --use-npm --no-tailwind --no-src-dir --import-alias "@/*" --yes
       - name: Install Aider
         run: python -m pip install --upgrade pip && pip install aider-chat
       - name: Implement the app (free model)
-        working-directory: web
+        working-directory: \${{ github.event.repository.name }}
         env:
           ${keyEnv}: \${{ secrets.LLM_API_KEY }}
         run: aider --yes --model ${model} --message-file ../PROMPT.md app/page.tsx app/api/items/route.ts
-      - name: Deploy to Vercel (production)
-        working-directory: web
+      - name: Deploy to Vercel + make it public
+        working-directory: \${{ github.event.repository.name }}
+        env:
+          VT: \${{ secrets.VERCEL_TOKEN }}
+          PROJECT: \${{ github.event.repository.name }}
         run: |
           npm i -g vercel
-          vercel deploy --prod --yes --token "\${{ secrets.VERCEL_TOKEN }}" | tail -1 > ../deploy-url.txt || echo "deploy failed" > ../deploy-url.txt
+          vercel deploy --prod --yes --token "$VT" > ../deploy.log 2>&1 || echo "deploy failed" >> ../deploy.log
+          # Disable Vercel Deployment Protection so the app is publicly viewable (no SSO wall) — automatically.
+          TEAM=$(curl -s -H "Authorization: Bearer $VT" "https://api.vercel.com/v2/teams" | python3 -c "import sys,json;t=(json.load(sys.stdin).get('teams') or []);print(t[0]['id'] if t else '')" 2>/dev/null || echo "")
+          Q=""; [ -n "$TEAM" ] && Q="?teamId=$TEAM"
+          curl -s -X PATCH "https://api.vercel.com/v9/projects/$PROJECT$Q" -H "Authorization: Bearer $VT" -H "Content-Type: application/json" -d '{"ssoProtection":null}' > /dev/null 2>&1 || true
+          echo "https://$PROJECT.vercel.app" > ../deploy-url.txt
       - name: Commit source + deploy URL
         run: |
           git config user.name "competitor-bot"
