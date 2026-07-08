@@ -43,6 +43,8 @@ export function fullstackPromptFile(goal: string): string {
     `- Persist data. If SUPABASE_URL + SUPABASE_ANON_KEY env vars exist use Supabase; otherwise use an`,
     `  in-memory store in the route so it runs with zero config. Keep it typed and simple.`,
     `- Clean, responsive, no console errors. It must build with \`next build\` and run on Vercel.`,
+    `- CODE MUST COMPILE: correct TypeScript types (no \`any\`-that-breaks), no unused imports/vars, only`,
+    `  stable Next.js 16 App Router APIs. Prefer simple, standard patterns over clever ones.`,
   ].join("\n");
 }
 
@@ -68,7 +70,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Scaffold Next.js (App Router + API routes)
-        run: npx --yes create-next-app@latest "\${{ github.event.repository.name }}" --ts --app --eslint --use-npm --no-tailwind --no-src-dir --import-alias "@/*" --yes
+        run: npx --yes create-next-app@latest "\${{ github.event.repository.name }}" --ts --app --no-eslint --use-npm --no-tailwind --no-src-dir --import-alias "@/*" --yes
       - name: Install Aider
         run: python -m pip install --upgrade pip && pip install aider-chat
       - name: Implement + self-repair until it builds (free model)

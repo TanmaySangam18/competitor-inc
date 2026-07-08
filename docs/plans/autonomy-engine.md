@@ -17,7 +17,7 @@ gated/irreducible acts escalate to the human spine. Anything that *widens* auton
 default off.
 
 ## Slices (value × safety order)
-- **Slice 1 (build first — pure reliability, self-contained):** per-task **self-repair** in `runSupervisor`.
+- **Slice 1 ✅ SHIPPED (2026-07-08, commit b450cc4, QA-green 603 tests):** per-task **self-repair** in `runSupervisor`.
   Today a task runs `execute()` once; a failed verification cascades the whole goal to fail. Add a **bounded
   retry loop** (default 2) that, on verification failure, re-runs with **diagnostic feedback** ("prior proof
   failed: <why> — produce a valid, verified proof"), keeps the verifier distinct, and stays budget-bounded
