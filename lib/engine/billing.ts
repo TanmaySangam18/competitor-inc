@@ -9,10 +9,64 @@ import { isEntitled, entitlementNotice } from "@/lib/engine/entitlement";
 // Multi-tier: each paid offer is its own Polar product = its own checkout link.
 //   operator → $39/mo self-serve · founder → concierge done-with-you recurring · sprint → one-time.
 export const CHECKOUT_URLS: Record<string, string> = {
+  builder: process.env.NEXT_PUBLIC_CHECKOUT_URL_BUILDER || "",
   operator: process.env.NEXT_PUBLIC_CHECKOUT_URL || "",
   founder: process.env.NEXT_PUBLIC_CHECKOUT_URL_FOUNDER || "",
   sprint: process.env.NEXT_PUBLIC_CHECKOUT_URL_SPRINT || "",
 };
+
+// The founder-tier ladder (decided 2026-07-08, docs/PLAN-10K-60DAY.md). ONE source of truth for the
+// /join pricing page. `key` maps to CHECKOUT_URLS (or "free" = no checkout → start the free flow). Prices
+// are display-only; the real charge is whatever Polar product the founder wired to each checkout URL.
+export interface Tier {
+  key: string;
+  name: string;
+  price: string;
+  cadence: string;
+  tagline: string;
+  points: string[];
+  cta: string;
+  recommended?: boolean;
+}
+export const TIERS: Tier[] = [
+  {
+    key: "free",
+    name: "Free",
+    price: "$0",
+    cadence: "",
+    tagline: "See your crew build it — the aha, no card.",
+    points: ["Validate your idea with the crew", "Watch a real build + live preview", "Keep your project — upgrade anytime"],
+    cta: "Start free",
+  },
+  {
+    key: "builder",
+    name: "Builder",
+    price: "$49",
+    cadence: "/mo",
+    tagline: "Your crew builds; you operate.",
+    points: ["Everything in Free", "Real deploys you own", "Bring your own keys (optional)", "Email support"],
+    cta: "Start building",
+  },
+  {
+    key: "operator",
+    name: "Operator",
+    price: "$199",
+    cadence: "/mo",
+    tagline: "The crew builds AND runs it.",
+    points: ["Everything in Builder", "Autonomous operating loop", "GTM drafts → your approval desk", "Weekly founder reports"],
+    cta: "Go Operator",
+    recommended: true,
+  },
+  {
+    key: "founder",
+    name: "Concierge",
+    price: "$499",
+    cadence: "/mo",
+    tagline: "Done-with-you — we run it alongside you.",
+    points: ["Everything in Operator", "Weekly working session with the crew", "Direct line + priority", "0% revenue share · own everything"],
+    cta: "Apply for a slot",
+  },
+];
 // Back-compat: the dashboard Build gate keys off the Operator checkout.
 export const CHECKOUT_URL = CHECKOUT_URLS.operator;
 
