@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Copy, ArrowLeft, Sparkles } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { useCopy } from "@/components/useCopy";
 import { codeFrom } from "@/lib/engine/refcode";
@@ -113,7 +112,7 @@ export default function Join() {
             <LogoMark size={32} /> competitor.inc
           </Link>
           <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
-            <ArrowLeft size={15} /> Home
+            ← home
           </Link>
         </div>
       </header>
@@ -121,7 +120,7 @@ export default function Join() {
       <div className="mx-auto max-w-6xl px-6 py-12">
         {referredBy && (
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-mint/30 bg-mint/10 px-3 py-1 text-xs text-mint">
-            <Sparkles size={12} /> A friend invited you — you&apos;ll get earlier access
+            A friend invited you — you&apos;ll get earlier access
           </div>
         )}
 
@@ -160,7 +159,7 @@ export default function Join() {
                 <ul className="mt-4 flex flex-1 flex-col gap-2">
                   {t.points.map((p) => (
                     <li key={p} className="flex items-start gap-2 text-sm text-muted">
-                      <Check size={15} className={`mt-0.5 shrink-0 ${rec ? "text-coral" : "text-mint"}`} /> {p}
+                      <span className={`mt-0.5 shrink-0 font-mono ${rec ? "text-coral" : "text-mint"}`}>–</span> {p}
                     </li>
                   ))}
                 </ul>
@@ -206,7 +205,7 @@ export default function Join() {
           {entry ? (
             <div className="mt-5 rounded-2xl border border-mint/30 bg-mint/[0.05] p-5">
               <div className="flex items-center gap-2 text-sm font-medium text-mint">
-                <Check size={16} /> You&apos;re on the list
+                You&apos;re on the list
               </div>
               <p className="mt-1 text-sm text-muted">We&apos;ll email {entry.email} at launch.</p>
               {server?.persisted && server.position ? (
@@ -229,7 +228,7 @@ export default function Join() {
                   onClick={copyLink}
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted transition hover:text-text"
                 >
-                  {copied ? <Check size={15} className="text-mint" /> : <Copy size={15} />} {copied ? "Copied" : "Copy"}
+                  {copied ? "copied" : "copy"}
                 </button>
               </div>
             </div>
