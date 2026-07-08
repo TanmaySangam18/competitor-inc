@@ -1,5 +1,5 @@
 import { getBrowserSupabase } from "@/lib/supabase/client";
-import { isEntitled, entitlementNotice } from "@/lib/engine/entitlement";
+import { isEntitled, entitlementNotice, tierOf, type Tier } from "@/lib/engine/entitlement";
 
 // Pay-to-reveal billing (client side). Validating AND building are free; OPENING the live deployed site
 // requires an active Operator subscription via Polar (Merchant-of-Record — handles tax/VAT). The
@@ -18,7 +18,7 @@ export const CHECKOUT_URLS: Record<string, string> = {
 // The founder-tier ladder (decided 2026-07-08, docs/PLAN-10K-60DAY.md). ONE source of truth for the
 // /join pricing page. `key` maps to CHECKOUT_URLS (or "free" = no checkout → start the free flow). Prices
 // are display-only; the real charge is whatever Polar product the founder wired to each checkout URL.
-export interface Tier {
+export interface PricingTier {
   key: string;
   name: string;
   price: string;
@@ -28,7 +28,7 @@ export interface Tier {
   cta: string;
   recommended?: boolean;
 }
-export const TIERS: Tier[] = [
+export const TIERS: PricingTier[] = [
   {
     key: "free",
     name: "Free",
@@ -83,19 +83,22 @@ export async function checkEntitled(email: string | undefined): Promise<boolean>
 // For the UI: the user's subscription state + a short nudge (e.g. "update your card") when it's not clean.
 export async function getEntitlement(
   email: string | undefined,
-): Promise<{ entitled: boolean; status: string; notice: string | null }> {
+): Promise<{ entitled: boolean; status: string; notice: string | null; tier: Tier }> {
   const sb = getBrowserSupabase();
-  if (!sb || !email) return { entitled: false, status: "none", notice: null };
+  if (!sb || !email) return { entitled: false, status: "none", notice: null, tier: "free" };
   try {
-    const { data } = await sb.from("entitlements").select("status, current_period_end").eq("email", email).maybeSingle();
-    if (!data) return { entitled: false, status: "none", notice: null };
+    const { data } = await sb.from("entitlements").select("status, current_period_end, plan").eq("email", email).maybeSingle();
+    if (!data) return { entitled: false, status: "none", notice: null, tier: "free" };
+    const entitled = isEntitled(data.status, data.current_period_end);
     return {
-      entitled: isEntitled(data.status, data.current_period_end),
+      entitled,
       status: String(data.status || "none"),
       notice: entitlementNotice(data.status, data.current_period_end),
+      // Only credit a tier while the subscription actually grants access; otherwise free.
+      tier: entitled ? tierOf(data.plan) : "free",
     };
   } catch {
-    return { entitled: false, status: "none", notice: null };
+    return { entitled: false, status: "none", notice: null, tier: "free" };
   }
 }
 

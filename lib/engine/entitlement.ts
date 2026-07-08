@@ -44,3 +44,30 @@ export function entitlementNotice(status: string | null | undefined, periodEnd: 
   if (s === "expired" || s === "unpaid") return "Your subscription has ended. Renew to keep building.";
   return null;
 }
+
+// ── Tier model (Slice A.2) ─────────────────────────────────────────────────
+// The founder ladder (docs/PLAN-10K-60DAY.md): free → builder → operator → founder(Concierge). The stored
+// `plan` string comes from Polar (metadata.plan or product name, lowercased — see polar.ts pickPlan), so we
+// map by substring. FAIL-OPEN: a paid-but-unrecognized plan resolves to `operator`, never below what a
+// paying customer likely bought — the founder sets metadata.plan on each Polar product to be exact.
+export type Tier = "free" | "builder" | "operator" | "founder";
+
+const TIER_RANK: Record<Tier, number> = { free: 0, builder: 1, operator: 2, founder: 3 };
+
+export function tierOf(plan: string | null | undefined): Tier {
+  const p = (plan || "").toLowerCase();
+  if (!p) return "free";
+  if (/concierge|founder|done.?with.?you/.test(p)) return "founder";
+  if (/operator|operate/.test(p)) return "operator";
+  if (/builder/.test(p)) return "builder";
+  return "operator"; // recognized as paid but unmatched → fail-open (never downgrade a payer)
+}
+
+export function tierAtLeast(tier: Tier, min: Tier): boolean {
+  return TIER_RANK[tier] >= TIER_RANK[min];
+}
+
+// Operator and up unlock the autonomous operating loop (the crew RUNS the company). Builder is build-only.
+export function tierUnlocksOperate(tier: Tier): boolean {
+  return tierAtLeast(tier, "operator");
+}
