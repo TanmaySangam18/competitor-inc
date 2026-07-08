@@ -4,25 +4,24 @@
    Tailwind's layered spacing utilities. Tailwind v4 preflight handles box-sizing/margins. */
 
 @theme {
-  /* competitor.inc — "Paper & Ink": warm cream paper, heavy black ink, coral accent. High-contrast
-     utility aesthetic; emphasis via black inverted cards + bold type, not color. See docs/DESIGN.md. */
-  --color-bg: #f7f0da;
-  --color-surface: #efe7cd;
-  --color-surface-2: #e6dcc0;
-  --color-border: rgba(20, 19, 14, 0.16);
+  /* competitor.inc — "Dark Liquid Glass" (2026-07-08): near-black canvas, frosted translucent glass
+     cards with a hairline white edge, white "ink" for emphasis. Monochrome — emphasis via inversion +
+     weight + translucency, never hue. Matches the founder's Liquid-Glass reference. See docs/DESIGN.md. */
+  --color-bg: #0c0c0f;
+  --color-surface: #17171c;
+  --color-surface-2: #212128;
+  --color-border: rgba(255, 255, 255, 0.13);
 
-  /* Monochrome pass (2026-07-03): the public product is ink-only — emphasis via black inverted
-     cards, weight, and tone, never hue. The old accent names stay as a warm grayscale ladder so
-     every existing text-coral/bg-mint/… class keeps working; only the House (private floor) keeps
-     real color, via its own inline hexes. */
-  --color-coral: #14130e; /* accent → ink */
-  --color-amber: #8a846e; /* warm light gray */
-  --color-mint: #3f3b2d; /* success → dark warm gray */
-  --color-violet: #5b5644; /* mid warm gray */
+  /* Monochrome ladder, inverted for dark: the accent names stay so every text-coral/bg-mint/… class
+     keeps working — they're now light warm-grays / white, so emphasis reads on the dark glass. */
+  --color-coral: #fafafa; /* accent → white ink (primary buttons invert to white-on-dark) */
+  --color-amber: #b8ae98; /* warm light gray (warnings) */
+  --color-mint: #c9c6ba; /* success → light warm gray */
+  --color-violet: #a7a291; /* mid warm gray */
 
-  --color-text: #14130e;
-  --color-muted: #5b5644;
-  --color-muted-2: #8a846e;
+  --color-text: #f4f3ee;
+  --color-muted: #a8a498;
+  --color-muted-2: #77736a;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -36,8 +35,13 @@ html {
 }
 
 body {
-  background-color: #f7f0da;
-  color: #14130e;
+  background-color: #0c0c0f;
+  /* subtle depth glow so the near-black canvas isn't flat behind the glass */
+  background-image:
+    radial-gradient(60% 55% at 15% -5%, rgba(255, 255, 255, 0.05), transparent 60%),
+    radial-gradient(50% 50% at 100% 0%, rgba(255, 255, 255, 0.035), transparent 65%);
+  background-attachment: fixed;
+  color: #f4f3ee;
   font-family: var(--font-body), "Inter", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -58,17 +62,17 @@ h1, h2, h3, h4 {
   font-weight: 800;
 }
 
-::selection { background: rgba(20, 19, 14, 0.16); }
+::selection { background: rgba(255, 255, 255, 0.18); }
 
 ::-webkit-scrollbar { width: 7px; }
-::-webkit-scrollbar-track { background: #efe7cd; }
-::-webkit-scrollbar-thumb { background: #cabf9e; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #b3a886; }
+::-webkit-scrollbar-track { background: #17171c; }
+::-webkit-scrollbar-thumb { background: #3a3a42; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #4c4c56; }
 
 /* ── Utilities ───────────────────────────────────────────────── */
 
 .gradient-text {
-  background: linear-gradient(100deg, #14130e 0%, #5b5644 100%);
+  background: linear-gradient(100deg, #ffffff 0%, #a8a498 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -79,20 +83,20 @@ h1, h2, h3, h4 {
    ink edge + soft shadow. Content leads; emphasis goes to black cards. */
 .glass,
 .glass-panel {
-  @apply backdrop-blur-2xl backdrop-saturate-200;
+  @apply backdrop-blur-2xl backdrop-saturate-150;
   background: linear-gradient(
     160deg,
-    rgba(255, 255, 255, 0.74),
-    rgba(255, 253, 247, 0.5) 40%,
-    rgba(255, 253, 247, 0.62)
+    rgba(255, 255, 255, 0.10),
+    rgba(255, 255, 255, 0.035) 45%,
+    rgba(255, 255, 255, 0.06)
   );
-  border: 1px solid rgba(20, 19, 14, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(20, 19, 14, 0.04),
-    inset 1px 0 0 rgba(255, 255, 255, 0.35),
-    0 1px 2px rgba(20, 19, 14, 0.05),
-    0 18px 44px -26px rgba(20, 19, 14, 0.42);
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    inset 1px 0 0 rgba(255, 255, 255, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 24px 60px -30px rgba(0, 0, 0, 0.7);
 }
 .glass-panel {
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
@@ -171,44 +175,44 @@ h1, h2, h3, h4 {
 /* sticky translucent header — frosts the cream scrolling beneath it */
 .glass-nav {
   @apply backdrop-blur-xl backdrop-saturate-150;
-  background: rgba(247, 240, 218, 0.82);
+  background: rgba(12, 12, 15, 0.72);
   border-bottom: 1px solid var(--color-border);
 }
 
 .card {
-  background: #fffdf6;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--color-border);
   border-radius: 1.25rem;
   box-shadow:
-    0 1px 2px rgba(20, 19, 14, 0.05),
-    0 14px 30px -22px rgba(20, 19, 14, 0.3);
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 14px 30px -22px rgba(0, 0, 0, 0.6);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(20, 19, 14, 0.35);
-  box-shadow: 0 24px 50px -28px rgba(20, 19, 14, 0.4);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.7);
 }
 
-/* subtle warm glow + a coral whisper behind hero/CTA */
+/* subtle white glow behind hero/CTA on the near-black canvas */
 .mesh {
   background-image:
-    radial-gradient(55% 50% at 50% -8%, rgba(20, 19, 14, 0.05), transparent 70%),
-    radial-gradient(38% 38% at 85% 8%, rgba(255, 90, 54, 0.06), transparent 72%);
+    radial-gradient(55% 50% at 50% -8%, rgba(255, 255, 255, 0.06), transparent 70%),
+    radial-gradient(38% 38% at 85% 8%, rgba(255, 255, 255, 0.045), transparent 72%);
 }
 
 .grid-bg {
   background-image:
-    linear-gradient(to right, rgba(20, 19, 14, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(20, 19, 14, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 56px 56px;
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
 }
 
 .ring-soft {
-  box-shadow: 0 0 0 1px var(--color-border), 0 30px 80px -40px rgba(20, 19, 14, 0.25);
+  box-shadow: 0 0 0 1px var(--color-border), 0 30px 80px -40px rgba(0, 0, 0, 0.6);
 }
 
 @keyframes pulse-dot {
@@ -341,19 +345,19 @@ h1, h2, h3, h4 {
 
 /* ── Accessibility ───────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid #14130e;
+  outline: 2px solid #fafafa;
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* Honor reduced-transparency: drop the blur and go fully solid. */
+/* Honor reduced-transparency: drop the blur and go fully solid (dark). */
 @media (prefers-reduced-transparency: reduce) {
   .glass, .glass-panel, .card {
-    background: #fffdf6;
+    background: #17171c;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  .glass-nav { background: #f7f0da; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .glass-nav { background: #0c0c0f; backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
