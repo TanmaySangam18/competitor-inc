@@ -8,7 +8,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Eye, Inbox, Users, Scale, BarChart3, ShieldCheck } from "lucide-react";
 import { SecretHouseDoor } from "@/components/SecretHouseDoor";
 import { SlackMark, TelegramMark } from "@/components/ChatOpsLogos";
 import { useAuth } from "@/lib/engine/useAuth";
@@ -188,7 +187,6 @@ export default function LandingPage() {
             <div className="glass-panel mx-auto mt-6 max-w-xl rounded-2xl p-4 text-left font-mono text-xs leading-7">
               {lines.map((l, i) => (
                 <div key={i} className="reveal text-muted">
-                  <Check size={12} className="mr-1.5 inline-block" aria-hidden />
                   <span className="font-semibold text-text">{l.agent}</span> — {l.text}
                 </div>
               ))}
@@ -214,7 +212,7 @@ export default function LandingPage() {
                       onClick={() => onLandingCta(`keep:${verdict.verdict}`)}
                       className="group hover-lift rounded-full bg-text px-3.5 py-1.5 text-xs font-medium text-bg transition hover:opacity-90"
                     >
-                      Build this for real <ArrowRight size={12} className="ml-0.5 inline transition-transform group-hover:translate-x-0.5" aria-hidden />
+                      Build this for real →
                     </Link>
                     <span className="text-[10px] text-muted-2">
                       That was the 60-second validation. Next, the crew builds it — you approve every step.
@@ -249,7 +247,7 @@ export default function LandingPage() {
           Why it&apos;s safe to hand a company to AI
         </h2>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <Box wide icon={Eye} title="Glass box" sub="Every action logged, with cost and proof.">
+          <Box wide title="Glass box" sub="Every action logged, with cost and proof.">
             <div className="font-mono text-[11px] leading-7 text-muted">
               <div>
                 Forge · deployed site · <Mono>sha 9f2c1a ✓</Mono>
@@ -264,7 +262,7 @@ export default function LandingPage() {
             </div>
           </Box>
 
-          <Box icon={Inbox} title="Your yes required" sub="Nothing ships without approval.">
+          <Box title="Your yes required" sub="Nothing ships without approval.">
             <div className="rounded-xl border border-border bg-surface/60 p-2.5 text-[11px]">
               <div className="text-text">Spend $40 on search test</div>
               <div className="mt-1.5 flex gap-1.5">
@@ -280,7 +278,7 @@ export default function LandingPage() {
             </div>
           </Box>
 
-          <Box icon={Users} title="A crew, not a chatbot" sub="Five specialists, one goal.">
+          <Box title="A crew, not a chatbot" sub="Five specialists, one goal.">
             <div className="flex flex-wrap gap-1.5">
               {[
                 ["Apex", "strategy"],
@@ -296,19 +294,19 @@ export default function LandingPage() {
             </div>
           </Box>
 
-          <Box icon={Scale} title="Honest verdicts" sub="It will tell you not to build.">
+          <Box title="Honest verdicts" sub="It will tell you not to build.">
             <span className="rounded-full border border-dashed border-text px-3 py-1 text-xs font-medium text-muted">
               weak — hold
             </span>
           </Box>
 
-          <Box icon={BarChart3} title="Built to earn" sub="It optimizes for real revenue, not busywork.">
+          <Box title="Built to earn" sub="It optimizes for real revenue, not busywork.">
             <div className="font-mono text-[11px] text-muted">
               views → signups → <span className="rounded bg-text px-1.5 py-0.5 text-bg">paying ← the goal</span>
             </div>
           </Box>
 
-          <Box icon={ShieldCheck} title="Capped & reversible" sub="Hard limits on every dollar; kill switch anytime.">
+          <Box title="Capped & reversible" sub="Hard limits on every dollar; kill switch anytime.">
             <div className="font-mono text-[11px] leading-6 text-muted">
               <div>five gates before any action</div>
               <div>hard caps on every dollar</div>
@@ -324,7 +322,7 @@ export default function LandingPage() {
             className="group hover-lift rounded-full bg-text px-6 py-2.5 text-sm font-medium text-bg transition hover:opacity-90"
           >
             Start your company — free
-            <ArrowRight size={14} className="ml-1 inline transition-transform group-hover:translate-x-0.5" aria-hidden />
+ →
           </Link>
           <span className="text-xs text-muted-2">Free to start. You approve anything that costs money.</span>
         </div>
@@ -363,23 +361,19 @@ function Mono({ children }: { children: React.ReactNode }) {
 }
 
 function Box({
-  icon: Icon,
   title,
   sub,
   wide,
   children,
 }: {
-  icon: typeof Eye;
   title: string;
   sub: string;
   wide?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className={`glass-panel hover-lift rounded-3xl p-5 ${wide ? "md:col-span-2" : ""}`}>
-      <div className="flex items-center gap-2 text-sm font-semibold">
-        <Icon size={15} aria-hidden /> {title}
-      </div>
+    <div className={`glass-panel hover-lift rounded-xl p-5 ${wide ? "md:col-span-2" : ""}`}>
+      <div className="text-sm font-semibold">{title}</div>
       <p className="mt-0.5 text-xs text-muted">{sub}</p>
       <div className="mt-3">{children}</div>
     </div>
