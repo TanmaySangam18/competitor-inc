@@ -53,10 +53,17 @@ tier-awareness.
   verdict (score + evidence + crew) on one screen; shareable `/score?idea=…` link + OG image; CTA → build.
 - **C ✅ DRAFTED — Distribution kit.** docs/DISTRIBUTION-KIT.md: ready-to-post PH / Show HN / Reddit ×3 /
   LinkedIn / cold-email / Northeastern campus copy, honest + `/score`-led. → **founder posts.**
-- **D — Activation + retention loop.** Onboarding to first "aha" (built preview) in <10 min; day-7 / day-21
-  founder check-in emails (Resend); weekly value email ("your crew shipped X"). Founder-gated sends.
-- **E — Revenue/KPI board.** PPU, MRR, activation %, free→paid, churn, CAC — honest, no vanity. Wire the
-  $10K goal + weekly review trigger. (Mostly exists — funnel/growth/analyst.)
+- **D ✅ SHIPPED — Activation + retention emails.** lib/engine/lifecycle-email.ts: welcome/day7/day21
+  templates + pure `dueLifecycleEmails` selector (tested). Cron sends them DORMANT behind LIFECYCLE_EMAILS=1
+  + RESEND + migration 0025 (lifecycle_sends). Founder enables → sends activate. Outward sends founder-gated.
+- **E ✅ SHIPPED — MRR → $10K on the founder board.** /api/metrics returns list-price `mrr` + `goal`;
+  /house/board shows an MRR block + $10K 60-day progress bar under the PPU North Star (PPU stays the North
+  Star; MRR never conflated). Needs METRICS_SECRET to unlock (founder-set).
+
+## Founder switches to flip things live (all founder-side, all reversible env vars)
+`NEXT_PUBLIC_CHECKOUT_URL_BUILDER` / `NEXT_PUBLIC_CHECKOUT_URL` / `NEXT_PUBLIC_CHECKOUT_URL_FOUNDER` (charging on)
+· `METRICS_SECRET` (board) · `RESEND_API_KEY` + `RESEND_FROM` + `LIFECYCLE_EMAILS=1` + apply migration 0025
+(retention emails) · confirm A.2 live tier-gate wiring once the 3 Polar products exist.
 
 ## 60-day cadence (compressed from the reports)
 - **Wk 1:** slice A + B live; founder creates Polar products → **charging ON**; 5 founder convos.
