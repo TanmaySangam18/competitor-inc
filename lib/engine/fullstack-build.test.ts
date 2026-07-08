@@ -32,9 +32,7 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
   it("runs the full sequence and returns the repo url (honest 'building' artifact — never a guessed live URL)", async () => {
     const gh = fakeGitHub();
     const out = await dispatchFullstackBuild({ goal: "a tutoring marketplace", token: "t", fetchImpl: gh.fetchImpl });
-    expect(out).not.toBeNull();
-    expect(out!.url).toBe("https://github.com/octocat/tutor-app-abcde");
-    expect(out!.repo).toBe("octocat/tutor-app-abcde");
+    expect(out).toMatchObject({ url: "https://github.com/octocat/tutor-app-abcde", repo: "octocat/tutor-app-abcde" });
     const urls = gh.calls.map((c) => c.url);
     expect(urls.some((u) => u.endsWith("/user/repos"))).toBe(true);
     expect(urls.some((u) => u.includes("/contents/") && u.includes("build-fullstack.yml"))).toBe(true);
@@ -61,12 +59,14 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
   it("returns null when committing the workflow 403s (token lacks `workflow` scope) — caller falls back", async () => {
     const gh = fakeGitHub({ "build-fullstack.yml": { ok: false, status: 403 } });
     const out = await dispatchFullstackBuild({ goal: "x", token: "t", fetchImpl: gh.fetchImpl });
-    expect(out).toBeNull();
+    expect(out).toHaveProperty("error");
+    expect((out as { error: string }).error).toMatch(/403.*workflow/i);
   });
 
-  it("returns null when repo creation fails", async () => {
+  it("returns a create-repo error (not a crash) when repo creation fails", async () => {
     const gh = fakeGitHub({ "/user/repos": { ok: false, status: 401 } });
-    expect(await dispatchFullstackBuild({ goal: "x", token: "t", fetchImpl: gh.fetchImpl })).toBeNull();
+    const out = await dispatchFullstackBuild({ goal: "x", token: "t", fetchImpl: gh.fetchImpl });
+    expect((out as { error: string }).error).toMatch(/create-repo.*401/i);
   });
 
   it("injects LLM_API_KEY + VERCEL_TOKEN as repo secrets when the engine keys are set (no org needed)", async () => {
@@ -85,7 +85,7 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     };
     try {
       const out = await dispatchFullstackBuild({ goal: "x", token: "t", fetchImpl });
-      expect(out).not.toBeNull();
+      expect(out).toHaveProperty("url");
       expect(calls.some((c) => c.startsWith("PUT") && c.includes("/actions/secrets/LLM_API_KEY"))).toBe(true);
       expect(calls.some((c) => c.startsWith("PUT") && c.includes("/actions/secrets/VERCEL_TOKEN"))).toBe(true);
     } finally {

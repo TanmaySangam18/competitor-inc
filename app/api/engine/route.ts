@@ -83,10 +83,10 @@ export async function GET(req: Request) {
     const t0 = Date.now();
     const out = await dispatchFullstackBuild({ goal, token });
     const ms = Date.now() - t0;
-    if (!out) {
-      return Response.json({ ok: false, ms, org, reason: "dispatch failed — check the GitHub token has repo + workflow scope and can create repos in FULLSTACK_GH_ORG, and that FULLSTACK_GH_ORG is a real org." });
+    if ("error" in out) {
+      return Response.json({ ok: false, ms, org, reason: out.error });
     }
-    return Response.json({ ok: true, ms, org, repo: out.repo, url: out.url, note: "Repo created + workflow dispatched. Watch the build in the org's Actions tab; the app deploys to Vercel when it finishes." });
+    return Response.json({ ok: true, ms, org, repo: out.repo, url: out.url, note: "Repo created + secrets injected + workflow dispatched. Open the repo's Actions tab to watch the build; it deploys to Vercel when it finishes." });
   }
   return Response.json({
     ok: true,

@@ -97,7 +97,7 @@ export async function dispatchFullstackBuild(opts: {
   token: string;
   fetchImpl?: FetchLike;
   model?: string;
-}): Promise<{ url: string; repo: string } | null> {
+}): Promise<{ url: string; repo: string } | { error: string }> {
   const fetchImpl = opts.fetchImpl ?? (globalThis.fetch as unknown as FetchLike);
   const headers = {
     authorization: `Bearer ${opts.token}`,
@@ -106,8 +106,8 @@ export async function dispatchFullstackBuild(opts: {
   };
   try {
     const repo = repoName(opts.goal);
-    // Create under a GitHub ORG when FULLSTACK_GH_ORG is set, so the workflow inherits the ORG SECRETS
-    // (LLM_API_KEY, VERCEL_TOKEN) the founder sets once — no per-repo secret plumbing. Else the user account.
+    // Create under a GitHub ORG when FULLSTACK_GH_ORG is set (inherits org secrets); else the user account
+    // (per-repo secret injection below makes that work with zero org).
     const org = process.env.FULLSTACK_GH_ORG?.trim();
     const createUrl = org ? `https://api.github.com/orgs/${org}/repos` : "https://api.github.com/user/repos";
     const create = await fetchImpl(createUrl, {
@@ -115,10 +115,10 @@ export async function dispatchFullstackBuild(opts: {
       headers,
       body: JSON.stringify({ name: repo, description: opts.goal.slice(0, 120), private: false, auto_init: true }),
     });
-    if (!create.ok) return null;
+    if (!create.ok) return { error: `create-repo → HTTP ${create.status} — the GITHUB_TOKEN can't create repos; use a classic PAT with the 'repo' scope${org ? ` (and access to org '${org}')` : ""}` };
     const meta = (await create.json().catch(() => ({}))) as { full_name?: string; html_url?: string };
     const fullName = meta.full_name;
-    if (!fullName) return null;
+    if (!fullName) return { error: "create-repo returned no repo name" };
 
     // Inject the Actions secrets the workflow needs, per-repo (no org required). Values live as the engine's
     // env (the founder sets them once on Vercel; later, per-user BYOK values). Best-effort: if a key isn't
@@ -138,7 +138,7 @@ export async function dispatchFullstackBuild(opts: {
         headers,
         body: JSON.stringify({ message: `chore: add ${path}`, content: Buffer.from(content, "utf8").toString("base64") }),
       });
-      if (!put.ok) return null; // 403 on the workflow file ⇒ token lacks `workflow` scope
+      if (!put.ok) return { error: `commit ${path} → HTTP ${put.status}${put.status === 403 ? " — the token needs the 'workflow' scope to write .github/workflows" : ""}` };
     }
 
     const disp = await fetchImpl(`https://api.github.com/repos/${fullName}/actions/workflows/build-fullstack.yml/dispatches`, {
@@ -146,13 +146,13 @@ export async function dispatchFullstackBuild(opts: {
       headers,
       body: JSON.stringify({ ref: "main" }),
     });
-    if (!disp.ok) return null;
+    if (!disp.ok) return { error: `workflow-dispatch → HTTP ${disp.status}` };
 
     // Slice 1 returns the repo (always resolves) as the honest "building" artifact. The live Vercel URL is
     // captured + verified in Slice 2 — we never return a guessed URL that might 404.
     return { url: meta.html_url ?? `https://github.com/${fullName}`, repo: fullName };
-  } catch {
-    return null;
+  } catch (e) {
+    return { error: `network error: ${e instanceof Error ? e.message : "unknown"}` };
   }
 }
 
@@ -167,7 +167,10 @@ export function fullstackBuildExecutor(conn?: Connections): ExecuteFn | null {
   const token = conn?.githubToken || process.env.GITHUB_TOKEN;
   if (!token) return null;
   return makeBuildExecute({
-    build: async (goal) => dispatchFullstackBuild({ goal, token }),
+    build: async (goal) => {
+      const r = await dispatchFullstackBuild({ goal, token });
+      return "url" in r ? { url: r.url } : null; // error result → null so the caller falls back to static
+    },
     verifyUrl: (u) => /^https:\/\/\S+$/.test(u),
   });
 }
