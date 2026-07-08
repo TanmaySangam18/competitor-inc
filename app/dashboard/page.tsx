@@ -12,7 +12,6 @@ import {
   Check,
   X,
   Undo2,
-  Gauge,
   Code2,
   Megaphone,
   LifeBuoy,
@@ -25,10 +24,6 @@ import {
   Trash2,
   Settings,
   Send,
-  Activity as ActivityIcon,
-  Brain as BrainIcon,
-  LineChart,
-  MessagesSquare,
   Zap,
   Rocket,
   Lock,
@@ -77,14 +72,13 @@ import { isFounderEmail } from "@/lib/engine/founders";
 import { continueLocked, previewedCount, waitlistGateOn, premiumUnlocked, trialActive, trialDaysLeft, companyCreateLocked, TRIAL_CREDITS, TRIAL_DAYS, creditsLeft } from "@/lib/engine/access-gate";
 import { getTrialStart } from "@/lib/engine/trial";
 import { repoFromUrl } from "@/lib/engine/hosting";
-import LivePreview from "@/components/dashboard/LivePreview";
 import FoundingMember from "@/components/dashboard/FoundingMember";
 import { GlassCard } from "@/components/GlassCard";
 
 const verdictStyle = {
-  strong: { ring: "border-white/30 bg-white/[0.06]", text: "text-text", label: "strong signal" },
-  mixed: { ring: "border-white/15 bg-white/[0.03]", text: "text-muted", label: "mixed signal" },
-  weak: { ring: "border-white/10 bg-transparent", text: "text-muted-2", label: "weak signal" },
+  strong: { ring: "border-black/30 bg-black/[0.06]", text: "text-text", label: "strong signal" },
+  mixed: { ring: "border-black/15 bg-black/[0.03]", text: "text-muted", label: "mixed signal" },
+  weak: { ring: "border-black/10 bg-transparent", text: "text-muted-2", label: "weak signal" },
 } as const;
 
 // Monochrome signals: meaning via brightness/fill — solid white (good) → gray → hollow (bad).
@@ -292,7 +286,7 @@ function RenameTitle({ name, onRename }: { name: string; onRename: (n: string) =
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") setEditing(false); }}
           aria-label="Company name"
-          className="w-56 rounded-lg border border-border bg-bg/70 px-2 py-1 text-2xl font-bold outline-none focus:border-white/30"
+          className="w-56 rounded-lg border border-border bg-bg/70 px-2 py-1 text-2xl font-bold outline-none focus:border-black/30"
         />
         <button onClick={commit} aria-label="Save name" className="grid h-7 w-7 place-items-center rounded-md bg-text text-bg transition hover:brightness-110"><Check size={14} /></button>
         <button onClick={() => setEditing(false)} aria-label="Cancel rename" className="grid h-7 w-7 place-items-center rounded-md border border-border text-muted transition hover:text-text"><X size={14} /></button>
@@ -660,10 +654,11 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
         </div>
       )}
 
-      {/* THE BENTO — fills the viewport, each tile scrolls internally. Sizes chosen for a cockpit read. */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-4 lg:[grid-auto-flow:dense]">
-        {/* Glass Box — the live crew floor, biggest tile */}
-        <GlassCard fill title="The Glass Box" subtitle="every action, logged" icon={ShieldCheck} className="lg:col-span-2 lg:row-span-2">
+      {/* THE COCKPIT — 3 legible zones: the live floor (left), what needs YOU (right rail), and a
+          tabbed drawer for the 7 deeper surfaces (bottom). Fewer things at once, each big enough to read. */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[1.6fr_1fr] lg:grid-rows-[minmax(0,1.7fr)_minmax(0,1fr)]">
+        {/* Glass Box — the live crew floor (row 1, col 1) */}
+        <GlassCard fill title="The Glass Box" subtitle="every action, logged" icon={ShieldCheck} className="lg:col-start-1 lg:row-start-1">
           <div className="space-y-4">
             <LiveGlassBox company={c} />
             {r.activities.length === 0 ? (
@@ -678,58 +673,27 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
           </div>
         </GlassCard>
 
-        {/* Approval Inbox — your gates */}
-        <GlassCard fill id="approval-inbox" title="Approval Inbox" icon={Sparkles} badge={r.pendingApprovals.length > 0 ? <span className="grid h-4 min-w-4 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-bg">{r.pendingApprovals.length}</span> : null}>
-          {r.pendingApprovals.length === 0 ? (
-            <div className="text-sm text-muted-2">Inbox clear — the crew has everything it needs. Your yes/no keeps you in control; you&apos;re never charged.</div>
-          ) : (
-            <div className="space-y-3">
-              {r.pendingApprovals.map((ap) => (
-                <ApprovalCard key={ap.id} title={ap.title} detail={ap.detail} agent={ap.agent} kind={ap.kind} onApprove={() => r.resolveApproval(ap.id, true)} onReject={() => r.resolveApproval(ap.id, false)} />
-              ))}
-            </div>
-          )}
-        </GlassCard>
-
-        {/* Crew */}
-        <GlassCard fill title="Crew" subtitle="your specialists" icon={Zap}>
-          <div className="space-y-4">
-            <CrewBoard r={r} />
-            <CrewBox />
-            <SpecialistCrew idea={c.idea} roles={roles} />
-          </div>
-        </GlassCard>
-
-        {/* Morning brief + coach */}
-        <GlassCard fill title="Morning brief" icon={ActivityIcon}>
-          <div className="space-y-3">
-            <CoachCard company={c} />
-            <MorningBrief
-              company={c}
-              activities={r.activities}
-              pendingApprovals={r.pendingApprovals}
-              experiments={r.experiments}
-              onReviewDecisions={() => document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth" })}
-              onSeeFunnel={() => document.getElementById("card-growth")?.scrollIntoView({ behavior: "smooth" })}
-            />
-          </div>
-        </GlassCard>
-
-        {/* Growth */}
-        <GlassCard fill id="card-growth" title="Growth" subtitle="funnel & experiments" icon={Target}>
-          <GrowthPanel company={c} experiments={r.experiments} />
-        </GlassCard>
-
-        {/* Company — stats + the product reveal (the conversion moment) */}
-        <GlassCard fill title="Your company" subtitle="stats & product" icon={Rocket}>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              {stats.map((s) => <Stat key={s.label} label={s.label} val={s.val} />)}
-            </div>
-            {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
+        {/* Right rail — the two things that need YOU (row 1, col 2) */}
+        <div className="grid min-h-0 grid-cols-1 gap-3 lg:col-start-2 lg:row-start-1 lg:grid-rows-[1.15fr_1fr]">
+          <GlassCard fill id="approval-inbox" title="Needs your OK" subtitle="nothing ships without you" icon={Sparkles} badge={r.pendingApprovals.length > 0 ? <span className="grid h-4 min-w-4 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-bg">{r.pendingApprovals.length}</span> : null}>
+            {r.pendingApprovals.length === 0 ? (
+              <div className="text-sm text-muted-2">Inbox clear — the crew has everything it needs. Your yes/no keeps you in control; you&apos;re never charged.</div>
+            ) : (
               <div className="space-y-3">
-                <LivePreview url={c.product.url} />
-                {entitled ? (
+                {r.pendingApprovals.map((ap) => (
+                  <ApprovalCard key={ap.id} title={ap.title} detail={ap.detail} agent={ap.agent} kind={ap.kind} onApprove={() => r.resolveApproval(ap.id, true)} onReject={() => r.resolveApproval(ap.id, false)} />
+                ))}
+              </div>
+            )}
+          </GlassCard>
+
+          <GlassCard fill title="The numbers" subtitle="toward your goal" icon={Target}>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                {stats.map((s) => <Stat key={s.label} label={s.label} val={s.val} />)}
+              </div>
+              {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
+                entitled ? (
                   <>
                     <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] p-3">
                       <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-mint" /><div className="min-w-0"><div className="text-sm font-medium">Your product is live</div><div className="truncate text-xs text-mint">{c.product.url}</div></div></div>
@@ -740,40 +704,78 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
                 ) : (
                   <div className="rounded-2xl border border-coral/30 bg-coral/[0.05] p-3">
                     <div className="flex items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-coral" /><div className="text-sm font-medium">Built &amp; live</div></div><Lock size={15} className="shrink-0 text-coral" /></div>
-                    <a href={userEmail ? checkoutUrlFor(userEmail) : "/login"} className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-coral px-3 py-2 text-sm font-semibold text-bg transition hover:opacity-90">Unlock — Operator $39/mo <ArrowRight size={14} /></a>
+                    <a href={userEmail ? checkoutUrlFor(userEmail) : "/login"} className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-coral px-3 py-2 text-sm font-semibold text-bg transition hover:opacity-90">Unlock — Operator $199/mo <ArrowRight size={14} /></a>
                   </div>
-                )}
-              </div>
-            ) : c.product ? (
-              <div className="flex items-center gap-2 rounded-2xl border border-amber/25 bg-amber/[0.05] p-3 text-sm"><Rocket size={16} className="shrink-0 text-amber" /><span>Shipping your site… <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect keys →</Link></span></div>
-            ) : null}
-          </div>
-        </GlassCard>
-
-        {/* History */}
-        <GlassCard fill title="History" subtitle="tasks & spend" icon={LineChart}>
-          <HistoryTab activities={r.activities} company={c} />
-        </GlassCard>
-
-        {/* Chat */}
-        <GlassCard fill title="Chat" subtitle="talk to your crew" icon={MessagesSquare}>
-          <ChatTab company={c} r={r} />
-        </GlassCard>
-
-        {/* Brain */}
-        <GlassCard fill title="Company Brain" subtitle="decisions & lessons" icon={BrainIcon}>
-          <BrainTab r={r} />
-        </GlassCard>
-
-        {/* Operate */}
-        {OPERATE_ENABLED && (
-          <GlassCard fill title="Operate" subtitle="rocks & scorecard" icon={Gauge}>
-            <OperateTab r={r} c={c} />
+                )
+              ) : c.product ? (
+                <div className="flex items-center gap-2 rounded-2xl border border-amber/25 bg-amber/[0.05] p-3 text-sm"><Rocket size={16} className="shrink-0 text-amber" /><span>Shipping your site… <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect keys →</Link></span></div>
+              ) : null}
+            </div>
           </GlassCard>
-        )}
+        </div>
 
-        {/* Marketing (autonomous distribution) */}
-        <GlassCard fill title="Marketing" subtitle="autonomous distribution" icon={Megaphone}>
+        {/* The drawer — everything else, one tab at a time, full-width & legible (row 2) */}
+        <div className="min-h-0 lg:col-span-2 lg:row-start-2">
+          <SecondaryPanel r={r} c={c} roles={roles} entitled={entitled} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Secondary drawer — the deeper surfaces, one tab open at a time (full-width, legible) ── */
+type SecTab = "brief" | "crew" | "growth" | "marketing" | "chat" | "brain" | "operate" | "history";
+
+function SecondaryPanel({ r, c, roles, entitled }: { r: ReturnType<typeof useEngine>; c: Company; roles: AgentRole[]; entitled: boolean }) {
+  const tabs: { key: SecTab; label: string }[] = [
+    { key: "brief", label: "Morning brief" },
+    { key: "crew", label: "Crew" },
+    { key: "growth", label: "Growth" },
+    { key: "marketing", label: "Marketing" },
+    { key: "chat", label: "Chat" },
+    { key: "brain", label: "Company Brain" },
+    ...(OPERATE_ENABLED ? [{ key: "operate" as SecTab, label: "Operate" }] : []),
+    { key: "history", label: "History" },
+  ];
+  const [tab, setTab] = useState<SecTab>("brief");
+  return (
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl glass-panel p-4 lg:h-full">
+      <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-border pb-3">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`rounded-full px-3 py-1.5 font-mono text-xs font-medium transition ${
+              tab === t.key ? "bg-text text-bg" : "border border-border text-muted hover:text-text"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto pr-1 pt-4">
+        {tab === "brief" && (
+          <div className="space-y-3">
+            <CoachCard company={c} />
+            <MorningBrief
+              company={c}
+              activities={r.activities}
+              pendingApprovals={r.pendingApprovals}
+              experiments={r.experiments}
+              onReviewDecisions={() => document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth" })}
+              onSeeFunnel={() => setTab("growth")}
+            />
+          </div>
+        )}
+        {tab === "crew" && (
+          <div className="space-y-4">
+            <CrewBoard r={r} />
+            <CrewBox />
+            <SpecialistCrew idea={c.idea} roles={roles} />
+          </div>
+        )}
+        {tab === "growth" && <GrowthPanel company={c} experiments={r.experiments} />}
+        {tab === "marketing" && (
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-bg/40 p-3">
               <div className="min-w-0">
@@ -787,9 +789,13 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
             <CampaignPanel company={c} locked={!entitled} />
             <GTMPanel company={c} activities={r.activities} />
           </div>
-        </GlassCard>
+        )}
+        {tab === "chat" && <ChatTab company={c} r={r} />}
+        {tab === "brain" && <BrainTab r={r} />}
+        {OPERATE_ENABLED && tab === "operate" && <OperateTab r={r} c={c} />}
+        {tab === "history" && <HistoryTab activities={r.activities} company={c} />}
       </div>
-    </div>
+    </section>
   );
 }
 

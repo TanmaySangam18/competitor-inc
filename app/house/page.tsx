@@ -296,7 +296,7 @@ export default function House() {
             return (
               <li key={a.role} className="flex items-start gap-2.5">
                 <span
-                  className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-white/20"
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-black/20"
                   style={{ background: a.color, boxShadow: active ? `0 0 0 3px ${a.color}55` : undefined }}
                 />
                 <div className="min-w-0">
@@ -333,7 +333,7 @@ export default function House() {
                 const a = BY_ROLE[t.role];
                 return (
                   <div key={i} className="flex items-start gap-2">
-                    <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-white/15" style={{ background: a.color }} />
+                    <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-black/15" style={{ background: a.color }} />
                     <div className="min-w-0 text-[12px] leading-snug">
                       <span className="font-mono text-[11px] font-semibold text-text">{a.name}</span>
                       <span className="text-muted"> {t.text}</span>

@@ -182,6 +182,14 @@ export interface Connections {
   adsWebhookUrl: string;
 }
 
+// The founder's "Your team" settings, made real: which agents are ON and any custom scope narrowing.
+// Sent with validate/shift so the engine actually honors the toggles (was cosmetic before). Absent =
+// all agents on, default scopes (exactly today's behavior).
+export interface AgentDirective {
+  enabled: AgentRole[];
+  scopes?: Partial<Record<AgentRole, string>>;
+}
+
 // The competitive crew. Each agent runs a proven real-world playbook for its function.
 // Names are deliberately not human/machine — they're "plays" in the competitive game.
 // `responsibilities` is the agent's "job description" (what it owns); `icp`/`objections` give the

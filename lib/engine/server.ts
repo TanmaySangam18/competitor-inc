@@ -10,7 +10,7 @@ import { buildSalesPrompt, salesAttackFallback, type SalesAttack } from "./sales
 import { governApprovals } from "./policy";
 import { rolesForIdea } from "./dynamic-crew";
 import { enrichActivitiesWithSubAgents, flattenActivitiesForGlassBox } from "./shift-with-subagents";
-import type { Activity, ActivityStatus, AgentRole, ApprovalItem, ApprovalKind, ByokConfig, Company, GrowthGoal, ValidationResult } from "./types";
+import type { Activity, ActivityStatus, AgentDirective, AgentRole, ApprovalItem, ApprovalKind, ByokConfig, Company, GrowthGoal, ValidationResult } from "./types";
 import { AGENTS } from "./types";
 
 const PROVIDER = process.env.MODEL_PROVIDER ?? "simulated";
@@ -445,12 +445,13 @@ export async function auditSite(title: string, text: string, byok?: ByokConfig):
   }
 }
 
-export async function runValidate(idea: string, byok?: ByokConfig, salt?: string): Promise<ValidationResult> {
+export async function runValidate(idea: string, byok?: ByokConfig, salt?: string, soul?: string): Promise<ValidationResult> {
   const base = getProvider().validate(idea, salt); // realistic defaults + steps
   if (!modelAvailable(byok)) return base;
   const seed = salt ? idea + "::" + salt : idea;
   try {
     const text = await callModel(
+      (soul ? `Embody this brand voice and values (esp. honesty — say "don't build it" when the signal is weak): ${soul}\n\n` : "") +
       "You are competitor.inc's validation gate. Given a startup idea, estimate honest results of a small demand test. Be realistic and willing to be skeptical — estimate EVERY field from the specifics of this idea (don't return round/placeholder numbers)." +
         (salt ? " This is a RE-TEST — market conditions may have shifted since the last reading, so don't just echo it." : "") +
         ' Return ONLY JSON: {"waitlist":number (signups from a small landing-page test),"ctr":number (ad click-through %),"costPerSignup":number (dollars),"spend":number (test budget dollars),"conversion":number (landing→waitlist %),"clickThrough":number (fake-door button %),"searchVolume":number (monthly searches for this problem),"competition":"low"|"medium"|"high"}',
@@ -485,13 +486,14 @@ export async function runValidate(idea: string, byok?: ByokConfig, salt?: string
 // THE SALES FLOOR — turn a product into a playbook-grounded go-to-market that sells it. Model-backed
 // (trained by buildSalesPrompt on the sales canon) with a deterministic, framework-grounded fallback so the
 // free "Sell This" tool never breaks. Honest by construction: the prompt forbids fabricated stats/urgency.
-export async function runSell(product: string, byok?: ByokConfig): Promise<SalesAttack> {
+export async function runSell(product: string, byok?: ByokConfig, soul?: string): Promise<SalesAttack> {
   const base = salesAttackFallback(product);
   if (!modelAvailable(byok)) return base;
   const s = (v: unknown, d: string) => (typeof v === "string" && v.trim() ? v.trim() : d);
   try {
     const text = await callModel(
       buildSalesPrompt(product) +
+        (soul ? `\n\nBrand voice to honor (no fabricated stats/urgency): ${soul}` : "") +
         '\n\nReturn ONLY JSON: {"job":string,"positioning":string,"oneLiner":string,"beachhead":string,"channels":string[],"insight":string,"pitch":string,"objections":[{"objection":string,"response":string}],"firstWeek":string[]}',
       product,
       byok,
@@ -634,6 +636,17 @@ function governShift(s: ShiftResult): ShiftResult {
   return { ...s, approvals: governApprovals(s.approvals) };
 }
 
+// Enforce the founder's "Your team" toggles: a DISABLED agent produces nothing (was cosmetic before).
+// `enabled` undefined = every agent on (default, unchanged behavior).
+function filterShift(s: ShiftResult, enabled?: AgentRole[]): ShiftResult {
+  if (!enabled) return s;
+  const set = new Set(enabled);
+  return {
+    activities: s.activities.filter((a) => set.has(a.agent)),
+    approvals: s.approvals.filter((a) => set.has(a.agent)),
+  };
+}
+
 // Revenue Loop context injected into the shift prompt: the goal, the diagnosed constraint, and the
 // learnings from experiments that just closed — so the model proposes work that moves the CONSTRAINT,
 // not generic activity. (Computed deterministically by lib/engine/growth.ts; the model never invents
@@ -658,8 +671,10 @@ async function withSubAgentBreakdown(result: ShiftResult, company: Company, nigh
   }
 }
 
-export async function runShift(company: Company, byok?: ByokConfig, context?: string, growth?: GrowthShiftContext): Promise<ShiftResult> {
-  if (!modelAvailable(byok)) return withSubAgentBreakdown(governShift(getProvider().shift(company)), company, company.night + 1);
+export async function runShift(company: Company, byok?: ByokConfig, context?: string, growth?: GrowthShiftContext, directive?: AgentDirective, soul?: string): Promise<ShiftResult> {
+  const enabled = directive?.enabled;                        // the founder's ON agents (undefined = all)
+  const allow = (r: AgentRole) => !enabled || enabled.includes(r);
+  if (!modelAvailable(byok)) return withSubAgentBreakdown(governShift(filterShift(getProvider().shift(company), enabled)), company, company.night + 1);
   const night = company.night + 1;
   // COGS: bound the prior-context blob centrally so every caller (cron + any UI path) is protected.
   const ctx = context ? compressContext(context, { maxChars: 6000 }).text : context;
@@ -670,9 +685,16 @@ export async function runShift(company: Company, byok?: ByokConfig, context?: st
   const growthBlock = growth
     ? ` REVENUE LOOP: the founder's north star is ${growth.goal ? `${growth.goal.northStar} (target ${growth.goal.target})` : "not set yet"}. Current funnel constraint: ${growth.constraint} — ${growth.signal}${growth.learnings.length ? ` Learnings from closed experiments: ${growth.learnings.join(" | ")}` : ""} Propose work that moves THIS constraint; success is measured on outcome metrics, never on tasks completed.`
     : "";
+  // "Your team" enforcement: only enabled agents appear in the roster the model may act as; their
+  // custom scopes (if the founder narrowed them) become hard constraints; soul is the shared voice.
+  const roles = rolesForIdea(company.idea).filter(allow);
+  const scopeBlock = directive?.scopes && Object.keys(directive.scopes).length
+    ? ` Honor these agent scope limits: ${Object.entries(directive.scopes).map(([r, sc]) => `${r} — ${sc}`).join("; ")}.`
+    : "";
+  const soulBlock = soul ? ` Brand voice + values every agent embodies: ${soul}` : "";
   try {
     const text = await callModel(
-      `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${rolesForIdea(company.idea).join(", ")}.${distributionConstraint}${growthBlock} ` +
+      `You are competitor.inc's overnight autonomous engine for the startup "${company.name}". Agents: ${roles.join(", ")}.${distributionConstraint}${growthBlock}${scopeBlock}${soulBlock} ` +
         "Produce 3-5 realistic actions taken overnight. Build on priorContext (what earlier nights did) — stay consistent; don't repeat or contradict past decisions. " +
         "Consequential actions (spend>$100, outreach, deploy, delete, twitter posts, linkedin posts) must go in 'approvals' (NOT auto-done). Return ONLY JSON: " +
         '{"activities":[{"agent":string,"action":string,"cost":number,"meta":string,"status":"done"|"failed-credited","proof":{"kind":"url"|"build"|"metric","value":string}}],"approvals":[{"agent":string,"kind":"spend"|"outreach"|"deploy"|"delete"|"twitter"|"linkedin","title":string,"detail":string,"amount":number}]}',
@@ -692,7 +714,7 @@ export async function runShift(company: Company, byok?: ByokConfig, context?: st
       // cost is 0: a drafted shift moves no real money. Real spend only happens through an approved wallet
       // transaction (execution.ts), never from a model-estimated number — so the ledger never shows fake spend.
       return { id: uid(), night, agent: role(a.agent), action: str(a.action, "Did some work"), meta: str(a.meta) || undefined, cost: 0, status, proof };
-    });
+    }).filter((a) => allow(a.agent));
     const approvals: ApprovalItem[] = m.approvals.slice(0, 4).map((p) => ({
       id: uid(),
       night,
@@ -701,10 +723,10 @@ export async function runShift(company: Company, byok?: ByokConfig, context?: st
       title: str(p.title, "Needs your approval"),
       detail: str(p.detail),
       amount: p.amount != null ? Math.max(0, num(p.amount)) : undefined,
-    }));
+    })).filter((p) => allow(p.agent));
     if (activities.length === 0 && approvals.length === 0) throw new Error("empty");
     return withSubAgentBreakdown(governShift({ activities, approvals }), company, night);
   } catch {
-    return withSubAgentBreakdown(governShift(getProvider().shift(company)), company, company.night + 1); // graceful degradation
+    return withSubAgentBreakdown(governShift(filterShift(getProvider().shift(company), enabled)), company, company.night + 1); // graceful degradation
   }
 }

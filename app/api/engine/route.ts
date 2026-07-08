@@ -17,7 +17,27 @@ import { withTrace } from "@/lib/engine/observability";
 import { runGrowthStep, type FunnelSnapshot, type GrowthExperiment } from "@/lib/engine/growth";
 import { organicGrowthPlan, type ChannelInput } from "@/lib/engine/organic-growth";
 import { readFunnel } from "@/lib/engine/funnel";
-import type { AgentRole, ByokConfig, Company, Connections } from "@/lib/engine/types";
+import type { AgentRole, AgentDirective, ByokConfig, Company, Connections } from "@/lib/engine/types";
+
+// Sanitize founder-config that rides on validate/shift bodies (client localStorage → server prompt).
+const cleanSoul = (s: unknown): string | undefined =>
+  typeof s === "string" && s.trim() ? s.trim().slice(0, 800) : undefined;
+
+// Trust nothing from the wire: keep only real agent roles; a non-array `enabled` = ignore (defaults).
+function sanitizeDirective(d: AgentDirective | undefined): AgentDirective | undefined {
+  if (!d || typeof d !== "object" || !Array.isArray(d.enabled)) return undefined;
+  const valid = new Set(Object.keys(AGENTS));
+  const enabled = d.enabled.filter((r): r is AgentRole => typeof r === "string" && valid.has(r));
+  let scopes: Partial<Record<AgentRole, string>> | undefined;
+  if (d.scopes && typeof d.scopes === "object") {
+    const acc: Partial<Record<AgentRole, string>> = {};
+    for (const [r, v] of Object.entries(d.scopes)) {
+      if (valid.has(r) && typeof v === "string" && v.trim()) acc[r as AgentRole] = v.trim().slice(0, 240);
+    }
+    if (Object.keys(acc).length) scopes = acc;
+  }
+  return { enabled, scopes };
+}
 import { AGENTS } from "@/lib/engine/types";
 
 export const runtime = "nodejs";
@@ -102,9 +122,9 @@ export async function GET(req: Request) {
 }
 
 type Body =
-  | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig }
-  | { kind: "sell"; product: string; byok?: ByokConfig }
-  | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig }
+  | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig; soul?: string; agents?: AgentDirective }
+  | { kind: "sell"; product: string; byok?: ByokConfig; soul?: string }
+  | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig; soul?: string; agents?: AgentDirective }
   | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; agent?: AgentRole; byok?: ByokConfig }
   | { kind: "goal"; goal: string; roles?: AgentRole[]; build?: boolean; operate?: boolean; connections?: Connections; byok?: ByokConfig }
   | { kind: "organic"; funnel: FunnelSnapshot; channels?: ChannelInput[]; byok?: ByokConfig };
@@ -164,7 +184,7 @@ export async function POST(req: Request) {
         return Response.json({ error: "`idea` (non-empty string) is required" }, { status: 400 });
       }
       const salt = typeof body.nonce === "number" && Number.isFinite(body.nonce) ? String(body.nonce) : undefined;
-      const validation = await withTrace("validate", () => runValidate(body.idea.trim(), body.byok, salt), { len: body.idea.length });
+      const validation = await withTrace("validate", () => runValidate(body.idea.trim(), body.byok, salt, cleanSoul(body.soul)), { len: body.idea.length });
       return Response.json({ validation });
     }
 
@@ -172,7 +192,7 @@ export async function POST(req: Request) {
       if (typeof body.product !== "string" || !body.product.trim()) {
         return Response.json({ error: "`product` (non-empty string) is required" }, { status: 400 });
       }
-      const attack = await withTrace("sell", () => runSell(body.product.trim().slice(0, 400), body.byok), { len: body.product.length });
+      const attack = await withTrace("sell", () => runSell(body.product.trim().slice(0, 400), body.byok, cleanSoul(body.soul)), { len: body.product.length });
       return Response.json({ attack });
     }
 
@@ -209,7 +229,7 @@ export async function POST(req: Request) {
             learnings: growth.closed.map((x) => x.learning ?? "").filter(Boolean),
           }
         : undefined;
-      const result = await withTrace("shift", () => runShift(c, body.byok, undefined, growthContext), { companyId: c.id, night: c.night });
+      const result = await withTrace("shift", () => runShift(c, body.byok, undefined, growthContext, sanitizeDirective(body.agents), cleanSoul(body.soul)), { companyId: c.id, night: c.night });
       if (!growth) return Response.json(result);
       return Response.json({
         ...result,

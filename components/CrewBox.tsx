@@ -169,7 +169,7 @@ export function CrewBox() {
             const a = t.role !== "you" ? BY_ROLE[t.role] : null;
             return (
               <div key={i} className="flex items-start gap-2">
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full ring-1 ring-white/15" style={{ background: a ? toneHex(a.tone) : "var(--color-text)" }} />
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full ring-1 ring-black/15" style={{ background: a ? toneHex(a.tone) : "var(--color-text)" }} />
                 <div className="min-w-0 text-[11.5px] leading-snug">
                   <span className="font-mono text-[10px] font-semibold text-text">{a ? a.name : "You"}</span>
                   {t.via && <span className="ml-1 rounded bg-surface px-1 text-[8px] uppercase tracking-wide text-muted-2">via {t.via}</span>}

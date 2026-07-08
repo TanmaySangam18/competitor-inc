@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, GrowthGoal, OperateData, ValidationResult } from "./types";
 import type { GrowthExperiment } from "./growth";
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
-import { getByok, getConnections, pingCustomerUpdate, pingApprovalRequest, fetchApprovalDecisions } from "./config";
+import { getByok, getConnections, getSoul, getAgentDirective, pingCustomerUpdate, pingApprovalRequest, fetchApprovalDecisions } from "./config";
 import { draftBlitz } from "./blitz";
 import { generateSocialDrafts, generateDistributionActivities } from "./distribution";
 import { canRun, recordRun, FREE_CAPS } from "./usage";
@@ -103,7 +103,9 @@ async function callEngine(
     const res = await fetch("/api/engine", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ ...body, byok: getByok() ?? undefined }),
+      // soul (brand voice) + agents (Your-team toggles/scopes) ride along so validate/shift actually
+      // honor them — same central seam as byok. Both undefined by default = identical to before.
+      body: JSON.stringify({ ...body, byok: getByok() ?? undefined, soul: getSoul(), agents: getAgentDirective() }),
     });
     if (!res.ok) throw new Error("engine " + res.status);
     return await res.json();

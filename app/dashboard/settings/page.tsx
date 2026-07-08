@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useConfig, validateByok } from "@/lib/engine/config";
 import { useAuth } from "@/lib/engine/useAuth";
-import { checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
+import { checkoutUrlFor, checkoutLiveFor, TIERS, type PricingTier } from "@/lib/engine/billing";
 import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/engine/types";
 import { WalletCard } from "@/components/dashboard/WalletCard";
 
@@ -289,37 +289,36 @@ function Engine({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
 function Billing() {
   const { user } = useAuth();
   const email = user && !user.guest ? (user.email ?? "") : "";
-  // Mirrors the public pricing page exactly (single source of truth) so a buyer never sees one price
-  // here and another there. Operator routes to the live Polar checkout (email prefilled when signed in);
-  // Founder (done-with-you, limited slots) routes to /join to apply.
-  const plans = [
-    { name: "Validate", price: "$0", tag: "free forever", tier: "", current: true, href: "" },
-    { name: "Operator", price: "$39", tag: "/ month", tier: "operator", current: false, href: "/join" },
-    { name: "Founder", price: "$299", tag: "/ month", tier: "founder", current: false, href: "/join" },
-  ];
-  const upgradeHref = (p: { tier: string; href: string }) =>
-    p.tier && checkoutLiveFor(p.tier) ? checkoutUrlFor(email, p.tier) : p.href;
+  // Single source of truth: the SAME TIERS the public /join page renders (lib/engine/billing.ts), so a
+  // buyer never sees one price here and another there. Free = current; each paid tier links to its live
+  // Polar checkout (email prefilled) when its URL is configured, else to /join to apply.
+  const upgradeHref = (t: PricingTier) =>
+    t.key !== "free" && checkoutLiveFor(t.key) ? checkoutUrlFor(email, t.key) : "/join";
   return (
     <Card title="Billing" desc="Flat pricing, no revenue share. Failed work is credited back to your allowance — never charged.">
-      <div className="grid gap-3 sm:grid-cols-3">
-        {plans.map((p) => (
-          <div key={p.name} className={`rounded-xl border p-4 ${p.current ? "border-coral/50 bg-coral/[0.05]" : "border-border bg-bg/40"}`}>
-            <div className="text-sm font-semibold">{p.name}</div>
-            <div className="mt-1 font-display text-2xl font-bold">{p.price}<span className="ml-1 text-xs font-normal text-muted-2">{p.tag}</span></div>
-            {p.current ? (
+      <div className="grid gap-3 sm:grid-cols-2">
+        {TIERS.map((t) => (
+          <div key={t.key} className={`rounded-xl border p-4 ${t.recommended ? "border-coral/50 bg-coral/[0.05]" : "border-border bg-bg/40"}`}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-sm font-semibold">{t.name}</div>
+              {t.recommended && <span className="rounded-md bg-coral/12 px-2 py-0.5 text-[10px] font-medium text-coral">Popular</span>}
+            </div>
+            <div className="mt-1 font-display text-2xl font-bold">{t.price}<span className="ml-1 text-xs font-normal text-muted-2">{t.cadence}</span></div>
+            <p className="mt-1 text-xs text-muted">{t.tagline}</p>
+            {t.key === "free" ? (
               <span className="mt-3 inline-block rounded-md bg-mint/12 px-2 py-1 text-[11px] text-mint">Current plan</span>
             ) : (
               <a
-                href={upgradeHref(p)}
+                href={upgradeHref(t)}
                 className="mt-3 block w-full rounded-lg border border-coral/40 py-1.5 text-center text-xs font-semibold text-coral transition hover:bg-coral/10"
               >
-                {p.tier === "operator" && checkoutLiveFor("operator") ? "Upgrade →" : "Apply →"}
+                {checkoutLiveFor(t.key) ? "Upgrade →" : "Apply →"}
               </a>
             )}
           </div>
         ))}
       </div>
-      <p className="mt-4 text-xs text-muted-2">Same prices as our public pricing page. Operator checkout is live (Polar — merchant of record, your card is never on our servers). Founder is done-with-you and limited to a handful of slots.</p>
+      <p className="mt-4 text-xs text-muted-2">Same prices as our public pricing page. Checkout runs on Polar (merchant of record) — your card is never on our servers.</p>
     </Card>
   );
 }
@@ -479,7 +478,7 @@ function NotifyOptIn({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
         <button
           onClick={sendTest}
           disabled={!chatId || status === "sending"}
-          className="rounded-lg border border-border px-3 py-1.5 text-xs text-text transition hover:border-white/30 disabled:opacity-40"
+          className="rounded-lg border border-border px-3 py-1.5 text-xs text-text transition hover:border-black/30 disabled:opacity-40"
         >
           {status === "sending" ? "Sending…" : "Send a test"}
         </button>

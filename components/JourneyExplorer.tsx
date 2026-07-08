@@ -88,7 +88,7 @@ export default function JourneyExplorer() {
           <div className="min-w-0">
             <h2 className="text-xl font-semibold md:text-2xl">{s.title}</h2>
             <p className="mt-3 text-muted">{s.body}</p>
-            <p className="mt-4 border-l-2 border-white/20 pl-3 text-sm italic text-muted-2">{s.like}</p>
+            <p className="mt-4 border-l-2 border-black/20 pl-3 text-sm italic text-muted-2">{s.like}</p>
           </div>
         </div>
       </div>

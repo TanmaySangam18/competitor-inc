@@ -154,10 +154,10 @@ export default function Live() {
                       <span
                         className={`mt-2.5 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
                           c.validation.verdict === "strong"
-                            ? "border-white/30 bg-white/10 text-text"
+                            ? "border-black/30 bg-black/10 text-text"
                             : c.validation.verdict === "mixed"
-                            ? "border-white/15 bg-white/[0.05] text-muted"
-                            : "border-white/10 text-muted-2"
+                            ? "border-black/15 bg-black/[0.05] text-muted"
+                            : "border-black/10 text-muted-2"
                         }`}
                       >
                         <ShieldCheck size={10} /> Validated · {c.validation.confidence}%

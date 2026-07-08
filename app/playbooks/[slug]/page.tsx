@@ -141,7 +141,7 @@ export default async function PlaybookDetail({ params }: { params: Promise<{ slu
           >
             Try it free — watch a crew validate your idea <ArrowRight size={16} className="transition group-hover:translate-x-0.5" />
           </Link>
-          <Link href="/playbooks" className="inline-flex items-center gap-2 rounded-xl glass px-6 py-3.5 font-semibold transition hover:border-white/25">
+          <Link href="/playbooks" className="inline-flex items-center gap-2 rounded-xl glass px-6 py-3.5 font-semibold transition hover:border-black/25">
             More playbooks
           </Link>
         </div>
@@ -155,7 +155,7 @@ export default async function PlaybookDetail({ params }: { params: Promise<{ slu
                 <Link
                   key={p.slug}
                   href={`/playbooks/${p.slug}`}
-                  className="group rounded-2xl glass-panel p-5 transition hover:border-white/25"
+                  className="group rounded-2xl glass-panel p-5 transition hover:border-black/25"
                 >
                   <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-2">
                     <Clock size={11} /> {p.readMins} min

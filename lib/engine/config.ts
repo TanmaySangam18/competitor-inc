@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AGENTS, type AgentRole, type ByokConfig, type Connections } from "./types";
+import { AGENTS, type AgentRole, type AgentDirective, type ByokConfig, type Connections } from "./types";
 
 // Config = competitor.inc's "soul.md / agents.md" surface: brand voice, per-agent scoped authority,
 // and which engine drives it. Persisted locally (and ready to move to the DB with the rest).
@@ -102,6 +102,46 @@ export function getConnections(): Connections | null {
     /* ignore */
   }
   return null;
+}
+
+// Read the founder's brand voice (soul.md) for injection into every agent call (validate/sell/shift/
+// chat) — so "the DNA every agent inherits" is literally true, not just saved. Returns undefined when
+// unset/empty (engine then runs its built-in default voice).
+export function getSoul(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return undefined;
+    const soul = (JSON.parse(raw) as EngineConfig).soul;
+    return typeof soul === "string" && soul.trim() ? soul.trim().slice(0, 800) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// Read the "Your team" toggles/scopes as an AgentDirective the engine actually enforces. Returns
+// undefined in the default case (every agent enabled, no scope narrowed) so the request is byte-identical
+// to today — the directive only rides along once the founder has disabled an agent or narrowed a scope.
+export function getAgentDirective(): AgentDirective | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return undefined;
+    const agents = (JSON.parse(raw) as EngineConfig).agents;
+    if (!agents || typeof agents !== "object") return undefined;
+    const enabled = ROLES.filter((r) => agents[r]?.enabled ?? true);
+    const scopes: Partial<Record<AgentRole, string>> = {};
+    for (const r of enabled) {
+      const s = agents[r]?.scope?.trim();
+      if (s && s !== AGENTS[r].blurb) scopes[r] = s.slice(0, 240); // only send CUSTOM (changed) scopes
+    }
+    const allOn = enabled.length === ROLES.length;
+    const noCustom = Object.keys(scopes).length === 0;
+    if (allOn && noCustom) return undefined; // default → no-op, identical to today
+    return { enabled, scopes: noCustom ? undefined : scopes };
+  } catch {
+    return undefined;
+  }
 }
 
 export function useConfig() {

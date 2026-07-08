@@ -100,7 +100,7 @@ export default function HowItWorks() {
             </Link>
             <Link
               href="/live"
-              className="inline-flex items-center gap-2 rounded-xl glass px-7 py-4 font-semibold transition hover:border-white/25"
+              className="inline-flex items-center gap-2 rounded-xl glass px-7 py-4 font-semibold transition hover:border-black/25"
             >
               See it live
             </Link>

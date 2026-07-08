@@ -4,24 +4,24 @@
    Tailwind's layered spacing utilities. Tailwind v4 preflight handles box-sizing/margins. */
 
 @theme {
-  /* competitor.inc — "Dark Liquid Glass" (2026-07-08): near-black canvas, frosted translucent glass
-     cards with a hairline white edge, white "ink" for emphasis. Monochrome — emphasis via inversion +
-     weight + translucency, never hue. Matches the founder's Liquid-Glass reference. See docs/DESIGN.md. */
-  --color-bg: #0c0c0f;
-  --color-surface: #17171c;
-  --color-surface-2: #212128;
-  --color-border: rgba(255, 255, 255, 0.13);
+  /* competitor.inc — "Paper" light monochrome (2026-07-08): WHITE canvas, light-grey cards, GREY ink.
+     Founder direction: white background + grey text combination. Emphasis via value (darker grey) +
+     weight, never hue — the accent names stay so every text-coral/bg-mint/… class keeps working. */
+  --color-bg: #ffffff;
+  --color-surface: #f4f4f2;
+  --color-surface-2: #e9e9e5;
+  --color-border: rgba(0, 0, 0, 0.11);
 
-  /* Monochrome ladder, inverted for dark: the accent names stay so every text-coral/bg-mint/… class
-     keeps working — they're now light warm-grays / white, so emphasis reads on the dark glass. */
-  --color-coral: #fafafa; /* accent → white ink (primary buttons invert to white-on-dark) */
-  --color-amber: #b8ae98; /* warm light gray (warnings) */
-  --color-mint: #c9c6ba; /* success → light warm gray */
-  --color-violet: #a7a291; /* mid warm gray */
+  /* Monochrome ladder for light: accents are now DARK greys so emphasis reads on white. Primary
+     buttons (bg-coral text-bg) become dark-grey-on-white; text-mint/amber read as greys. */
+  --color-coral: #262626; /* accent → near-black ink (primary buttons = dark-on-white) */
+  --color-amber: #6b6b64; /* warm mid gray (warnings) */
+  --color-mint: #454541; /* success → dark warm gray */
+  --color-violet: #545458; /* mid gray */
 
-  --color-text: #f4f3ee;
-  --color-muted: #a8a498;
-  --color-muted-2: #77736a;
+  --color-text: #2b2b2b;
+  --color-muted: #6a6a66;
+  --color-muted-2: #9a9a95;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -35,13 +35,8 @@ html {
 }
 
 body {
-  background-color: #0c0c0f;
-  /* subtle depth glow so the near-black canvas isn't flat behind the glass */
-  background-image:
-    radial-gradient(60% 55% at 15% -5%, rgba(255, 255, 255, 0.05), transparent 60%),
-    radial-gradient(50% 50% at 100% 0%, rgba(255, 255, 255, 0.035), transparent 65%);
-  background-attachment: fixed;
-  color: #f4f3ee;
+  background-color: #ffffff;
+  color: #2b2b2b;
   /* Direction B, dialed: readable sans BODY, mono headings/chrome (set on h1–4 + labels). */
   font-family: var(--font-body), "Inter", ui-sans-serif, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -63,17 +58,17 @@ h1, h2, h3, h4 {
   font-weight: 800;
 }
 
-::selection { background: rgba(255, 255, 255, 0.18); }
+::selection { background: rgba(0, 0, 0, 0.10); }
 
 ::-webkit-scrollbar { width: 7px; }
-::-webkit-scrollbar-track { background: #17171c; }
-::-webkit-scrollbar-thumb { background: #3a3a42; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #4c4c56; }
+::-webkit-scrollbar-track { background: #f0f0ec; }
+::-webkit-scrollbar-thumb { background: #cfcfc8; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #b6b6ae; }
 
 /* ── Utilities ───────────────────────────────────────────────── */
 
 .gradient-text {
-  background: linear-gradient(100deg, #ffffff 0%, #a8a498 100%);
+  background: linear-gradient(100deg, #1a1a1a 0%, #7a7a74 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -86,8 +81,8 @@ h1, h2, h3, h4 {
    no soft shadow — the "real tool" look. */
 .glass,
 .glass-panel {
-  background: #131318;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #f6f6f4;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 .glass-panel {
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
@@ -166,44 +161,44 @@ h1, h2, h3, h4 {
 /* sticky translucent header — frosts the cream scrolling beneath it */
 .glass-nav {
   @apply backdrop-blur-xl backdrop-saturate-150;
-  background: rgba(12, 12, 15, 0.72);
+  background: rgba(255, 255, 255, 0.78);
   border-bottom: 1px solid var(--color-border);
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.04);
+  background: #ffffff;
   border: 1px solid var(--color-border);
   border-radius: 1.25rem;
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 14px 30px -22px rgba(0, 0, 0, 0.6);
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 14px 30px -22px rgba(0, 0, 0, 0.12);
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .card:hover {
   transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.7);
+  border-color: rgba(0, 0, 0, 0.22);
+  box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.18);
 }
 
-/* subtle white glow behind hero/CTA on the near-black canvas */
+/* subtle grey shading behind hero/CTA on the white canvas */
 .mesh {
   background-image:
-    radial-gradient(55% 50% at 50% -8%, rgba(255, 255, 255, 0.06), transparent 70%),
-    radial-gradient(38% 38% at 85% 8%, rgba(255, 255, 255, 0.045), transparent 72%);
+    radial-gradient(55% 50% at 50% -8%, rgba(0, 0, 0, 0.035), transparent 70%),
+    radial-gradient(38% 38% at 85% 8%, rgba(0, 0, 0, 0.025), transparent 72%);
 }
 
 .grid-bg {
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 56px 56px;
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
 }
 
 .ring-soft {
-  box-shadow: 0 0 0 1px var(--color-border), 0 30px 80px -40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 1px var(--color-border), 0 30px 80px -40px rgba(0, 0, 0, 0.14);
 }
 
 @keyframes pulse-dot {
@@ -320,7 +315,7 @@ h1, h2, h3, h4 {
 /* the box's "body" — a slab sitting behind the screen, in Z */
 .glassbox-body {
   transform: translateZ(-26px);
-  background: #ece4c8;
+  background: #e6e6e2;
   border: 1px solid var(--color-border);
 }
 /* a glass sheen sweeping the screen */
@@ -336,19 +331,19 @@ h1, h2, h3, h4 {
 
 /* ── Accessibility ───────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid #fafafa;
+  outline: 2px solid #262626;
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* Honor reduced-transparency: drop the blur and go fully solid (dark). */
+/* Honor reduced-transparency: drop the blur and go fully solid (light). */
 @media (prefers-reduced-transparency: reduce) {
   .glass, .glass-panel, .card {
-    background: #17171c;
+    background: #f6f6f4;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  .glass-nav { background: #0c0c0f; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .glass-nav { background: #ffffff; backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
