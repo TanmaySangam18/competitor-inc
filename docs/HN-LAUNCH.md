@@ -11,6 +11,7 @@ own Sales Floor produces when pointed at competitor.inc (the framework applied t
 - **Positioning (Dunford):** vs Lovable/Replit/Guildly (they build the app and stop) and vs "do nothing" — we win on the one attribute they don't touch: *the go-to-market that gets it paid.*
 - **Beachhead (Moore):** indie hackers who already shipped something and can't get traction. Acute, weekly pain; reachable on HN/Reddit/X.
 - **Commercial insight (Challenger):** building got 10× cheaper; *distribution didn't.* The bottleneck moved, but every tool still sells building. That's the reframe.
+- **Contrast, sharpened (Guildly teardown, 2026-07-08):** their shipped app is a *local* dev-shop — it runs agents in tmux on your laptop, on **your own paid Claude Code subscription**, and its whole crew is pm/sde/reviewer (zero sales). So: close the laptop and it stops; need Claude Code to run it at all; and it still doesn't sell. We're cloud (runs after you log off), need no Claude subscription, and the crew's job *is* the sale. Don't name them as a punching bag in the post — let the free tool show it.
 - **Honest line:** we don't claim full autonomy — the crew drafts + executes what it can; you approve the sends. That honesty is the moat (and the anti-Polsia).
 
 ---
@@ -29,6 +30,10 @@ own Sales Floor produces when pointed at competitor.inc (the framework applied t
 > So I built the opposite. competitor.inc's agents are trained on the actual canon of sales + marketing —
 > Jobs-to-be-Done, April Dunford positioning, Challenger, SPIN, Sandler, Cialdini, StoryBrand, Bullseye — and
 > their job is to take a product nobody was going to buy and produce the go-to-market that sells it.
+>
+> Two deliberate design choices, since they usually come up: it runs in the cloud (keeps working after you
+> close your laptop, not a local process you babysit), and it doesn't require you to bring your own coding-
+> agent subscription — the point is a founder who *isn't* a developer can still get to a first sale.
 >
 > Free, no signup — paste any product and see the plan it writes: https://competitor-inc-zeta.vercel.app/sell
 >
@@ -52,7 +57,7 @@ and show the fix.
 
 ## Timing + mechanics (your part)
 - Post **Tue–Thu, ~8–10am ET** (peak HN). Title starts with "Show HN:".
-- Have the free tool warm (model key live on prod so `/sell` tailors, not just the fallback — verify BUILD_API_KEY).
+- Have the free tool warm (model key live on prod so `/sell` tailors, not just the fallback). `/sell` runs on the **cheap tier**, so verify `MODEL_CHEAP` is a real Groq id — see docs/LAUNCH-SWITCHES.md §0. Open `/sell` and confirm a tailored plan before you post.
 - Line up a few honest friends to *look* (not vote-ring — HN bans that). Engage genuinely in comments for the first 2–3 hours; that's what sustains a post.
 - Prereq for converting the traffic: the paid "run it" checkout live (Polar product + env var) so interested founders can actually buy.
 
