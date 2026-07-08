@@ -6,6 +6,7 @@ import "server-only";
 // never reaches the client because this module is server-only.
 
 import { getProvider, scoreIdea, type ShiftResult } from "./provider";
+import { buildSalesPrompt, salesAttackFallback, type SalesAttack } from "./sales-playbooks";
 import { governApprovals } from "./policy";
 import { rolesForIdea } from "./dynamic-crew";
 import { enrichActivitiesWithSubAgents, flattenActivitiesForGlassBox } from "./shift-with-subagents";
@@ -476,6 +477,43 @@ export async function runValidate(idea: string, byok?: ByokConfig, salt?: string
       competition: (["low", "medium", "high"] as const).find((c) => c === m.competition),
     };
     return { steps: base.steps, ...core, ...scoreIdea(core, seed, extras) };
+  } catch {
+    return base; // graceful degradation
+  }
+}
+
+// THE SALES FLOOR — turn a product into a playbook-grounded go-to-market that sells it. Model-backed
+// (trained by buildSalesPrompt on the sales canon) with a deterministic, framework-grounded fallback so the
+// free "Sell This" tool never breaks. Honest by construction: the prompt forbids fabricated stats/urgency.
+export async function runSell(product: string, byok?: ByokConfig): Promise<SalesAttack> {
+  const base = salesAttackFallback(product);
+  if (!modelAvailable(byok)) return base;
+  const s = (v: unknown, d: string) => (typeof v === "string" && v.trim() ? v.trim() : d);
+  try {
+    const text = await callModel(
+      buildSalesPrompt(product) +
+        '\n\nReturn ONLY JSON: {"job":string,"positioning":string,"oneLiner":string,"beachhead":string,"channels":string[],"insight":string,"pitch":string,"objections":[{"objection":string,"response":string}],"firstWeek":string[]}',
+      product,
+      byok,
+      modelForAgent("growth"),
+    );
+    const m = extractJson<Partial<SalesAttack>>(text);
+    const objs = Array.isArray(m.objections) ? m.objections : [];
+    return {
+      product: base.product,
+      job: s(m.job, base.job),
+      positioning: s(m.positioning, base.positioning),
+      oneLiner: s(m.oneLiner, base.oneLiner),
+      beachhead: s(m.beachhead, base.beachhead),
+      channels: Array.isArray(m.channels) && m.channels.length ? m.channels.slice(0, 3).map((c) => String(c)) : base.channels,
+      insight: s(m.insight, base.insight),
+      pitch: s(m.pitch, base.pitch),
+      objections: objs.length
+        ? objs.slice(0, 4).map((o) => ({ objection: String(o?.objection ?? ""), response: String(o?.response ?? "") }))
+        : base.objections,
+      firstWeek: Array.isArray(m.firstWeek) && m.firstWeek.length ? m.firstWeek.slice(0, 6).map((x) => String(x)) : base.firstWeek,
+      frameworks: base.frameworks,
+    };
   } catch {
     return base; // graceful degradation
   }

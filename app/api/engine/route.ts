@@ -1,5 +1,5 @@
 import { serviceClient } from "@/lib/engine/service";
-import { runChat, runShift, runValidate, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, generateSiteFiles, modelForAgent } from "@/lib/engine/server";
+import { runChat, runShift, runValidate, runSell, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, generateSiteFiles, modelForAgent } from "@/lib/engine/server";
 import { FULLSTACK_BUILDS, dispatchFullstackBuild } from "@/lib/engine/fullstack-build";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isFounderEmail } from "@/lib/engine/founders";
@@ -103,6 +103,7 @@ export async function GET(req: Request) {
 
 type Body =
   | { kind: "validate"; idea: string; nonce?: number; byok?: ByokConfig }
+  | { kind: "sell"; product: string; byok?: ByokConfig }
   | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig }
   | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; agent?: AgentRole; byok?: ByokConfig }
   | { kind: "goal"; goal: string; roles?: AgentRole[]; build?: boolean; operate?: boolean; connections?: Connections; byok?: ByokConfig }
@@ -165,6 +166,14 @@ export async function POST(req: Request) {
       const salt = typeof body.nonce === "number" && Number.isFinite(body.nonce) ? String(body.nonce) : undefined;
       const validation = await withTrace("validate", () => runValidate(body.idea.trim(), body.byok, salt), { len: body.idea.length });
       return Response.json({ validation });
+    }
+
+    if (body.kind === "sell") {
+      if (typeof body.product !== "string" || !body.product.trim()) {
+        return Response.json({ error: "`product` (non-empty string) is required" }, { status: 400 });
+      }
+      const attack = await withTrace("sell", () => runSell(body.product.trim().slice(0, 400), body.byok), { len: body.product.length });
+      return Response.json({ attack });
     }
 
     if (body.kind === "shift") {
