@@ -80,13 +80,17 @@ export async function GET(req: Request) {
     if (!token) return Response.json({ ok: false, reason: "no GITHUB_TOKEN on the server" });
     const org = process.env.FULLSTACK_GH_ORG?.trim() || null;
     const goal = (url.searchParams.get("goal") || "a campus tutoring marketplace: post a listing, browse tutors, book a slot — with a real backend").slice(0, 300);
+    // Optional founder override to A/B coding models without a redeploy. Sanitized: the value is interpolated
+    // into the workflow's `aider --model <x>` shell command, so allow only safe model-id chars (no injection).
+    const modelParam = (url.searchParams.get("model") || "").trim();
+    const model = /^[a-zA-Z0-9/._:-]{1,80}$/.test(modelParam) ? modelParam : undefined;
     const t0 = Date.now();
-    const out = await dispatchFullstackBuild({ goal, token });
+    const out = await dispatchFullstackBuild({ goal, token, model });
     const ms = Date.now() - t0;
     if ("error" in out) {
-      return Response.json({ ok: false, ms, org, reason: out.error });
+      return Response.json({ ok: false, ms, org, model: model ?? "default", reason: out.error });
     }
-    return Response.json({ ok: true, ms, org, repo: out.repo, url: out.url, note: "Repo created + secrets injected + workflow dispatched. Open the repo's Actions tab to watch the build; it deploys to Vercel when it finishes." });
+    return Response.json({ ok: true, ms, org, model: model ?? "default", repo: out.repo, url: out.url, note: "Repo created + secrets injected + workflow dispatched. Open the repo's Actions tab to watch the build; it deploys to Vercel when it finishes." });
   }
   return Response.json({
     ok: true,
