@@ -53,6 +53,8 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     expect(yaml).toMatch(/create-next-app/);
     expect(yaml).toMatch(/vercel deploy --prod/);
     expect(yaml).toMatch(/aider .*--message-file \.\.\/PROMPT\.md/);
+    expect(yaml).toMatch(/npm run build/); // build-gate: only deploy an app that actually compiles
+    expect(yaml).toMatch(/exit 1/); // self-repair exhausted → fail honestly (no swallowed deploy error)
     expect(yaml).toMatch(/secrets\.LLM_API_KEY/);
     expect(yaml).toMatch(/secrets\.VERCEL_TOKEN/);
     expect(yaml).toMatch(/ssoProtection/); // auto-disables Vercel Deployment Protection → app is public

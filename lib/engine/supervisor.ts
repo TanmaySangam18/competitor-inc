@@ -40,6 +40,7 @@ export interface SupervisorOptions {
   modelForRole: (role: AgentRole) => string; // inject modelForAgent
   makeId: () => string;
   budgetCentsPerTask?: number; // default allocation per instance
+  maxTaskRetries?: number; // per-task self-repair attempts on a verification failure (default 0 = off)
   now?: () => number;
 }
 
@@ -101,27 +102,52 @@ export async function runSupervisor(
     log.push(`spawn ${inst.id} (${task.role}) → ${task.goal}`);
     inst = transition(inst, "working");
 
-    let res: TaskResult;
-    try {
-      res = await execute(inst, task, contextForTask[task.id]);
-    } catch (e) {
+    // Per-task SELF-REPAIR: run → verify; on a verification failure, retry with diagnostic feedback (bounded).
+    // Default 0 retries = unchanged behavior; the autonomous path opts in via maxTaskRetries. The verifier stays
+    // independent every attempt (verifyFailure enforces it) and spend stays budget-capped (recordSpend throws).
+    const maxRetries = opts.maxTaskRetries ?? 0;
+    let res!: TaskResult;
+    let why: string | null = "not attempted";
+    let failReason: string | null = null;
+    let ctx = contextForTask[task.id];
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        res = await execute(inst, task, ctx);
+      } catch (e) {
+        failReason = `execute threw: ${e instanceof Error ? e.message : "unknown"}`;
+        break; // an execute exception isn't retried
+      }
+      if (res.spentCents > 0) {
+        try {
+          inst = recordSpend(inst, res.spentCents);
+        } catch {
+          failReason = "budget exhausted during self-repair";
+          break;
+        }
+      }
+      why = verifyFailure(res, task.role);
+      if (!why) break; // verified → accept
+      if (attempt < maxRetries) {
+        ctx = `${contextForTask[task.id] ?? ""}\n[self-repair ${attempt + 1}/${maxRetries}: previous output rejected — ${why}. Produce a real, independently-verifiable proof.]`.trim();
+        log.push(`retry ${inst.id} — ${why}`);
+      }
+    }
+    if (failReason) {
       inst = transition(inst, "failed");
       const t = terminate(inst, now());
       refundedCents += t.refundCents;
       instances.push(t.instance);
       failed.push(task.id);
-      log.push(`fail ${inst.id} — execute threw: ${e instanceof Error ? e.message : "unknown"}`);
+      log.push(`fail ${inst.id} — ${failReason}`);
       continue;
     }
 
-    if (res.spentCents > 0) inst = recordSpend(inst, res.spentCents);
     if (res.gatedActs?.length) {
       packets.push(...res.gatedActs);
       log.push(`escalate ${res.gatedActs.length} act(s) to the accountability spine`);
     }
 
     inst = transition(inst, "verifying");
-    const why = verifyFailure(res, task.role);
     if (!why && res.proof?.kind === "url") artifacts.push({ taskId: task.id, role: task.role, url: res.proof.value });
     if (why) {
       inst = transition(inst, "failed");

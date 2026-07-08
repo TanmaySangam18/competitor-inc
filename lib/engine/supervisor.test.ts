@@ -60,6 +60,55 @@ describe("supervisor — end to end", () => {
     expect(out.failed).toEqual(["a"]);
   });
 
+  it("self-repairs: retries with diagnostic feedback on a verification failure (opt-in via maxTaskRetries)", async () => {
+    const contexts: (string | undefined)[] = [];
+    let calls = 0;
+    const execute: ExecuteFn = (_i, _task, inbound) => {
+      contexts.push(inbound);
+      calls++;
+      // attempt 1: no proof (rejected). attempt 2: valid + independently verified.
+      return calls === 1
+        ? { ok: true, spentCents: 100 }
+        : { ok: true, spentCents: 100, proof: { kind: "metric", value: "ok" }, verifierRole: "growth" };
+    };
+    const out = await runSupervisor(
+      [{ id: "a", goal: "do it", role: "ceo", blockingOn: [], priority: 1 }],
+      execute,
+      { ...opts(), maxTaskRetries: 2 },
+    );
+    expect(calls).toBe(2); // retried once, then succeeded
+    expect(out.completed).toEqual(["a"]);
+    expect(out.failed).toEqual([]);
+    expect(contexts[1]).toMatch(/self-repair 1\/2/); // diagnostic feedback carried into the retry
+    expect(contexts[1]).toMatch(/no well-formed proof/);
+  });
+
+  it("stays single-shot when maxTaskRetries is unset (default 0 — behavior unchanged)", async () => {
+    let calls = 0;
+    const execute: ExecuteFn = () => {
+      calls++;
+      return { ok: true, spentCents: 0 };
+    }; // no proof
+    const out = await runSupervisor([{ id: "a", goal: "", role: "ceo", blockingOn: [], priority: 1 }], execute, opts());
+    expect(calls).toBe(1); // no retry by default
+    expect(out.failed).toEqual(["a"]);
+  });
+
+  it("exhausts bounded retries then fails honestly (no infinite loop; verifier stays independent)", async () => {
+    let calls = 0;
+    const execute: ExecuteFn = () => {
+      calls++;
+      return { ok: true, spentCents: 100 };
+    }; // always no proof → never verifiable
+    const out = await runSupervisor(
+      [{ id: "a", goal: "", role: "ceo", blockingOn: [], priority: 1 }],
+      execute,
+      { ...opts(), maxTaskRetries: 2 },
+    );
+    expect(calls).toBe(3); // initial + 2 bounded retries, then stop
+    expect(out.failed).toEqual(["a"]);
+  });
+
   it("skips a task whose dependency failed (no fake work on a broken chain)", async () => {
     const execute: ExecuteFn = (_i, task) =>
       task.id === "a"

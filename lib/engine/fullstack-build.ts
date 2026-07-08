@@ -71,11 +71,21 @@ jobs:
         run: npx --yes create-next-app@latest "\${{ github.event.repository.name }}" --ts --app --eslint --use-npm --no-tailwind --no-src-dir --import-alias "@/*" --yes
       - name: Install Aider
         run: python -m pip install --upgrade pip && pip install aider-chat
-      - name: Implement the app (free model)
+      - name: Implement + self-repair until it builds (free model)
         working-directory: \${{ github.event.repository.name }}
         env:
           ${keyEnv}: \${{ secrets.LLM_API_KEY }}
-        run: aider --yes --model ${model} --message-file ../PROMPT.md app/page.tsx app/api/items/route.ts
+        run: |
+          set +e
+          aider --yes --model ${model} --message-file ../PROMPT.md app/page.tsx app/api/items/route.ts
+          for i in 1 2 3; do
+            if npm run build > ../build.log 2>&1; then echo "build passed on attempt $i"; exit 0; fi
+            echo "build failed (attempt $i) — feeding the error back to the agent to self-repair"
+            ERR=$(tail -60 ../build.log)
+            aider --yes --model ${model} --message "The Next.js production build failed. Fix ALL build, type, and lint errors so 'npm run build' passes cleanly. Do not remove features. Build output:
+          $ERR" app/page.tsx app/api/items/route.ts
+          done
+          echo "build still failing after self-repair — failing honestly"; npm run build; exit 1
       - name: Deploy to Vercel + make it public
         working-directory: \${{ github.event.repository.name }}
         env:
@@ -83,12 +93,13 @@ jobs:
           PROJECT: \${{ github.event.repository.name }}
         run: |
           npm i -g vercel
-          vercel deploy --prod --yes --token "$VT" > ../deploy.log 2>&1 || echo "deploy failed" >> ../deploy.log
+          URL=$(vercel deploy --prod --yes --token "$VT" 2>&1 | grep -oE "https://[a-z0-9.-]+\.vercel\.app" | tail -1)
+          echo "deployed: $URL"
+          echo "$URL" > ../deploy-url.txt
           # Disable Vercel Deployment Protection so the app is publicly viewable (no SSO wall) — automatically.
           TEAM=$(curl -s -H "Authorization: Bearer $VT" "https://api.vercel.com/v2/teams" | python3 -c "import sys,json;t=(json.load(sys.stdin).get('teams') or []);print(t[0]['id'] if t else '')" 2>/dev/null || echo "")
           Q=""; [ -n "$TEAM" ] && Q="?teamId=$TEAM"
           curl -s -X PATCH "https://api.vercel.com/v9/projects/$PROJECT$Q" -H "Authorization: Bearer $VT" -H "Content-Type: application/json" -d '{"ssoProtection":null}' > /dev/null 2>&1 || true
-          echo "https://$PROJECT.vercel.app" > ../deploy-url.txt
       - name: Commit source + deploy URL
         run: |
           git config user.name "competitor-bot"

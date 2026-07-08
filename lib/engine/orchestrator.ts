@@ -101,6 +101,7 @@ export interface RunGoalOptions {
   execute?: ExecuteFn; // Phase B injects a model-backed / OpenHands executor
   operate?: boolean; // Phase D: also run the ongoing GTM/support functions (drafts → your desk)
   budgetCentsPerTask?: number;
+  maxTaskRetries?: number; // per-task self-repair; the autonomous path defaults to 2 (still budget-bounded)
   now?: () => number;
 }
 
@@ -110,6 +111,7 @@ export function runSupervisedGoal(goal: string, opts: RunGoalOptions): Promise<S
     modelForRole: opts.modelForRole,
     makeId: opts.makeId,
     budgetCentsPerTask: opts.budgetCentsPerTask ?? 5000,
+    maxTaskRetries: opts.maxTaskRetries ?? 2,
     now: opts.now,
   });
 }
