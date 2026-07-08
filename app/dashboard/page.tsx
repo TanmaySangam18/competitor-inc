@@ -608,329 +608,187 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
     { label: "Trial credits left", val: `${creditsLeft(c.ledger.creditsSpent)}` },
     { label: "Credits used", val: `${Math.round(c.ledger.creditsSpent ?? 0)} / ${TRIAL_CREDITS}` },
   ];
+  const { config } = useConfig();
+  const roles = (Object.keys(AGENTS) as AgentRole[]).filter((role) => config.agents[role]?.enabled ?? true);
+  const lockedUrl = !entitled && c.product?.status === "live" ? c.product?.url : undefined;
+
+  // Spatial cockpit — one non-scrolling viewport, every feature its own glass tile in a 4×4 bento; each
+  // tile scrolls INSIDE itself. No tabs, no drawers, no separate routes. (Mobile stacks + scrolls.)
   return (
-    <div>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <CompanyLogo name={c.name} size={48} className="shrink-0 rounded-xl shadow-sm" />
-          <div>
+    <div className="flex flex-col gap-3 lg:h-[calc(100dvh-9.75rem)] lg:min-h-0 lg:overflow-hidden">
+      {/* Company strip + primary actions (fixed) */}
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <CompanyLogo name={c.name} size={40} className="shrink-0 rounded-xl shadow-sm" />
+          <div className="min-w-0">
             <RenameTitle name={c.name} onRename={r.renameCompany} />
-            <p className="mt-1 max-w-xl text-sm text-muted">{c.idea}</p>
-            <GoalChip goal={c.growthGoal} imported={c.product?.status === "live"} onSet={r.setGrowthGoal} />
+            <p className="max-w-md truncate text-xs text-muted">{c.idea}</p>
           </div>
+          <div className="hidden sm:block"><GoalChip goal={c.growthGoal} imported={c.product?.status === "live"} onSet={r.setGrowthGoal} /></div>
         </div>
         {locked ? (
-          <div className="max-w-sm rounded-2xl border border-coral/30 bg-coral/[0.06] px-5 py-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-text">
-              <Lock size={15} className="text-coral" /> You&apos;ve previewed it live
-            </div>
-            <p className="mt-1 text-xs text-muted">
-              Your project is saved. Join the waitlist to keep building — you&apos;ll pick up right where you left off.
-            </p>
-            <a
-              href="/join"
-              className="mt-3 inline-flex items-center gap-2 rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110"
-            >
-              Join the waitlist to continue
-            </a>
-          </div>
+          <a href="/join" className="inline-flex items-center gap-2 rounded-xl border border-coral/40 bg-coral/[0.08] px-4 py-2.5 text-sm font-semibold text-text transition hover:brightness-110">
+            <Lock size={14} className="text-coral" /> Join the waitlist to continue
+          </a>
         ) : (
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={r.revalidate}
-            disabled={r.working !== null}
-            title="Re-run the demand test — validation is continuous, not one-shot"
-            className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium text-muted transition hover:text-text disabled:opacity-50"
-          >
-            {r.working === "validating" ? (
-              <>
-                <Loader2 size={16} className="animate-spin" /> Re-testing…
-              </>
-            ) : (
-              <>
-                <FlaskConical size={16} /> Re-test demand
-              </>
-            )}
-          </button>
-          <button
-            onClick={doBlitz}
-            disabled={r.working !== null || blitzDone}
-            title="Surge drafts launch posts — queued for your approval, nothing posts without your yes"
-            className={`inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition disabled:opacity-70 ${blitzDone ? "border-mint/40 text-mint" : "border-border text-muted hover:text-text"}`}
-          >
-            {blitzDone ? <><Check size={16} /> Drafted — see Approval Inbox</> : <><Megaphone size={16} /> Draft launch blitz</>}
-          </button>
-          <button
-            onClick={r.runShift}
-            disabled={r.working !== null}
-            className="inline-flex items-center gap-2 rounded-xl bg-coral px-5 py-3 font-semibold text-bg transition hover:brightness-110 disabled:opacity-50"
-          >
-            {r.working === "shift" ? (
-              <>
-                <Loader2 size={17} className="animate-spin" /> Working…
-              </>
-            ) : (
-              <>
-                <Moon size={17} /> Run tonight&apos;s shift
-              </>
-            )}
-          </button>
-        </div>
-        )}
-      </div>
-
-      {onTrial && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-mint/30 bg-mint/[0.06] px-4 py-2.5 text-sm text-text">
-          <Sparkles size={15} className="shrink-0 text-mint" />
-          <span><b className="font-medium">Free trial</b> — {trialDaysLeft(trialStartedAt)} days left of full autopilot + real actions.</span>
-          <a href="/join" className="ml-auto font-medium text-mint underline-offset-2 hover:underline">Upgrade to keep it →</a>
-        </div>
-      )}
-
-      <CoachCard company={c} />
-
-      {r.autopilotPaused && (
-        <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-amber/30 bg-amber/[0.06] px-4 py-3 text-sm text-amber">
-          <AlertTriangle size={15} className="shrink-0" />
-          Autopilot paused — {r.pendingApprovals.length} approvals are waiting on you. Clear your inbox below to resume nightly shifts.
-        </div>
-      )}
-
-      <MorningBrief
-        company={c}
-        activities={r.activities}
-        pendingApprovals={r.pendingApprovals}
-        experiments={r.experiments}
-        onReviewDecisions={() => document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth" })}
-        onSeeFunnel={() => document.getElementById("card-growth")?.scrollIntoView({ behavior: "smooth" })}
-      />
-
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {stats.map((s) => (
-          <Stat key={s.label} label={s.label} val={s.val} />
-        ))}
-      </div>
-      <p className="mt-2 text-[11px] text-muted-2">
-        Trial credits are play-money for your {TRIAL_DAYS}-day trial — approving a spend deducts credits, never dollars. They become <span className="text-muted">actual dollars only when you open the payment gates</span>. You&apos;re never charged today.
-      </p>
-
-      {/* Anti-crowding (Hick's Law): autonomous marketing is advanced — collapsed by default so a
-          first-time founder isn't hit with it; one tap reveals it. */}
-      <details className="group mt-6">
-        <summary className="flex cursor-pointer list-none items-center justify-between rounded-2xl border border-border bg-bg/40 px-4 py-3 text-sm font-medium text-muted transition hover:text-text">
-          <span>Advanced · autonomous marketing</span>
-          <ChevronDown size={16} className="shrink-0 text-muted-2 transition group-open:rotate-180" />
-        </summary>
-        <div className="mt-3 space-y-3">
-          {/* Build-in-public consent — the crew shares THIS company's real milestones on
-              competitor.inc's own channels (never yours). Opt-in; off by default. */}
-          <div className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-bg/40 p-4">
-            <div className="min-w-0">
-              <div className="text-sm font-medium text-text">Build in public</div>
-              <p className="mt-0.5 text-[12px] leading-relaxed text-muted-2">
-                Let the crew share {c.name}&apos;s <span className="text-muted">verified</span> milestones on competitor.inc&apos;s own
-                accounts — free distribution. Only real, proof-backed progress is ever posted; nothing is fabricated.
-              </p>
-            </div>
-            <button
-              role="switch"
-              aria-checked={!!c.shareInPublic}
-              onClick={() => r.setShareInPublic(!c.shareInPublic)}
-              className={`mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${c.shareInPublic ? "border-text bg-text" : "border-border bg-surface"}`}
-            >
-              <span className={`h-4 w-4 rounded-full transition ${c.shareInPublic ? "translate-x-6 bg-bg" : "translate-x-1 bg-muted-2"}`} />
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={r.revalidate} disabled={r.working !== null} title="Re-run the demand test" className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2.5 text-sm font-medium text-muted transition hover:text-text disabled:opacity-50">
+              {r.working === "validating" ? <><Loader2 size={15} className="animate-spin" /> Re-testing…</> : <><FlaskConical size={15} /> Re-test</>}
+            </button>
+            <button onClick={doBlitz} disabled={r.working !== null || blitzDone} title="Surge drafts launch posts for your approval" className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition disabled:opacity-70 ${blitzDone ? "border-mint/40 text-mint" : "border-border text-muted hover:text-text"}`}>
+              {blitzDone ? <><Check size={15} /> Drafted</> : <><Megaphone size={15} /> Blitz</>}
+            </button>
+            <button onClick={r.runShift} disabled={r.working !== null} className="inline-flex items-center gap-2 rounded-xl bg-coral px-4 py-2.5 font-semibold text-bg transition hover:brightness-110 disabled:opacity-50">
+              {r.working === "shift" ? <><Loader2 size={16} className="animate-spin" /> Working…</> : <><Moon size={16} /> Run tonight&apos;s shift</>}
             </button>
           </div>
-          <CampaignPanel company={c} locked={!entitled} />
-        </div>
-      </details>
-
-      {/* The conversion moment. A REAL, resolvable site exists — but the link only OPENS once they pay
-          (value-first: they've already watched the crew build it). Until billing is live, `entitled` is
-          true for everyone, so this stays an open clickable card (pre-launch demo). Never a fake link. */}
-      {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
-        <>
-        {/* The live site, previewed INSIDE competitor (relayed via /api/site-preview) — the reveal. */}
-        <LivePreview url={c.product.url} />
-        {entitled ? (
-          <>
-          <div className="mt-6 rounded-2xl border border-mint/25 bg-mint/[0.05] p-4">
-            <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mint/12 text-mint">
-                  <Rocket size={18} />
-                </span>
-                <div className="min-w-0">
-                  <div className="text-sm font-medium">Your product is live</div>
-                  <div className="truncate text-xs text-mint">{c.product.url}</div>
-                </div>
-              </div>
-              <span className="ml-3 shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs text-muted transition group-hover:text-text">View site ↗</span>
-            </a>
-            {/* "Own your code" doors — the anti-black-box move: the build is a REAL repo the founder
-                owns, openable in a full browser IDE via GitHub's free bridges. Renders only when the
-                repo is verifiably derivable from the shipped URL (never a dead link). */}
-            {(() => {
-              const repo = repoFromUrl(c.product.url);
-              if (!repo) return null;
-              return (
-                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-mint/15 pt-3 text-xs">
-                  <span className="flex items-center gap-1.5 text-muted-2"><Code2 size={12} /> Your code — own it:</span>
-                  <a href={`https://github.com/${repo}`} target="_blank" rel="noreferrer" className="text-muted underline-offset-2 transition hover:text-text hover:underline">View repo</a>
-                  <span className="text-muted-2">·</span>
-                  <a href={`https://stackblitz.com/github/${repo}`} target="_blank" rel="noreferrer" className="text-muted underline-offset-2 transition hover:text-text hover:underline">Edit in StackBlitz</a>
-                  <span className="text-muted-2">·</span>
-                  <a href={`https://replit.com/github/${repo}`} target="_blank" rel="noreferrer" className="text-muted underline-offset-2 transition hover:text-text hover:underline">Open in Replit</a>
-                </div>
-              );
-            })()}
-          </div>
-          {/* Checkout OFF (F1 pre-EAD): capture "want to pay" as a founding reservation, never a charge. */}
-          {!checkoutLiveFor("operator") && <FoundingMember tier="operator" email={userEmail} />}
-          </>
-        ) : (
-          <div className="mt-6 overflow-hidden rounded-2xl border border-coral/30 bg-coral/[0.05] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-coral/12 text-coral">
-                  <Rocket size={18} />
-                </span>
-                <div className="min-w-0">
-                  <div className="text-sm font-medium">Your product is built &amp; live</div>
-                  {/* The real URL exists but is NEVER emitted to a locked client (CSS blur is cosmetic —
-                      the value would still sit in the DOM). We render a masked decoy so it LOOKS like a
-                      real link is right there, while the actual URL stays server-side until they unlock. */}
-                  <div className="mt-0.5 select-none truncate font-mono text-xs text-coral blur-[5px]" aria-hidden>
-                    https://{"•".repeat(16)}.live
-                  </div>
-                </div>
-              </div>
-              <Lock size={16} className="shrink-0 text-coral" aria-label="Locked" />
-            </div>
-            <a
-              href={userEmail ? checkoutUrlFor(userEmail) : "/login"}
-              className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-coral px-4 py-2.5 text-sm font-semibold text-bg transition hover:opacity-90"
-            >
-              Unlock your live site — Operator $39/mo <ArrowRight size={15} />
-            </a>
-            <p className="mt-2 text-center text-[11px] text-muted-2">
-              It&apos;s real and already deployed — paying just opens it. Cancel anytime, own the repo, no lock-in.
-            </p>
-          </div>
         )}
-        </>
-      ) : c.product ? (
-        <div className="mt-6 flex items-center gap-3 rounded-2xl border border-amber/25 bg-amber/[0.05] p-4">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber/12 text-amber">
-            <Rocket size={18} />
-          </span>
-          <div className="min-w-0">
-            <div className="text-sm font-medium">Shipping your site…</div>
-            <div className="text-xs text-muted-2">
-              A real, openable link appears here the moment the build finishes (≈1 min once your keys are live).{" "}
-              <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect your keys →</Link>
-            </div>
+      </div>
+
+      {/* Slim contextual banners — only when they matter (fixed) */}
+      {onTrial && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2 rounded-xl border border-mint/30 bg-mint/[0.06] px-4 py-2 text-sm text-text">
+          <Sparkles size={14} className="shrink-0 text-mint" />
+          <span><b className="font-medium">Free trial</b> — {trialDaysLeft(trialStartedAt)} days left of full autopilot.</span>
+          <a href="/join" className="ml-auto font-medium text-mint underline-offset-2 hover:underline">Upgrade →</a>
+        </div>
+      )}
+      {r.autopilotPaused && (
+        <div className="flex shrink-0 items-center gap-2 rounded-xl border border-amber/30 bg-amber/[0.06] px-4 py-2 text-sm text-amber">
+          <AlertTriangle size={14} className="shrink-0" />
+          Autopilot paused — {r.pendingApprovals.length} approvals waiting. Clear the inbox to resume nightly shifts.
+        </div>
+      )}
+
+      {/* THE BENTO — fills the viewport, each tile scrolls internally. Sizes chosen for a cockpit read. */}
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-4 lg:[grid-auto-flow:dense]">
+        {/* Glass Box — the live crew floor, biggest tile */}
+        <GlassCard fill title="The Glass Box" subtitle="every action, logged" icon={ShieldCheck} className="lg:col-span-2 lg:row-span-2">
+          <div className="space-y-4">
+            <LiveGlassBox company={c} />
+            {r.activities.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border px-6 py-8 text-center text-sm text-muted-2">Nothing yet. Hit <span className="text-muted">Run tonight&apos;s shift</span> and watch it work.</div>
+            ) : (
+              <div className="space-y-2.5">
+                <AnimatePresence initial={false}>
+                  {r.activities.map((a) => <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} lockedUrl={lockedUrl} />)}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
-        </div>
-      ) : null}
+        </GlassCard>
 
-      {/* Single-page workspace — no tabs. Every feature lives in its own glass card on one page; secondary
-          ones use progressive disclosure (collapsed, one tap to open) so nothing is buried on another route. */}
-      <div className="mt-8 space-y-6">
-        {/* Operations — the primary surface (crew floor + Glass Box + Approval Inbox), always open. */}
-        <div id="card-operations" className="scroll-mt-24">
-          <OperationsTab r={r} lockedUrl={!entitled && c.product?.status === "live" ? c.product?.url : undefined} />
-        </div>
+        {/* Approval Inbox — your gates */}
+        <GlassCard fill id="approval-inbox" title="Approval Inbox" icon={Sparkles} badge={r.pendingApprovals.length > 0 ? <span className="grid h-4 min-w-4 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-bg">{r.pendingApprovals.length}</span> : null}>
+          {r.pendingApprovals.length === 0 ? (
+            <div className="text-sm text-muted-2">Inbox clear — the crew has everything it needs. Your yes/no keeps you in control; you&apos;re never charged.</div>
+          ) : (
+            <div className="space-y-3">
+              {r.pendingApprovals.map((ap) => (
+                <ApprovalCard key={ap.id} title={ap.title} detail={ap.detail} agent={ap.agent} kind={ap.kind} onApprove={() => r.resolveApproval(ap.id, true)} onReject={() => r.resolveApproval(ap.id, false)} />
+              ))}
+            </div>
+          )}
+        </GlassCard>
 
-        <GlassCard id="card-growth" title="Growth" subtitle="funnel & experiments" icon={Target} collapsible defaultOpen>
+        {/* Crew */}
+        <GlassCard fill title="Crew" subtitle="your specialists" icon={Zap}>
+          <div className="space-y-4">
+            <CrewBoard r={r} />
+            <CrewBox />
+            <SpecialistCrew idea={c.idea} roles={roles} />
+          </div>
+        </GlassCard>
+
+        {/* Morning brief + coach */}
+        <GlassCard fill title="Morning brief" icon={ActivityIcon}>
+          <div className="space-y-3">
+            <CoachCard company={c} />
+            <MorningBrief
+              company={c}
+              activities={r.activities}
+              pendingApprovals={r.pendingApprovals}
+              experiments={r.experiments}
+              onReviewDecisions={() => document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth" })}
+              onSeeFunnel={() => document.getElementById("card-growth")?.scrollIntoView({ behavior: "smooth" })}
+            />
+          </div>
+        </GlassCard>
+
+        {/* Growth */}
+        <GlassCard fill id="card-growth" title="Growth" subtitle="funnel & experiments" icon={Target}>
           <GrowthPanel company={c} experiments={r.experiments} />
         </GlassCard>
 
-        <GlassCard title="History" subtitle="nights, tasks & spend" icon={LineChart} collapsible defaultOpen={false}>
+        {/* Company — stats + the product reveal (the conversion moment) */}
+        <GlassCard fill title="Your company" subtitle="stats & product" icon={Rocket}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              {stats.map((s) => <Stat key={s.label} label={s.label} val={s.val} />)}
+            </div>
+            {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
+              <div className="space-y-3">
+                <LivePreview url={c.product.url} />
+                {entitled ? (
+                  <>
+                    <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] p-3">
+                      <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-mint" /><div className="min-w-0"><div className="text-sm font-medium">Your product is live</div><div className="truncate text-xs text-mint">{c.product.url}</div></div></div>
+                      <span className="ml-2 shrink-0 rounded-lg border border-border px-2 py-1 text-xs text-muted transition group-hover:text-text">View ↗</span>
+                    </a>
+                    {!checkoutLiveFor("operator") && <FoundingMember tier="operator" email={userEmail} />}
+                  </>
+                ) : (
+                  <div className="rounded-2xl border border-coral/30 bg-coral/[0.05] p-3">
+                    <div className="flex items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-coral" /><div className="text-sm font-medium">Built &amp; live</div></div><Lock size={15} className="shrink-0 text-coral" /></div>
+                    <a href={userEmail ? checkoutUrlFor(userEmail) : "/login"} className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-coral px-3 py-2 text-sm font-semibold text-bg transition hover:opacity-90">Unlock — Operator $39/mo <ArrowRight size={14} /></a>
+                  </div>
+                )}
+              </div>
+            ) : c.product ? (
+              <div className="flex items-center gap-2 rounded-2xl border border-amber/25 bg-amber/[0.05] p-3 text-sm"><Rocket size={16} className="shrink-0 text-amber" /><span>Shipping your site… <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect keys →</Link></span></div>
+            ) : null}
+          </div>
+        </GlassCard>
+
+        {/* History */}
+        <GlassCard fill title="History" subtitle="tasks & spend" icon={LineChart}>
           <HistoryTab activities={r.activities} company={c} />
         </GlassCard>
 
-        <GlassCard title="Chat with your crew" icon={MessagesSquare} collapsible defaultOpen={false}>
+        {/* Chat */}
+        <GlassCard fill title="Chat" subtitle="talk to your crew" icon={MessagesSquare}>
           <ChatTab company={c} r={r} />
         </GlassCard>
 
-        <GlassCard title="Company Brain" subtitle="decisions & lessons" icon={BrainIcon} collapsible defaultOpen={false}>
+        {/* Brain */}
+        <GlassCard fill title="Company Brain" subtitle="decisions & lessons" icon={BrainIcon}>
           <BrainTab r={r} />
         </GlassCard>
 
+        {/* Operate */}
         {OPERATE_ENABLED && (
-          <GlassCard title="Operate" subtitle="rocks, issues & scorecard" icon={Gauge} collapsible defaultOpen={false}>
+          <GlassCard fill title="Operate" subtitle="rocks & scorecard" icon={Gauge}>
             <OperateTab r={r} c={c} />
           </GlassCard>
         )}
-      </div>
-    </div>
-  );
-}
 
-function OperationsTab({ r, lockedUrl }: { r: ReturnType<typeof useEngine>; lockedUrl?: string }) {
-  const { config } = useConfig();
-  const roles = (Object.keys(AGENTS) as AgentRole[]).filter((role) => config.agents[role]?.enabled ?? true);
-  return (
-    <div className="space-y-8">
-      <CrewBoard r={r} />
-      <div className="rounded-3xl glass-panel p-5 sm:p-7">
-        <LiveGlassBox company={r.company ?? undefined} />
-      </div>
-      {/* The crew, brought out as its own two boxes: the live floor + your idea-matched specialists. */}
-      <div className="grid items-stretch gap-6 lg:grid-cols-2">
-        <CrewBox />
-        {r.company && <SpecialistCrew idea={r.company.idea} roles={roles} />}
-      </div>
-    <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
-      <section className="flex min-h-0 flex-col">
-        <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
-          <ShieldCheck size={15} className="text-violet" /> The Glass Box · every action, logged
-        </h2>
-        <div className="mt-4">
-          {r.activities.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-muted-2">
-              Nothing yet. Hit <span className="text-muted">Run tonight&apos;s shift</span> (or flip on Autopilot) and watch it work.
+        {/* Marketing (autonomous distribution) */}
+        <GlassCard fill title="Marketing" subtitle="autonomous distribution" icon={Megaphone}>
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-bg/40 p-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-text">Build in public</div>
+                <p className="mt-0.5 text-[12px] leading-relaxed text-muted-2">Let the crew share {c.name}&apos;s verified milestones on competitor.inc&apos;s own accounts. Only real, proof-backed progress — nothing fabricated.</p>
+              </div>
+              <button role="switch" aria-checked={!!c.shareInPublic} onClick={() => r.setShareInPublic(!c.shareInPublic)} className={`mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition ${c.shareInPublic ? "border-text bg-text" : "border-border bg-surface"}`}>
+                <span className={`h-4 w-4 rounded-full transition ${c.shareInPublic ? "translate-x-6 bg-bg" : "translate-x-1 bg-muted-2"}`} />
+              </button>
             </div>
-          ) : (
-            <div className="max-h-[calc(100vh-14rem)] space-y-2.5 overflow-y-auto pr-1">
-              <AnimatePresence initial={false}>
-                {r.activities.map((a) => (
-                  <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} lockedUrl={lockedUrl} />
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <aside className="space-y-6 lg:max-h-[calc(100vh-14rem)] lg:overflow-y-auto lg:pr-1">
-        {r.pendingApprovals.length > 0 && (
-          <div id="approval-inbox" className="scroll-mt-24">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-coral">
-              <Sparkles size={15} /> Approval Inbox · {r.pendingApprovals.length}
-            </h2>
-            <p className="mt-1 text-[11px] text-muted-2">
-              Your yes/no keeps you in control — <span className="text-muted">you&apos;re never charged</span>. Spend approvals use trial credits, and nothing real happens until you connect your own account.
-            </p>
-            <div className="mt-3 max-h-[44vh] space-y-3 overflow-y-auto pr-1">
-              {r.pendingApprovals.map((ap) => (
-                <ApprovalCard
-                  key={ap.id}
-                  title={ap.title}
-                  detail={ap.detail}
-                  agent={ap.agent}
-                  kind={ap.kind}
-                  onApprove={() => r.resolveApproval(ap.id, true)}
-                  onReject={() => r.resolveApproval(ap.id, false)}
-                />
-              ))}
-            </div>
+            <CampaignPanel company={c} locked={!entitled} />
+            <GTMPanel company={c} activities={r.activities} />
           </div>
-        )}
-        {r.company && <GTMPanel company={r.company} activities={r.activities} />}
-      </aside>
-    </div>
+        </GlassCard>
+      </div>
     </div>
   );
 }
