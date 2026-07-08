@@ -52,7 +52,8 @@ export function fullstackPromptFile(goal: string): string {
 export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV): string {
   return `name: build-fullstack
 on:
-  workflow_dispatch: {}
+  push:
+    branches: ["main"]
 permissions:
   contents: write
 jobs:
@@ -85,7 +86,7 @@ jobs:
           git config user.name "competitor-bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A
-          git commit -m "build: full-stack app from prompt" || echo "nothing to commit"
+          git commit -m "build: full-stack app from prompt [skip ci]" || echo "nothing to commit"
           git push
 `;
 }
@@ -128,28 +129,24 @@ export async function dispatchFullstackBuild(opts: {
     if (llmKey) await setRepoSecret(fetchImpl, opts.token, fullName, "LLM_API_KEY", llmKey);
     if (vercelToken) await setRepoSecret(fetchImpl, opts.token, fullName, "VERCEL_TOKEN", vercelToken);
 
-    const files: Record<string, string> = {
-      ".github/workflows/build-fullstack.yml": buildFullstackWorkflowYaml(opts.model ?? FS_MODEL),
-      "PROMPT.md": fullstackPromptFile(opts.goal),
-    };
-    for (const [path, content] of Object.entries(files)) {
-      const put = await fetchImpl(`https://api.github.com/repos/${fullName}/contents/${encodeURIComponent(path)}`, {
+    // Commit the workflow FIRST, then PROMPT.md. The workflow runs `on: push`, so the SECOND commit
+    // (PROMPT.md) fires the build — avoiding the workflow_dispatch-by-filename 404 (a brand-new workflow
+    // isn't dispatchable for a few seconds). A short settle delay lets GitHub register the workflow before the
+    // triggering push (real path only; tests inject a fetch and skip it).
+    const commitFile = (path: string, content: string) =>
+      fetchImpl(`https://api.github.com/repos/${fullName}/contents/${encodeURIComponent(path)}`, {
         method: "PUT",
         headers,
         body: JSON.stringify({ message: `chore: add ${path}`, content: Buffer.from(content, "utf8").toString("base64") }),
       });
-      if (!put.ok) return { error: `commit ${path} → HTTP ${put.status}${put.status === 403 ? " — the token needs the 'workflow' scope to write .github/workflows" : ""}` };
-    }
+    const wf = await commitFile(".github/workflows/build-fullstack.yml", buildFullstackWorkflowYaml(opts.model ?? FS_MODEL));
+    if (!wf.ok) return { error: `commit workflow → HTTP ${wf.status}${wf.status === 403 ? " — the token needs the 'workflow' scope" : ""}` };
+    if (!opts.fetchImpl) await new Promise((r) => setTimeout(r, 3000));
+    const pr = await commitFile("PROMPT.md", fullstackPromptFile(opts.goal));
+    if (!pr.ok) return { error: `commit PROMPT.md → HTTP ${pr.status}` };
 
-    const disp = await fetchImpl(`https://api.github.com/repos/${fullName}/actions/workflows/build-fullstack.yml/dispatches`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ ref: "main" }),
-    });
-    if (!disp.ok) return { error: `workflow-dispatch → HTTP ${disp.status}` };
-
-    // Slice 1 returns the repo (always resolves) as the honest "building" artifact. The live Vercel URL is
-    // captured + verified in Slice 2 — we never return a guessed URL that might 404.
+    // The PROMPT.md push triggered the `on: push` build. Return the repo (always resolves) as the honest
+    // "building" artifact; the live Vercel URL is captured + verified in Slice 2.
     return { url: meta.html_url ?? `https://github.com/${fullName}`, repo: fullName };
   } catch (e) {
     return { error: `network error: ${e instanceof Error ? e.message : "unknown"}` };

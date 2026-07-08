@@ -37,11 +37,19 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     expect(urls.some((u) => u.endsWith("/user/repos"))).toBe(true);
     expect(urls.some((u) => u.includes("/contents/") && u.includes("build-fullstack.yml"))).toBe(true);
     expect(urls.some((u) => u.includes("/contents/") && u.includes("PROMPT.md"))).toBe(true);
-    expect(urls.some((u) => u.includes("/actions/workflows/build-fullstack.yml/dispatches"))).toBe(true);
+    // Workflow committed BEFORE PROMPT.md, so the PROMPT push triggers the on:push build (no dispatch call).
+    const wfIdx = urls.findIndex((u) => u.includes("build-fullstack.yml"));
+    const promptIdx = urls.findIndex((u) => u.includes("PROMPT.md"));
+    expect(wfIdx).toBeGreaterThanOrEqual(0);
+    expect(wfIdx).toBeLessThan(promptIdx);
+    expect(urls.some((u) => u.includes("/dispatches"))).toBe(false); // no fragile dispatch-by-filename call
   });
 
-  it("workflow scaffolds Next.js + deploys to Vercel (real backend, not static Pages)", () => {
+  it("workflow triggers on push (not dispatch), scaffolds Next.js + deploys to Vercel, and can't loop", () => {
     const yaml = buildFullstackWorkflowYaml();
+    expect(yaml).toMatch(/on:\s*\n\s*push:/);
+    expect(yaml).not.toMatch(/workflow_dispatch/);
+    expect(yaml).toMatch(/\[skip ci\]/); // the bot's own commit is skipped → no infinite loop
     expect(yaml).toMatch(/create-next-app/);
     expect(yaml).toMatch(/vercel deploy --prod/);
     expect(yaml).toMatch(/aider .*--message-file \.\.\/PROMPT\.md/);
