@@ -44,14 +44,15 @@ tier-awareness.
 3. **First 5 founder conversations** (Mom Test) — real demand signal before scaling outreach.
 
 ## My build slices (each QA-gated: tsc + tests + build + smoke; ship = git HEAD → prod)
-- **A — Tier model + pricing page.** `/join` shows the 4 tiers; add `tierOf(plan)` + feature gates
-  (Operator unlocks the operating loop; Builder = build only). Fail-soft: renders + routes to
-  waitlist/founding-member until checkout URLs are set. Files: `entitlement.ts`, `billing.ts`, `app/join`.
-- **B — Free lead-magnet ("engineering as marketing").** Sharpen the free *validate idea → see your AI crew
-  + a real build preview* as the top-of-funnel magnet with a **shareable result** (viral loop). Reports'
-  #1 organic channel (SiteGPT/Sleek).
-- **C — Distribution kit (drafts).** PH launch, Show HN, 3 Reddit posts (r/SaaS, r/Entrepreneur, founder
-  subs), 5 LinkedIn posts, cold-email templates for founders, Northeastern campus outreach. → founder posts.
+- **A ✅ SHIPPED — Simplified 4-tier pricing page.** `/join` shows Free/Builder/Operator/Concierge, one
+  screen, Operator "Most popular", fail-soft CTAs (Polar checkout when env vars set, else waitlist).
+- **A.2 ✅ SHIPPED (foundation) — Tier model.** `entitlement.ts` `tierOf`/`tierUnlocksOperate` (tested,
+  fail-open) + `getEntitlement` returns tier. **Live operate/money-gate rewire DEFERRED** until the founder's
+  Polar products exist (real `plan` strings) so it can be verified end-to-end — then wired.
+- **B ✅ SHIPPED — Free "Idea Scorecard" lead magnet (`/score`).** No-signup; real validate engine → glass-box
+  verdict (score + evidence + crew) on one screen; shareable `/score?idea=…` link + OG image; CTA → build.
+- **C ✅ DRAFTED — Distribution kit.** docs/DISTRIBUTION-KIT.md: ready-to-post PH / Show HN / Reddit ×3 /
+  LinkedIn / cold-email / Northeastern campus copy, honest + `/score`-led. → **founder posts.**
 - **D — Activation + retention loop.** Onboarding to first "aha" (built preview) in <10 min; day-7 / day-21
   founder check-in emails (Resend); weekly value email ("your crew shipped X"). Founder-gated sends.
 - **E — Revenue/KPI board.** PPU, MRR, activation %, free→paid, churn, CAC — honest, no vanity. Wire the
