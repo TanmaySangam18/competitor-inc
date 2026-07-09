@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { isCampusEmail, campusGateEnabled } from "@/lib/org/campus-access";
+import { isFounderEmail } from "@/lib/engine/founders";
 
 // Next 16 renamed the `middleware` file convention to `proxy` (same request-interception API). This refreshes
 // the Supabase auth session cookie on the authed surfaces, so server-side reads (esp. the /api/execute
@@ -22,7 +24,25 @@ export async function proxy(req: NextRequest) {
         },
       },
     });
-    await supabase.auth.getUser(); // refreshes the session + writes refreshed cookies onto `res`
+    const { data } = await supabase.auth.getUser(); // refreshes the session + writes refreshed cookies onto `res`
+
+    // Defense-in-depth NU gate (Phase 4): the OAuth callback blocks a non-campus sign-in, but a session
+    // ISSUED BEFORE the gate was turned on would otherwise keep reaching /dashboard. When the gate is on,
+    // block an authed non-campus, non-founder user on every authed surface — 403 for APIs, redirect for
+    // pages. Anonymous requests fall through (the page/route handles its own sign-in redirect).
+    if (campusGateEnabled()) {
+      const email = data?.user?.email;
+      if (email && !isCampusEmail(email) && !isFounderEmail(email)) {
+        if (req.nextUrl.pathname.startsWith("/api/")) {
+          return NextResponse.json({ ok: false, error: "campus_only" }, { status: 403 });
+        }
+        const url = req.nextUrl.clone();
+        url.pathname = "/";
+        url.search = "";
+        url.searchParams.set("campus_only", "1");
+        return NextResponse.redirect(url);
+      }
+    }
   } catch {
     /* never block a request on a refresh hiccup */
   }
