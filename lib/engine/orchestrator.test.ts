@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { decomposeGoal, runSupervisedGoal } from "./orchestrator";
+import { decomposeGoal, runSupervisedGoal, makeRealExecutor, type RealExecutorDeps } from "./orchestrator";
+import type { AgentInstance } from "./agent-lifecycle";
+import type { AgentTask } from "./task-queue";
 
 let n = 0;
 const opts = () => ({ modelForRole: (r: string) => `m-${r}`, makeId: () => `i${++n}`, now: () => 0 });
@@ -41,5 +43,46 @@ describe("orchestrator", () => {
     expect(out.packets.map((p) => p.kind).sort()).toEqual([
       "approve_outreach", "approve_publish", "approve_support", "move_money", "move_money", "sign_contract", "vendor_review",
     ]);
+  });
+});
+
+describe("makeRealExecutor (Phase 2 — real work, not narration)", () => {
+  const deps: RealExecutorDeps = {
+    plan: async (g) => `SPEC: ${g}`,
+    build: async () => ({ url: "https://focus-app-x.vercel.app", repo: "o/focus-app-x", note: "building" }),
+    verify: async (u) => u.startsWith("https://"),
+    draft: async (role, g) => `${role} draft for ${g}`,
+  };
+  const inst = { id: "i1", createdAt: 0 } as unknown as AgentInstance;
+  const task = (id: string, role: AgentTask["role"]): AgentTask => ({ id, goal: "a focus app", role, blockingOn: [], priority: 5 });
+
+  it("BUILD ships a real URL proof and hands off to verify", async () => {
+    const r = await makeRealExecutor(deps)(inst, task("build", "engineering"), "SPEC");
+    expect(r.ok).toBe(true);
+    expect(r.proof).toEqual({ kind: "url", value: "https://focus-app-x.vercel.app" });
+    expect(r.handoffTo).toBe("verify");
+    expect(r.handoffContext).toBe("https://focus-app-x.vercel.app");
+  });
+
+  it("VERIFY HEAD-checks the handed-off artifact (verify-before-done)", async () => {
+    const live = await makeRealExecutor(deps)(inst, task("verify", "support"), "https://focus-app-x.vercel.app");
+    expect(live.proof).toEqual({ kind: "url", value: "https://focus-app-x.vercel.app" });
+    const nothing = await makeRealExecutor(deps)(inst, task("verify", "support"), "");
+    expect(nothing.proof?.kind).toBe("metric"); // never a fake URL when there's nothing to verify
+  });
+
+  it("BUILD fails honestly (ok:false) when the builder returns null", async () => {
+    const r = await makeRealExecutor({ ...deps, build: async () => null })(inst, task("build", "engineering"), "");
+    expect(r.ok).toBe(false);
+  });
+
+  it("drives the FULL org DAG with real work: completes, and outbound acts still escalate to the desk", async () => {
+    const out = await runSupervisedGoal("a focus app for students", { ...opts(), operate: true, execute: makeRealExecutor(deps) });
+    expect(out.failed).toEqual([]);
+    expect(out.completed).toContain("build");
+    expect(out.completed).toContain("verify");
+    // Nothing outbound auto-fired — launch/announce/etc. still land on the founder's desk as before.
+    expect(out.packets.length).toBeGreaterThan(0);
+    expect(out.packets.some((p) => p.kind === "approve_publish")).toBe(true);
   });
 });

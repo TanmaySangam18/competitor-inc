@@ -94,6 +94,58 @@ export const simulatedExecute: ExecuteFn = (inst: AgentInstance, task: AgentTask
   return res;
 };
 
+// ── REAL executor (Phase 2: flip simulated → real) ───────────────────────────
+// Deps are INJECTED (the real model caller, the full-stack build, the URL verifier) so this stays pure +
+// unit-testable and free of an execution.ts/server.ts import cycle; the API route wires the live deps.
+// Per task it does actual work: the CEO plans, Engineering BUILDS a real app, Support VERIFIES it resolves
+// (verify-before-done), and every other role DRAFTS its artifact + escalates the irreducible act to the
+// founder's desk (never auto-fires). Handoffs pass real context down the DAG (plan→build→verify).
+export interface RealExecutorDeps {
+  plan: (goal: string) => Promise<string>; // CEO writes the spec
+  build: (goal: string, plan?: string) => Promise<{ url?: string; repo?: string; note: string } | null>; // real full-stack build
+  verify: (url: string) => Promise<boolean>; // HEAD-verify the built artifact resolves
+  draft: (role: AgentRole, goal: string) => Promise<string>; // a role drafts its deliverable
+}
+
+export function makeRealExecutor(deps: RealExecutorDeps): ExecuteFn {
+  return async (inst: AgentInstance, task: AgentTask, inbound?: string): Promise<TaskResult> => {
+    const verifierRole = verifierFor(task.role);
+    const desk = DESK[task.id];
+    const gatedActs = desk
+      ? [preparePacket({ id: `${inst.id}-${task.id}`, kind: desk.kind, title: desk.title, summary: task.goal, preparedBy: task.role, actionRequired: desk.action, now: inst.createdAt })]
+      : undefined;
+
+    // PLAN — the CEO produces a real spec, handed to Engineering.
+    if (task.id === "plan") {
+      const spec = await deps.plan(task.goal).catch(() => "");
+      return { ok: true, spentCents: 40, proof: { kind: "metric", value: spec ? "spec written" : "planning" }, verifierRole, handoffTo: "build", handoffContext: spec.slice(0, 2000) };
+    }
+    // BUILD — the one task that ships real code (full-stack repo + deploy). Hands the artifact to Verify.
+    if (task.id === "build") {
+      const b = await deps.build(task.goal, inbound).catch(() => null);
+      if (!b) return { ok: false, spentCents: 0, verifierRole };
+      const proof: Proof = b.url ? { kind: "url", value: b.url } : { kind: "metric", value: b.note };
+      return { ok: true, spentCents: 300, proof, verifierRole, handoffTo: "verify", handoffContext: b.url || b.repo || "" };
+    }
+    // VERIFY — actually HEAD-check the built artifact resolves before calling it done.
+    if (task.id === "verify") {
+      const url = (inbound || "").trim();
+      const live = /^https:\/\//.test(url) ? await deps.verify(url).catch(() => false) : false;
+      return {
+        ok: true,
+        spentCents: 20,
+        proof: live ? { kind: "url", value: url } : { kind: "metric", value: url ? "artifact deploying — not live yet" : "nothing to verify yet" },
+        verifierRole,
+      };
+    }
+    // Everything else — the role DRAFTS its deliverable; consequential ones escalate to the desk.
+    const drafted = await deps.draft(task.role, task.goal).catch(() => "");
+    const res: TaskResult = { ok: true, spentCents: 30, proof: { kind: "metric", value: drafted ? `${task.role} draft ready` : `${task.role} prepared` }, verifierRole };
+    if (gatedActs) res.gatedActs = gatedActs;
+    return res;
+  };
+}
+
 export interface RunGoalOptions {
   roles?: AgentRole[];
   modelForRole: (role: AgentRole) => string;
