@@ -34,7 +34,14 @@ export async function advanceOrgRun(run: OrgRun, deps: AdvanceDeps): Promise<{ r
   const inst: AgentInstance = {
     id: deps.makeId(), taskId: task.id, role: task.role, status: "working", model: "", budgetCents: 0, spentCents: 0, createdAt: now,
   };
-  const agentTask: AgentTask = { id: task.id, goal: task.goal, role: task.role, blockingOn: task.blockingOn, priority: task.priority };
+  // Reconstruct the FULL task (org attribution included) so the executor runs the real position: build-ic
+  // actually dispatches, a lead review verifies with org-role independence, gates escalate to the founder.
+  const agentTask: AgentTask = {
+    id: task.id, goal: task.goal, role: task.role, blockingOn: task.blockingOn, priority: task.priority,
+    action: task.action, handoffTo: task.handoffTo,
+    orgRoleId: task.orgRoleId, orgTitle: task.orgTitle, orgLevel: task.orgLevel,
+    reportsToTitle: task.reportsToTitle, verifierOrgRoleId: task.verifierOrgRoleId, deskAct: task.deskAct,
+  };
 
   let result: TaskResult;
   try {
@@ -43,11 +50,13 @@ export async function advanceOrgRun(run: OrgRun, deps: AdvanceDeps): Promise<{ r
     result = { ok: false, spentCents: 0 };
   }
 
-  // The work itself → a Glass-Box activity with its real proof.
+  // The work itself → a Glass-Box activity with its real proof. When the task carries an org position, the
+  // meta shows WHO did it and who it rolls up to — the visible IC→lead→exec hierarchy, not a flat role.
   if (result.proof) {
+    const who = task.orgTitle ? `${task.orgTitle}${task.reportsToTitle ? ` → ${task.reportsToTitle}` : ""} · ` : "";
     await deps.recordActivity({
       id: deps.makeId(), night: 0, agent: task.role, action: task.goal,
-      meta: result.ok ? "org run · done" : "org run · needs a retry", cost: 0,
+      meta: `${who}${result.ok ? "org run · done" : "org run · needs a retry"}`, cost: 0,
       status: result.ok ? "done" : "failed-credited", proof: result.proof,
     });
   }

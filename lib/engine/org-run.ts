@@ -10,7 +10,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { decomposeGoal } from "./orchestrator";
+import { buildOrgPlan } from "./org-plan";
 import type { AgentRole, Proof } from "./types";
+import type { TaskAction } from "./task-queue";
+import type { SpineActKind } from "./accountability-spine";
 
 export type TaskState = "pending" | "running" | "done" | "failed";
 export type RunStatus = "pending" | "running" | "done" | "failed";
@@ -24,6 +27,16 @@ export interface RunTask {
   state: TaskState;
   proof?: Proof;
   handoffContext?: string; // context handed down from a predecessor task (plan → build → verify)
+  // ── Optional ORG attribution (Phase 2, orgPlan runs) — carried verbatim from buildOrgPlan so the durable
+  // step executor runs the real position (IC→lead→exec), escalates the right gate, and hands off correctly.
+  action?: TaskAction;
+  handoffTo?: string;
+  orgRoleId?: string;
+  orgTitle?: string;
+  orgLevel?: "exec" | "director" | "lead" | "ic";
+  reportsToTitle?: string | null;
+  verifierOrgRoleId?: string;
+  deskAct?: { kind: SpineActKind; title: string; action: string };
 }
 
 export interface OrgRun {
@@ -35,20 +48,33 @@ export interface OrgRun {
   updatedAt: number;
 }
 
-// Decompose a goal into a fresh, all-pending run (the DAG + per-task state).
+// Decompose a goal into a fresh, all-pending run (the DAG + per-task state). With orgPlan, the DAG mirrors
+// the real org chart (IC→lead→exec + founder escalations) and the run OWNS the build (build-ic dispatches
+// it); the org attribution rides along on each task so the step executor runs the real position.
 export function createOrgRun(
   id: string,
   goal: string,
-  opts?: { roles?: AgentRole[]; operate?: boolean; now?: number },
+  opts?: { roles?: AgentRole[]; operate?: boolean; orgPlan?: boolean; now?: number },
 ): OrgRun {
   const now = opts?.now ?? Date.now();
-  const tasks: RunTask[] = decomposeGoal(goal, opts?.roles, { operate: opts?.operate }).map((t) => ({
+  const source = opts?.orgPlan
+    ? buildOrgPlan(goal, { operate: opts?.operate })
+    : decomposeGoal(goal, opts?.roles, { operate: opts?.operate });
+  const tasks: RunTask[] = source.map((t) => ({
     id: t.id,
     role: t.role,
     goal: t.goal,
     blockingOn: t.blockingOn,
     priority: t.priority,
     state: "pending",
+    action: t.action,
+    handoffTo: t.handoffTo,
+    orgRoleId: t.orgRoleId,
+    orgTitle: t.orgTitle,
+    orgLevel: t.orgLevel,
+    reportsToTitle: t.reportsToTitle,
+    verifierOrgRoleId: t.verifierOrgRoleId,
+    deskAct: t.deskAct,
   }));
   return { id, goal, status: tasks.length ? "pending" : "done", tasks, createdAt: now, updatedAt: now };
 }

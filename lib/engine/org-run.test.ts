@@ -50,4 +50,21 @@ describe("durable org run — the crash-safe state machine", () => {
     const again = applyTaskResult(run, "plan", { ok: false }); // must NOT flip done→failed
     expect(again.tasks.find((t) => t.id === "plan")!.state).toBe("done");
   });
+
+  it("orgPlan builds a hierarchical run that OWNS the build (IC→lead→exec + escalations), carrying attribution", () => {
+    const run = createOrgRun("r1", "a tutoring marketplace", { orgPlan: true, operate: true, now: 0 });
+    const ids = run.tasks.map((t) => t.id);
+    expect(ids).toContain("build-ic"); // the run owns the build dispatch
+    expect(ids).toContain("build-review");
+    expect(ids).toContain("build-signoff");
+    const buildIc = run.tasks.find((t) => t.id === "build-ic")!;
+    expect(buildIc.action).toBe("build"); // dispatches, not narrates
+    expect(buildIc.orgTitle).toBe("Full-Stack Engineer");
+    expect(buildIc.verifierOrgRoleId).toBeTruthy();
+    // the founder-gated acts carry their explicit desk, ready to escalate
+    expect(run.tasks.find((t) => t.id === "monetize")!.deskAct?.kind).toBe("move_money");
+    // still a valid all-pending DAG that the step executor can drive
+    expect(run.tasks.every((t) => t.state === "pending")).toBe(true);
+    expect(nextRunnableTask(run)!.id).toBe("plan");
+  });
 });
