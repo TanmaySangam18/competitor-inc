@@ -1,16 +1,16 @@
 import { serviceClient } from "@/lib/engine/service";
 import { runChat, runShift, runValidate, runSell, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, generateSiteFiles, modelForAgent } from "@/lib/engine/server";
-import { FULLSTACK_BUILDS, dispatchFullstackBuild } from "@/lib/engine/fullstack-build";
+import { FULLSTACK_BUILDS, dispatchFullstackBuild, fullstackConfigured } from "@/lib/engine/fullstack-build";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isFounderEmail } from "@/lib/engine/founders";
-import { runSupervisedGoal } from "@/lib/engine/orchestrator";
+import { runSupervisedGoal, makeRealExecutor } from "@/lib/engine/orchestrator";
 import { githubBuildExecutor } from "@/lib/engine/build-github";
 import { openhandsBuildExecutor } from "@/lib/engine/openhands";
 import { aiderBuildExecutor } from "@/lib/engine/aider-build";
 import { fullstackBuildExecutor } from "@/lib/engine/fullstack-build";
 import { checkUserLimit } from "@/lib/engine/user-limits";
 import type { ExecuteFn } from "@/lib/engine/supervisor";
-import { capabilities } from "@/lib/engine/execution";
+import { capabilities, verifyProof } from "@/lib/engine/execution";
 import { connectorStatus } from "@/lib/engine/connectors";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
@@ -126,7 +126,7 @@ type Body =
   | { kind: "sell"; product: string; byok?: ByokConfig; soul?: string }
   | { kind: "shift"; company: Company; experiments?: GrowthExperiment[]; byok?: ByokConfig; soul?: string; agents?: AgentDirective }
   | { kind: "chat"; company: { name: string; idea: string }; message: string; soul?: string; agent?: AgentRole; byok?: ByokConfig }
-  | { kind: "goal"; goal: string; roles?: AgentRole[]; build?: boolean; operate?: boolean; connections?: Connections; byok?: ByokConfig }
+  | { kind: "goal"; goal: string; roles?: AgentRole[]; build?: boolean; operate?: boolean; connections?: Connections; byok?: ByokConfig; soul?: string }
   | { kind: "organic"; funnel: FunnelSnapshot; channels?: ChannelInput[]; byok?: ByokConfig };
 
 // The funnel used when no DB is configured (or the read fails): every stage missing. The growth step
@@ -288,7 +288,25 @@ export async function POST(req: Request) {
         //      multi-file apps at $0, borrowing GitHub's own free compute (docs/FREE-FULLAPP-BUILDS.md).
         //   3. Our GitHub static/client-side builder.
         //   4. Simulated ($0, keyless).
-        const oh = openhandsBuildExecutor(body.byok);
+        // Phase 2b — the FULL ORG does real work, not just the build. When the full-stack path is
+        // configured, use makeRealExecutor: the CEO writes a real spec, Engineering dispatches a REAL
+        // full-stack build, Support verifies, and every other role DRAFTS its deliverable (real model)
+        // then escalates its irreducible act to the founder's desk (never auto-fires). Preferred because
+        // it makes the whole crew — not one build step — actually work.
+        const token = conn?.githubToken || process.env.GITHUB_TOKEN;
+        if (fullstackConfigured(conn) && token) {
+          execute = makeRealExecutor({
+            plan: async (g) => (await runChat({ name: "the product", idea: g }, "Write a concise product spec: scope, the core user flow, and the data it stores. Plain text, no preamble.", body.soul, body.byok, "ceo")).slice(0, 2000),
+            build: async (g) => {
+              const r = await dispatchFullstackBuild({ goal: g, token });
+              return "repo" in r ? { repo: r.repo, note: `full-stack app building — repo ${r.url}, deploying to Vercel` } : null;
+            },
+            verify: async (u) => verifyProof({ kind: "url", value: u }),
+            draft: async (role, g) => (await runChat({ name: "the product", idea: g }, `Draft the ${role} deliverable for this product. Plain text, no preamble.`, body.soul, body.byok, role)).slice(0, 1500),
+          });
+          mode = "real-org";
+        }
+        const oh = !execute ? openhandsBuildExecutor(body.byok) : null;
         if (oh) {
           execute = oh;
           mode = "openhands";
