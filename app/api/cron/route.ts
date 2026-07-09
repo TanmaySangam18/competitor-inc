@@ -10,6 +10,7 @@ import { insertActivities, insertApprovals, insertExperiments, closeExperiment, 
 import { sendEmail } from "@/lib/engine/execution";
 import { fetchOperate } from "@/lib/engine/db";
 import { generateWeeklyDigest, sendWeeklyDigest } from "@/lib/engine/weekly-review-digest";
+import { notifyFounder } from "@/lib/org/twilio-notify";
 import { saveScorecardSnapshot, type ScorecardMetric } from "@/lib/engine/scorecard-persistence";
 import { auditShiftActivities } from "@/lib/engine/office-house-architecture";
 import { performanceWeightedAllocations, overageForAllocation, breachesForAllocations, spendByAgent } from "@/lib/engine/office-budget";
@@ -388,6 +389,22 @@ export async function GET(req: Request) {
       subject: `competitor.inc — overnight: ${ran} ${ran === 1 ? "company" : "companies"} advanced`,
       html: `<p>Ran <b>${ran}</b> overnight shift${ran === 1 ? "" : "s"}${failed_companies ? `, <b>${failed_companies}</b> skipped` : ""}${supervised ? `; the agent org advanced <b>${supervised}</b> company cycle${supervised === 1 ? "" : "s"}, preparing <b>${deskFromCycles}</b> item${deskFromCycles === 1 ? "" : "s"} for your review` : ""}. Open your dashboard for the Glass Box and any approvals waiting on you.</p>`,
     });
+  }
+
+  // Founder PHONE briefing (Phase 3): the mandate's 1:1 line to the founder's phone, complementing email.
+  // Opt-in (FOUNDER_SMS_BRIEFING=1) + fail-soft (inert without Twilio creds) + only when something actually
+  // advanced (no spam on empty nights) + never breaks the heartbeat. Sent AS the Chief of Staff (whose job
+  // is the founder's brief); the title is prefixed in-body since SMS carries no per-message sender identity.
+  if (process.env.FOUNDER_SMS_BRIEFING === "1" && ran > 0) {
+    const text = `overnight: ${ran} ${ran === 1 ? "company" : "companies"} advanced${deskFromCycles ? `, ${deskFromCycles} need your OK` : ""}. Open the dashboard for the Glass Box + any approvals waiting on you.`;
+    try {
+      const r = await notifyFounder("chief-of-staff", text);
+      if (!r.ok && r.error && !/inert|not configured|no founder destination/.test(r.error)) {
+        console.error("[/api/cron] founder SMS briefing:", r.error);
+      }
+    } catch (e) {
+      console.error("[/api/cron] founder SMS briefing threw:", e instanceof Error ? e.message : "unknown");
+    }
   }
 
   // ── Friday: the CEO's weekly review digest (v0.5) — Rocks, Issues, constraint, next-week focus.
