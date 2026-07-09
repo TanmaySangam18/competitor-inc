@@ -34,19 +34,22 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "✗ Working tree is dirty — commit (or stash) before shipping; ship deploys git HEAD, not your edits."; exit 1
 fi
 
-echo "▶ 0/3  Secret detection (VISION §Security — every deploy scans)…"
+echo "▶ 0/4  Secret detection (VISION §Security — every deploy scans)…"
 node scripts/secret-scan.mjs || { echo "✗ Aborting deploy — secret-scan found a possible secret."; exit 1; }
 
-echo "▶ 1/3  QA gate (tsc + tests + build + smoke) — never ship red…"
+echo "▶ 1/4  De-landmine: no tracked code may import an untracked file (archive deploys HEAD only)…"
+node scripts/check-untracked-imports.mjs || { echo "✗ Aborting deploy — an untracked file is imported by tracked code."; exit 1; }
+
+echo "▶ 2/4  QA gate (tsc + tests + build + smoke) — never ship red…"
 npm run qa
 
-echo "▶ 2/3  Preparing a clean deploy tree from git HEAD…"
+echo "▶ 3/4  Preparing a clean deploy tree from git HEAD…"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 git archive --format=tar HEAD | tar -x -C "$TMP"
 cp -R .vercel "$TMP/.vercel"
 
-echo "▶ 3/3  Deploying to production (builds on Vercel)…"
+echo "▶ 4/4  Deploying to production (builds on Vercel)…"
 ( cd "$TMP" && vercel --prod --yes )
 
 echo ""
