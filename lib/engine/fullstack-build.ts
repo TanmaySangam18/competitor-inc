@@ -83,15 +83,26 @@ jobs:
           ${keyEnv}: \${{ secrets.LLM_API_KEY }}
         run: |
           set +e
-          aider --yes --model ${model} --message-file ../PROMPT.md app/page.tsx app/api/items/route.ts
-          for i in 1 2 3; do
-            if npm run build > ../build.log 2>&1; then echo "build passed on attempt $i"; exit 0; fi
+          # SCAFFOLD = the app is still the untouched Next.js starter (the agent didn't implement the feature).
+          SCAFFOLD() { grep -qiE "edit the page\.tsx|To get started, edit|Get started by editing" app/page.tsx; }
+          aider --yes --model ${model} --message-file ../PROMPT.md app/page.tsx app/api/items/route.ts 2>&1 | tee -a ../aider.log
+          for i in 1 2 3 4; do
+            if npm run build > ../build.log 2>&1; then
+              # A clean build is NOT enough — the default starter also builds. Require the REAL feature.
+              if ! SCAFFOLD; then echo "build passed + real feature implemented (attempt $i)"; exit 0; fi
+              echo "builds, but app/page.tsx is STILL the default scaffold — forcing a real implementation (attempt $i)"
+              aider --yes --model ${model} --message "You left the DEFAULT Next.js starter in app/page.tsx. Replace it ENTIRELY with the real, working UI for the product described in PROMPT.md, and implement a real GET+POST handler in app/api/items/route.ts. No starter boilerplate, no 'get started by editing' text." app/page.tsx app/api/items/route.ts 2>&1 | tee -a ../aider.log
+              continue
+            fi
             echo "build failed (attempt $i) — feeding the error back to the agent to self-repair"
             ERR=$(tail -60 ../build.log)
             aider --yes --model ${model} --message "The Next.js production build failed. Fix ALL build, type, and lint errors so 'npm run build' passes cleanly. Do not remove features. Build output:
-          $ERR" app/page.tsx app/api/items/route.ts
+          $ERR" app/page.tsx app/api/items/route.ts 2>&1 | tee -a ../aider.log
           done
-          echo "build still failing after self-repair — failing honestly"; npm run build; exit 1
+          # Honest final gate: NEVER ship the blank starter as "the product". If it still builds only as the
+          # scaffold (or won't build), FAIL — deploy-url stays empty, and the product stays honestly "building".
+          if npm run build > ../build.log 2>&1 && ! SCAFFOLD; then echo "final gate: real feature present"; exit 0; fi
+          echo "agent could not produce a REAL feature (still scaffold / not building) — failing honestly, no blank deploy"; exit 1
       - name: Deploy to Vercel + make it public
         working-directory: \${{ github.event.repository.name }}
         env:
@@ -114,23 +125,28 @@ jobs:
         run: |
           URL=$(cat ../deploy-url.txt 2>/dev/null)
           if [ -z "$URL" ]; then echo "no deploy url — skipping smoke"; exit 0; fi
+          # A REAL serve = HTTP 200 AND a body AND NOT the Next.js starter page. Sets SMOKE_CODE. $1 = url.
+          SERVES_REAL() {
+            SMOKE_CODE=$(curl -s -o /tmp/smoke.html -w "%{http_code}" "$1" 2>/dev/null || echo "000")
+            [ "$SMOKE_CODE" = "200" ] && grep -qi "<body" /tmp/smoke.html && ! grep -qiE "get started by editing|to get started, edit|edit the page\.tsx" /tmp/smoke.html
+          }
           sleep 25
-          CODE=$(curl -s -o /tmp/smoke.html -w "%{http_code}" "$URL" || echo "000")
-          echo "runtime smoke: $URL -> HTTP $CODE"
-          if [ "$CODE" != "200" ] || ! grep -qi "<body" /tmp/smoke.html; then
-            echo "the deployed app does NOT run (HTTP $CODE / empty) — one functional repair pass"
+          if SERVES_REAL "$URL"; then
+            echo "runtime smoke OK: $URL -> HTTP $SMOKE_CODE (real page, not the starter)"
+          else
+            echo "the deployed app does NOT serve a real page (HTTP $SMOKE_CODE / empty / still the starter) — one functional repair pass"
             ERR=$(head -c 800 /tmp/smoke.html)
-            aider --yes --model ${model} --message "The DEPLOYED app returned HTTP $CODE (or empty HTML) at runtime — it builds but does not RUN. Fix the runtime error so the homepage renders and the /api/items route responds. Response start: $ERR" app/page.tsx app/api/items/route.ts
+            aider --yes --model ${model} --message "The DEPLOYED app at runtime returned HTTP $SMOKE_CODE, empty HTML, or is STILL the default Next.js starter. Implement the REAL homepage for the product in PROMPT.md plus a working GET+POST /api/items — no starter boilerplate, no 'get started by editing' text. Response start: $ERR" app/page.tsx app/api/items/route.ts 2>&1 | tee -a ../aider.log
             npm run build || true
             URL2=$(vercel deploy --prod --yes --token "$VT" 2>&1 | grep -oE "https://[a-z0-9.-]+\.vercel\.app" | tail -1)
             [ -n "$URL2" ] && echo "$URL2" > ../deploy-url.txt
             sleep 20
-            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$(cat ../deploy-url.txt)" || echo "000")
-            echo "post-repair runtime smoke: HTTP $CODE"
+            SERVES_REAL "$(cat ../deploy-url.txt)" && echo "post-repair smoke OK (HTTP $SMOKE_CODE)" || echo "post-repair runtime smoke still failing (HTTP $SMOKE_CODE)"
           fi
-          # Only publish a deploy-url the app actually SERVES — else blank it so we never surface a dead link.
-          echo "$CODE" > ../smoke-code.txt
-          [ "$CODE" != "200" ] && { echo "runtime still failing — withholding the URL (honest: no dead link)"; : > ../deploy-url.txt; }
+          # Only publish a deploy-url the app actually SERVES as a REAL page — else blank it so we never surface a
+          # dead OR blank-scaffold link (the honesty floor: no proof we can't stand behind).
+          echo "$SMOKE_CODE" > ../smoke-code.txt
+          SERVES_REAL "$(cat ../deploy-url.txt 2>/dev/null)" || { echo "runtime not a real page — withholding the URL (honest: no dead/blank link)"; : > ../deploy-url.txt; }
       - name: Commit source + deploy URL
         if: always()
         run: |
