@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getBrowserSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { isCampusEmail, campusGateEnabled } from "@/lib/org/campus-access";
+import { isFounderEmail } from "@/lib/engine/founders";
 
 export interface EngineUser {
   email: string;
@@ -47,6 +49,12 @@ export function useAuth() {
   const signInWithEmail = useCallback(async (email: string) => {
     const sb = getBrowserSupabase();
     if (!sb) throw new Error("Supabase not configured");
+    // NU gate (UX half): when enabled, tell a non-NU user upfront instead of emailing a magic link that
+    // the callback would then reject. Enforcement still lives server-side in the auth callback — this is a
+    // courtesy, not the wall. Founder allow-list always passes.
+    if (campusGateEnabled() && !isCampusEmail(email) && !isFounderEmail(email)) {
+      throw new Error("competitor.inc is currently open to Northeastern only — please use your @northeastern.edu email.");
+    }
     const { error } = await sb.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: callbackUrl("/dashboard") },
