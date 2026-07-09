@@ -3,13 +3,24 @@
 // dangling dependency — a malformed plan should fail loudly, not run half-done. Pure + deterministic.
 
 import type { AgentRole } from "./types";
+import type { SpineActKind } from "./accountability-spine";
 
 export interface AgentTask {
   id: string;
   goal: string; // what this task accomplishes
-  role: AgentRole; // which agent function owns it
+  role: AgentRole; // which agent function owns it (drives model routing + tooling)
   blockingOn: string[]; // task ids that must complete first
   priority: number; // higher runs sooner among ready tasks
+
+  // ── Optional ORG attribution (Phase 2) ──────────────────────────────────────
+  // Ties a task to a real POSITION in the org chart (lib/org/organization.ts) so execution reflects the
+  // IC→lead→exec hierarchy, not a flat crew. Absent on the legacy flat decomposeGoal plan.
+  orgRoleId?: string; // the specific position, e.g. "fullstack-engineer"
+  orgTitle?: string; // the position NAME shown in the Glass Box / Slack (founder mandate: names = positions)
+  orgLevel?: "exec" | "director" | "lead" | "ic";
+  reportsToTitle?: string | null; // the position this work rolls up to (renders the visible chain)
+  verifierOrgRoleId?: string; // the manager / independent position that reviews this task's output
+  deskAct?: { kind: SpineActKind; title: string; action: string }; // a founder-gated act this task escalates
 }
 
 // Tasks whose dependencies are all satisfied, most-important first. `done` = ids already completed.
