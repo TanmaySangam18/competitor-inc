@@ -251,6 +251,11 @@ export function useEngine() {
       ledger: { spent: 0, credited: 0, tasksDone: 0, tasksFailed: 0 },
     };
     markTrialStart(); // reverse trial starts at the user's first real company (the aha)
+    // KICKOFF: the moment the founder describes a project, mobilize the whole company — every agent gets
+    // a day-1 task + each team posts its standup to Slack. Fire-and-forget, fail-soft (no token ⇒ no-op).
+    try {
+      void fetch("/api/kickoff", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ brief: trimmed }), keepalive: true }).catch(() => {});
+    } catch { /* ignore */ }
     setStore((s) => ({
       ...s,
       companies: [c, ...s.companies],
