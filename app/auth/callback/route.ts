@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { isCampusEmail, campusGateEnabled } from "@/lib/org/campus-access";
+import { isFounderEmail } from "@/lib/engine/founders";
 
 export const runtime = "nodejs";
 
@@ -17,9 +19,19 @@ export async function GET(req: Request) {
     try {
       const sb = await getServerSupabase();
       if (sb) {
-        const { error } = await sb.auth.exchangeCodeForSession(code);
+        const { data, error } = await sb.auth.exchangeCodeForSession(code);
         if (error) {
           return NextResponse.redirect(new URL(`/login?auth_error=${encodeURIComponent(error.message)}`, url.origin));
+        }
+        // NU GATE (flag-gated, default OFF). At this point the email is verified — the user just proved
+        // control of it via OAuth/magic-link. When the gate is on, only @northeastern.edu members (and the
+        // founder allow-list, so the founder never locks themselves out) may proceed; anyone else is signed
+        // out immediately and bounced with a clear reason. This is the real chokepoint — OAuth never touches
+        // the client-side email field, so the gate must live here.
+        const email = data?.user?.email ?? "";
+        if (campusGateEnabled() && email && !isCampusEmail(email) && !isFounderEmail(email)) {
+          await sb.auth.signOut().catch(() => {});
+          return NextResponse.redirect(new URL("/login?auth_error=campus_only", url.origin));
         }
       }
     } catch {

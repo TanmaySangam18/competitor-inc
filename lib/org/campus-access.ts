@@ -13,6 +13,13 @@
 
 export const CAMPUS_DOMAIN = "northeastern.edu";
 
+// The campus gate is OFF by default (the general product + the founder's own access are unaffected). Flip
+// NEXT_PUBLIC_CAMPUS_GATE="1" for the NU dogfood launch → then only verified @northeastern.edu members
+// (and the founder allow-list) may sign in. Read server-side in the auth callback (the real chokepoint).
+export function campusGateEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_CAMPUS_GATE === "1";
+}
+
 // Is this a real Northeastern address? Accepts the root domain + any subdomain (e.g. mail.northeastern.edu,
 // husky.northeastern.edu) but rejects look-alikes (northeastern.edu.evil.com, notnortheastern.edu).
 export function isCampusEmail(email: string | undefined | null, domain: string = CAMPUS_DOMAIN): boolean {

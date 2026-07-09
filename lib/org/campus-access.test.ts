@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { isCampusEmail, campusAccessGate, mayFollowUp, withUnsubscribe, type CampusMember } from "./campus-access";
+import { describe, it, expect, afterEach } from "vitest";
+import { isCampusEmail, campusAccessGate, mayFollowUp, withUnsubscribe, campusGateEnabled, type CampusMember } from "./campus-access";
 
 describe("campus access — the Northeastern dogfood gate", () => {
   it("accepts real NU addresses + subdomains, rejects look-alikes", () => {
@@ -28,6 +28,19 @@ describe("campus access — the Northeastern dogfood gate", () => {
       expect(mayFollowUp({ ...base, consentedFollowups: false }).allowed).toBe(false);
       expect(mayFollowUp({ ...base, verifiedAt: undefined }).allowed).toBe(false);
       expect(mayFollowUp({ ...base, unsubscribedAt: Date.now() }).allowed).toBe(false);
+    });
+  });
+
+  describe("campusGateEnabled (the launch flag — default OFF so the general product is unaffected)", () => {
+    const prev = process.env.NEXT_PUBLIC_CAMPUS_GATE;
+    afterEach(() => { if (prev === undefined) delete process.env.NEXT_PUBLIC_CAMPUS_GATE; else process.env.NEXT_PUBLIC_CAMPUS_GATE = prev; });
+    it("is off unless explicitly '1'", () => {
+      delete process.env.NEXT_PUBLIC_CAMPUS_GATE;
+      expect(campusGateEnabled()).toBe(false);
+      process.env.NEXT_PUBLIC_CAMPUS_GATE = "0";
+      expect(campusGateEnabled()).toBe(false);
+      process.env.NEXT_PUBLIC_CAMPUS_GATE = "1";
+      expect(campusGateEnabled()).toBe(true);
     });
   });
 
