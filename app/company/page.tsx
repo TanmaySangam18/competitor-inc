@@ -11,7 +11,7 @@ import { FOUNDER_GATED_KINDS } from "@/lib/org/autopilot";
 
 export const metadata: Metadata = {
   title: "The company you can hire · competitor.inc",
-  description: "An autonomous software company — 11 departments, 55 positions — that builds, licenses, supports, and sells software. See the org you'd hire.",
+  description: "An autonomous software company — 11 departments, a full org of specialist agents — that builds, licenses, supports, and sells software. See the org you'd hire.",
 };
 
 const LEVEL_LABEL: Record<OrgLevel, string> = { exec: "Executive", director: "Director", lead: "Team Lead", ic: "Individual" };

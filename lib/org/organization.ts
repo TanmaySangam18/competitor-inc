@@ -721,6 +721,17 @@ export const ROLES: OrgRole[] = [
     channel: "#data", escalatesWhen: "Two dashboards report the same metric differently.",
     humanApprovalFor: [],
   },
+  // ═══ The 56th agent — the founder's ask (2026-07-09): a specialist that keeps every agent on-task ═══
+  {
+    id: "reliability-prompt-engineer", title: "Reliability & Prompt Engineer", department: "engineering", team: "Reliability", reportsTo: "chief-technology-officer", level: "lead",
+    execFn: "engineering", modelTier: "strong",
+    mandate: "Every agent understands its task and finishes it — no silent stalls, no half-done work.",
+    jobDescription: "Owns loop engineering and prompt engineering for the whole company. Designs each agent's task loop so it self-checks against a definition-of-done, retries on failure with a changed approach, and escalates only when genuinely blocked — it never quits mid-task. Hardens the prompts and specs so agents interpret instructions correctly the first time, and runs a verify-before-done gate on every handoff so nothing is reported complete until it actually is.",
+    responsibilities: ["Design self-verifying task loops (plan → act → check-against-done → retry or escalate)", "Author + harden agent prompts and task specs for correct interpretation", "Own the per-task 'definition of done' each agent checks itself against", "Catch + fix stalls, early-quits, and misread instructions across every team"],
+    kpis: ["Task completion rate (finished vs stalled)", "Rework rate from misread specs", "Mean retries-to-success"],
+    channel: "#engineering", escalatesWhen: "A task is genuinely blocked after bounded retries, or a spec is too ambiguous to act on safely.",
+    humanApprovalFor: [],
+  },
 ];
 
 // ── Derived helpers (pure; used by the engine, the org UI, and tests) ─────────
