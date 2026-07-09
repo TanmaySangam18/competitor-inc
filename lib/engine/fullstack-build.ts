@@ -106,6 +106,31 @@ jobs:
           TEAM=$(curl -s -H "Authorization: Bearer $VT" "https://api.vercel.com/v2/teams" | python3 -c "import sys,json;t=(json.load(sys.stdin).get('teams') or []);print(t[0]['id'] if t else '')" 2>/dev/null || echo "")
           Q=""; [ -n "$TEAM" ] && Q="?teamId=$TEAM"
           curl -s -X PATCH "https://api.vercel.com/v9/projects/$PROJECT$Q" -H "Authorization: Bearer $VT" -H "Content-Type: application/json" -d '{"ssoProtection":null}' > /dev/null 2>&1 || true
+      - name: Functional smoke — the app must RESPOND at runtime, not just build (Phase 5)
+        working-directory: \${{ github.event.repository.name }}
+        env:
+          ${keyEnv}: \${{ secrets.LLM_API_KEY }}
+          VT: \${{ secrets.VERCEL_TOKEN }}
+        run: |
+          URL=$(cat ../deploy-url.txt 2>/dev/null)
+          if [ -z "$URL" ]; then echo "no deploy url — skipping smoke"; exit 0; fi
+          sleep 25
+          CODE=$(curl -s -o /tmp/smoke.html -w "%{http_code}" "$URL" || echo "000")
+          echo "runtime smoke: $URL -> HTTP $CODE"
+          if [ "$CODE" != "200" ] || ! grep -qi "<body" /tmp/smoke.html; then
+            echo "the deployed app does NOT run (HTTP $CODE / empty) — one functional repair pass"
+            ERR=$(head -c 800 /tmp/smoke.html)
+            aider --yes --model ${model} --message "The DEPLOYED app returned HTTP $CODE (or empty HTML) at runtime — it builds but does not RUN. Fix the runtime error so the homepage renders and the /api/items route responds. Response start: $ERR" app/page.tsx app/api/items/route.ts
+            npm run build || true
+            URL2=$(vercel deploy --prod --yes --token "$VT" 2>&1 | grep -oE "https://[a-z0-9.-]+\.vercel\.app" | tail -1)
+            [ -n "$URL2" ] && echo "$URL2" > ../deploy-url.txt
+            sleep 20
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$(cat ../deploy-url.txt)" || echo "000")
+            echo "post-repair runtime smoke: HTTP $CODE"
+          fi
+          # Only publish a deploy-url the app actually SERVES — else blank it so we never surface a dead link.
+          echo "$CODE" > ../smoke-code.txt
+          [ "$CODE" != "200" ] && { echo "runtime still failing — withholding the URL (honest: no dead link)"; : > ../deploy-url.txt; }
       - name: Commit source + deploy URL
         if: always()
         run: |
