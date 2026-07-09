@@ -13,7 +13,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { POLICY, withinCaps, type Policy, type ActionContext } from "@/lib/engine/policy";
-import type { AgentRole } from "@/lib/engine/types";
+import type { AgentRole, ApprovalItem } from "@/lib/engine/types";
 import { getRole } from "./organization";
 
 export type ActionMode = "auto" | "queue" | "block";
@@ -93,4 +93,20 @@ export function partitionActions<T>(
     (d.mode === "auto" ? out.auto : d.mode === "queue" ? out.queue : out.blocked).push(item);
   }
   return out;
+}
+
+// Partition a shift's proposed APPROVALS for the client loop: `auto` resolves immediately under standing
+// authorization; `queue` is the founder's exception inbox. Server-side governShift already dropped true
+// policy BLOCKs before these ever reached the client, so anything blocked here is defensively QUEUED
+// (client code never silently drops a proposal).
+export function partitionApprovals(
+  approvals: ApprovalItem[],
+  policy: Policy = POLICY,
+): { auto: ApprovalItem[]; queue: ApprovalItem[] } {
+  const p = partitionActions(
+    approvals,
+    (a) => ({ type: a.kind, agent: a.agent, amountUsd: a.amount, hasCredential: true, compliancePass: true }),
+    policy,
+  );
+  return { auto: p.auto, queue: [...p.queue, ...p.blocked] };
 }

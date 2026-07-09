@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { POLICY, type Policy } from "@/lib/engine/policy";
-import { autopilotMode, roleAutopilotMode, partitionActions, FOUNDER_GATED_KINDS } from "./autopilot";
+import type { ApprovalItem } from "@/lib/engine/types";
+import { autopilotMode, roleAutopilotMode, partitionActions, partitionApprovals, FOUNDER_GATED_KINDS } from "./autopilot";
 
 // A controlled policy that isolates the autopilot LOGIC from POLICY's matrix/forbidden internals:
 // empty matrix (no NEVER cells), a known forbidden action, clean caps + kill switch off.
@@ -60,5 +61,24 @@ describe("autopilot — the governance flip", () => {
     for (const k of ["money", "payout", "sign", "delete", "pricing", "prod-deploy"]) {
       expect(FOUNDER_GATED_KINDS.has(k), k).toBe(true);
     }
+  });
+
+  it("partitions a shift's APPROVALS: routine runs, deletion + over-cap spend queue (the client wiring)", () => {
+    const ap = (kind: ApprovalItem["kind"], agent: ApprovalItem["agent"], amount?: number): ApprovalItem => ({
+      id: `${kind}-${amount ?? 0}`, night: 1, agent, kind, title: kind, detail: "", amount,
+    });
+    const { auto, queue } = partitionApprovals(
+      [ap("outreach", "growth"), ap("twitter", "marketing"), ap("delete", "ceo"), ap("spend", "marketing", 30), ap("spend", "marketing", 500)],
+      testPolicy,
+    );
+    expect(auto.map((a) => a.id).sort()).toEqual(["outreach-0", "spend-30", "twitter-0"]);
+    expect(queue.map((a) => a.id).sort()).toEqual(["delete-0", "spend-500"]);
+  });
+
+  it("partitionApprovals never drops an item — auto + queue always re-assemble the input", () => {
+    const kinds: ApprovalItem["kind"][] = ["spend", "outreach", "deploy", "delete", "twitter", "linkedin", "bluesky", "mastodon"];
+    const items = kinds.map((k, i) => ({ id: String(i), night: 1, agent: "growth" as const, kind: k, title: k, detail: "", amount: i * 40 }));
+    const { auto, queue } = partitionApprovals(items, testPolicy);
+    expect([...auto, ...queue].map((a) => a.id).sort()).toEqual(items.map((a) => a.id).sort());
   });
 });

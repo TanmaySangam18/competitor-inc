@@ -605,6 +605,8 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
   const { config } = useConfig();
   const roles = (Object.keys(AGENTS) as AgentRole[]).filter((role) => config.agents[role]?.enabled ?? true);
   const lockedUrl = !entitled && c.product?.status === "live" ? c.product?.url : undefined;
+  // Standing-authorization ledger: activities the autopilot resolved itself (tagged by resolveApproval).
+  const autoRanCount = r.activities.filter((a) => a.meta?.startsWith("autopilot")).length;
 
   // Spatial cockpit — one non-scrolling viewport, every feature its own glass tile in a 4×4 bento; each
   // tile scrolls INSIDE itself. No tabs, no drawers, no separate routes. (Mobile stacks + scrolls.)
@@ -675,9 +677,37 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
 
         {/* Right rail — the two things that need YOU (row 1, col 2) */}
         <div className="grid min-h-0 grid-cols-1 gap-3 lg:col-start-2 lg:row-start-1 lg:grid-rows-[1.15fr_1fr]">
-          <GlassCard fill id="approval-inbox" title="Needs your OK" subtitle="nothing ships without you" icon={Sparkles} badge={r.pendingApprovals.length > 0 ? <span className="grid h-4 min-w-4 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-bg">{r.pendingApprovals.length}</span> : null}>
+          <GlassCard
+            fill
+            id="approval-inbox"
+            title="Needs your OK"
+            subtitle={r.killSwitch ? "kill switch — everything waits" : "exceptions only"}
+            icon={Sparkles}
+            badge={r.pendingApprovals.length > 0 ? <span className="grid h-4 min-w-4 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-bg">{r.pendingApprovals.length}</span> : null}
+            action={
+              <button
+                onClick={() => r.setKillSwitch(!r.killSwitch)}
+                title={r.killSwitch ? "Autonomy halted — every action queues for you. Tap to resume." : "Hard-stop the autonomous loop instantly — everything queues for you."}
+                className={`rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold transition ${
+                  r.killSwitch ? "border-coral bg-coral/10 text-coral" : "border-border text-muted hover:border-coral/50 hover:text-coral"
+                }`}
+              >
+                {r.killSwitch ? "halted — resume" : "kill switch"}
+              </button>
+            }
+          >
+            {/* The autonomy ledger line — what ran on standing authorization vs what waits on you. */}
+            <div className="mb-3 flex flex-wrap items-center gap-x-2 border-b border-border pb-2 font-mono text-[11px] text-muted-2">
+              <span className="text-text">⚡ {autoRanCount} ran autonomously</span>
+              <span>·</span>
+              <span>{r.pendingApprovals.length} need{r.pendingApprovals.length === 1 ? "s" : ""} you</span>
+            </div>
             {r.pendingApprovals.length === 0 ? (
-              <div className="text-sm text-muted-2">Inbox clear — the crew has everything it needs. Your yes/no keeps you in control; you&apos;re never charged.</div>
+              <div className="text-sm text-muted-2">
+                {r.killSwitch
+                  ? "Kill switch engaged — the crew still proposes, but nothing executes; every action will queue here for your yes."
+                  : "Inbox clear. The crew runs under standing authorization — only money over caps, contracts, pricing, deletion, and production launches land here."}
+              </div>
             ) : (
               <div className="space-y-3">
                 {r.pendingApprovals.map((ap) => (

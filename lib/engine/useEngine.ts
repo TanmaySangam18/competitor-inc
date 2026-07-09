@@ -14,9 +14,12 @@ import { useAuth } from "./useAuth";
 import { useDbSync, mergeSyncState, type SyncState } from "./sync";
 import { useAuthoritativeSync } from "./authoritative";
 import { SERVER_AUTHORITATIVE } from "./flags";
+import { partitionApprovals } from "@/lib/org/autopilot";
 
 const KEY = "cofounder:v2";
 const LEGACY_KEY = "cofounder:v1";
+// Kill switch persistence — survives reloads so autonomy can't silently re-arm itself.
+const KILL_KEY = "cofounder:killswitch";
 
 // Autopilot pauses (rather than piling up consequential actions) once this many approvals are
 // waiting. Shared by the interval guard and the derived `autopilotPaused` flag so they can't drift.
@@ -122,6 +125,26 @@ export function useEngine() {
   const [hydrated, setHydrated] = useState(false);
   const [working, setWorking] = useState<null | "validating" | "shift">(null);
   const [autopilot, setAutopilot] = useState(false);
+  // KILL SWITCH (Block 1 UI) — the founder's hard stop. ON ⇒ the autopilot interval halts AND every
+  // proposed action queues for the founder (nothing auto-resolves). The ref mirrors state for use inside
+  // long-lived closures (interval + async shift).
+  const [killSwitch, setKillSwitchState] = useState(false);
+  const killRef = useRef(false);
+  useEffect(() => {
+    try {
+      const on = window.localStorage.getItem(KILL_KEY) === "1";
+      setKillSwitchState(on);
+      killRef.current = on;
+    } catch { /* ignore */ }
+  }, []);
+  const setKillSwitch = useCallback((on: boolean) => {
+    setKillSwitchState(on);
+    killRef.current = on;
+    try { window.localStorage.setItem(KILL_KEY, on ? "1" : "0"); } catch { /* ignore */ }
+  }, []);
+  // The auto-approve loop calls resolveApproval through a ref (it's declared further down; the loop only
+  // fires on a timer well after mount, so the ref is always populated by then).
+  const resolveApprovalRef = useRef<(id: string, approve: boolean, opts?: { auto?: boolean }) => void>(() => {});
   const [blocked, setBlocked] = useState<string | null>(null);
   // Server-authoritative mode surfaces a failed/awaited DB write here (best-effort mode never sets it).
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -551,6 +574,13 @@ export function useEngine() {
         const acts = Array.isArray(res?.activities) ? res.activities : []; // guard malformed 200
         const apps = Array.isArray(res?.approvals) ? res.approvals : [];
         const exps = Array.isArray(res?.experiments) ? res.experiments : [];
+        // BLOCK 1 WIRING — standing authorization: split the shift's proposals into what runs NOW vs
+        // what genuinely needs the founder (money over caps, deletion, contracts…). Kill switch ⇒
+        // everything queues. ALL items enter the store as approvals first, so resolveApproval — the one
+        // execution path a human click and a phone tap already share — is also the only auto-executor.
+        const { auto: autoRun, queue: queuedApps } = killRef.current
+          ? { auto: [] as ApprovalItem[], queue: apps }
+          : partitionApprovals(apps);
         const remaining = 900 - (Date.now() - started);
         if (remaining > 0) await sleep(remaining);
         const done = acts.filter((a) => a.status === "done");
@@ -595,11 +625,19 @@ export function useEngine() {
         });
         // Opt-in customer update (no-op unless they connected a channel) — fires on every shift.
         pingCustomerUpdate(
-          `${active.name}: night ${active.night + 1} wrapped — ${done.length} task${done.length === 1 ? "" : "s"} shipped${apps.length ? `, ${apps.length} waiting for your ok` : ""}. See the Glass Box.`
+          `${active.name}: night ${active.night + 1} wrapped — ${done.length} task${done.length === 1 ? "" : "s"} shipped${autoRun.length ? `, ${autoRun.length} ran on standing authorization` : ""}${queuedApps.length ? `, ${queuedApps.length} waiting for your ok` : ""}. See the Glass Box.`
         );
-        // ChatOps: push each consequential approval to the phone with Approve/Reject buttons.
-        for (const ap of apps) {
+        // ChatOps: push only the EXCEPTIONS to the phone — auto-approved items aren't waiting on anyone.
+        for (const ap of queuedApps) {
           pingApprovalRequest({ id: ap.id, title: ap.title, agent: ap.agent, kind: ap.kind, detail: ap.detail, amount: ap.amount, company: active.name });
+        }
+        // Standing authorization executes: resolve the auto set through the normal (idempotent) approval
+        // path a beat after the store append lands — same ledger, same Glass Box logging, same real
+        // execution gate as a human click.
+        if (autoRun.length) {
+          setTimeout(() => {
+            for (const ap of autoRun) resolveApprovalRef.current(ap.id, true, { auto: true });
+          }, 150);
         }
       } finally {
         inFlightRef.current = false;
@@ -613,6 +651,7 @@ export function useEngine() {
   useEffect(() => {
     if (!autopilot) return;
     const t = setInterval(() => {
+      if (killRef.current) return; // kill switch: the heartbeat stops instantly
       const s = ref.current;
       const active = s.companies.find((c) => c.id === s.activeId);
       const pending = active ? (s.approvals[active.id] ?? []).filter((a) => !a.resolved).length : 0;
@@ -621,7 +660,7 @@ export function useEngine() {
     return () => clearInterval(t);
   }, [autopilot, runShift]);
 
-  const resolveApproval = useCallback((id: string, approve: boolean) => {
+  const resolveApproval = useCallback((id: string, approve: boolean, opts?: { auto?: boolean }) => {
     const before = ref.current;
     const activeCo = before.companies.find((c) => c.id === before.activeId);
     const seed = activeCo ? (before.approvals[activeCo.id] ?? []).find((a) => a.id === id) : undefined;
@@ -649,8 +688,8 @@ export function useEngine() {
         id: rid(),
         night: active.night,
         agent: item.agent,
-        action: item.title + " — approved by you",
-        meta: "you signed off",
+        action: item.title + (opts?.auto ? " — ran on standing authorization" : " — approved by you"),
+        meta: opts?.auto ? "autopilot ⚡ pre-authorized (under caps + kill switch)" : "you signed off",
         cost: charged,
         status: "done",
         // Honest: approving QUEUES the action — it doesn't claim the real-world act happened. The
@@ -689,6 +728,8 @@ export function useEngine() {
       });
     }
   }, [executeAction, appendRealResult]);
+  // Keep the auto-approve loop's handle fresh (assigned every render; used only from timers).
+  resolveApprovalRef.current = resolveApproval;
 
   // ChatOps reconcile: if the founder tapped Approve/Reject in Telegram, apply it here so effects run
   // exactly once through the normal path (resolveApproval is idempotent). Polls only while the active
@@ -902,6 +943,8 @@ export function useEngine() {
     autopilot,
     setAutopilot,
     autopilotPaused,
+    killSwitch,
+    setKillSwitch,
     blocked,
     clearBlocked,
     syncError,
