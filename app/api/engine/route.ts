@@ -3,14 +3,15 @@ import { runChat, runShift, runValidate, runSell, realModelConfigured, detectCha
 import { FULLSTACK_BUILDS, dispatchFullstackBuild, fullstackConfigured } from "@/lib/engine/fullstack-build";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isFounderEmail } from "@/lib/engine/founders";
-import { runSupervisedGoal, makeRealExecutor } from "@/lib/engine/orchestrator";
+import { runSupervisedGoal } from "@/lib/engine/orchestrator";
+import { serverRealExecutor } from "@/lib/engine/real-executor";
 import { githubBuildExecutor } from "@/lib/engine/build-github";
 import { openhandsBuildExecutor } from "@/lib/engine/openhands";
 import { aiderBuildExecutor } from "@/lib/engine/aider-build";
 import { fullstackBuildExecutor } from "@/lib/engine/fullstack-build";
 import { checkUserLimit } from "@/lib/engine/user-limits";
 import type { ExecuteFn } from "@/lib/engine/supervisor";
-import { capabilities, verifyProof } from "@/lib/engine/execution";
+import { capabilities } from "@/lib/engine/execution";
 import { connectorStatus } from "@/lib/engine/connectors";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
@@ -295,15 +296,7 @@ export async function POST(req: Request) {
         // it makes the whole crew — not one build step — actually work.
         const token = conn?.githubToken || process.env.GITHUB_TOKEN;
         if (fullstackConfigured(conn) && token) {
-          execute = makeRealExecutor({
-            plan: async (g) => (await runChat({ name: "the product", idea: g }, "Write a concise product spec: scope, the core user flow, and the data it stores. Plain text, no preamble.", body.soul, body.byok, "ceo")).slice(0, 2000),
-            build: async (g) => {
-              const r = await dispatchFullstackBuild({ goal: g, token });
-              return "repo" in r ? { repo: r.repo, note: `full-stack app building — repo ${r.url}, deploying to Vercel` } : null;
-            },
-            verify: async (u) => verifyProof({ kind: "url", value: u }),
-            draft: async (role, g) => (await runChat({ name: "the product", idea: g }, `Draft the ${role} deliverable for this product. Plain text, no preamble.`, body.soul, body.byok, role)).slice(0, 1500),
-          });
+          execute = serverRealExecutor({ token, byok: body.byok, soul: body.soul });
           mode = "real-org";
         }
         const oh = !execute ? openhandsBuildExecutor(body.byok) : null;

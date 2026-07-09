@@ -20,6 +20,10 @@ import { draftProgressPost, shouldShare } from "@/lib/engine/buildinpublic";
 import { postToBluesky, postToMastodon } from "@/lib/engine/execution";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY } from "@/lib/engine/policy";
+import { loadActiveOrgRuns, saveOrgRun } from "@/lib/engine/org-runs-db";
+import { advanceOrgRun } from "@/lib/engine/org-run-step";
+import { isComplete } from "@/lib/engine/org-run";
+import { serverRealExecutor } from "@/lib/engine/real-executor";
 import type { Company, Activity, AgentRole, ApprovalItem, ApprovalKind } from "@/lib/engine/types";
 import type { FunnelDiagnosis } from "@/lib/engine/growth";
 import { remember, recall } from "@/lib/engine/memory";
@@ -339,6 +343,35 @@ export async function GET(req: Request) {
       failed_companies++;
       console.error("[/api/cron] company shift failed:", err instanceof Error ? err.message : "unknown");
     }
+  }
+
+  // ── 3.2b: DURABLE ORG RUNS — advance each active run a few short steps this tick (crash-safe, laptop-off).
+  // Each active run is a persisted multi-agent DAG; we step it a BOUNDED number of times so no single tick
+  // runs long, saving state between steps so it resumes next tick (this is the "runs while you sleep" layer,
+  // no Temporal). Company-scoped so each step's proof lands in that company's Glass Box. Fail-soft: a run
+  // error never affects the rest of the heartbeat.
+  try {
+    const activeRuns = await loadActiveOrgRuns(sb, 10);
+    const orgExecutor = serverRealExecutor({ token: process.env.GITHUB_TOKEN });
+    let orgRunSteps = 0;
+    for (const { run, companyId } of activeRuns) {
+      if (!companyId) continue; // company-scoped runs only (activity attribution)
+      let cur = run;
+      for (let i = 0; i < 3 && !isComplete(cur); i++) {
+        const { run: next, ranTaskId } = await advanceOrgRun(cur, {
+          executor: orgExecutor,
+          saveRun: (r) => saveOrgRun(sb, r),
+          recordActivity: (a) => insertActivities(sb, companyId, [a]),
+          makeId: () => crypto.randomUUID(),
+        });
+        cur = next;
+        orgRunSteps++;
+        if (!ranTaskId) break;
+      }
+    }
+    if (orgRunSteps > 0) console.log(`[/api/cron] org-run driver: advanced ${orgRunSteps} step(s) across ${activeRuns.length} run(s)`);
+  } catch (e) {
+    console.error("[/api/cron] org-run driver:", e instanceof Error ? e.message : "unknown");
   }
 
   // 3.3: a failure spike pages the founder in real time (observability that REACTS, not just logs).
