@@ -20,10 +20,14 @@ import type { FetchLike } from "./aider-build";
 
 export const FULLSTACK_BUILDS = process.env.FULLSTACK_BUILDS === "1";
 
-// Free coding model Aider runs inside the Action (override with FULLSTACK_BUILD_MODEL). Key env var Aider
-// reads → mapped to the LLM_API_KEY repo secret (override with FULLSTACK_BUILD_KEY_ENV).
-const FS_MODEL = process.env.FULLSTACK_BUILD_MODEL || "groq/llama-3.3-70b-versatile";
-const FS_KEY_ENV = process.env.FULLSTACK_BUILD_KEY_ENV || "GROQ_API_KEY";
+// The coding model Aider runs inside the Action. Default = Claude Sonnet (founder decision 2026-07-09):
+// one-shot full-app generation needs a real coding brain — the free llama shipped blank scaffolds. The key
+// env var Aider reads (FS_KEY_ENV) is mapped to the LLM_API_KEY repo secret in the workflow, so the ONLY
+// thing to provision is that one secret = an Anthropic key. Override both for DeepSeek/free/etc.
+//   free fallback:  FULLSTACK_BUILD_MODEL=groq/llama-3.3-70b-versatile  FULLSTACK_BUILD_KEY_ENV=GROQ_API_KEY
+//   if litellm rejects the model string: FULLSTACK_BUILD_MODEL=anthropic/claude-3-5-sonnet-20241022
+const FS_MODEL = process.env.FULLSTACK_BUILD_MODEL || "anthropic/claude-sonnet-5";
+const FS_KEY_ENV = process.env.FULLSTACK_BUILD_KEY_ENV || "ANTHROPIC_API_KEY";
 
 function repoName(goal: string): string {
   const base = goal.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "app";
