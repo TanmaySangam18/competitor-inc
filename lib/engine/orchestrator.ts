@@ -145,7 +145,8 @@ export function makeRealExecutor(deps: RealExecutorDeps): ExecuteFn {
       const b = await deps.build(task.goal, inbound).catch(() => null);
       if (!b) return { ok: false, spentCents: 0, ...base };
       const proof: Proof = b.url ? { kind: "url", value: b.url } : { kind: "metric", value: b.note };
-      return { ok: true, spentCents: 300, proof, ...base, ...handoff(b.url || b.repo || "") };
+      // Carry the created repo out so the run can surface it and the client can poll the async live URL.
+      return { ok: true, spentCents: 300, proof, ...base, ...(b.repo ? { repo: b.repo } : {}), ...handoff(b.url || b.repo || "") };
     }
     // VERIFY / REVIEW / SIGN-OFF — HEAD-check the built artifact resolves; pass it further up the chain so
     // the reviewer above checks the same real thing. Never a fabricated URL when there's nothing live yet.

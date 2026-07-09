@@ -495,40 +495,44 @@ export function useEngine() {
             .catch(() => pollLiveBuild(repo, attempt + 1));
         }, 20000);
       };
-      void executeAction("build", { company: { name: active.name, idea: active.idea }, companyId, agent: "engineering" }).then((r) => {
-        if (r?.ok && r.proof) {
-          appendRealResult(companyId, {
-            action: "Shipped the MVP to GitHub",
-            agent: "engineering",
-            proof: r.proof,
-            meta: "real build ✓",
-            productUrl: r.proof.kind === "url" ? r.proof.value : undefined,
-          });
-        }
-        // Async full-stack build → deploys to Vercel over minutes; poll for the verified live URL.
-        if (r?.pending?.kind === "fullstack") pollLiveBuild(r.pending.repo);
-      });
-
-      // Enqueue the durable ORG RUN so the REST of the company works on this too — the CEO plans, GTM
-      // drafts the launch, finance/legal/ops prepare their pieces → your desk. It runs durably (the cron
-      // advances it laptop-off) and fast while you're here (the nudges below). Excludes "engineering" so it
-      // never re-dispatches the build we just fired above (no duplicate repo). Fire-and-forget + fail-soft.
+      // ONE unified durable ORG RUN owns the WHOLE company, the build included (founder decision): the CEO
+      // briefs, the PM specs, the Full-Stack Engineer builds and the Team Lead → VP review + sign off, then
+      // GTM/support/finance/legal prepare their pieces → your desk. It runs durably (the cron advances it
+      // laptop-off) and fast while you watch (the nudges). The moment build-ic dispatches, the run returns
+      // its repo → we poll the PROVEN /api/build-status path for the VERIFIED live URL (never fabricated).
+      let polling = false;
+      const onRepo = (repo?: string | null) => {
+        if (!repo || polling) return;
+        polling = true;
+        appendRealResult(companyId, {
+          action: "Full-stack build dispatched to GitHub",
+          agent: "engineering",
+          proof: { kind: "metric", value: repo },
+          meta: "real build ✓ (repo created — deploying)",
+        });
+        pollLiveBuild(repo);
+      };
       void fetch("/api/org-run", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ companyId, goal: `${active.name}: ${active.idea}`, roles: ["ceo", "support", "marketing", "growth", "finance", "legal", "ops"] }),
+        body: JSON.stringify({ companyId, goal: `${active.name}: ${active.idea}`, orgPlan: true }),
       })
         .then((res) => (res.ok ? res.json() : null))
-        .then((d: { id?: string } | null) => {
+        .then((d: { id?: string; repo?: string | null } | null) => {
           const id = d?.id;
           if (!id) return;
+          onRepo(d.repo);
           // Nudge it forward a few short steps now (each = one server step); the cron drives the remainder.
           let n = 0;
           const nudge = () => {
-            if (n++ >= 6) return;
+            if (n++ >= 8) return;
             void fetch("/api/org-run/advance", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) })
               .then((res) => (res.ok ? res.json() : null))
-              .then((p: { status?: string } | null) => { if (p && p.status !== "done" && p.status !== "failed") setTimeout(nudge, 4000); })
+              .then((p: { status?: string; repo?: string | null } | null) => {
+                if (!p) return;
+                onRepo(p.repo);
+                if (p.status !== "done" && p.status !== "failed") setTimeout(nudge, 4000);
+              })
               .catch(() => {});
           };
           setTimeout(nudge, 2000);

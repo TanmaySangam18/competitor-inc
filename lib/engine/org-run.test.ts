@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createOrgRun, nextRunnableTask, markRunning, applyTaskResult, isComplete, runProgress } from "./org-run";
+import { createOrgRun, nextRunnableTask, markRunning, applyTaskResult, isComplete, runProgress, buildRepo } from "./org-run";
 
 const ROLES = ["ceo", "engineering", "support", "marketing"] as const;
 const ok = (proof = { kind: "metric" as const, value: "done" }) => ({ ok: true, proof });
@@ -66,5 +66,16 @@ describe("durable org run — the crash-safe state machine", () => {
     // still a valid all-pending DAG that the step executor can drive
     expect(run.tasks.every((t) => t.state === "pending")).toBe(true);
     expect(nextRunnableTask(run)!.id).toBe("plan");
+  });
+
+  it("carries a build task's repo out (applyTaskResult + buildRepo) so the live URL can be polled", () => {
+    let run = createOrgRun("r1", "x", { orgPlan: true, now: 0 });
+    expect(buildRepo(run)).toBeNull(); // nothing dispatched yet
+    // drive plan → spec → build-ic, then mark build-ic done WITH a repo
+    run = applyTaskResult(markRunning(run, "plan"), "plan", { ok: true, proof: { kind: "metric", value: "s" }, handoffTo: "spec", handoffContext: "SPEC" });
+    run = applyTaskResult(markRunning(run, "spec"), "spec", { ok: true, proof: { kind: "metric", value: "s" }, handoffTo: "build-ic", handoffContext: "SPEC" });
+    run = applyTaskResult(markRunning(run, "build-ic"), "build-ic", { ok: true, proof: { kind: "metric", value: "building" }, repo: "TanmaySangam18/x-abc" });
+    expect(run.tasks.find((t) => t.id === "build-ic")!.repo).toBe("TanmaySangam18/x-abc");
+    expect(buildRepo(run)).toBe("TanmaySangam18/x-abc");
   });
 });

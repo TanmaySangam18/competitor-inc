@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { serviceClient } from "@/lib/engine/service";
-import { runProgress } from "@/lib/engine/org-run";
+import { runProgress, buildRepo } from "@/lib/engine/org-run";
 import { loadOrgRun, saveOrgRun } from "@/lib/engine/org-runs-db";
 import { advanceOrgRun } from "@/lib/engine/org-run-step";
 import { serverRealExecutor } from "@/lib/engine/real-executor";
@@ -35,5 +35,5 @@ export async function POST(req: Request) {
     recordActivity: (a) => (owned.companyId ? insertActivities(svc, owned.companyId, [a]) : Promise.resolve()),
     makeId: () => crypto.randomUUID(),
   });
-  return Response.json({ ok: true, status: run.status, progress: runProgress(run) });
+  return Response.json({ ok: true, status: run.status, progress: runProgress(run), repo: buildRepo(run) });
 }

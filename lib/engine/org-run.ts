@@ -26,6 +26,7 @@ export interface RunTask {
   priority: number;
   state: TaskState;
   proof?: Proof;
+  repo?: string; // a build task's created repo (owner/name) — surfaced so the client can poll the live URL
   handoffContext?: string; // context handed down from a predecessor task (plan → build → verify)
   // ── Optional ORG attribution (Phase 2, orgPlan runs) — carried verbatim from buildOrgPlan so the durable
   // step executor runs the real position (IC→lead→exec), escalates the right gate, and hands off correctly.
@@ -112,20 +113,26 @@ function runTerminalStatus(tasks: RunTask[]): RunStatus {
   return tasks.every((t) => t.state === "done") ? "done" : "failed";
 }
 
-export interface StepResult { ok: boolean; proof?: Proof; handoffTo?: string; handoffContext?: string }
+export interface StepResult { ok: boolean; proof?: Proof; repo?: string; handoffTo?: string; handoffContext?: string }
 
-// Apply a completed step's result (immutably): set the task done/failed + its proof, deliver any handoff
-// context to the successor, and recompute the run status. Idempotent-safe on a non-pending/running task
-// (a duplicate tick is a no-op on the already-terminal task).
+// Apply a completed step's result (immutably): set the task done/failed + its proof (+ any created repo),
+// deliver any handoff context to the successor, and recompute the run status. Idempotent-safe on a
+// non-pending/running task (a duplicate tick is a no-op on the already-terminal task).
 export function applyTaskResult(run: OrgRun, taskId: string, result: StepResult, now = Date.now()): OrgRun {
   const target = run.tasks.find((t) => t.id === taskId);
   if (!target || target.state === "done" || target.state === "failed") return run; // idempotent no-op
   const tasks = run.tasks.map((t) => {
-    if (t.id === taskId) return { ...t, state: (result.ok ? "done" : "failed") as TaskState, proof: result.proof };
+    if (t.id === taskId) return { ...t, state: (result.ok ? "done" : "failed") as TaskState, proof: result.proof, ...(result.repo ? { repo: result.repo } : {}) };
     if (result.handoffTo && t.id === result.handoffTo && result.handoffContext) return { ...t, handoffContext: result.handoffContext };
     return t;
   });
   return { ...run, tasks, status: runTerminalStatus(tasks), updatedAt: now };
+}
+
+// The build repo this run created, if any (a build task carries it once dispatched). The client polls
+// /api/build-status?repo= for the async VERIFIED live URL — the same proven path, now fed by the run.
+export function buildRepo(run: OrgRun): string | null {
+  return run.tasks.find((t) => typeof t.repo === "string" && t.repo)?.repo ?? null;
 }
 
 export function isComplete(run: OrgRun): boolean {

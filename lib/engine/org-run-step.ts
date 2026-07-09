@@ -70,7 +70,7 @@ export async function advanceOrgRun(run: OrgRun, deps: AdvanceDeps): Promise<{ r
     });
   }
 
-  cur = applyTaskResult(cur, task.id, { ok: result.ok, proof: result.proof, handoffTo: result.handoffTo, handoffContext: result.handoffContext }, now);
+  cur = applyTaskResult(cur, task.id, { ok: result.ok, proof: result.proof, repo: result.repo, handoffTo: result.handoffTo, handoffContext: result.handoffContext }, now);
   await deps.saveRun(cur);
   return { run: cur, ranTaskId: task.id };
 }

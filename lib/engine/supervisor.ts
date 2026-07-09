@@ -25,6 +25,7 @@ export interface TaskResult {
   spentCents: number;
   verifierRole?: AgentRole; // who checked the work — MUST differ from the producer (no self-grading)
   verifierOrgRoleId?: string; // the specific POSITION that checked it (org-role independence; Phase 2)
+  repo?: string; // a build task's created repo (owner/name) — so the async live URL can be polled + surfaced
   handoffTo?: string; // successor task id to pass context to
   handoffContext?: string;
   gatedActs?: PreparedPacket[]; // irreducible acts to escalate to the human spine (never auto-run)
