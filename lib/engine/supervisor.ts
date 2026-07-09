@@ -24,6 +24,7 @@ export interface TaskResult {
   proof?: Proof; // required for a "done" verdict (verify-before-done)
   spentCents: number;
   verifierRole?: AgentRole; // who checked the work — MUST differ from the producer (no self-grading)
+  verifierOrgRoleId?: string; // the specific POSITION that checked it (org-role independence; Phase 2)
   handoffTo?: string; // successor task id to pass context to
   handoffContext?: string;
   gatedActs?: PreparedPacket[]; // irreducible acts to escalate to the human spine (never auto-run)
@@ -55,11 +56,20 @@ export interface SupervisorOutcome {
 }
 
 // Why a result is NOT acceptable as "done" — returns null when it passes. Enforces the honesty invariants.
-function verifyFailure(res: TaskResult, producer: AgentRole): string | null {
+// Independence is checked at ORG-ROLE granularity when the task carries a position (Phase 2): a lead
+// reviewing an IC in the SAME execFn is genuinely independent (a different, supervisory position), so only
+// a position grading its OWN work is rejected. Tasks with no org attribution (the legacy flat plan) fall
+// back to engine-role independence — behaviour unchanged.
+function verifyFailure(res: TaskResult, task: AgentTask): string | null {
   if (!res.ok) return "agent reported failure";
   if (!isWellFormedProof(res.proof)) return "no well-formed proof (verify-before-done)";
+  if (task.orgRoleId) {
+    if (!res.verifierOrgRoleId) return "no independent verifier (org position)";
+    if (res.verifierOrgRoleId === task.orgRoleId) return "self-graded (same org position verified its own work)";
+    return null;
+  }
   if (!res.verifierRole) return "no independent verifier";
-  if (res.verifierRole === producer) return "self-graded (generator/evaluator not separated)";
+  if (res.verifierRole === task.role) return "self-graded (generator/evaluator not separated)";
   return null;
 }
 
@@ -125,7 +135,7 @@ export async function runSupervisor(
           break;
         }
       }
-      why = verifyFailure(res, task.role);
+      why = verifyFailure(res, task);
       if (!why) break; // verified → accept
       if (attempt < maxRetries) {
         ctx = `${contextForTask[task.id] ?? ""}\n[self-repair ${attempt + 1}/${maxRetries}: previous output rejected — ${why}. Produce a real, independently-verifiable proof.]`.trim();
