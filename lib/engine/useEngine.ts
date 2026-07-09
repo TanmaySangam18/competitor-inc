@@ -378,7 +378,7 @@ export function useEngine() {
       try {
         const res = await fetch("/api/execute", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action, ...payload, connections: getConnections() ?? undefined }) });
         if (!res.ok) return null;
-        return (await res.json()) as { ok: boolean; disabled?: boolean; proof?: { kind: "url" | "build" | "metric"; value: string }; error?: string };
+        return (await res.json()) as { ok: boolean; disabled?: boolean; proof?: { kind: "url" | "build" | "metric"; value: string }; error?: string; pending?: { kind: "fullstack"; repo: string } };
       } catch {
         return null;
       }

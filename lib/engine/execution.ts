@@ -12,6 +12,7 @@ import { escapeHtml } from "./html";
 import { generateSiteFiles } from "./server";
 import { overHardCap, hardSpendCapCents } from "./spend-cap";
 import { namespacedResource } from "./hosting";
+import { dispatchFullstackBuild, fullstackConfigured } from "./fullstack-build";
 
 const TIMEOUT_MS = 8000;
 
@@ -20,6 +21,10 @@ export interface ExecOutcome {
   proof?: Proof;
   error?: string;
   disabled?: boolean; // true when the integration's key isn't set → caller uses simulated behavior
+  // Async full-stack build in flight: the repo + deploy workflow are dispatched, but the live Vercel URL
+  // isn't known yet. The caller polls /api/build-status?repo=… (fetchDeployedUrl + verify) to upgrade the
+  // product to the real live link once it resolves.
+  pending?: { kind: "fullstack"; repo: string };
 }
 const disabled = (): ExecOutcome => ({ ok: false, disabled: true });
 const fail = (e: unknown): ExecOutcome => ({ ok: false, error: e instanceof Error ? e.message : "unknown" });
@@ -417,9 +422,22 @@ export async function runAction(action: string, p: ActionPayload): Promise<ExecO
   const c = p.connections;
   switch (action) {
     case "build": {
-      // Forge v2: the model AUTHORS a real, FUNCTIONAL client-side app ("app" mode) — working views +
-      // localStorage, not just a landing page. Needs a capable build model (ANTHROPIC_API_KEY / BYOK);
-      // weaker/free models can't emit valid app JSON, so any failure falls back to a credible product site.
+      const token = c?.githubToken || process.env.GITHUB_TOKEN;
+      // PREFER the REAL full-stack builder (Next.js App Router + a real API route, deployed to Vercel) when
+      // configured (FULLSTACK_BUILDS=1 + a repo/workflow token). It dispatches an async Actions workflow, so
+      // return the repo as the honest "building" artifact + a `pending` marker; the caller polls
+      // /api/build-status for the verified live URL. Any dispatch error falls THROUGH to the static build
+      // below (an honest fallback) — never a hard fail.
+      if (fullstackConfigured(c) && token) {
+        const fs = await dispatchFullstackBuild({ goal: `${p.company.name}: ${p.company.idea}`, token });
+        if ("repo" in fs) {
+          return { ok: true, proof: { kind: "metric", value: `building a real full-stack app — repo live, deploying (${fs.url})` }, pending: { kind: "fullstack", repo: fs.repo } };
+        }
+        // fs.error → fall through to the static build (still a real, resolvable artifact)
+      }
+      // Static fallback: the model AUTHORS a functional client-side app ("app" mode) — working views +
+      // localStorage, not just a landing page. Needs a capable build model; weaker/free models can't emit
+      // valid app JSON, so any failure falls back to a credible product site.
       const generated = await generateSiteFiles(p.company.name, p.company.idea, undefined, "app").catch(() => null);
       const files = generated ?? { "index.html": siteHtml(p.company.name, p.company.idea) };
       // Per-tenant hosting contract: namespace the repo to this tenant so two founders building the same
