@@ -85,4 +85,27 @@ describe("makeRealExecutor (Phase 2 — real work, not narration)", () => {
     expect(out.packets.length).toBeGreaterThan(0);
     expect(out.packets.some((p) => p.kind === "approve_publish")).toBe(true);
   });
+
+  it("orgPlan runs the full IC→lead→exec hierarchy end-to-end with real work (no self-graded failures)", async () => {
+    const out = await runSupervisedGoal("a tutoring marketplace", { ...opts(), operate: true, orgPlan: true, execute: makeRealExecutor(deps) });
+    expect(out.failed).toEqual([]);
+    for (const id of ["plan", "spec", "build-ic", "build-review", "build-signoff", "quality", "launch", "care", "monetize", "comply"]) {
+      expect(out.completed, id).toContain(id);
+    }
+    // exactly the founder-gated acts escalate — publish, money, signature — nothing auto-fires
+    expect(out.packets.map((p) => p.kind).sort()).toEqual(["approve_publish", "move_money", "sign_contract"]);
+    // the build's artifact flowed up the chain and was verified live at each level
+    expect(out.artifacts.some((a) => a.url === "https://focus-app-x.vercel.app")).toBe(true);
+    // the Glass-Box log shows the real positions + the founder escalation, not a flat list
+    expect(out.log.some((l) => l.includes("Full-Stack Engineer"))).toBe(true);
+    expect(out.log.some((l) => l.includes("escalates to founder"))).toBe(true);
+  });
+
+  it("orgPlan works keyless (simulated executor) too — same hierarchy, escalations, zero failures", async () => {
+    const out = await runSupervisedGoal("a CRM", { ...opts(), operate: true, orgPlan: true });
+    expect(out.failed).toEqual([]);
+    expect(out.completed).toContain("build-ic");
+    expect(out.completed).toContain("build-review");
+    expect(out.packets.map((p) => p.kind).sort()).toEqual(["approve_publish", "move_money", "sign_contract"]);
+  });
 });

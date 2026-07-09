@@ -14,7 +14,7 @@
 // Pure + deterministic + dependency-injection-free → unit-testable with zero model calls.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { AgentTask } from "./task-queue";
+import type { AgentTask, TaskAction } from "./task-queue";
 import type { AgentRole } from "./types";
 import type { SpineActKind } from "./accountability-spine";
 import { getRole, type OrgRole } from "@/lib/org/organization";
@@ -33,6 +33,7 @@ interface Stage {
   icRoleId: string; // the position that does the work
   verb: string; // "Build the working software for", …
   priority: number;
+  action: TaskAction; // what the executor does (deepChain overrides per-node: build → verify → verify)
   operate?: boolean;
   deepChain?: boolean;
   verifierRoleId?: string;
@@ -43,22 +44,22 @@ interface Stage {
 // a real OrgRole id in organization.ts — a typo fails loudly in `mustRole` (and in the tests) rather than
 // silently skipping work.
 const STAGES: Stage[] = [
-  { id: "plan", icRoleId: "chief-executive-officer", verb: "Set the brief, scope, and success metric for", priority: 10, verifierRoleId: "head-of-analytics" },
-  { id: "spec", icRoleId: "product-manager", verb: "Write the product spec + acceptance criteria for", priority: 9 },
-  { id: "build", icRoleId: "fullstack-engineer", verb: "Build the working software for", priority: 8, deepChain: true, verifierRoleId: "head-of-quality" },
-  { id: "quality", icRoleId: "manual-qa-analyst", verb: "Run the verify-before-done gate on", priority: 6, verifierRoleId: "head-of-quality" },
+  { id: "plan", icRoleId: "chief-executive-officer", verb: "Set the brief, scope, and success metric for", priority: 10, action: "plan", verifierRoleId: "head-of-analytics" },
+  { id: "spec", icRoleId: "product-manager", verb: "Write the product spec + acceptance criteria for", priority: 9, action: "plan" },
+  { id: "build", icRoleId: "fullstack-engineer", verb: "Build the working software for", priority: 8, action: "build", deepChain: true, verifierRoleId: "head-of-quality" },
+  { id: "quality", icRoleId: "manual-qa-analyst", verb: "Run the verify-before-done gate on", priority: 6, action: "verify", verifierRoleId: "head-of-quality" },
   // ── operate: run the shipped product as a business ──
   {
-    id: "launch", icRoleId: "content-marketer", verb: "Draft the launch announcement for", priority: 5, operate: true,
+    id: "launch", icRoleId: "content-marketer", verb: "Draft the launch announcement for", priority: 5, action: "draft", operate: true,
     desk: { kind: "approve_publish", title: "Approve the launch post", action: "Review the drafted announcement, then approve to publish" },
   },
-  { id: "care", icRoleId: "support-engineer-tier-1", verb: "Prepare customer support + onboarding for", priority: 4, operate: true },
+  { id: "care", icRoleId: "support-engineer-tier-1", verb: "Prepare customer support + onboarding for", priority: 4, action: "draft", operate: true },
   {
-    id: "monetize", icRoleId: "billing-operations-specialist", verb: "Set up billing + licensing for", priority: 4, operate: true,
+    id: "monetize", icRoleId: "billing-operations-specialist", verb: "Set up billing + licensing for", priority: 4, action: "draft", operate: true,
     desk: { kind: "move_money", title: "Approve billing go-live", action: "Connect the payout account (KYC), then approve billing to go live — only a human can" },
   },
   {
-    id: "comply", icRoleId: "compliance-officer", verb: "Draft the terms, privacy, and compliance for", priority: 3, operate: true,
+    id: "comply", icRoleId: "compliance-officer", verb: "Draft the terms, privacy, and compliance for", priority: 3, action: "draft", operate: true,
     desk: { kind: "sign_contract", title: "Review and sign the terms", action: "Review the drafted terms / privacy, then sign — only a human can" },
   },
 ];
@@ -83,6 +84,7 @@ function taskFor(
   role: OrgRole,
   goalLine: string,
   priority: number,
+  action: TaskAction,
   blockingOn: string[],
   opts: { verifierRoleId?: string; desk?: DeskAct } = {},
 ): AgentTask {
@@ -93,6 +95,7 @@ function taskFor(
     role: role.execFn as AgentRole,
     blockingOn,
     priority,
+    action,
     orgRoleId: role.id,
     orgTitle: role.title,
     orgLevel: role.level,
@@ -102,39 +105,41 @@ function taskFor(
   };
 }
 
-// Build the hierarchical DAG. Core stages chain linearly (plan→spec→build→quality); operate stages each
-// hang off the completed core (they run once there's a verified product to launch/support/monetize).
+// Build the hierarchical DAG. Core stages chain linearly (plan→spec→build[ic→review→signoff]→quality);
+// operate stages each hang off the completed core (they run once there's a verified product to
+// launch/support/monetize). The core is linked into a chain: each node blocks on its predecessor and hands
+// its output DOWN to the next (the spec reaches the builder; the build artifact reaches the reviewers).
 export function buildOrgPlan(goal: string, opts: OrgPlanOptions = {}): AgentTask[] {
-  const tasks: AgentTask[] = [];
-  let coreTail: string | null = null;
+  const core: AgentTask[] = [];
 
   for (const stage of STAGES.filter((s) => !s.operate)) {
     const ic = mustRole(stage.icRoleId);
-    const blocking = coreTail ? [coreTail] : [];
-    const goalLine = `${stage.verb}: ${goal}`;
-
     if (stage.deepChain) {
       // The product itself: IC builds → team lead reviews → the lead's manager signs off (the visible
       // IC→lead→manager chain — the deepest hierarchy, because the shipped software is where it matters).
       const lead = mustRole(ic.reportsTo ?? "");
       const signer = mustRole(lead.reportsTo ?? "");
-      const icId = `${stage.id}-ic`;
-      const reviewId = `${stage.id}-review`;
-      const signoffId = `${stage.id}-signoff`;
-      tasks.push(taskFor(icId, ic, `${stage.verb}: ${goal}`, stage.priority, blocking));
-      tasks.push(taskFor(reviewId, lead, `Review + verify the build of: ${goal}`, stage.priority - 1, [icId], { verifierRoleId: stage.verifierRoleId }));
-      tasks.push(taskFor(signoffId, signer, `Sign off production-readiness of: ${goal}`, stage.priority - 2, [reviewId]));
-      coreTail = signoffId;
+      core.push(taskFor(`${stage.id}-ic`, ic, `${stage.verb}: ${goal}`, stage.priority, "build", []));
+      core.push(taskFor(`${stage.id}-review`, lead, `Review + verify the build of: ${goal}`, stage.priority - 1, "verify", [], { verifierRoleId: stage.verifierRoleId }));
+      core.push(taskFor(`${stage.id}-signoff`, signer, `Sign off production-readiness of: ${goal}`, stage.priority - 2, "verify", []));
     } else {
-      tasks.push(taskFor(stage.id, ic, goalLine, stage.priority, blocking, { verifierRoleId: stage.verifierRoleId }));
-      coreTail = stage.id;
+      core.push(taskFor(stage.id, ic, `${stage.verb}: ${goal}`, stage.priority, stage.action, [], { verifierRoleId: stage.verifierRoleId }));
     }
   }
+
+  // Link the core into a single chain: blockingOn the predecessor, handoffTo the successor (context flows down).
+  for (let i = 0; i < core.length; i++) {
+    if (i > 0) core[i].blockingOn = [core[i - 1].id];
+    if (i < core.length - 1) core[i].handoffTo = core[i + 1].id;
+  }
+
+  const tasks: AgentTask[] = [...core];
+  const coreTail = core.length ? core[core.length - 1].id : null;
 
   if (opts.operate && coreTail) {
     for (const stage of STAGES.filter((s) => s.operate)) {
       const ic = mustRole(stage.icRoleId);
-      tasks.push(taskFor(stage.id, ic, `${stage.verb}: ${goal}`, stage.priority, [coreTail], { verifierRoleId: stage.verifierRoleId, desk: stage.desk }));
+      tasks.push(taskFor(stage.id, ic, `${stage.verb}: ${goal}`, stage.priority, stage.action, [coreTail], { verifierRoleId: stage.verifierRoleId, desk: stage.desk }));
     }
   }
 

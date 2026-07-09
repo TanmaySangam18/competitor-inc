@@ -5,12 +5,18 @@
 import type { AgentRole } from "./types";
 import type { SpineActKind } from "./accountability-spine";
 
+// What the executor should DO for a task. The org plan sets it explicitly; the legacy flat plan leaves it
+// undefined and the executor infers it from the task id (plan/build/verify → else draft).
+export type TaskAction = "plan" | "build" | "verify" | "draft";
+
 export interface AgentTask {
   id: string;
   goal: string; // what this task accomplishes
   role: AgentRole; // which agent function owns it (drives model routing + tooling)
   blockingOn: string[]; // task ids that must complete first
   priority: number; // higher runs sooner among ready tasks
+  action?: TaskAction; // what the executor does (org plan sets this; legacy infers from id)
+  handoffTo?: string; // successor task id to pass this task's output/context to (context flows down the chain)
 
   // ── Optional ORG attribution (Phase 2) ──────────────────────────────────────
   // Ties a task to a real POSITION in the org chart (lib/org/organization.ts) so execution reflects the

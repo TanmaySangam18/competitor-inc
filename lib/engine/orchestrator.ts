@@ -3,10 +3,11 @@
 // offline ethos); a model-backed/OpenHands `execute` is injected in Phase B. Pure + testable.
 
 import type { AgentRole, Proof } from "./types";
-import { type AgentTask } from "./task-queue";
+import { type AgentTask, type TaskAction } from "./task-queue";
 import { runSupervisor, type ExecuteFn, type SupervisorOutcome, type TaskResult } from "./supervisor";
 import { type AgentInstance } from "./agent-lifecycle";
 import { preparePacket, type SpineActKind } from "./accountability-spine";
+import { buildOrgPlan, renderOrgChain } from "./org-plan";
 
 // Every function that applies to any company. Manufacturing is intentionally omitted (physical-product
 // only). finance/legal/ops run in the operate phase (drafts → your desk). Governance keeps them safe.
@@ -76,8 +77,16 @@ const DESK: Record<string, { kind: SpineActKind; title: string; action: string }
 // independent verifier, and — for spend/outbound steps — a prepared item escalated to the human's desk.
 export const simulatedExecute: ExecuteFn = (inst: AgentInstance, task: AgentTask): TaskResult => {
   const proof: Proof = { kind: "metric", value: `simulated — ${task.goal}` };
-  const res: TaskResult = { ok: true, spentCents: 25, proof, verifierRole: verifierFor(task.role) };
-  const desk = DESK[task.id];
+  const res: TaskResult = { ok: true, spentCents: 25, proof, verifierRole: verifierFor(task.role), verifierOrgRoleId: task.verifierOrgRoleId };
+  // Carry the hierarchy's context down the chain (org plan sets handoffTo) so even the keyless demo shows
+  // the real IC→lead→exec flow, not a flat list.
+  if (task.handoffTo) {
+    res.handoffTo = task.handoffTo;
+    res.handoffContext = `simulated handoff · ${task.id}`;
+  }
+  // Org tasks carry their own gate explicitly; only the LEGACY flat plan uses the id→desk map (an org task
+  // must never inherit a legacy gate just because its id happens to collide, e.g. "care").
+  const desk = task.deskAct ?? (task.orgRoleId ? undefined : DESK[task.id]);
   if (desk) {
     res.gatedActs = [
       preparePacket({
@@ -107,40 +116,53 @@ export interface RealExecutorDeps {
   draft: (role: AgentRole, goal: string) => Promise<string>; // a role drafts its deliverable
 }
 
+// Legacy flat-plan id → action + successor, so the pre-org callers behave EXACTLY as before (org tasks
+// carry these explicitly on the task instead).
+const LEGACY_ACTION: Record<string, TaskAction> = { plan: "plan", build: "build", verify: "verify" };
+const LEGACY_HANDOFF: Record<string, string> = { plan: "build", build: "verify" };
+
 export function makeRealExecutor(deps: RealExecutorDeps): ExecuteFn {
   return async (inst: AgentInstance, task: AgentTask, inbound?: string): Promise<TaskResult> => {
-    const verifierRole = verifierFor(task.role);
-    const desk = DESK[task.id];
+    // Attribution: the independent verifier is the task's org verifier when present (org-role granularity;
+    // the supervisor's honesty check uses it), else the engine-role separation.
+    const base = { verifierRole: verifierFor(task.role), verifierOrgRoleId: task.verifierOrgRoleId };
+    // Org tasks carry their own gate explicitly; only the LEGACY flat plan uses the id→desk map.
+    const desk = task.deskAct ?? (task.orgRoleId ? undefined : DESK[task.id]);
     const gatedActs = desk
       ? [preparePacket({ id: `${inst.id}-${task.id}`, kind: desk.kind, title: desk.title, summary: task.goal, preparedBy: task.role, actionRequired: desk.action, now: inst.createdAt })]
       : undefined;
+    const action: TaskAction = task.action ?? LEGACY_ACTION[task.id] ?? "draft";
+    const handoffTo = task.handoffTo ?? LEGACY_HANDOFF[task.id];
+    const handoff = (context: string): Partial<TaskResult> => (handoffTo ? { handoffTo, handoffContext: context } : {});
 
-    // PLAN — the CEO produces a real spec, handed to Engineering.
-    if (task.id === "plan") {
+    // PLAN / SPEC — produce a real spec, hand it down the chain (CEO brief → PM spec → the builder).
+    if (action === "plan") {
       const spec = await deps.plan(task.goal).catch(() => "");
-      return { ok: true, spentCents: 40, proof: { kind: "metric", value: spec ? "spec written" : "planning" }, verifierRole, handoffTo: "build", handoffContext: spec.slice(0, 2000) };
+      return { ok: true, spentCents: 40, proof: { kind: "metric", value: spec ? "spec written" : "planning" }, ...base, ...handoff(spec.slice(0, 2000)) };
     }
-    // BUILD — the one task that ships real code (full-stack repo + deploy). Hands the artifact to Verify.
-    if (task.id === "build") {
+    // BUILD — the task that ships real code (full-stack repo + deploy). Hands the artifact up the chain.
+    if (action === "build") {
       const b = await deps.build(task.goal, inbound).catch(() => null);
-      if (!b) return { ok: false, spentCents: 0, verifierRole };
+      if (!b) return { ok: false, spentCents: 0, ...base };
       const proof: Proof = b.url ? { kind: "url", value: b.url } : { kind: "metric", value: b.note };
-      return { ok: true, spentCents: 300, proof, verifierRole, handoffTo: "verify", handoffContext: b.url || b.repo || "" };
+      return { ok: true, spentCents: 300, proof, ...base, ...handoff(b.url || b.repo || "") };
     }
-    // VERIFY — actually HEAD-check the built artifact resolves before calling it done.
-    if (task.id === "verify") {
+    // VERIFY / REVIEW / SIGN-OFF — HEAD-check the built artifact resolves; pass it further up the chain so
+    // the reviewer above checks the same real thing. Never a fabricated URL when there's nothing live yet.
+    if (action === "verify") {
       const url = (inbound || "").trim();
       const live = /^https:\/\//.test(url) ? await deps.verify(url).catch(() => false) : false;
       return {
         ok: true,
         spentCents: 20,
         proof: live ? { kind: "url", value: url } : { kind: "metric", value: url ? "artifact deploying — not live yet" : "nothing to verify yet" },
-        verifierRole,
+        ...base,
+        ...handoff(url),
       };
     }
-    // Everything else — the role DRAFTS its deliverable; consequential ones escalate to the desk.
+    // DRAFT — the role prepares its deliverable; consequential ones escalate to the founder's desk.
     const drafted = await deps.draft(task.role, task.goal).catch(() => "");
-    const res: TaskResult = { ok: true, spentCents: 30, proof: { kind: "metric", value: drafted ? `${task.role} draft ready` : `${task.role} prepared` }, verifierRole };
+    const res: TaskResult = { ok: true, spentCents: 30, proof: { kind: "metric", value: drafted ? `${task.role} draft ready` : `${task.role} prepared` }, ...base, ...handoff(drafted.slice(0, 500)) };
     if (gatedActs) res.gatedActs = gatedActs;
     return res;
   };
@@ -152,18 +174,24 @@ export interface RunGoalOptions {
   makeId: () => string;
   execute?: ExecuteFn; // Phase B injects a model-backed / OpenHands executor
   operate?: boolean; // Phase D: also run the ongoing GTM/support functions (drafts → your desk)
+  orgPlan?: boolean; // Phase 2: decompose via the real org chart (IC→lead→exec) instead of the flat crew
   budgetCentsPerTask?: number;
   maxTaskRetries?: number; // per-task self-repair; the autonomous path defaults to 2 (still budget-bounded)
   now?: () => number;
 }
 
-export function runSupervisedGoal(goal: string, opts: RunGoalOptions): Promise<SupervisorOutcome> {
-  const tasks = decomposeGoal(goal, opts.roles ?? DEFAULT_ROLES, { operate: opts.operate });
-  return runSupervisor(tasks, opts.execute ?? simulatedExecute, {
+export async function runSupervisedGoal(goal: string, opts: RunGoalOptions): Promise<SupervisorOutcome> {
+  const tasks = opts.orgPlan
+    ? buildOrgPlan(goal, { operate: opts.operate })
+    : decomposeGoal(goal, opts.roles ?? DEFAULT_ROLES, { operate: opts.operate });
+  const out = await runSupervisor(tasks, opts.execute ?? simulatedExecute, {
     modelForRole: opts.modelForRole,
     makeId: opts.makeId,
     budgetCentsPerTask: opts.budgetCentsPerTask ?? 5000,
     maxTaskRetries: opts.maxTaskRetries ?? 2,
     now: opts.now,
   });
+  // Prepend the visible org chain to the Glass-Box log so the hierarchy — who did what, who it rolls up to,
+  // what escalates to the founder — is legible, not just the spawn/verify trace.
+  return opts.orgPlan ? { ...out, log: [...renderOrgChain(tasks).map((l) => `org · ${l}`), ...out.log] } : out;
 }
