@@ -508,6 +508,32 @@ export function useEngine() {
         // Async full-stack build → deploys to Vercel over minutes; poll for the verified live URL.
         if (r?.pending?.kind === "fullstack") pollLiveBuild(r.pending.repo);
       });
+
+      // Enqueue the durable ORG RUN so the REST of the company works on this too — the CEO plans, GTM
+      // drafts the launch, finance/legal/ops prepare their pieces → your desk. It runs durably (the cron
+      // advances it laptop-off) and fast while you're here (the nudges below). Excludes "engineering" so it
+      // never re-dispatches the build we just fired above (no duplicate repo). Fire-and-forget + fail-soft.
+      void fetch("/api/org-run", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ companyId, goal: `${active.name}: ${active.idea}`, roles: ["ceo", "support", "marketing", "growth", "finance", "legal", "ops"] }),
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((d: { id?: string } | null) => {
+          const id = d?.id;
+          if (!id) return;
+          // Nudge it forward a few short steps now (each = one server step); the cron drives the remainder.
+          let n = 0;
+          const nudge = () => {
+            if (n++ >= 6) return;
+            void fetch("/api/org-run/advance", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) })
+              .then((res) => (res.ok ? res.json() : null))
+              .then((p: { status?: string } | null) => { if (p && p.status !== "done" && p.status !== "failed") setTimeout(nudge, 4000); })
+              .catch(() => {});
+          };
+          setTimeout(nudge, 2000);
+        })
+        .catch(() => {});
     };
 
     // Server-authoritative: CONFIRM the operating flip actually persisted before the crew "goes to work" —

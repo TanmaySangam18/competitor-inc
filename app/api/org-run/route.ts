@@ -4,6 +4,7 @@ import { serviceClient } from "@/lib/engine/service";
 import { createOrgRun, runProgress } from "@/lib/engine/org-run";
 import { insertOrgRun, loadOrgRun } from "@/lib/engine/org-runs-db";
 import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { AGENTS, type AgentRole } from "@/lib/engine/types";
 
 export const runtime = "nodejs";
 
@@ -12,9 +13,14 @@ export const runtime = "nodejs";
 // it to the owner). Writes go through the service role; the caller's identity comes from the cookie session.
 export async function POST(req: Request) {
   if (rateLimited(`orgrun:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
-  const body = (await req.json().catch(() => null)) as { goal?: string; companyId?: string } | null;
+  const body = (await req.json().catch(() => null)) as { goal?: string; companyId?: string; roles?: string[] } | null;
   const goal = (body?.goal ?? "").toString().trim();
   const companyId = (body?.companyId ?? "").toString().trim() || null;
+  // Optional role subset — the client omits "engineering" so the org run doesn't re-dispatch a build the
+  // approve-flow already fired (no duplicate repo). Undefined ⇒ the full default crew.
+  const roles = Array.isArray(body?.roles)
+    ? (body!.roles.filter((r): r is AgentRole => typeof r === "string" && r in AGENTS))
+    : undefined;
   if (goal.length < 4) return Response.json({ ok: false, error: "goal required" }, { status: 400 });
 
   const auth = await getServerSupabase();
@@ -25,7 +31,7 @@ export async function POST(req: Request) {
   const svc = serviceClient();
   if (!svc) return Response.json({ ok: false, error: "server db not configured" }, { status: 503 });
 
-  const run = createOrgRun(crypto.randomUUID(), goal.slice(0, 400), { operate: true });
+  const run = createOrgRun(crypto.randomUUID(), goal.slice(0, 400), { operate: true, roles: roles && roles.length ? roles : undefined });
   try {
     await insertOrgRun(svc, user.id, companyId, run);
   } catch (e) {
