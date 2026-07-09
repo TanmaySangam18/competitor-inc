@@ -469,19 +469,45 @@ export function useEngine() {
     // proof. Skipped for imported products (already live — nothing to build). With no keys, /api/execute
     // returns disabled and nothing extra happens.
     const fireRealBuild = () => {
-      if (approve && active && active.status !== "operating" && active.product?.status !== "live") {
-        void executeAction("build", { company: { name: active.name, idea: active.idea }, companyId: active.id, agent: "engineering" }).then((r) => {
-          if (r?.ok && r.proof) {
-            appendRealResult(active.id, {
-              action: "Shipped the MVP to GitHub",
-              agent: "engineering",
-              proof: r.proof,
-              meta: "real build ✓",
-              productUrl: r.proof.kind === "url" ? r.proof.value : undefined,
-            });
-          }
-        });
-      }
+      if (!(approve && active && active.status !== "operating" && active.product?.status !== "live")) return;
+      const companyId = active.id;
+      // Poll the async full-stack deploy for its VERIFIED live URL (bounded ~15 min), then upgrade the
+      // product to the real link. Never fabricates a URL: if it never verifies, we simply stop (the
+      // product stays "building" — honest).
+      const pollLiveBuild = (repo: string, attempt = 0): void => {
+        if (attempt >= 45) return; // ~15 min at 20s
+        setTimeout(() => {
+          void fetch(`/api/build-status?repo=${encodeURIComponent(repo)}`)
+            .then((res) => res.json())
+            .then((d: { live?: boolean; url?: string }) => {
+              if (d?.live && typeof d.url === "string") {
+                appendRealResult(companyId, {
+                  action: "Full-stack app deployed — live and verified",
+                  agent: "engineering",
+                  proof: { kind: "url", value: d.url },
+                  meta: "real deploy ✓ (URL re-verified)",
+                  productUrl: d.url,
+                });
+              } else {
+                pollLiveBuild(repo, attempt + 1);
+              }
+            })
+            .catch(() => pollLiveBuild(repo, attempt + 1));
+        }, 20000);
+      };
+      void executeAction("build", { company: { name: active.name, idea: active.idea }, companyId, agent: "engineering" }).then((r) => {
+        if (r?.ok && r.proof) {
+          appendRealResult(companyId, {
+            action: "Shipped the MVP to GitHub",
+            agent: "engineering",
+            proof: r.proof,
+            meta: "real build ✓",
+            productUrl: r.proof.kind === "url" ? r.proof.value : undefined,
+          });
+        }
+        // Async full-stack build → deploys to Vercel over minutes; poll for the verified live URL.
+        if (r?.pending?.kind === "fullstack") pollLiveBuild(r.pending.repo);
+      });
     };
 
     // Server-authoritative: CONFIRM the operating flip actually persisted before the crew "goes to work" —
