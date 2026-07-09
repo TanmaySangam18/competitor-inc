@@ -8,6 +8,7 @@ import {
   fullstackPromptFile,
   fullstackConfigured,
   fullstackBuildExecutor,
+  fetchDeployedUrl,
 } from "./fullstack-build";
 import type { FetchLike } from "./aider-build";
 
@@ -127,5 +128,32 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     // flag is unset in the test env → the path stays off and the caller uses the static build
     expect(fullstackConfigured({ githubToken: "ghp_x" } as never)).toBe(false);
     expect(fullstackBuildExecutor({ githubToken: "ghp_x" } as never)).toBeNull();
+  });
+
+  describe("fetchDeployedUrl (Slice 2 — capture the live Vercel URL from the workflow)", () => {
+    const withContent = (text: string): FetchLike => async () => ({
+      ok: true, status: 200, json: async () => ({ content: Buffer.from(text, "utf8").toString("base64") }),
+    });
+
+    it("returns the live Vercel URL once the workflow has committed deploy-url.txt", async () => {
+      const url = await fetchDeployedUrl({ repo: "octocat/app-x", token: "t", fetchImpl: withContent("https://app-x-abc123.vercel.app\n") });
+      expect(url).toBe("https://app-x-abc123.vercel.app");
+    });
+
+    it("returns null while the build is still running (deploy-url.txt not committed → 404)", async () => {
+      const notFound: FetchLike = async () => ({ ok: false, status: 404, json: async () => ({}) });
+      expect(await fetchDeployedUrl({ repo: "octocat/app-x", token: "t", fetchImpl: notFound })).toBeNull();
+    });
+
+    it("never returns a non-Vercel or malformed URL (verify-before-done floor)", async () => {
+      expect(await fetchDeployedUrl({ repo: "r", token: "t", fetchImpl: withContent("https://evil.com/app") })).toBeNull();
+      expect(await fetchDeployedUrl({ repo: "r", token: "t", fetchImpl: withContent("not a url at all") })).toBeNull();
+      expect(await fetchDeployedUrl({ repo: "r", token: "t", fetchImpl: withContent("") })).toBeNull();
+    });
+
+    it("fails soft (null) on a network error", async () => {
+      const boom: FetchLike = async () => { throw new Error("network"); };
+      expect(await fetchDeployedUrl({ repo: "r", token: "t", fetchImpl: boom })).toBeNull();
+    });
   });
 });

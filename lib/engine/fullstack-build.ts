@@ -179,6 +179,28 @@ export async function dispatchFullstackBuild(opts: {
   }
 }
 
+// Slice 2 (Phase 1): capture the LIVE Vercel URL the workflow deployed. The workflow writes it to
+// `deploy-url.txt` in the repo and commits it at the end of the run (see buildFullstackWorkflowYaml).
+// This reads that file via the contents API and returns the URL only if it's a real, well-formed Vercel
+// URL — else null (build still running, failed, or file absent). The CALLER then HEAD-verifies it
+// resolves before ever showing it as "live" (verify-before-done; never surface a guessed/404 URL).
+// One-shot + injectable fetch → unit-testable with zero network; a build-status route polls it over time.
+export async function fetchDeployedUrl(opts: { repo: string; token: string; fetchImpl?: FetchLike }): Promise<string | null> {
+  const fetchImpl = opts.fetchImpl ?? (globalThis.fetch as unknown as FetchLike);
+  try {
+    const res = await fetchImpl(`https://api.github.com/repos/${opts.repo}/contents/deploy-url.txt`, {
+      headers: { authorization: `Bearer ${opts.token}`, accept: "application/vnd.github+json" },
+    });
+    if (!res.ok) return null; // 404 = not committed yet (build in flight) or the run failed before deploy
+    const j = (await res.json().catch(() => null)) as { content?: string } | null;
+    if (!j?.content) return null;
+    const url = Buffer.from(j.content, "base64").toString("utf8").trim();
+    return /^https:\/\/[a-z0-9-]+(?:-[a-z0-9]+)*\.vercel\.app\/?$/.test(url) ? url : null;
+  } catch {
+    return null;
+  }
+}
+
 export function fullstackConfigured(conn?: Connections): boolean {
   return FULLSTACK_BUILDS && !!(conn?.githubToken || process.env.GITHUB_TOKEN);
 }
