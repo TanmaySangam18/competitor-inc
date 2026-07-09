@@ -195,7 +195,10 @@ export async function dispatchFullstackBuild(opts: {
     // Inject the Actions secrets the workflow needs, per-repo (no org required). Values live as the engine's
     // env (the founder sets them once on Vercel; later, per-user BYOK values). Best-effort: if a key isn't
     // configured the Action will just surface the missing secret honestly.
-    const llmKey = process.env.FULLSTACK_LLM_API_KEY;
+    // The build-model key: prefer FULLSTACK_ANTHROPIC_KEY (the founder can create it fresh, since the legacy
+    // FULLSTACK_LLM_API_KEY already holds the old Groq key). Injected as the repo's LLM_API_KEY secret, which
+    // the workflow hands to Aider under FS_KEY_ENV (ANTHROPIC_API_KEY by default).
+    const llmKey = process.env.FULLSTACK_ANTHROPIC_KEY || process.env.FULLSTACK_LLM_API_KEY;
     const vercelToken = process.env.FULLSTACK_VERCEL_TOKEN;
     if (llmKey) await setRepoSecret(fetchImpl, opts.token, fullName, "LLM_API_KEY", llmKey);
     if (vercelToken) await setRepoSecret(fetchImpl, opts.token, fullName, "VERCEL_TOKEN", vercelToken);
