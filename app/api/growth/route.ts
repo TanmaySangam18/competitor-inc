@@ -1,7 +1,7 @@
 import { serviceClient } from "@/lib/engine/service";
 import { SLUG_RE } from "@/lib/engine/slug";
 import { readFunnel } from "@/lib/engine/funnel";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 // (aggregates + per-stage basis) — never emails, never row-level data. Fail-soft to an all-missing
 // funnel so the tab renders honestly ("connect the signal") instead of erroring.
 export async function GET(req: Request) {
-  if (rateLimited(`growth:${clientIp(req)}`)) {
+  if (await overLimit(`growth:${clientIp(req)}`)) {
     return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   }
   const url = new URL(req.url);

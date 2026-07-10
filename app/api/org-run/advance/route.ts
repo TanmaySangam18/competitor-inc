@@ -6,7 +6,7 @@ import { loadOrgRun, saveOrgRun } from "@/lib/engine/org-runs-db";
 import { advanceOrgRun } from "@/lib/engine/org-run-step";
 import { serverRealExecutor } from "@/lib/engine/real-executor";
 import { insertActivities } from "@/lib/engine/db";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 // Ownership is verified via the caller's RLS-scoped session (only their own run loads) BEFORE any
 // service-role write, so a caller can never advance someone else's run.
 export async function POST(req: Request) {
-  if (rateLimited(`orgadv:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
+  if (await overLimit(`orgadv:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   const body = (await req.json().catch(() => null)) as { id?: string } | null;
   const id = (body?.id ?? "").toString().trim();
   if (!id) return Response.json({ ok: false, error: "id required" }, { status: 400 });

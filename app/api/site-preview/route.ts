@@ -1,5 +1,5 @@
 import { assertSafeBaseUrl } from "@/lib/engine/net";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -49,7 +49,7 @@ function unavailable(msg: string, sub = ""): Response {
 }
 
 export async function GET(req: Request): Promise<Response> {
-  if (rateLimited(`site-preview:${clientIp(req)}`)) return unavailable("Preview is busy — try again in a moment.");
+  if (await overLimit(`site-preview:${clientIp(req)}`)) return unavailable("Preview is busy — try again in a moment.");
 
   const raw = new URL(req.url).searchParams.get("u") || "";
   let u: URL;

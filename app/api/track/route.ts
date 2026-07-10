@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { serviceClient as sb } from "@/lib/engine/service";
 import { SLUG_RE } from "@/lib/engine/slug";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -25,7 +25,7 @@ export function OPTIONS() {
 }
 
 export async function POST(req: Request) {
-  if (rateLimited(`track:${clientIp(req)}`)) {
+  if (await overLimit(`track:${clientIp(req)}`)) {
     return Response.json({ ok: false, error: "rate limited" }, { status: 429, headers: CORS });
   }
   const raw = await req.text();

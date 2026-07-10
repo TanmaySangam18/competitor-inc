@@ -1,4 +1,4 @@
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 import { runRadar } from "@/lib/engine/radar";
 
 export const runtime = "nodejs";
@@ -9,7 +9,7 @@ export const maxDuration = 30;
 // REAL demand signals and return a source-cited report. Nothing fabricated: every number traces to a
 // fetched result, and unreachable sources are reported honestly. Rate-limited.
 export async function POST(req: Request) {
-  if (rateLimited(`radar:${clientIp(req)}`)) {
+  if (await overLimit(`radar:${clientIp(req)}`)) {
     return Response.json({ ok: false, error: "rate limited — try again in a moment" }, { status: 429 });
   }
   let body: unknown;

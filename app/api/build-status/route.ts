@@ -1,6 +1,6 @@
 import { fetchDeployedUrl } from "@/lib/engine/fullstack-build";
 import { verifyProof } from "@/lib/engine/execution";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 // (verify-before-done — never surface a URL that 404s). The client polls this after a build until `live`,
 // then upgrades the product to the real deployed link. Rate-limited; repo format-validated; fail-soft.
 export async function GET(req: Request) {
-  if (rateLimited(`buildstatus:${clientIp(req)}`)) {
+  if (await overLimit(`buildstatus:${clientIp(req)}`)) {
     return Response.json({ live: false, error: "rate limited" }, { status: 429 });
   }
   const repo = (new URL(req.url).searchParams.get("repo") ?? "").trim();

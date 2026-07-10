@@ -1,6 +1,6 @@
 import { mobilize } from "@/lib/org/kickoff";
 import { ensureDepartmentChannels, postAsAgent } from "@/lib/org/slack-org";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 // company-creates can't spam the workspace.
 
 export async function POST(req: Request) {
-  if (rateLimited(`kickoff:${clientIp(req)}`)) {
+  if (await overLimit(`kickoff:${clientIp(req)}`)) {
     return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   }
   let brief = "";

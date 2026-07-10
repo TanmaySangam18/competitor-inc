@@ -1,6 +1,6 @@
 import { serviceClient as sb } from "@/lib/engine/service";
 import { sanitizeSlug as slugify } from "@/lib/engine/slug";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     // create stands up a PUBLIC landing page at /t/<slug>, so it's the abuse-sensitive path. There's
     // no auth on the client (the dashboard panel calls it unauthenticated), so guard it per-IP to stop
     // a stranger from spraying junk tests on the domain. Real auth is a Block-0 follow-up.
-    if (rateLimited(`demand:${clientIp(req)}`)) {
+    if (await overLimit(`demand:${clientIp(req)}`)) {
       return Response.json({ error: "rate limited" }, { status: 429 });
     }
     const slug = typeof b.slug === "string" ? slugify(b.slug) : "";

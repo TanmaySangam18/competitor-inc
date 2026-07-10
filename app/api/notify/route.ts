@@ -1,5 +1,5 @@
 import { notifyCustomer, sendTelegramApproval, type ApprovalRequest } from "@/lib/engine/notify";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 // GATED on TELEGRAM_BOT_TOKEN (no token ⇒ no-op { disabled }), rate-limited, fail-soft. Telegram only
 // delivers to users who already messaged the bot, so the blast radius is limited to opted-in chats.
 export async function POST(req: Request) {
-  if (rateLimited(`notify:${clientIp(req)}`)) {
+  if (await overLimit(`notify:${clientIp(req)}`)) {
     return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   }
   let body: unknown;

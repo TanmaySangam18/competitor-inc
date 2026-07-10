@@ -1,4 +1,4 @@
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 import { fetchSiteText, simulatedAudit } from "@/lib/engine/importer";
 import { auditSite } from "@/lib/engine/server";
 
@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 // (strengths/weaknesses/opportunities). READ-ONLY public audit — no ownership needed. Operating the
 // project (building improvements) is gated separately on ownership verification. Fail-soft, rate-limited.
 export async function POST(req: Request) {
-  if (rateLimited(`import:${clientIp(req)}`)) {
+  if (await overLimit(`import:${clientIp(req)}`)) {
     return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   }
   let body: unknown;

@@ -1,7 +1,7 @@
 import { getServerSupabase } from "@/lib/supabase/server";
 import { loadMandate, saveMandate, UNSIGNED } from "@/lib/engine/mandates-db";
 import { defaultMandate, type CustomerMandate, type MandateAct } from "@/lib/org/customer-mandate";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (rateLimited(`mandate:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
+  if (await overLimit(`mandate:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   const body = (await req.json().catch(() => null)) as
     | { companyId?: string; action?: string; monthlySpendCapCents?: number; scopes?: string[] }
     | null;

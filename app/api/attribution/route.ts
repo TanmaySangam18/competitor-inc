@@ -1,7 +1,7 @@
 import { serviceClient } from "@/lib/engine/service";
 import { SLUG_RE } from "@/lib/engine/slug";
 import { attributeChannels, attributeCampaigns, weeklySeries, portfolioRoi, type EventRow } from "@/lib/engine/attribution";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -10,7 +10,7 @@ export const runtime = "nodejs";
 // until an ad account is connected (Phase 2, founder-approval-gated) — we never fabricate a ROAS.
 // Aggregates + channels only, never emails or row-level PII. Fail-soft to an empty honest state.
 export async function GET(req: Request) {
-  if (rateLimited(`attr:${clientIp(req)}`)) {
+  if (await overLimit(`attr:${clientIp(req)}`)) {
     return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   }
   const slug = (new URL(req.url).searchParams.get("slug") ?? "").trim().toLowerCase();

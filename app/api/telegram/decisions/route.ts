@@ -1,5 +1,5 @@
 import { serviceClient } from "@/lib/engine/service";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 // empty. Decisions hold no PII and approval ids are unguessable uuids.
 //  GET /api/telegram/decisions?ids=<uuid>,<uuid>  →  { decisions: { "<id>": "approved" | "rejected" } }
 export async function GET(req: Request) {
-  if (rateLimited(`tgdec:${clientIp(req)}`)) return Response.json({ decisions: {} }, { status: 429 });
+  if (await overLimit(`tgdec:${clientIp(req)}`)) return Response.json({ decisions: {} }, { status: 429 });
   const raw = new URL(req.url).searchParams.get("ids") || "";
   const ids = raw.split(",").map((s) => s.trim()).filter((s) => /^[0-9a-fA-F-]{6,40}$/.test(s)).slice(0, 50);
   if (ids.length === 0) return Response.json({ decisions: {} });

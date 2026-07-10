@@ -1,5 +1,5 @@
 import { serviceClient } from "@/lib/engine/service";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -23,7 +23,7 @@ async function registeredTables(sb: NonNullable<ReturnType<typeof serviceClient>
 }
 
 export async function GET(req: Request, ctx: { params: Promise<{ ns: string; entity: string }> }) {
-  if (rateLimited(`app:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
+  if (await overLimit(`app:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   const { ns, entity } = await ctx.params;
   if (!NS_RE.test(ns) || !ENT_RE.test(entity)) return Response.json({ ok: false, error: "bad path" }, { status: 400 });
   const sb = serviceClient();
@@ -40,7 +40,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ ns: string; ent
 }
 
 export async function POST(req: Request, ctx: { params: Promise<{ ns: string; entity: string }> }) {
-  if (rateLimited(`app:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
+  if (await overLimit(`app:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   const { ns, entity } = await ctx.params;
   if (!NS_RE.test(ns) || !ENT_RE.test(entity)) return Response.json({ ok: false, error: "bad path" }, { status: 400 });
   const body = await req.json().catch(() => null);

@@ -1,7 +1,7 @@
 import { serviceClient } from "@/lib/engine/service";
 import { codeFrom } from "@/lib/engine/refcode";
 import { notifyFounder } from "@/lib/engine/notify-founder";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -29,7 +29,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  if (rateLimited(`waitlist:${clientIp(req)}`)) {
+  if (await overLimit(`waitlist:${clientIp(req)}`)) {
     return Response.json({ error: "rate limited" }, { status: 429 });
   }
   let body: unknown;

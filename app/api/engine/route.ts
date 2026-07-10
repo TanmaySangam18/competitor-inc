@@ -13,7 +13,7 @@ import { checkUserLimit } from "@/lib/engine/user-limits";
 import type { ExecuteFn } from "@/lib/engine/supervisor";
 import { capabilities } from "@/lib/engine/execution";
 import { connectorStatus } from "@/lib/engine/connectors";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 import { withTrace } from "@/lib/engine/observability";
 import { runGrowthStep, type FunnelSnapshot, type GrowthExperiment } from "@/lib/engine/growth";
 import { organicGrowthPlan, type ChannelInput } from "@/lib/engine/organic-growth";
@@ -50,13 +50,13 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   const url = new URL(req.url);
   if (url.searchParams.get("probe") === "1") {
-    if (process.env.VERCEL && rateLimited(clientIp(req))) {
+    if (process.env.VERCEL && await overLimit(clientIp(req))) {
       return Response.json({ error: "rate limited — wait a minute and retry" }, { status: 429 });
     }
     return Response.json(await probeModel());
   }
   if (url.searchParams.get("probe") === "build") {
-    if (process.env.VERCEL && rateLimited(clientIp(req))) {
+    if (process.env.VERCEL && await overLimit(clientIp(req))) {
       return Response.json({ error: "rate limited — wait a minute and retry" }, { status: 429 });
     }
     return Response.json(await probeBuildModel());
@@ -144,7 +144,7 @@ export async function POST(req: Request) {
   // Cost/abuse guard: soft per-IP rate limit. Active only on Vercel (real deployments) so the local
   // dev server + QA smoke harness aren't throttled. A 429 makes the clients fall back to the free
   // simulated engine, so a flooding IP can't keep spending model tokens.
-  if (process.env.VERCEL && rateLimited(clientIp(req))) {
+  if (process.env.VERCEL && await overLimit(clientIp(req))) {
     return new Response("You're going a bit fast — give it a moment and try again.", {
       status: 429,
       headers: { "content-type": "text/plain; charset=utf-8", "retry-after": "60" },

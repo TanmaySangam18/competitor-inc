@@ -1,5 +1,5 @@
 import { getServerSupabase, isSupabaseConfigured } from "@/lib/supabase/server";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 import { normalizeHost, ownershipToken, verifyOwnership } from "@/lib/engine/ownership";
 
 export const runtime = "nodejs";
@@ -25,7 +25,7 @@ async function subjectEmail(): Promise<string | null> {
 }
 
 export async function POST(req: Request) {
-  if (rateLimited(`verify:${clientIp(req)}`)) {
+  if (await overLimit(`verify:${clientIp(req)}`)) {
     return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   }
   let body: unknown;

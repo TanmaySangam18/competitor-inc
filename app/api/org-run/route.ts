@@ -3,7 +3,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import { serviceClient } from "@/lib/engine/service";
 import { createOrgRun, runProgress, buildRepo } from "@/lib/engine/org-run";
 import { insertOrgRun, loadOrgRun } from "@/lib/engine/org-runs-db";
-import { rateLimited, clientIp } from "@/lib/engine/ratelimit";
+import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
 
 export const runtime = "nodejs";
@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 // laptop-off; the client can also drive it via /api/org-run/advance). GET returns its progress (RLS scopes
 // it to the owner). Writes go through the service role; the caller's identity comes from the cookie session.
 export async function POST(req: Request) {
-  if (rateLimited(`orgrun:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
+  if (await overLimit(`orgrun:${clientIp(req)}`)) return Response.json({ ok: false, error: "rate limited" }, { status: 429 });
   const body = (await req.json().catch(() => null)) as { goal?: string; companyId?: string; roles?: string[]; orgPlan?: boolean } | null;
   const goal = (body?.goal ?? "").toString().trim();
   const companyId = (body?.companyId ?? "").toString().trim() || null;
