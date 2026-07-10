@@ -18,6 +18,7 @@ import { successRateByAgent } from "@/lib/engine/agent-performance";
 import { loadWallet } from "@/lib/engine/wallet-db";
 import { decideSpend } from "@/lib/engine/wallet";
 import { draftPersonaPost, draftProgressPost, shouldShare } from "@/lib/engine/buildinpublic";
+import { SITE_URL } from "@/lib/site";
 import { postToBluesky, postToMastodon } from "@/lib/engine/execution";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY, platformMarketingAllowed } from "@/lib/engine/policy";
@@ -269,7 +270,7 @@ export async function GET(req: Request) {
       // persona-authored (Vera·CTO / Kenji·Analytics / Marcus·CEO) and honestly overnight-stamped.
       // Fail-soft + gated on Bluesky/Mastodon keys; posts nothing when there's no verified milestone.
       if (platformMarketingAllowed(POLICY) && shouldShare(company, activities)) {
-        const post = draftPersonaPost(company, activities, { overnight: true }) ?? draftProgressPost(company, activities);
+        const post = draftPersonaPost(company, activities, { overnight: true, siteUrl: SITE_URL }) ?? draftProgressPost(company, activities);
         if (post) {
           await Promise.allSettled([postToBluesky({ text: post }), postToMastodon({ text: post })]).catch(() => {});
         }

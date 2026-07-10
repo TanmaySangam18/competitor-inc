@@ -14,6 +14,24 @@ export function SignupAttribution() {
   const { user, ready } = useAuth();
   const fired = useRef(false);
 
+  // FIRST-TOUCH capture (Receipts Campaign slice 3): arriving anywhere with ?ref=<slug> marks the
+  // referral — exactly like clicking a landing CTA does — and logs one view under that slug so campaign
+  // clicks are counted even when the link lands off-home. First touch wins: an existing marker is never
+  // overwritten (a campaign click can't steal credit from an earlier source).
+  useEffect(() => {
+    try {
+      const ref = new URL(window.location.href).searchParams.get("ref")?.trim().toLowerCase();
+      if (!ref || !/^[a-z0-9][a-z0-9-]{0,79}$/.test(ref)) return;
+      if (!localStorage.getItem(REF_KEY)) localStorage.setItem(REF_KEY, ref);
+      const payload = JSON.stringify({ slug: ref, type: "view", source: "ref" });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon("/api/track", new Blob([payload], { type: "application/json" }));
+      } else {
+        void fetch("/api/track", { method: "POST", headers: { "content-type": "application/json" }, body: payload, keepalive: true });
+      }
+    } catch { /* measurement must never break the app */ }
+  }, []);
+
   useEffect(() => {
     if (!ready || fired.current) return;
     if (!user || user.guest) return; // only real, signed-in users

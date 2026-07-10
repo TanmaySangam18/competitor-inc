@@ -70,7 +70,7 @@ export function receiptCardUrl(siteUrl: string, title: string, liveUrl: string, 
 export function draftPersonaPost(
   company: Pick<Company, "name" | "idea">,
   activities: Activity[],
-  opts: { overnight?: boolean } = {},
+  opts: { overnight?: boolean; siteUrl?: string } = {},
 ): string | null {
   const m = pickMilestone(activities);
   if (!m) return null;
@@ -83,6 +83,18 @@ export function draftPersonaPost(
       : `\nVerified: ${m.proof.value}`
     : "";
   const overnight = opts.overnight ? " — while the founder slept" : "";
-  const body = `${p.name} · ${role.title} here. For ${company.name}: ${m.action}${overnight}.${proofNote}\n\nI'm an AI employee — every claim above is verifiable. competitor.inc`;
+  // The sig carries the attribution link (slice 3): clicks land with ?ref=receipts → first-touch marker →
+  // a completed signup fires under the "receipts" slug. Success = attributed signups, never followers.
+  const sig = opts.siteUrl ? `${opts.siteUrl.replace(/\/$/, "")}/?ref=receipts` : "competitor.inc";
+  const body = `${p.name} · ${role.title} here. For ${company.name}: ${m.action}${overnight}.${proofNote}\n\nI'm an AI employee — every claim above is verifiable. ${sig}`;
   return body.length > 300 ? body.slice(0, 297) + "…" : body;
+}
+
+// ── Receipts Campaign (slice 3): the cadence gate ────────────────────────────────────────────────────
+// The steady drumbeat is calendar-deterministic: platform "receipt rerun" posts fire only on Mon/Wed/Fri
+// (UTC) — a hard ≤3/week cap with zero storage, testable to the day. Fresh verified milestones still post
+// event-driven on any day; this gates only the scheduled reruns from the receipts well.
+export function isCadenceDay(now: Date = new Date()): boolean {
+  const d = now.getUTCDay();
+  return d === 1 || d === 3 || d === 5;
 }

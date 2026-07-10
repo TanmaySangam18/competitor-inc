@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pickMilestone, draftProgressPost, draftPersonaPost, receiptCardUrl, shouldShare } from "./buildinpublic";
+import { pickMilestone, draftProgressPost, draftPersonaPost, receiptCardUrl, shouldShare, isCadenceDay } from "./buildinpublic";
 import type { Activity, Company, Proof } from "./types";
 
 const act = (over: Partial<Activity>): Activity => ({
@@ -70,3 +70,21 @@ describe("receipts campaign — persona-authored posts (slice 2)", () => {
     expect(u).toBe("https://competitor.inc/api/receipt-card?title=Booking+app&url=https%3A%2F%2Fx.vercel.app&review=8px+rhythm");
   });
 });
+
+describe("receipts campaign — attribution + cadence (slice 3)", () => {
+  it("with siteUrl the sig is the ?ref=receipts attribution link (trailing slash normalized)", () => {
+    const acts = [act({ action: "Shipped it", proof: { kind: "url", value: "https://y.vercel.app" } as Proof })];
+    const p = draftPersonaPost(company(), acts, { siteUrl: "https://competitor-inc-zeta.vercel.app/" })!;
+    expect(p).toContain("https://competitor-inc-zeta.vercel.app/?ref=receipts");
+    expect(draftPersonaPost(company(), acts)!).toContain("competitor.inc"); // no siteUrl ⇒ plain sig
+  });
+
+  it("isCadenceDay = Mon/Wed/Fri UTC only (a hard ≤3/week cap with zero storage)", () => {
+    expect(isCadenceDay(new Date("2026-07-13T09:00:00Z"))).toBe(true); // Monday
+    expect(isCadenceDay(new Date("2026-07-15T09:00:00Z"))).toBe(true); // Wednesday
+    expect(isCadenceDay(new Date("2026-07-17T09:00:00Z"))).toBe(true); // Friday
+    expect(isCadenceDay(new Date("2026-07-14T09:00:00Z"))).toBe(false); // Tuesday
+    expect(isCadenceDay(new Date("2026-07-19T09:00:00Z"))).toBe(false); // Sunday
+  });
+});
+

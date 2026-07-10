@@ -48,7 +48,8 @@ export async function POST(req: Request) {
   const isDemoType = type === "demo_start" || type === "demo_verdict" || type === "demo_cta";
   // "tool" = a run of a first-party free tool (/sell, /score) — the top of the funnel-proof.
   const isToolType = type === "tool";
-  const isReservedSlug = slug === "home" || slug === "nu" || slug === "sell" || slug === "score";
+  // "receipts" = the Receipts Campaign's attribution slug (?ref=receipts on persona-post links).
+  const isReservedSlug = slug === "home" || slug === "nu" || slug === "sell" || slug === "score" || slug === "receipts";
   if (type !== "view" && type !== "signup" && !isDemoType && !isToolType) {
     return Response.json({ ok: false, error: "type must be view|signup|tool|demo_*" }, { status: 400, headers: CORS });
   }
