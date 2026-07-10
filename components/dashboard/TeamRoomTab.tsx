@@ -14,12 +14,13 @@ import { getByok } from "@/lib/engine/config";
 import type { AgentRole, ApprovalKind, Company } from "@/lib/engine/types";
 import { activeDepartments, activeRoles, stageForSignals, STAGE_STORY } from "@/lib/org/org-stages";
 import { orgSoul, relayLine } from "@/lib/org/org-soul";
+import { displayName, personaFor } from "@/lib/org/personas";
 import type { OrgRole } from "@/lib/org/organization";
 
 interface RoomMsg { who: "you" | "role"; roleId?: string; title?: string; text: string; chip?: string }
 
-const initials = (title: string) =>
-  title.split(/\s+/).filter((w) => /^[A-Za-z]/.test(w)).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
+// "Vera · VP of Engineering" → "VE" (the persona's first two letters — stable, human).
+const initials = (label: string) => (label.split("·")[0] ?? label).trim().slice(0, 2).toUpperCase();
 
 export function TeamRoomTab({ company, r }: { company: Company; r: ReturnType<typeof useEngine> }) {
   const storeKey = `cofounder:teamroom:${company.id}`;
@@ -85,11 +86,11 @@ export function TeamRoomTab({ company, r }: { company: Company; r: ReturnType<ty
       if (h) { try { queued = JSON.parse(decodeURIComponent(h)); } catch { /* ignore */ } }
       if (!res.body) {
         const data = await res.json().catch(() => ({ reply: "…" }));
-        setMsgs((m) => [...m, { who: "role", roleId: role.id, title: role.title, text: data.reply ?? "…" }]);
+        setMsgs((m) => [...m, { who: "role", roleId: role.id, title: displayName(role), text: data.reply ?? "…" }]);
       } else {
         const reader = res.body.getReader();
         const dec = new TextDecoder();
-        setMsgs((m) => [...m, { who: "role", roleId: role.id, title: role.title, text: "" }]);
+        setMsgs((m) => [...m, { who: "role", roleId: role.id, title: displayName(role), text: "" }]);
         let acc = "";
         for (;;) {
           const { done, value } = await reader.read();
@@ -100,10 +101,10 @@ export function TeamRoomTab({ company, r }: { company: Company; r: ReturnType<ty
       }
       if (queued) {
         r.addApproval(queued);
-        setMsgs((m) => [...m, { who: "role", roleId: role.id, title: role.title, text: "Queued for your approval — nothing consequential ships without your yes.", chip: "needs you" }]);
+        setMsgs((m) => [...m, { who: "role", roleId: role.id, title: displayName(role), text: "Queued for your approval — nothing consequential ships without your yes.", chip: "needs you" }]);
       }
     } catch {
-      setMsgs((m) => [...m, { who: "role", roleId: role?.id, title: role?.title, text: "I couldn't reach the engine just now — try again?" }]);
+      setMsgs((m) => [...m, { who: "role", roleId: role?.id, title: role ? displayName(role) : undefined, text: "I couldn't reach the engine just now — try again?" }]);
     } finally {
       setSending(false);
     }
@@ -133,7 +134,7 @@ export function TeamRoomTab({ company, r }: { company: Company; r: ReturnType<ty
             className="max-w-[15rem] shrink-0 rounded-lg border border-border bg-bg/50 px-2.5 py-2 text-xs font-medium outline-none"
           >
             {leaders.map((l) => (
-              <option key={l.id} value={l.id}>{l.title}</option>
+              <option key={l.id} value={l.id}>{displayName(l)}</option>
             ))}
           </select>
           <span className="truncate text-[11px] text-muted-2">{role ? relayLine(role) ?? "does the work directly" : ""}</span>
@@ -142,7 +143,7 @@ export function TeamRoomTab({ company, r }: { company: Company; r: ReturnType<ty
         <div className="h-[300px] space-y-3 overflow-y-auto p-4">
           {msgs.length === 0 && role && (
             <p className="text-xs leading-relaxed text-muted-2">
-              This is your team room. You&apos;re talking to the {role.title} — give a direction, ask for status, push back.
+              This is your team room. You&apos;re talking to {displayName(role)} — give a direction, ask for status, push back.
               Leads relay work down their team and report back up; anything consequential lands on your desk first.
             </p>
           )}
@@ -166,7 +167,7 @@ export function TeamRoomTab({ company, r }: { company: Company; r: ReturnType<ty
             </div>
           ))}
           {sending && msgs[msgs.length - 1]?.who === "you" && (
-            <div className="flex items-center gap-2 text-xs text-muted-2"><Loader2 size={12} className="animate-spin" /> {role?.title} is thinking…</div>
+            <div className="flex items-center gap-2 text-xs text-muted-2"><Loader2 size={12} className="animate-spin" /> {role ? personaFor(role).name : "The team"} is thinking…</div>
           )}
           <div ref={endRef} />
         </div>
@@ -176,7 +177,7 @@ export function TeamRoomTab({ company, r }: { company: Company; r: ReturnType<ty
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send()}
-            placeholder={role ? `Direct the ${role.title}…` : "Direct your team…"}
+            placeholder={role ? `Message ${personaFor(role).name} — your ${role.title}…` : "Direct your team…"}
             aria-label="Direct your team"
             className="w-full rounded-xl bg-bg/50 px-4 py-2.5 text-sm outline-none placeholder:text-muted-2"
           />
