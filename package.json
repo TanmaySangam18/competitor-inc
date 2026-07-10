@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "verify": "tsc --noEmit && vitest run && next build",
-    "qa": "tsc --noEmit && vitest run && next build && node scripts/smoke.mjs",
+    "qa": "node scripts/env-guard.mjs && tsc --noEmit && vitest run && next build && node scripts/smoke.mjs",
     "scan": "node scripts/secret-scan.mjs",
     "qa:ui": "node scripts/qa-ui-audit.mjs",
     "ship": "bash scripts/ship-prod.sh"
