@@ -11,6 +11,8 @@ import { sendEmail } from "@/lib/engine/execution";
 import { fetchOperate } from "@/lib/engine/db";
 import { generateWeeklyDigest, sendWeeklyDigest } from "@/lib/engine/weekly-review-digest";
 import { notifyFounder } from "@/lib/org/twilio-notify";
+import { composeStandup, ensureDepartmentChannels, postAsAgent } from "@/lib/org/slack-org";
+import { DEPARTMENTS } from "@/lib/org/organization";
 import { saveScorecardSnapshot, type ScorecardMetric } from "@/lib/engine/scorecard-persistence";
 import { auditShiftActivities } from "@/lib/engine/office-house-architecture";
 import { performanceWeightedAllocations, overageForAllocation, breachesForAllocations, spendByAgent } from "@/lib/engine/office-budget";
@@ -198,6 +200,25 @@ export async function GET(req: Request) {
       const priorContext = packContext([recalled, graphSummary, growthNotes], 6000).text;
       const { activities, approvals } = await withTrace("shift", () => runShift(company, undefined, priorContext, growthContext), { companyId: company.id, night: company.night });
       await insertActivities(sb, company.id, activities);
+
+      // ── Recurring standups (the roadmap's last cadence piece): every night, each department's head
+      // posts what their team ACTUALLY did to its Slack channel — composed from the persisted activities
+      // (real work only), posted AS the position. Fail-soft + gated: no token ⇒ silent no-op.
+      if (process.env.SLACK_BOT_TOKEN) {
+        try {
+          const standups = composeStandup(company.name, company.night + 1, activities);
+          if (standups.length > 0) {
+            const channels = await ensureDepartmentChannels();
+            for (const post of standups) {
+              const target = channels[post.deptId] ?? post.channel;
+              const headRoleId = DEPARTMENTS.find((d) => d.id === post.deptId)?.headRoleId;
+              await postAsAgent(target, { roleId: headRoleId }, `${post.icon} ${post.text}`).catch(() => {});
+            }
+          }
+        } catch (e) {
+          console.error("[/api/cron] standups:", e instanceof Error ? e.message : "unknown");
+        }
+      }
 
       // Office · Resource Allocator + Policy Enforcer — allocate the monthly cap across the crew,
       // PERFORMANCE-WEIGHTED by each agent's real ship-vs-fail rate (agents that convert spend into

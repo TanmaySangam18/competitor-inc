@@ -1,7 +1,8 @@
 // Engine feature flags (build-time, NEXT_PUBLIC_* so they inline into the client bundle).
 
-// Server-authoritative state: Supabase becomes the single source of truth for signed-in users — reads load
+// Server-authoritative state: Supabase is the single source of truth for signed-in users — reads load
 // from the DB, writes are awaited (optimistic + rollback), and cron/multi-device changes arrive via Realtime.
-// Default OFF: when off, the app behaves EXACTLY as today (localStorage-authoritative + best-effort sync), so
-// this flag is a clean rollback switch. Guests are always localStorage-only regardless of this flag.
-export const SERVER_AUTHORITATIVE = process.env.NEXT_PUBLIC_SERVER_AUTHORITATIVE === "1";
+// GRADUATED TO DEFAULT-ON (2026-07-10, the roadmap's flip): the machinery shipped + tested in slices 0–3;
+// laptop-off runs need the DB to be authoritative. NEXT_PUBLIC_SERVER_AUTHORITATIVE=0 is the rollback
+// switch (non-Sensitive on Vercel — see env-guard). Guests stay localStorage-only regardless.
+export const SERVER_AUTHORITATIVE = process.env.NEXT_PUBLIC_SERVER_AUTHORITATIVE !== "0";
