@@ -1,5 +1,4 @@
 import { describe, it, expect } from "vitest";
-// @ts-expect-error js-yaml ships no bundled types; used only in this test as a parse guard
 import yaml from "js-yaml";
 import _sodium from "libsodium-wrappers";
 import {
