@@ -1,5 +1,6 @@
 import { serviceClient } from "@/lib/engine/service";
 import { notifyFounder } from "@/lib/engine/notify-founder";
+import { draftSupportReply } from "@/lib/engine/support-desk";
 import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
 export const runtime = "nodejs";
@@ -32,10 +33,14 @@ export async function POST(req: Request) {
       console.error("[/api/feedback] insert failed:", e instanceof Error ? e.message : "unknown");
     }
   }
-  // Fire-and-forget founder email (gated on Resend).
+  // Fire-and-forget founder email (gated on Resend) — now WITH Theo's ready-to-send reply (Block 6d:
+  // 24/7 support drafting, human send). One forward answers the customer; the draft never fabricates.
+  const reply = draftSupportReply({ message, email: email || null });
   void notifyFounder(
     `competitor.inc — new feedback${path ? ` (${path})` : ""}`,
-    `<p><b>${esc(message)}</b></p><p>From: ${esc(email || "anonymous")} · ${esc(path || "—")}</p>`
+    `<p><b>${esc(message)}</b></p><p>From: ${esc(email || "anonymous")} · ${esc(path || "—")}</p>` +
+      `<hr/><p><i>${esc(reply.author)} drafted this reply — review and forward${email ? ` to ${esc(email)}` : " if they left a contact"}:</i></p>` +
+      `<blockquote style="white-space:pre-wrap;border-left:3px solid #ccc;padding-left:12px">${esc(reply.body)}</blockquote>`
   ).catch(() => {});
   return Response.json({ ok: true });
 }
