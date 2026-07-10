@@ -5,13 +5,14 @@ import { planDecisionApplication, type PendingItem, type RecordedDecision } from
 import { loadMandate, UNSIGNED } from "./mandates-db";
 import { decide } from "./policy";
 import { insertActivities } from "./db";
+import { postToBluesky, postToMastodon } from "./execution";
 import type { Activity, AgentRole, ApprovalKind } from "./types";
 
-// The cron's laptop-off application of recorded ChatOps decisions (Consent Rails slice 2b).
+// The cron's laptop-off application of recorded ChatOps decisions (Consent Rails, complete).
 // Webhooks record the human's word in approval_decisions; this joins it against the still-pending
-// approvals and APPLIES it — but only through the double gate (signed mandate + policy floor). Scope is
-// deliberately resolution-only: approvals get resolved + logged with the honest verdict; actual outbound
-// execution still fires through the /api/execute policy path (server-side execution is its own slice).
+// approvals and APPLIES it — only through the double gate (signed mandate + policy floor). Social posts
+// (bluesky/mastodon) whose approval carries the post body now EXECUTE server-side right here; other
+// kinds resolve + log honestly and fire via their own gated paths (email/spend need data not in the row).
 
 const KIND_TO_EXEC: Partial<Record<ApprovalKind, string>> = {
   spend: "spend", outreach: "outreach", deploy: "deploy", delete: "delete", bluesky: "bluesky", mastodon: "mastodon",
@@ -23,7 +24,7 @@ export async function applyRecordedDecisions(sb: SupabaseClient, companyId: stri
   // 1. The still-pending approvals for this company.
   const { data: rows, error } = await sb
     .from("approvals")
-    .select("id, kind, title, agent, amount")
+    .select("id, kind, title, detail, agent, amount")
     .eq("company_id", companyId)
     .is("resolved", null)
     .limit(50);
@@ -43,6 +44,7 @@ export async function applyRecordedDecisions(sb: SupabaseClient, companyId: stri
     id: r.id as string,
     kind: r.kind as ApprovalKind,
     title: (r.title as string) ?? "",
+    detail: (r.detail as string) ?? undefined,
     amountCents: r.amount != null ? Math.round(Number(r.amount) * 100) : undefined,
   }));
   const recorded: RecordedDecision[] = decs.map((d) => ({ approvalId: d.approval_id as string, decision: d.decision as "approved" | "rejected" }));
@@ -70,6 +72,19 @@ export async function applyRecordedDecisions(sb: SupabaseClient, companyId: stri
   const acts: Activity[] = [];
   for (const item of plan.execute) {
     await sb.from("approvals").update({ resolved: "approved" }).eq("id", item.id);
+    // Server-side EXECUTION (the final consent-rails slice): social posts whose approval carries the
+    // post body actually SEND here — they already passed the human's yes + the mandate + the policy
+    // floor to reach plan.execute. Executors are env-gated (no keys ⇒ honest "disabled", never a lie).
+    if ((item.kind === "bluesky" || item.kind === "mastodon") && item.detail?.trim()) {
+      const out = item.kind === "bluesky" ? await postToBluesky({ text: item.detail }) : await postToMastodon({ text: item.detail });
+      const meta = out.ok
+        ? `laptop-off · SENT via ${item.kind} · under your signed mandate`
+        : "disabled" in out && out.disabled
+          ? `laptop-off · approved — sends the moment ${item.kind} connects`
+          : `laptop-off · approved but the ${item.kind} send failed (${("error" in out && out.error) || "unknown"}) — retry manually`;
+      acts.push(act(agentOf(item.id), `Applied your approval — ${item.title}`, meta, out.ok ? `posted via phone approval · ${item.kind}` : "approved via phone · applied by the overnight run"));
+      continue;
+    }
     acts.push(act(agentOf(item.id), `Applied your approval — ${item.title}`, "laptop-off · under your signed mandate · executes via its channel", "approved via phone · applied by the overnight run"));
   }
   for (const item of plan.reject) {

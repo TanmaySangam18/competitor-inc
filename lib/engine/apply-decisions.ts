@@ -29,7 +29,7 @@ const KIND_TO_ACT: Partial<Record<ApprovalKind, MandateAct>> = {
 };
 
 export interface RecordedDecision { approvalId: string; decision: "approved" | "rejected" }
-export interface PendingItem { id: string; kind: ApprovalKind; title: string; amountCents?: number }
+export interface PendingItem { id: string; kind: ApprovalKind; title: string; detail?: string; amountCents?: number }
 
 export interface ApplyPlan {
   execute: PendingItem[]; // double-green: run now, log with proof
