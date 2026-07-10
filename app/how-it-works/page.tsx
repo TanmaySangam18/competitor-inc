@@ -1,17 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import {
-  ArrowLeft,
-  ArrowRight,
-  RotateCcw,
-  Mic,
-  KeyRound,
-  Download,
-  Radio,
-} from "lucide-react";
-import { LogoMark } from "@/components/Logo";
+import { RotateCcw, Mic, KeyRound, Download, Radio } from "lucide-react";
 import JourneyExplorer from "@/components/JourneyExplorer";
 import ScrollProgress from "@/components/ScrollProgress";
+import { LedgerShell, Eyebrow, serifStyle } from "@/components/ledger/LedgerShell";
 
 export const metadata: Metadata = {
   title: "How it works — competitor.inc",
@@ -30,83 +22,56 @@ const controls = [
 
 export default function HowItWorks() {
   return (
-    <div id="main" className="min-h-screen">
+    <LedgerShell>
       <ScrollProgress />
-      <header className="glass-nav sticky top-0 z-40">
-        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
-            <LogoMark size={32} /> competitor.inc
-          </Link>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
-            <ArrowLeft size={15} /> Home
-          </Link>
-        </div>
-      </header>
-
-      <div className="mesh">
-        <div className="mx-auto max-w-4xl px-6 pb-10 pt-20 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs text-muted">
-            The whole journey · in plain English
-          </span>
-          <h1 className="mt-6 text-4xl font-bold leading-tight md:text-6xl">
-            How it works
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted">
-            From a one-sentence idea to a real, validated business. No jargon — here's exactly what
-            happens, start to finish, and what it does for you at every step.
-          </p>
-        </div>
+      <div className="mx-auto max-w-3xl px-5 pb-8 pt-16">
+        <Eyebrow>THE WHOLE JOURNEY · IN PLAIN ENGLISH</Eyebrow>
+        <h1 className="mt-4 text-[38px] font-medium leading-[1.1] sm:text-[44px]" style={serifStyle}>
+          How it works
+        </h1>
+        <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-muted">
+          From a one-sentence idea to a real, validated business. No jargon — here&apos;s exactly what
+          happens, start to finish, and what it does for you at every step.
+        </p>
       </div>
 
       {/* The story — 7 steps, one panel at a time (progressive disclosure) */}
-      <div className="mx-auto max-w-4xl px-6 pb-8">
+      <div className="mx-auto max-w-3xl px-5 pb-8">
         <JourneyExplorer />
       </div>
 
       {/* The control promises */}
-      <div className="mx-auto max-w-4xl px-6 py-16">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold md:text-4xl">And you stay in control — always</h2>
-          <p className="mx-auto mt-3 max-w-xl text-muted">
-            Power is nothing without trust. These hold true the entire time.
-          </p>
-        </div>
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {controls.map((c) => (
-            <div key={c.title} className="glass-panel rounded-2xl p-6">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-surface-2 text-text">
-                <c.icon size={18} />
-              </span>
-              <h3 className="mt-4 font-semibold">{c.title}</h3>
-              <p className="mt-2 text-sm text-muted">{c.body}</p>
-            </div>
-          ))}
+      <div className="border-t-[1.5px] border-ink bg-cream-2">
+        <div className="mx-auto max-w-3xl px-5 py-12">
+          <h2 className="text-2xl font-medium" style={serifStyle}>And you stay in control — always</h2>
+          <p className="mt-2 text-sm text-ink-muted">Power is nothing without trust. These hold true the entire time.</p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {controls.map((c) => (
+              <div key={c.title} className="press rounded-2xl bg-cream p-5">
+                <span className="grid h-9 w-9 place-items-center rounded-xl border border-rule bg-cream-2 text-ink">
+                  <c.icon size={16} />
+                </span>
+                <h3 className="mt-3 text-sm font-semibold">{c.title}</h3>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">{c.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Closing */}
-      <div className="mx-auto max-w-3xl px-6 pb-28">
-        <div className="card p-10 text-center md:p-14">
-          <h2 className="text-3xl font-bold md:text-4xl">Prove it before you build it.</h2>
-          <p className="mx-auto mt-4 max-w-lg text-muted">
-            Start with a free validation — no card, no risk. Get an honest answer in minutes.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/dashboard"
-              className="group inline-flex items-center gap-2 rounded-xl bg-text px-7 py-4 font-semibold text-bg transition hover:opacity-90"
-            >
-              Start free <ArrowRight size={17} className="transition group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              href="/live"
-              className="inline-flex items-center gap-2 rounded-xl glass px-7 py-4 font-semibold transition hover:border-black/25"
-            >
-              See it live
-            </Link>
-          </div>
-        </div>
+      <div className="mx-auto max-w-3xl px-5 py-14 text-center">
+        <h2 className="text-2xl font-medium" style={serifStyle}>Prove it before you build it.</h2>
+        <p className="mx-auto mt-3 max-w-md text-sm text-ink-muted">
+          Start with a free validation — no card, no risk. Get an honest answer in minutes.
+        </p>
+        <Link
+          href="/dashboard"
+          className="mt-7 inline-block rounded-full bg-ink px-6 py-3 text-sm font-medium text-cream transition hover:opacity-90"
+        >
+          Start free
+        </Link>
       </div>
-    </div>
+    </LedgerShell>
   );
 }

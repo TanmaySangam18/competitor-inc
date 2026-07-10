@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Github, Loader2, Mail } from "lucide-react";
-import { LogoMark } from "@/components/Logo";
 import { useAuth } from "@/lib/engine/useAuth";
 
 function GoogleMark() {
@@ -82,10 +81,10 @@ export default function AuthPanel({ mode }: { mode: "signin" | "signup" }) {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center px-6">
+    <div className="grid min-h-screen place-items-center bg-cream px-6 text-ink">
       <div className="w-full max-w-sm">
-        <Link href="/" className="flex items-center justify-center gap-2.5 font-mono text-xl font-bold tracking-tight">
-          <LogoMark size={36} /> competitor.inc
+        <Link href="/" className="block text-center text-xl font-semibold" style={{ fontFamily: "var(--font-serif), Georgia, serif" }}>
+          competitor<span className="text-sienna">.inc</span>
         </Link>
 
         <h1 className="display mt-8 text-center text-3xl">{signup ? "Start free" : "Welcome back"}</h1>

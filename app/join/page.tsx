@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogoMark } from "@/components/Logo";
+import { LedgerShell, serifStyle } from "@/components/ledger/LedgerShell";
 import { useCopy } from "@/components/useCopy";
 import { codeFrom } from "@/lib/engine/refcode";
 import { CHECKOUT_URLS, checkoutLiveFor, TIERS } from "@/lib/engine/billing";
@@ -105,31 +105,20 @@ export default function Join() {
   const copyLink = () => copyText(refLink);
 
   return (
-    <div id="main" className="min-h-screen">
-      <header className="glass-nav sticky top-0 z-40">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
-            <LogoMark size={32} /> competitor.inc
-          </Link>
-          <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted transition hover:text-text">
-            ← home
-          </Link>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-6xl px-6 py-12">
+    <LedgerShell>
+      <div className="mx-auto max-w-5xl px-5 py-12">
         {referredBy && (
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-mint/30 bg-mint/10 px-3 py-1 text-xs text-mint">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-pine/40 bg-cream-2 px-3 py-1 text-xs text-pine">
             A friend invited you — you&apos;ll get earlier access
           </div>
         )}
 
         <div className="text-center">
-          <div className="text-xs font-semibold uppercase tracking-wider text-coral">Pick your tier</div>
-          <h1 className="mt-2 text-3xl font-bold md:text-4xl">
-            Start free. <span className="gradient-text">Upgrade when it earns.</span>
+          <div className="font-mono text-[11px] font-semibold tracking-[0.14em] text-sienna">PICK YOUR TIER</div>
+          <h1 className="mt-3 text-3xl font-medium md:text-4xl" style={serifStyle}>
+            Start free. <em>Upgrade when it earns.</em>
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-muted">
+          <p className="mx-auto mt-3 max-w-2xl text-ink-muted">
             Validate and build for free — you only pay when you want the crew to keep running your company.
             Own everything, 0% revenue share, cancel anytime.
           </p>
@@ -143,59 +132,59 @@ export default function Join() {
             return (
               <div
                 key={t.key}
-                className={`relative flex flex-col rounded-3xl border bg-surface p-6 ${rec ? "border-coral/60 ring-1 ring-coral/30" : "border-border"}`}
+                className={`relative flex flex-col rounded-3xl border bg-cream-2 p-6 ${rec ? "press bg-cream-2" : "border-rule"}`}
               >
                 {rec && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-coral px-3 py-0.5 text-[11px] font-semibold text-bg">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-sienna px-3 py-0.5 text-[11px] font-semibold text-cream">
                     Most popular
                   </div>
                 )}
-                <div className="text-sm font-semibold text-text">{t.name}</div>
+                <div className="text-sm font-semibold text-ink">{t.name}</div>
                 <div className="mt-2 flex items-baseline gap-1">
                   <span className="text-3xl font-bold">{t.price}</span>
-                  {t.cadence && <span className="text-sm text-muted-2">{t.cadence}</span>}
+                  {t.cadence && <span className="text-sm text-ink-faint">{t.cadence}</span>}
                 </div>
-                <p className="mt-2 min-h-[2.5rem] text-sm text-muted">{t.tagline}</p>
+                <p className="mt-2 min-h-[2.5rem] text-sm text-ink-muted">{t.tagline}</p>
                 <ul className="mt-4 flex flex-1 flex-col gap-2">
                   {t.points.map((p) => (
-                    <li key={p} className="flex items-start gap-2 text-sm text-muted">
-                      <span className={`mt-0.5 shrink-0 font-mono ${rec ? "text-coral" : "text-mint"}`}>–</span> {p}
+                    <li key={p} className="flex items-start gap-2 text-sm text-ink-muted">
+                      <span className={`mt-0.5 shrink-0 font-mono ${rec ? "text-sienna" : "text-pine"}`}>–</span> {p}
                     </li>
                   ))}
                 </ul>
                 <a
                   href={href}
                   className={`mt-6 inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
-                    rec ? "bg-coral text-bg hover:brightness-110" : "border border-border text-text hover:bg-bg/40"
+                    rec ? "bg-ink text-cream hover:brightness-110" : "border border-rule text-ink hover:bg-cream"
                   }`}
                 >
                   {label ?? t.cta}
                 </a>
                 {t.key !== "free" && !live && (
-                  <p className="mt-2 text-center text-[11px] text-muted-2">Opening soon</p>
+                  <p className="mt-2 text-center text-[11px] text-ink-faint">Opening soon</p>
                 )}
               </div>
             );
           })}
         </div>
 
-        <p className="mt-5 text-center text-xs text-muted-2">
-          Student founder? Ask about the <span className="text-muted">.edu discount</span> on Builder & Operator.
+        <p className="mt-5 text-center text-xs text-ink-faint">
+          Student founder? Ask about the <span className="text-ink-muted">.edu discount</span> on Builder & Operator.
         </p>
 
         {/* Secondary: waitlist for anyone not ready to pick a tier yet. Keeps the referral loop. */}
-        <div id="waitlist" className="mx-auto mt-14 max-w-2xl border-t border-border pt-10">
+        <div id="waitlist" className="mx-auto mt-14 max-w-2xl border-t border-rule pt-10">
           <h2 className="text-lg font-bold">Not ready to pick? Join the waitlist</h2>
-          <p className="mt-1 text-sm text-muted">Get in early — share your link to move up the line.</p>
+          <p className="mt-1 text-sm text-ink-muted">Get in early — share your link to move up the line.</p>
           {totalSignups !== null && (
-            <div className="mt-4 rounded-2xl border border-border bg-surface p-4">
+            <div className="mt-4 rounded-2xl border border-rule bg-cream-2 p-4">
               <div className="flex items-baseline justify-between text-sm">
-                <span className="font-semibold text-text">{totalSignups.toLocaleString()} founders</span>
-                <span className="text-xs text-muted-2">goal: {GOAL.toLocaleString()}</span>
+                <span className="font-semibold text-ink">{totalSignups.toLocaleString()} founders</span>
+                <span className="text-xs text-ink-faint">goal: {GOAL.toLocaleString()}</span>
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-border">
                 <div
-                  className="h-full rounded-full bg-coral transition-all"
+                  className="h-full rounded-full bg-ink transition-all"
                   style={{ width: `${Math.min(100, (totalSignups / GOAL) * 100)}%` }}
                 />
               </div>
@@ -204,12 +193,12 @@ export default function Join() {
 
           {entry ? (
             <div className="mt-5 rounded-2xl border border-mint/30 bg-mint/[0.05] p-5">
-              <div className="flex items-center gap-2 text-sm font-medium text-mint">
+              <div className="flex items-center gap-2 text-sm font-medium text-pine">
                 You&apos;re on the list
               </div>
-              <p className="mt-1 text-sm text-muted">We&apos;ll email {entry.email} at launch.</p>
+              <p className="mt-1 text-sm text-ink-muted">We&apos;ll email {entry.email} at launch.</p>
               {server?.persisted && server.position ? (
-                <p className="mt-1 text-sm text-text">
+                <p className="mt-1 text-sm text-ink">
                   You&apos;re <span className="font-semibold">#{server.position}</span> on the list
                   {server.referrals
                     ? ` · ${server.referrals} ${server.referrals === 1 ? "friend has" : "friends have"} joined through you`
@@ -217,16 +206,16 @@ export default function Join() {
                   .
                 </p>
               ) : null}
-              <div className="mt-4 text-xs text-muted-2">Your invite link — every friend who joins moves you up 5 spots:</div>
+              <div className="mt-4 text-xs text-ink-faint">Your invite link — every friend who joins moves you up 5 spots:</div>
               <div className="mt-2 flex items-center gap-2">
                 <input
                   readOnly
                   value={refLink}
-                  className="w-full rounded-lg border border-border bg-bg/50 px-3 py-2 text-sm text-muted outline-none"
+                  className="w-full rounded-lg border border-rule bg-cream px-3 py-2 text-sm text-ink-muted outline-none"
                 />
                 <button
                   onClick={copyLink}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted transition hover:text-text"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-rule px-3 py-2 text-sm text-ink-muted transition hover:text-ink"
                 >
                   {copied ? "copied" : "copy"}
                 </button>
@@ -241,28 +230,28 @@ export default function Join() {
                   onChange={(e) => { setEmail(e.target.value); if (emailErr) setEmailErr(""); }}
                   onKeyDown={(e) => e.key === "Enter" && join()}
                   placeholder="you@company.com"
-                  className={`w-full rounded-xl glass-panel px-4 py-3 text-sm outline-none placeholder:text-muted-2 focus:border-coral/40 ${emailErr ? "border-coral/60" : ""}`}
+                  className={`w-full rounded-xl glass-panel px-4 py-3 text-sm outline-none placeholder:text-ink-faint focus:border-coral/40 ${emailErr ? "border-coral/60" : ""}`}
                   aria-label="Email for the waitlist"
                   aria-invalid={!!emailErr}
                 />
                 <button
                   onClick={join}
-                  className="shrink-0 rounded-xl bg-text px-6 py-3 text-sm font-semibold text-bg transition hover:opacity-90"
+                  className="shrink-0 rounded-xl bg-text px-6 py-3 text-sm font-semibold text-cream transition hover:opacity-90"
                 >
                   Join the waitlist
                 </button>
               </div>
-              {emailErr && <p className="text-xs font-medium text-coral" role="alert">{emailErr}</p>}
+              {emailErr && <p className="text-xs font-medium text-sienna" role="alert">{emailErr}</p>}
               {/* Consent basis (CAN-SPAM/GDPR): explicit opt-in, named purpose, opt-out promised. */}
-              <p className="text-xs text-muted-2">
+              <p className="text-xs text-ink-faint">
                 By joining you agree to our{" "}
-                <Link href="/privacy" className="underline underline-offset-2 hover:text-text">Privacy Policy</Link>{" "}
+                <Link href="/privacy" className="underline underline-offset-2 hover:text-ink">Privacy Policy</Link>{" "}
                 and to get launch + product updates by email. No spam; unsubscribe anytime.
               </p>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </LedgerShell>
   );
 }
