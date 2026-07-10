@@ -9,10 +9,13 @@
 > **Founder & creator: [Tanmay Sangam](https://www.linkedin.com/in/tanmaysangam/).** © 2026 Tanmay Sangam — all rights reserved. Proprietary &
 > confidential: no use, copying, or distribution without written permission. See [LICENSE](LICENSE).
 
-competitor.inc is an AI co‑founder that **validates an idea before it builds it** — it runs a real
-demand test, tells you the honest truth (*build it, tweak it, or kill it*), and only then ships the
-winner. Every action it takes is logged with proof, and it never spends a dollar or sends a message
-without your say‑so.
+competitor.inc is an **autonomous software company**: describe a project, and a real AI organization —
+56 named positions in a genuine hierarchy — validates the demand, **builds and deploys real software**
+(Claude‑implemented, design‑reviewed by an AI Design Lead, live‑verified before any URL is shown),
+supports it, and grows it. You govern it through **one signed, capped, instantly‑revocable mandate**;
+everything it does is logged with proof, the irreducible acts (money, contracts, deletion) always come
+back to a human, and it never fabricates a number. It validates **before** it builds — it will honestly
+tell you *don't build this* — and it keeps working while your laptop is closed.
 
 This README explains the whole thing — the plain‑English story **and** the technical guts — so anyone
 (technical or not) can understand what we built, why, and how to run it.
@@ -454,37 +457,42 @@ For the person deploying this (the "techie friend"):
 
 ## 16 · Status & roadmap
 
-- **Status:** live at `competitor-inc-zeta.vercel.app`. Runs end‑to‑end — landing with a **real,
-  model‑backed** live validation, the dashboard workspace, the live **crew‑in‑a‑box** (with Slack/
-  Telegram reflection), Glass Box, Approvals, the Company Brain, and per‑agent model routing. The
-  freemium flow is on (`NEXT_PUBLIC_WAITLIST_GATE=1`); **payments are intentionally OFF** — no checkout
-  URL is set, so there is no charge path (see the money model below).
-- **Recently shipped (current arc):** one‑engine consolidation (retired the duplicate `/orchestrator`
-  and `/watch` surfaces → the dashboard is the single surface); the **crew as a compact pixel box** with
-  **Slack/Telegram → box reflection**; **trial credits** (play‑money) + honest **$0** spend everywhere
-  (no fabricated dollars); **real functional web‑app builds** via a free build‑model override
-  (`BUILD_API_KEY` → Gemini) with a credible product‑site fallback; the **Organic Growth Engine** (a
-  content→traffic→revenue loop wired into the nightly shift); server‑enforced per‑user caps;
-  rename‑company; and a founder‑gated, dirty‑tree‑guarded deploy (`npm run ship`).
-- **Before charging (needs the owner's credentials + work authorization):**
-  1. Apply the DB migrations — paste `supabase/migrations/LAUNCH_BUNDLE_0021-0022.sql` (includes `0023`
-     chatops) in the Supabase SQL editor.
-  2. Set `BUILD_API_KEY` (free Gemini key) so builds produce real apps.
-  3. **Payments stay off until the founder has US work authorization (F1 → OPT/EAD).** When cleared, set
-     `NEXT_PUBLIC_CHECKOUT_URL` + `POLAR_WEBHOOK_SECRET` (one env flip) to turn on Polar checkout.
-- **Primary benchmark:** **Time‑to‑First‑Proven‑Outcome (TTFPO)** — days from a real user creating their
-  company to their first *real* funnel milestone (real views → real signup → real result), all measured
-  from the first‑party pixel, never invented. **PPU** (Proven Paying Users) becomes primary the day
-  charging unlocks. (`docs/BENCHMARK-first-user-outcome.md`.)
-- **Honest capability line:** the control plane (validation, one‑engine crew, governance, Glass Box,
-  small **web‑app** builds) is built and live. What's *not* one‑shot — and we say so — is **native /
-  camera / ML apps and full‑stack backends** (the guided/advanced path: a pluggable coding agent +
-  `BackendProvider`) and **reliable long‑horizon unsupervised operation**. Those are the frontier, not
-  a checkbox.
-- **Post‑launch candidates:** an iterative coding‑agent build path (Aider/OpenHands on free GitHub
-  Actions, on the customer's own keys — no lock‑in), more benchmark orgs, and the long‑horizon
-  operating loop.
+**Status (2026‑07‑10): the autonomous software company is real, live, and proven — twice.**
+Live at `competitor-inc-zeta.vercel.app`.
+
+- **Real full‑stack builds, proven live.** Describe an idea → the company creates a real GitHub repo →
+  **Claude Sonnet** implements a real Next.js app (never the blank starter — a scaffold gate refuses to
+  ship it) → an **AI Design Lead reviews the UI against an 8‑point craft rubric and commits fixes** →
+  deploys to Vercel → a runtime smoke verifies a real page serves before the URL is ever surfaced.
+  Proven on two consecutive builds:
+  [`…post-lac.vercel.app`](https://a-campus-tutoring-marketplace-post-lac.vercel.app) (review commit:
+  *"style: enforce spacing rhythm, weight budget, and a11y states"*) and
+  [`…post-two.vercel.app`](https://a-campus-tutoring-marketplace-post-two.vercel.app) (review commit:
+  *"fix: enforce single accent color, 8px spacing, mobile-first form"*). ~$0.13 of model spend per build.
+- **A real org, not a flat crew.** 56 roles in a genuine hierarchy (`lib/org/organization.ts`); a
+  project runs CEO → PM → Engineering IC → Team Lead → VP sign‑off → QA, with **org‑role‑level
+  independent verification** (no position ever grades its own work) and a durable, crash‑safe run the
+  nightly cron advances laptop‑off.
+- **The Living Org (Team Room).** The customer directs their company like a founder directs leads:
+  13 hand‑cast, clearly‑AI personas (Marcus · CEO, Vera · CTO, Dmitri · VP Eng, …) answer in character
+  from their real job descriptions, relay work down the org, and roll results up — with the staged
+  enterprise growing **only on measured signals** (verified live build → real signups → settled,
+  repeating revenue), never for show.
+- **Consent Rails (the invention).** The customer's "2%" collapses to **one signature**: a scoped,
+  capped, instantly‑revocable standing mandate (`customer_mandates`, deny‑by‑default at every layer).
+  The **irreducible floor never automates** — payout/KYC, contracts, above‑cap spend, deletion always
+  come to the human, even if "scoped in". The nightly cron applies recorded phone approvals
+  **laptop‑off through a double gate** (signed mandate + the policy engine's five gates), and a kill
+  switch halts everything in one write.
+- **The honesty architecture** (unchanged, everywhere): every proof is real (verified URLs, first‑party
+  metrics), nothing claims "done" without verification, no fabricated numbers — the anti‑money‑printer
+  floor is enforced in code and tested, not promised.
+- **Payments:** intentionally OFF until the founder flips Polar config (work‑authorization cleared;
+  one env flip). North star stays **PPU** (Proven Paying Users) with **TTFPO** as the pre‑revenue
+  benchmark.
+- **Next:** Block 5 hardening (migrations `0022` + `0027`, durable rate‑limit/spend caps, env‑guard) →
+  the NU campus launch gate (`NEXT_PUBLIC_CAMPUS_GATE=1`), held dark until hardening passes.
 
 ---
 
-*Built with a validation‑first philosophy. Prove it before you build it.*
+*Built with a validation‑first philosophy. Prove it before you build it — then let the company run it.*
