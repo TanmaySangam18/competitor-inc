@@ -130,6 +130,29 @@ jobs:
           # scaffold (or won't build), FAIL — deploy-url stays empty, and the product stays honestly "building".
           if npm run build > ../build.log 2>&1 && ! SCAFFOLD; then echo "final gate: real feature present"; exit 0; fi
           echo "agent could not produce a REAL feature (still scaffold / not building) — failing honestly, no blank deploy"; exit 1
+      - name: Design-Lead review — the craft gate (Phase 7; grade the UI, close every gap)
+        working-directory: \${{ github.event.repository.name }}
+        env:
+          ${keyEnv}: \${{ secrets.LLM_API_KEY }}
+        run: |
+          set +e
+          SETTINGS="$GITHUB_WORKSPACE/aider.settings.yml"
+          printf '%s\\n' "- name: ${model}" "  use_temperature: false" "  edit_format: whole" > "$SETTINGS"
+          # Snapshot the KNOWN-GOOD state first — the review pass can improve the app but NEVER break it.
+          # Aider auto-commits its edits, so pin the snapshot SHA and hard-reset to IT on failure (a bare
+          # reset to HEAD would keep the broken review commit).
+          git config user.name "competitor-bot" && git config user.email "actions@users.noreply.github.com"
+          git add -A && git commit -m "wip: pre-design-review snapshot [skip ci]" > /dev/null 2>&1 || true
+          SNAP=$(git rev-parse HEAD)
+          aider --yes --model ${model} --model-settings-file "$SETTINGS" --message "You are the DESIGN LEAD doing the final review of app/page.tsx before it ships to a paying customer. Grade it hard against this rubric, then EDIT the code to close every gap (or leave it untouched if it already meets the bar): (1) real type hierarchy — one confident heading, muted secondary text, tight tracking on large type, two weights max; (2) 8px spacing rhythm and generous whitespace; (3) restraint — neutral base + exactly ONE accent color on the primary action; (4) subtle depth — hairline borders, rounded-xl, no gradients/neon/emoji-as-UI; (5) purposeful hover/focus/transition states; (6) REAL empty, loading, and error states with product-specific copy; (7) visible focus-visible rings + mobile-first responsive; (8) specific microcopy for THIS product, no placeholder text. Keep all functionality working — do not remove or rename the API calls." app/page.tsx app/globals.css 2>&1 | tee -a ../aider.log
+          if npm run build > ../build.log 2>&1; then
+            echo "design review pass: build still green — shipping the reviewed UI"
+          else
+            echo "design review broke the build — reverting to the pre-review snapshot (never ship broken)"
+            git reset --hard "$SNAP" > /dev/null 2>&1
+            git clean -fd app > /dev/null 2>&1
+            npm run build > ../build.log 2>&1 || { echo "revert failed to build — impossible state, failing honestly"; exit 1; }
+          fi
       - name: Deploy to Vercel + make it public
         working-directory: \${{ github.event.repository.name }}
         env:
