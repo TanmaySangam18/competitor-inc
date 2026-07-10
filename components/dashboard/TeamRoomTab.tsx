@@ -15,6 +15,7 @@ import type { AgentRole, ApprovalKind, Company } from "@/lib/engine/types";
 import { activeDepartments, activeRoles, stageForSignals, STAGE_STORY } from "@/lib/org/org-stages";
 import { orgSoul, relayLine } from "@/lib/org/org-soul";
 import { displayName, personaFor } from "@/lib/org/personas";
+import { MandateCard } from "./MandateCard";
 import type { OrgRole } from "@/lib/org/organization";
 
 interface RoomMsg { who: "you" | "role"; roleId?: string; title?: string; text: string; chip?: string }
@@ -112,6 +113,8 @@ export function TeamRoomTab({ company, r }: { company: Company; r: ReturnType<ty
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-3">
+      {/* The one signature — the mandate governing everything below (Consent Rails) */}
+      <MandateCard companyId={company.id} />
       {/* Stage banner — the company you've EARNED so far (org-stages; grows on real signals only) */}
       <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface px-4 py-3">
         <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-surface-2 text-text"><TrendingUp size={15} /></span>
