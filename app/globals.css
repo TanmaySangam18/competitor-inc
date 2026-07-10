@@ -4,24 +4,25 @@
    Tailwind's layered spacing utilities. Tailwind v4 preflight handles box-sizing/margins. */
 
 @theme {
-  /* competitor.inc — "Paper" light monochrome (2026-07-08): WHITE canvas, light-grey cards, GREY ink.
-     Founder direction: white background + grey text combination. Emphasis via value (darker grey) +
-     weight, never hue — the accent names stay so every text-coral/bg-mint/… class keeps working. */
-  --color-bg: #ffffff;
-  --color-surface: #f4f4f2;
-  --color-surface-2: #e9e9e5;
-  --color-border: rgba(0, 0, 0, 0.11);
+  /* competitor.inc — "The Ledger, working edition" (2026-07-10, founder: "take the wheel"): the COCKPIT
+     joins the Company Ledger family. Same warm paper + ink + sienna/pine as the marketing site, but
+     calmer — flat panels + hairlines (working surfaces, not letterpress theatrics). ONE remap re-skins
+     every cockpit component: the app token names stay, their values become the ledger palette. */
+  --color-bg: #fbf8f1; /* soft cream canvas (was clinical white) */
+  --color-surface: #f5efe3; /* cream panels */
+  --color-surface-2: #ece4d2; /* deeper cream (chips, wells) */
+  --color-border: rgba(26, 23, 18, 0.14); /* ink hairlines */
 
-  /* Monochrome ladder for light: accents are now DARK greys so emphasis reads on white. Primary
-     buttons (bg-coral text-bg) become dark-grey-on-white; text-mint/amber read as greys. */
-  --color-coral: #262626; /* accent → near-black ink (primary buttons = dark-on-white) */
-  --color-amber: #6b6b64; /* warm mid gray (warnings) */
-  --color-mint: #454541; /* success → dark warm gray */
-  --color-violet: #545458; /* mid gray */
+  /* The accents finally carry the brand hues (names stay so every text-coral/bg-mint/… class works):
+     coral → sienna (primary action/stamps) · mint → pine (success/live) · amber → warm ochre. */
+  --color-coral: #8c3a22; /* sienna — primary buttons become sienna-on-cream */
+  --color-amber: #9a6a1f; /* warm ochre (warnings) */
+  --color-mint: #1f5130; /* pine (success, verified, live) */
+  --color-violet: #5c5348; /* warm neutral */
 
-  --color-text: #2b2b2b;
-  --color-muted: #6a6a66;
-  --color-muted-2: #9a9a95;
+  --color-text: #1a1712; /* ink */
+  --color-muted: #6b6355;
+  --color-muted-2: #9a9184;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -47,8 +48,8 @@ html {
 }
 
 body {
-  background-color: #ffffff;
-  color: #2b2b2b;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   /* Direction B, dialed: readable sans BODY, mono headings/chrome (set on h1–4 + labels). */
   font-family: var(--font-body), "Inter", ui-sans-serif, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -96,8 +97,8 @@ h1, h2, h3, h4 {
    no soft shadow — the "real tool" look. */
 .glass,
 .glass-panel {
-  background: #f6f6f4;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #f7f2e7;
+  border: 1px solid rgba(26, 23, 18, 0.12);
 }
 .glass-panel {
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
@@ -176,7 +177,7 @@ h1, h2, h3, h4 {
 /* sticky translucent header — frosts the cream scrolling beneath it */
 .glass-nav {
   @apply backdrop-blur-xl backdrop-saturate-150;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(251, 248, 241, 0.82);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -276,7 +277,7 @@ h1, h2, h3, h4 {
    Soft, puffy, tactile light "clay" — cream surfaces with a lit top edge and a
    gentle inner bottom shadow. Reserved for the playful agent-floor surfaces. */
 .clay-panel {
-  background: #fffdf6;
+  background: #fdfbf6;
   border: 1px solid rgba(20, 19, 14, 0.08);
   border-radius: 22px;
   box-shadow:
