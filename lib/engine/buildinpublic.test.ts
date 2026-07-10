@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pickMilestone, draftProgressPost, draftPersonaPost, receiptCardUrl, shouldShare, isCadenceDay } from "./buildinpublic";
+import { pickMilestone, draftProgressPost, draftPersonaPost, receiptCardUrl, shouldShare, isCadenceDay, draftLedgerRerun } from "./buildinpublic";
 import type { Activity, Company, Proof } from "./types";
 
 const act = (over: Partial<Activity>): Activity => ({
@@ -85,6 +85,25 @@ describe("receipts campaign — attribution + cadence (slice 3)", () => {
     expect(isCadenceDay(new Date("2026-07-17T09:00:00Z"))).toBe(true); // Friday
     expect(isCadenceDay(new Date("2026-07-14T09:00:00Z"))).toBe(false); // Tuesday
     expect(isCadenceDay(new Date("2026-07-19T09:00:00Z"))).toBe(false); // Sunday
+  });
+});
+
+describe("receipts campaign — ledger reruns (slice 3b)", () => {
+  it("reruns only CLICKABLE receipts, framed as a look-back with the attribution sig", () => {
+    const history = [
+      act({ action: "shipped the booking app", cost: 30, proof: { kind: "url", value: "https://z.vercel.app" } as Proof }),
+      act({ action: "closed experiment", cost: 99, proof: { kind: "metric", value: "5%" } as Proof }), // metric ≠ rerunnable
+    ];
+    const r = draftLedgerRerun(company(), history, { siteUrl: "https://competitor-inc-zeta.vercel.app" })!;
+    expect(r).toMatch(/^From the ledger — Vera · Chief Technology Officer/); // look-back framing, never fresh news
+    expect(r).toContain("Still live: https://z.vercel.app");
+    expect(r).toContain("/?ref=receipts");
+  });
+
+  it("no URL-proof history ⇒ null (a rerun without a clickable receipt does not exist)", () => {
+    expect(draftLedgerRerun(company(), [act({ action: "shipped X", proof: { kind: "metric", value: "9" } as Proof })])).toBeNull();
+    expect(draftLedgerRerun(company(), [act({ action: "shipped X", proof: { kind: "url", value: "https://a.dev" } as Proof, undone: true })])).toBeNull();
+    expect(draftLedgerRerun(company(), [])).toBeNull();
   });
 });
 

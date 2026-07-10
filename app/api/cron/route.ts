@@ -17,7 +17,7 @@ import { performanceWeightedAllocations, overageForAllocation, breachesForAlloca
 import { successRateByAgent } from "@/lib/engine/agent-performance";
 import { loadWallet } from "@/lib/engine/wallet-db";
 import { decideSpend } from "@/lib/engine/wallet";
-import { draftPersonaPost, draftProgressPost, shouldShare } from "@/lib/engine/buildinpublic";
+import { draftPersonaPost, draftProgressPost, draftLedgerRerun, isCadenceDay, shouldShare } from "@/lib/engine/buildinpublic";
 import { SITE_URL } from "@/lib/site";
 import { postToBluesky, postToMastodon } from "@/lib/engine/execution";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
@@ -125,7 +125,7 @@ export async function GET(req: Request) {
       // on-read from its own activity history (no new table). Both feed the next shift's context.
       const history = await sb
         .from("activities")
-        .select("action,meta,agent,cost,status")
+        .select("action,meta,agent,cost,status,proof")
         .eq("company_id", company.id)
         .order("created_at", { ascending: false })
         .limit(60);
@@ -273,6 +273,19 @@ export async function GET(req: Request) {
         const post = draftPersonaPost(company, activities, { overnight: true, siteUrl: SITE_URL }) ?? draftProgressPost(company, activities);
         if (post) {
           await Promise.allSettled([postToBluesky({ text: post }), postToMastodon({ text: post })]).catch(() => {});
+        }
+      } else if (platformMarketingAllowed(POLICY) && company.shareInPublic && isCadenceDay()) {
+        // Slice 3b — the Mon/Wed/Fri drumbeat: no fresh milestone tonight, so re-share an EXISTING
+        // clickable receipt from this company's history, honestly framed as a look-back. Same policy
+        // gate + kill switch; ≤3/week by calendar, zero storage.
+        const historyActs = ((history.data ?? []) as Array<Record<string, unknown>>).map((r, i) => ({
+          id: `h${i}`, night: 0, agent: (r.agent as AgentRole) ?? "ceo", action: String(r.action ?? ""),
+          meta: (r.meta as string) ?? undefined, cost: Number(r.cost ?? 0),
+          status: (r.status as Activity["status"]) ?? "done", proof: (r.proof as Activity["proof"]) ?? undefined,
+        }));
+        const rerun = draftLedgerRerun(company, historyActs, { siteUrl: SITE_URL });
+        if (rerun) {
+          await Promise.allSettled([postToBluesky({ text: rerun }), postToMastodon({ text: rerun })]).catch(() => {});
         }
       }
 

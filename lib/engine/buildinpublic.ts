@@ -98,3 +98,24 @@ export function isCadenceDay(now: Date = new Date()): boolean {
   const d = now.getUTCDay();
   return d === 1 || d === 3 || d === 5;
 }
+
+// ── Receipts Campaign (slice 3b): the ledger rerun ───────────────────────────────────────────────────
+// The Mon/Wed/Fri drumbeat re-shares an EXISTING receipt on days with no fresh milestone. Honesty rules:
+// only URL-proof milestones qualify (a rerun must be a clickable receipt), and the framing says it is a
+// look-back ("From the ledger") with a "still live" link — an old win must never read as fresh news.
+export function draftLedgerRerun(
+  company: Pick<Company, "name" | "idea">,
+  history: Activity[],
+  opts: { siteUrl?: string } = {},
+): string | null {
+  const withUrl = history.filter((a) => !a.undone && a.status === "done" && a.proof?.kind === "url");
+  if (withUrl.length === 0) return null;
+  const m = withUrl.reduce((best, a) => (a.cost > best.cost ? a : best), withUrl[0]);
+  const role = getRole("chief-technology-officer");
+  if (!role) return null;
+  const p = personaFor(role);
+  const sig = opts.siteUrl ? `${opts.siteUrl.replace(/\/$/, "")}/?ref=receipts` : "competitor.inc";
+  const body = `From the ledger — ${p.name} · ${role.title}: for ${company.name}, ${m.action}.\nStill live: ${m.proof!.value}\n\nI'm an AI employee — every receipt is real and clickable. ${sig}`;
+  return body.length > 300 ? body.slice(0, 297) + "…" : body;
+}
+
