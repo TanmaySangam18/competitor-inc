@@ -609,10 +609,13 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
   // Standing-authorization ledger: activities the autopilot resolved itself (tagged by resolveApproval).
   const autoRanCount = r.activities.filter((a) => a.meta?.startsWith("autopilot")).length;
 
-  // Spatial cockpit — one non-scrolling viewport, every feature its own glass tile in a 4×4 bento; each
-  // tile scrolls INSIDE itself. No tabs, no drawers, no separate routes. (Mobile stacks + scrolls.)
+  // COCKPIT V2 (founder work-order 2026-07-10: "lots of things are not visible — redesign, your call").
+  // The locked no-scroll viewport was the root cause: fixed grid fractions forced internal scrollbars
+  // that clipped stats, approval text, and buried the drawer. V2 = a FLOWING LEDGER DOCUMENT — the page
+  // scrolls (a ledger is a scrolling document), panels never do, nothing is ever clipped. Zone order =
+  // the founder's questions in priority: What needs me? → The numbers → What's happening? → Everything else.
   return (
-    <div className="flex flex-col gap-3 lg:h-[calc(100dvh-9.75rem)] lg:min-h-0 lg:overflow-hidden">
+    <div className="flex flex-col gap-4">
       {/* Company strip + primary actions (fixed) */}
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
@@ -657,30 +660,24 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
         </div>
       )}
 
-      {/* THE COCKPIT — 3 legible zones: the live floor (left), what needs YOU (right rail), and a
-          tabbed drawer for the 7 deeper surfaces (bottom). Fewer things at once, each big enough to read. */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[1.6fr_1fr] lg:grid-rows-[minmax(0,1.7fr)_minmax(0,1fr)]">
-        {/* Glass Box — the live crew floor (row 1, col 1) */}
-        <GlassCard fill title="The Glass Box" subtitle="every action, logged" icon={ShieldCheck} className="lg:col-start-1 lg:row-start-1">
-          <div className="space-y-4">
-            <LiveGlassBox company={c} />
-            {r.activities.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border px-6 py-8 text-center text-sm text-muted-2">Nothing yet. Hit <span className="text-muted">Run tonight&apos;s shift</span> and watch it work.</div>
-            ) : (
-              <div className="space-y-2.5">
-                <AnimatePresence initial={false}>
-                  {r.activities.map((a) => <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} lockedUrl={lockedUrl} />)}
-                </AnimatePresence>
-              </div>
-            )}
-          </div>
-        </GlassCard>
-
-        {/* Right rail — the two things that need YOU (row 1, col 2) */}
-        <div className="grid min-h-0 grid-cols-1 gap-3 lg:col-start-2 lg:row-start-1 lg:grid-rows-[1.15fr_1fr]">
-          <GlassCard
-            fill
-            id="approval-inbox"
+      {/* ZONE 1 — the desk: what needs YOU. Full-width, auto-height, never clipped. When the inbox is
+          clear it collapses to a slim status band instead of an empty panel. */}
+      {r.pendingApprovals.length === 0 && !r.killSwitch ? (
+        <div id="approval-inbox" className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm">
+          <span className="font-mono text-[11px] text-muted-2">⚡ {autoRanCount} ran autonomously</span>
+          <span className="text-muted-2">·</span>
+          <span className="text-muted">Inbox clear — only money over caps, contracts, pricing, deletion, and launches land here.</span>
+          <button
+            onClick={() => r.setKillSwitch(true)}
+            title="Hard-stop the autonomous loop instantly — everything queues for you."
+            className="ml-auto rounded-lg border border-border px-2.5 py-1 font-mono text-[11px] font-semibold text-muted transition hover:border-coral/50 hover:text-coral"
+          >
+            kill switch
+          </button>
+        </div>
+      ) : (
+        <GlassCard
+          id="approval-inbox"
             title="Needs your OK"
             subtitle={r.killSwitch ? "kill switch — everything waits" : "exceptions only"}
             icon={Sparkles}
@@ -705,51 +702,62 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
             </div>
             {r.pendingApprovals.length === 0 ? (
               <div className="text-sm text-muted-2">
-                {r.killSwitch
-                  ? "Kill switch engaged — the crew still proposes, but nothing executes; every action will queue here for your yes."
-                  : "Inbox clear. The crew runs under standing authorization — only money over caps, contracts, pricing, deletion, and production launches land here."}
+                Kill switch engaged — the crew still proposes, but nothing executes; every action will queue here for your yes.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="grid gap-3 lg:grid-cols-2">
                 {r.pendingApprovals.map((ap) => (
                   <ApprovalCard key={ap.id} title={ap.title} detail={ap.detail} agent={ap.agent} kind={ap.kind} onApprove={() => r.resolveApproval(ap.id, true)} onReject={() => r.resolveApproval(ap.id, false)} />
                 ))}
               </div>
             )}
-          </GlassCard>
+        </GlassCard>
+      )}
 
-          <GlassCard fill title="The numbers" subtitle="toward your goal" icon={Target}>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                {stats.map((s) => <Stat key={s.label} label={s.label} val={s.val} />)}
-              </div>
-              {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
-                entitled ? (
-                  <>
-                    <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] p-3">
-                      <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-mint" /><div className="min-w-0"><div className="text-sm font-medium">Your product is live</div><div className="truncate text-xs text-mint">{c.product.url}</div></div></div>
-                      <span className="ml-2 shrink-0 rounded-lg border border-border px-2 py-1 text-xs text-muted transition group-hover:text-text">View ↗</span>
-                    </a>
-                    {!checkoutLiveFor("operator") && <FoundingMember tier="operator" email={userEmail} />}
-                  </>
-                ) : (
-                  <div className="rounded-2xl border border-coral/30 bg-coral/[0.05] p-3">
-                    <div className="flex items-center justify-between gap-2"><div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-coral" /><div className="text-sm font-medium">Built &amp; live</div></div><Lock size={15} className="shrink-0 text-coral" /></div>
-                    <a href={userEmail ? checkoutUrlFor(userEmail) : "/login"} className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-coral px-3 py-2 text-sm font-semibold text-bg transition hover:opacity-90">Unlock — Operator $199/mo <ArrowRight size={14} /></a>
-                  </div>
-                )
-              ) : c.product ? (
-                <div className="flex items-center gap-2 rounded-2xl border border-amber/25 bg-amber/[0.05] p-3 text-sm"><Rocket size={16} className="shrink-0 text-amber" /><span>Shipping your site… <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect keys →</Link></span></div>
-              ) : null}
-            </div>
-          </GlassCard>
-        </div>
-
-        {/* The drawer — everything else, one tab at a time, full-width & legible (row 2) */}
-        <div className="min-h-0 lg:col-span-2 lg:row-start-2">
-          <SecondaryPanel r={r} c={c} roles={roles} entitled={entitled} />
-        </div>
+      {/* ZONE 2 — the numbers: one full-width scoreboard row, auto-height, stats never clipped. */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {stats.map((s) => <Stat key={s.label} label={s.label} val={s.val} />)}
       </div>
+      {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
+        entitled ? (
+          <>
+            <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] px-4 py-3">
+              <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-mint" /><div className="min-w-0"><div className="text-sm font-medium">Your product is live</div><div className="truncate text-xs text-mint">{c.product.url}</div></div></div>
+              <span className="ml-2 shrink-0 rounded-lg border border-border px-2 py-1 text-xs text-muted transition group-hover:text-text">View ↗</span>
+            </a>
+            {!checkoutLiveFor("operator") && <FoundingMember tier="operator" email={userEmail} />}
+          </>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-coral/30 bg-coral/[0.05] px-4 py-3">
+            <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-coral" /><div className="text-sm font-medium">Built &amp; live</div><Lock size={15} className="shrink-0 text-coral" /></div>
+            <a href={userEmail ? checkoutUrlFor(userEmail) : "/login"} className="flex items-center gap-2 rounded-xl bg-coral px-3 py-2 text-sm font-semibold text-bg transition hover:opacity-90">Unlock — Operator $199/mo <ArrowRight size={14} /></a>
+          </div>
+        )
+      ) : c.product ? (
+        <div className="flex items-center gap-2 rounded-2xl border border-amber/25 bg-amber/[0.05] px-4 py-3 text-sm"><Rocket size={16} className="shrink-0 text-amber" /><span>Shipping your site… <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect keys →</Link></span></div>
+      ) : null}
+
+      {/* ZONE 3 — the Glass Box: the live feed, full-width, natural height (the page is the scroll). */}
+      <GlassCard title="The Glass Box" subtitle="every action, logged" icon={ShieldCheck}>
+        <div className="space-y-4">
+          <LiveGlassBox company={c} />
+          {r.activities.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border px-6 py-8 text-center text-sm text-muted-2">Nothing yet. Hit <span className="text-muted">Run tonight&apos;s shift</span> and watch it work.</div>
+          ) : (
+            <div className="space-y-2.5">
+              <AnimatePresence initial={false}>
+                {r.activities.slice(0, 30).map((a) => <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} lockedUrl={lockedUrl} />)}
+              </AnimatePresence>
+              {r.activities.length > 30 && (
+                <p className="pt-1 text-center text-xs text-muted-2">Showing the latest 30 — the full ledger lives in History below.</p>
+              )}
+            </div>
+          )}
+        </div>
+      </GlassCard>
+
+      {/* ZONE 4 — everything else, same tabs, natural height (no more below-the-fold burial). */}
+      <SecondaryPanel r={r} c={c} roles={roles} entitled={entitled} />
     </div>
   );
 }
