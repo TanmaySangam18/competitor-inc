@@ -58,6 +58,7 @@ import { CoachCard } from "@/components/CoachCard";
 import MorningBrief from "@/components/MorningBrief";
 import { Onboarding } from "@/components/dashboard/Onboarding";
 import { ChatTab } from "@/components/dashboard/ChatTab";
+import { TeamRoomTab } from "@/components/dashboard/TeamRoomTab";
 import { CrewBoard } from "@/components/dashboard/CrewBoard";
 import { BrainTab } from "@/components/dashboard/BrainTab";
 import { OperateTab } from "@/components/dashboard/OperateTab";
@@ -754,11 +755,12 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
 }
 
 /* ── Secondary drawer — the deeper surfaces, one tab open at a time (full-width, legible) ── */
-type SecTab = "brief" | "crew" | "growth" | "marketing" | "chat" | "brain" | "operate" | "history";
+type SecTab = "brief" | "team" | "crew" | "growth" | "marketing" | "chat" | "brain" | "operate" | "history";
 
 function SecondaryPanel({ r, c, roles, entitled }: { r: ReturnType<typeof useEngine>; c: Company; roles: AgentRole[]; entitled: boolean }) {
   const tabs: { key: SecTab; label: string }[] = [
     { key: "brief", label: "Morning brief" },
+    { key: "team", label: "Team room" },
     { key: "crew", label: "Crew" },
     { key: "growth", label: "Growth" },
     { key: "marketing", label: "Marketing" },
@@ -820,6 +822,7 @@ function SecondaryPanel({ r, c, roles, entitled }: { r: ReturnType<typeof useEng
             <GTMPanel company={c} activities={r.activities} />
           </div>
         )}
+        {tab === "team" && <TeamRoomTab company={c} r={r} />}
         {tab === "chat" && <ChatTab company={c} r={r} />}
         {tab === "brain" && <BrainTab r={r} />}
         {OPERATE_ENABLED && tab === "operate" && <OperateTab r={r} c={c} />}
