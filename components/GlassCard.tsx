@@ -46,12 +46,12 @@ export function GlassCard({
             className={`group flex min-w-0 items-center gap-2 text-left ${collapsible ? "cursor-pointer" : "cursor-default"}`}
             aria-expanded={collapsible ? open : undefined}
           >
-            <span className="flex items-baseline gap-2 truncate font-mono">
-              <span className="truncate text-sm font-semibold text-text">{title}</span>
+            <span className="flex items-baseline gap-2 truncate">
+              <span className="truncate font-display text-sm font-semibold tracking-tight text-text">{title}</span>
               {subtitle && <span className="truncate text-xs text-muted-2">{subtitle}</span>}
             </span>
             {badge}
-            {collapsible && <span className="shrink-0 font-mono text-xs text-muted-2">{open ? "[–]" : "[+]"}</span>}
+            {collapsible && <span className="shrink-0 text-xs text-muted-2">{open ? "–" : "+"}</span>}
           </button>
           {action && <div className="shrink-0">{action}</div>}
         </div>

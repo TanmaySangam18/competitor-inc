@@ -44,9 +44,12 @@ body {
   overflow-x: hidden;
 }
 
+/* Craft bar (2026-07-10, Block 4): headings are the DISPLAY sans (Space Grotesk) with tight tracking —
+   mono-as-headings read "dev tool", not product. Mono stays for what it's FOR: the wordmark, numbers,
+   logs, proofs, code (explicit font-mono classes). One rule, every page lifts. */
 h1, h2, h3, h4 {
-  font-family: var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display), "Space Grotesk", ui-sans-serif, sans-serif;
+  letter-spacing: -0.02em;
 }
 
 /* Heavy uppercase display — the signature headline treatment. Use on hero/section titles. */

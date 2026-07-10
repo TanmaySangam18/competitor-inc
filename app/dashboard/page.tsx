@@ -777,7 +777,7 @@ function SecondaryPanel({ r, c, roles, entitled }: { r: ReturnType<typeof useEng
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`rounded-full px-3 py-1.5 font-mono text-xs font-medium transition ${
+            className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
               tab === t.key ? "bg-text text-bg" : "border border-border text-muted hover:text-text"
             }`}
           >
