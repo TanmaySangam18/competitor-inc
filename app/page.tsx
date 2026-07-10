@@ -1,22 +1,21 @@
 "use client";
 
-// The landing page — attention-first (docs/PLAYBOOK-attention-first-landing.md).
-// One sentence, one input, one LIVE demo above the fold: the hero runs the real simulated engine
-// (deterministic, keyless, $0) so the visitor watches a validation happen before any signup.
-// Below: a bento grid of glanceable proofs — every box ≤ a dozen words. Ink on cream, liquid glass,
-// no color except meaning. Depth pages (how-it-works, playbooks, compare) live in the footer.
+// The landing — "The Company Ledger" (2026-07-10, plan: temporal-honking-cosmos.md).
+// A beautifully printed company charter: cream stock, ink rules, serif headlines, letterpress cards,
+// and REAL stamped receipts (live, design-reviewed builds anyone can click). No gradients, no glass,
+// no AI-cliché — the design is human-grade; the copy stays honest about what runs the company (the
+// one AI disclosure line lives in the footer). Mechanisms preserved verbatim from the previous
+// landing: first-party demo events, signup attribution, the keyless inline validation demo.
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SecretHouseDoor } from "@/components/SecretHouseDoor";
-import { SlackMark, TelegramMark } from "@/components/ChatOpsLogos";
 import { useAuth } from "@/lib/engine/useAuth";
 import { getProvider } from "@/lib/engine/provider";
 import type { ValidationResult } from "@/lib/engine/types";
 import TrackBeacon from "@/components/TrackBeacon";
 
-// Playbook triggers (docs/PLAYBOOK-attention-first-landing.md): measure demo starts,
-// time-to-first-interaction, and verdicts — not just views. First-party pixel, reserved slug.
+// First-party measurement (unchanged): demo starts, time-to-first-interaction, verdicts, CTA intent.
 function fireDemoEvent(type: "demo_start" | "demo_verdict" | "demo_cta", extra: string) {
   try {
     const payload = JSON.stringify({ slug: "home", type, source: extra.slice(0, 60) });
@@ -30,23 +29,39 @@ function fireDemoEvent(type: "demo_start" | "demo_verdict" | "demo_cta", extra: 
   }
 }
 
-// Clicking a landing CTA fires the demo_cta intent event AND marks the referral, so the completed
-// signup can be attributed back to the landing (see components/SignupAttribution.tsx). Fires once
-// per completion; a returning sign-in (no marker) is never counted as a home signup.
+// CTA clicks fire intent AND mark the referral so a completed signup attributes back to the landing
+// (components/SignupAttribution.tsx reads the marker). Unchanged.
 function onLandingCta(source: string) {
   fireDemoEvent("demo_cta", source);
   try { localStorage.setItem("cofounder:ref", "home"); } catch { /* ignore */ }
 }
 
-const SAMPLE_IDEAS = ["campus meal-prep service", "niche newsletter for machinists", "tutoring marketplace"];
+const SAMPLE_IDEAS = ["a booking page for my tutoring business", "a campus meal-prep service", "a niche newsletter for machinists"];
 
-// Which crew member narrates each demo line — flavor only; the numbers come from the real engine.
-const DEMO_AGENTS = ["Pitch", "Surge", "Guard", "Apex"];
+// THE RECEIPTS — real builds by the company, live right now, with the design review that shipped them.
+// These are verified at implementation time (curl 200) and must never point at a dead deploy.
+const RECEIPTS = [
+  {
+    title: "Campus tutoring marketplace",
+    url: "https://a-campus-tutoring-marketplace-post-lac.vercel.app",
+    host: "post-lac.vercel.app",
+    review: "design review — “enforce spacing rhythm, weight budget, a11y states”",
+  },
+  {
+    title: "Same brief, second run — the bar held",
+    url: "https://a-campus-tutoring-marketplace-post-two.vercel.app",
+    host: "post-two.vercel.app",
+    review: "design review — “single accent color, 8px spacing, mobile-first form”",
+  },
+];
 
-interface DemoLine {
-  agent: string;
-  text: string;
-}
+const STEPS = [
+  { n: "1", title: "Describe it", body: "One sentence. Demand gets tested first — weak ideas get told, not built." },
+  { n: "2", title: "It gets built", body: "Engineered, design-reviewed, deployed — verified live before you see a link." },
+  { n: "3", title: "It keeps running", body: "Support, growth, upkeep — overnight, under rules you signed once." },
+];
+
+const serif = { fontFamily: "var(--font-serif), Georgia, serif" } as const;
 
 export default function LandingPage() {
   const { user, ready } = useAuth();
@@ -54,7 +69,7 @@ export default function LandingPage() {
 
   const [idea, setIdea] = useState("");
   const [running, setRunning] = useState(false);
-  const [lines, setLines] = useState<DemoLine[]>([]);
+  const [lines, setLines] = useState<string[]>([]);
   const [verdict, setVerdict] = useState<ValidationResult | null>(null);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const mountTs = useRef(Date.now());
@@ -62,6 +77,8 @@ export default function LandingPage() {
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
+  // The inline demo (unchanged mechanism): real model-backed validation server-side, deterministic
+  // keyless fallback on any failure — instant, honest, no signup wall before the aha.
   async function runDemo(raw?: string) {
     const text = (raw ?? idea).trim();
     if (!text) return;
@@ -77,9 +94,6 @@ export default function LandingPage() {
       fireDemoEvent("demo_start", `tti:${Math.min(999, Math.round((Date.now() - mountTs.current) / 1000))}s`);
     }
 
-    // The REAL crew: the model-backed engine reads this specific idea (server-side, where the key lives).
-    // Falls back to the deterministic offline read on any error / rate-limit / no-key, so it never breaks
-    // and stays instant + keyless-friendly.
     let v: ValidationResult;
     try {
       const res = await fetch("/api/engine", {
@@ -93,289 +107,204 @@ export default function LandingPage() {
       v = getProvider().validate(text);
     }
 
-    const demoLines: DemoLine[] = v.experiments.slice(0, 4).map((x, i) => ({
-      agent: DEMO_AGENTS[i % DEMO_AGENTS.length],
-      text: `${x.label} — ${x.metric} (${x.signal})`,
-    }));
-
-    demoLines.forEach((line, i) => {
-      timers.current.push(setTimeout(() => setLines((prev) => [...prev, line]), 500 * (i + 1)));
+    const rows = v.experiments.slice(0, 4).map((x) => `${x.label} — ${x.metric} (${x.signal})`);
+    rows.forEach((line, i) => {
+      timers.current.push(setTimeout(() => setLines((prev) => [...prev, line]), 450 * (i + 1)));
     });
     timers.current.push(
       setTimeout(() => {
         setVerdict(v);
         setRunning(false);
         fireDemoEvent("demo_verdict", `verdict:${v.verdict}/conf:${v.confidence}`);
-      }, 500 * (demoLines.length + 1))
+      }, 450 * (rows.length + 1))
     );
   }
 
+  const verdictLabel = verdict?.verdict === "strong" ? "worth building" : verdict?.verdict === "weak" ? "don’t build this" : "needs a tweak";
+
   return (
-    <main id="main" className="min-h-screen bg-bg text-text">
+    <main id="main" className="min-h-screen bg-cream text-ink">
       <TrackBeacon slug="home" />
-      {/* ── Nav: wordmark, one link, one CTA ─────────────────────── */}
-      <header className="glass-nav sticky top-0 z-30">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3 sm:px-6">
-          <Link href="/" className="group flex items-center" aria-label="competitor.inc home">
-            <span
-              className="text-lg tracking-tight sm:text-xl"
-              style={{ fontFamily: "var(--font-heavy)" }}
-            >
-              competitor<span className="text-muted-2 transition-colors duration-200 group-hover:text-text">.inc</span>
+
+      {/* ── Nav: the wordmark (with the quiet door), sign in, one CTA ── */}
+      <header className="border-b-[1.5px] border-ink bg-cream">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
+          <SecretHouseDoor>
+            <span className="cursor-default select-none text-[17px] font-semibold" style={serif}>
+              competitor<span className="text-sienna">.inc</span>
             </span>
-          </Link>
-          <div className="ml-auto flex items-center gap-1.5 text-sm sm:gap-3">
+          </SecretHouseDoor>
+          <nav className="flex items-center gap-5">
             {ready && !user && (
-              <Link href="/login" className="px-2 py-1 text-muted transition hover:text-text">
-                Sign in
-              </Link>
+              <Link href="/login" className="text-[13px] text-ink-muted transition hover:text-ink">Sign in</Link>
             )}
             <Link
               href={appHref}
               onClick={() => onLandingCta("nav")}
-              className="rounded-full border border-text/25 px-4 py-1.5 text-sm font-medium text-text transition hover:border-text hover:bg-text hover:text-bg"
+              className="rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-cream transition hover:opacity-90"
             >
-              {user ? "Dashboard" : "Start free"}
+              Start your company
             </Link>
-          </div>
+          </nav>
         </div>
       </header>
 
-      <section className="mx-auto max-w-5xl px-4 sm:px-6">
-        {/* ── Hero: one sentence, one input, one live demo ────────── */}
-        <div className="mx-auto max-w-2xl pt-14 text-center sm:pt-20">
-          <h1 className="text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-            An AI crew that builds and runs your startup.
-          </h1>
-          <p className="mt-3 text-balance text-sm text-muted sm:text-base">
-            Describe your idea. The crew validates it, ships a real product, and works the growth — and nothing
-            spends or ships without your yes. Built for first-time founders.
-          </p>
+      {/* ── Hero: the charter statement + the one input ── */}
+      <section className="mx-auto max-w-3xl px-5 pb-14 pt-16">
+        <p className="font-mono text-[11px] font-semibold tracking-[0.14em] text-sienna">A WORKING SOFTWARE COMPANY, ON DEMAND</p>
+        <h1 className="mt-4 text-[40px] font-medium leading-[1.08] sm:text-[46px]" style={serif}>
+          Describe the software.
+          <br />
+          <em className="font-normal">A company</em> builds it.
+        </h1>
+        <p className="mt-5 max-w-[480px] text-base leading-relaxed text-ink-muted">
+          Engineers, a design lead, quality, support — a real organization that tests your idea, ships to a
+          live URL, and runs what it shipped. You approve anything that matters.
+        </p>
 
-          <div className="mx-auto mt-7 flex max-w-xl gap-2">
-            <input
-              value={idea}
-              onChange={(e) => setIdea(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && runDemo()}
-              placeholder="an AI resume coach for new grads"
-              aria-label="Your startup idea"
-              className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm outline-none transition placeholder:text-muted-2 focus:border-text"
-            />
-            <button
-              onClick={() => runDemo()}
-              disabled={running || !idea.trim()}
-              title={!idea.trim() ? "Type your idea first" : undefined}
-              className="hover-lift shrink-0 rounded-xl bg-text px-4 py-2.5 text-sm font-medium text-bg transition hover:opacity-90 disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none disabled:hover:opacity-50"
-            >
-              {running ? "Working…" : "See it work"}
-            </button>
-          </div>
-          <div className="mt-3 flex flex-wrap justify-center gap-2">
-            {SAMPLE_IDEAS.map((s) => (
-              <button
-                key={s}
-                onClick={() => runDemo(s)}
-                className="rounded-full border border-border px-3 py-1 text-xs text-muted transition duration-200 hover:-translate-y-0.5 hover:border-text hover:bg-surface hover:text-text"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-
-          {/* Demo strip — the aha, before any capture. */}
-          {(lines.length > 0 || verdict || running) && (
-            <div className="glass-panel mx-auto mt-6 max-w-xl rounded-2xl p-4 text-left font-mono text-xs leading-7">
-              {lines.map((l, i) => (
-                <div key={i} className="reveal text-muted">
-                  <span className="font-semibold text-text">{l.agent}</span> — {l.text}
-                </div>
-              ))}
-              {running && <div className="animate-pulse text-muted-2">the crew is working…</div>}
-              {verdict && (
-                <div className="reveal mt-2 border-t border-border pt-2">
-                  <span className="font-semibold">Apex — verdict:</span>{" "}
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                      verdict.verdict === "strong"
-                        ? "bg-text text-bg"
-                        : verdict.verdict === "mixed"
-                          ? "border border-text text-text"
-                          : "border border-dashed border-text text-muted"
-                    }`}
-                  >
-                    {verdict.verdict} · {verdict.confidence}% confidence
-                  </span>
-                  <div className="mt-1.5 font-sans text-muted">{verdict.recommendation}</div>
-                  <div className="mt-2.5 flex items-center gap-3 font-sans">
-                    <Link
-                      href={appHref}
-                      onClick={() => onLandingCta(`keep:${verdict.verdict}`)}
-                      className="group hover-lift rounded-full bg-text px-3.5 py-1.5 text-xs font-medium text-bg transition hover:opacity-90"
-                    >
-                      Build this for real →
-                    </Link>
-                    <span className="text-[10px] text-muted-2">
-                      That was the 60-second validation. Next, the crew builds it — you approve every step.
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ── How it works: the 3-step mental model ────────────────── */}
-        <div className="mx-auto mt-16 max-w-4xl">
-          <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-muted-2">How it works</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {[
-              ["1", "Describe it", "One sentence. The crew gives you an honest demand verdict — with receipts."],
-              ["2", "Approve the plan", "You're the founder. Nothing spends or ships without your yes."],
-              ["3", "The crew builds & runs it", "A real, live product — then daily growth work, drafted for your approval."],
-            ].map(([n, title, desc]) => (
-              <div key={n} className="glass-panel rounded-3xl p-5">
-                <div className="grid h-7 w-7 place-items-center rounded-full bg-text text-xs font-bold text-bg">{n}</div>
-                <div className="mt-3 text-sm font-semibold">{title}</div>
-                <p className="mt-1 text-xs text-muted">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Why it's safe to hand a company to AI: glanceable proofs ─ */}
-        <h2 className="mt-16 text-center text-sm font-semibold uppercase tracking-wide text-muted-2">
-          Why it&apos;s safe to hand a company to AI
-        </h2>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <Box wide title="Glass box" sub="Every action logged, with cost and proof.">
-            <div className="font-mono text-[11px] leading-7 text-muted">
-              <div>
-                Forge · deployed site · <Mono>sha 9f2c1a ✓</Mono>
-              </div>
-              <div>
-                Pitch · search test live · <Mono>url resolves ✓</Mono>
-              </div>
-              <div>
-                Apex · closed experiment · <Mono>metric verified ✓</Mono>
-              </div>
-              <div className="text-[10px] text-muted-2">from a sample run — your runs carry your receipts</div>
-            </div>
-          </Box>
-
-          <Box title="Your yes required" sub="Nothing ships without approval.">
-            <div className="rounded-xl border border-border bg-surface/60 p-2.5 text-[11px]">
-              <div className="text-text">Spend $40 on search test</div>
-              <div className="mt-1.5 flex gap-1.5">
-                <span className="rounded-lg bg-text px-2.5 py-0.5 font-medium text-bg">Approve</span>
-                <span className="rounded-lg border border-border px-2.5 py-0.5 text-muted">Reject</span>
-              </div>
-            </div>
-            <div className="mt-2.5 flex items-center gap-2 text-[11px] text-muted">
-              approve from
-              <SlackMark size={14} className="bob" />
-              <TelegramMark size={14} className="bob bob-late" />
-              or the inbox
-            </div>
-          </Box>
-
-          <Box title="A crew, not a chatbot" sub="Five specialists, one goal.">
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                ["Apex", "strategy"],
-                ["Forge", "ships"],
-                ["Pitch", "demand"],
-                ["Guard", "users"],
-                ["Surge", "growth"],
-              ].map(([n, j]) => (
-                <span key={n} className="rounded-full border border-border px-2.5 py-0.5 text-[11px] text-muted">
-                  {n} · {j}
-                </span>
-              ))}
-            </div>
-          </Box>
-
-          <Box title="Honest verdicts" sub="It will tell you not to build.">
-            <span className="rounded-full border border-dashed border-text px-3 py-1 text-xs font-medium text-muted">
-              weak — hold
-            </span>
-          </Box>
-
-          <Box title="Built to earn" sub="It optimizes for real revenue, not busywork.">
-            <div className="font-mono text-[11px] text-muted">
-              views → signups → <span className="rounded bg-text px-1.5 py-0.5 text-bg">paying ← the goal</span>
-            </div>
-          </Box>
-
-          <Box title="Capped & reversible" sub="Hard limits on every dollar; kill switch anytime.">
-            <div className="font-mono text-[11px] leading-6 text-muted">
-              <div>five gates before any action</div>
-              <div>hard caps on every dollar</div>
-            </div>
-          </Box>
-        </div>
-
-        {/* ── One CTA ──────────────────────────────────────────────── */}
-        <div className="mt-12 flex flex-col items-center gap-2 text-center">
-          <Link
-            href={appHref}
-            onClick={() => onLandingCta("footer")}
-            className="group hover-lift rounded-full bg-text px-6 py-2.5 text-sm font-medium text-bg transition hover:opacity-90"
+        <div className="press mt-7 flex max-w-[520px] items-center gap-2 rounded-2xl bg-cream-2 p-1.5 pl-4">
+          <input
+            value={idea}
+            onChange={(e) => setIdea(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && runDemo()}
+            placeholder="A booking page for my tutoring business…"
+            aria-label="Describe your software idea"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-ink-faint"
+          />
+          <button
+            onClick={() => runDemo()}
+            disabled={!idea.trim() || running}
+            className="shrink-0 rounded-xl bg-pine px-4 py-2.5 text-[13px] font-semibold text-cream transition hover:brightness-110 disabled:opacity-40"
           >
-            Start your company — free
- →
-          </Link>
-          <span className="text-xs text-muted-2">Free to start. You approve anything that costs money.</span>
+            {running ? "Working…" : "Put it to work"}
+          </button>
         </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {SAMPLE_IDEAS.map((s) => (
+            <button
+              key={s}
+              onClick={() => runDemo(s)}
+              className="rounded-full border border-rule bg-cream-2 px-3 py-1 text-xs text-ink-muted transition hover:border-ink hover:text-ink"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        <p className="mt-4 text-[12.5px] italic text-ink-faint" style={serif}>
+          Free to try — and it will tell you honestly if your idea isn’t worth building.
+        </p>
 
-        {/* ── Wordmark (the House door stays on the wordmark) ─────── */}
-        <div className="mt-16 border-t border-border py-10">
-          <SecretHouseDoor className="text-center leading-[0.85] tracking-tight text-[10vw]">
-            <span style={{ fontFamily: "var(--font-heavy)" }}>
-              competitor<span className="text-muted-2">.inc</span>
-            </span>
-          </SecretHouseDoor>
-          <p className="mt-4 text-center text-xs text-muted-2">
-            You own the company. The AI crew does the work. <span className="text-muted">You approve the big calls.</span>
-          </p>
+        {/* The demand read — quiet ledger rows, not a terminal. Appears only once a demo runs. */}
+        {(lines.length > 0 || verdict || running) && (
+          <div className="press mt-6 max-w-[520px] rounded-2xl bg-cream-2 px-5 py-4">
+            <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-sienna">THE DEMAND READ</p>
+            <div className="mt-2">
+              {lines.map((l, i) => (
+                <p key={i} className="reveal border-t border-rule py-2 font-mono text-[11.5px] leading-relaxed text-ink-muted first:border-t-0">
+                  {l}
+                </p>
+              ))}
+              {running && lines.length === 0 && <p className="py-2 text-xs text-ink-faint">Reading real demand…</p>}
+            </div>
+            {verdict && (
+              <div className="reveal mt-2 flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-ink pt-3">
+                <span className="text-sm font-semibold">
+                  Verdict: {verdictLabel} <span className="font-normal text-ink-muted">· {verdict.confidence}% confidence</span>
+                </span>
+                <Link
+                  href={appHref}
+                  onClick={() => onLandingCta("demo")}
+                  className="rounded-xl bg-pine px-4 py-2 text-[13px] font-semibold text-cream transition hover:brightness-110"
+                >
+                  Build it for real
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ── The receipts: real builds, live now, with the review that shipped them ── */}
+      <section className="border-t-[1.5px] border-ink bg-cream-2">
+        <div className="mx-auto max-w-3xl px-5 py-12">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-2xl font-medium" style={serif}>The receipts</h2>
+            <p className="text-[12.5px] text-ink-muted">Real builds, live right now. Click them — we insist.</p>
+          </div>
+          <div className="mt-5">
+            {RECEIPTS.map((r, i) => (
+              <div
+                key={r.host}
+                className={`flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-rule px-1 py-4 ${i === RECEIPTS.length - 1 ? "border-b" : ""}`}
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">{r.title}</p>
+                  <p className="mt-1 font-mono text-[11px] leading-relaxed text-ink-muted">{r.review}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <a
+                    href={r.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-[11.5px] text-pine underline decoration-dotted underline-offset-4 transition hover:decoration-solid"
+                  >
+                    {r.host} ↗
+                  </a>
+                  <span className="stamp">VERIFIED · LIVE</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── Slim footer: depth on demand ───────────────────────────── */}
-      <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-5 gap-y-2 px-4 py-6 text-xs text-muted">
-          <Link href="/how-it-works" className="transition hover:text-text">How it works</Link>
-          <Link href="/dashboard" className="transition hover:text-text">Your crew</Link>
-          <Link href="/playbooks" className="transition hover:text-text">Playbooks</Link>
-          <Link href="/compare" className="transition hover:text-text">Compare</Link>
-          <Link href="/blog" className="transition hover:text-text">Blog</Link>
-          <Link href="/terms" className="transition hover:text-text">Terms</Link>
-          <Link href="/privacy" className="transition hover:text-text">Privacy</Link>
+      {/* ── How it runs + the governance, in full ── */}
+      <section className="mx-auto max-w-3xl px-5 py-14">
+        <div className="grid gap-8 sm:grid-cols-3">
+          {STEPS.map((s) => (
+            <div key={s.n}>
+              <p className="text-3xl text-sienna" style={serif}>{s.n}</p>
+              <p className="mb-1 mt-1.5 text-sm font-semibold">{s.title}</p>
+              <p className="text-[13px] leading-relaxed text-ink-muted">{s.body}</p>
+            </div>
+          ))}
+        </div>
+        <div className="press mt-10 rounded-2xl bg-cream px-6 py-5">
+          <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-sienna">THE GOVERNANCE, IN FULL</p>
+          <div className="mt-2.5 flex flex-wrap gap-x-7 gap-y-1.5 text-[13px]">
+            <span><strong>One signature</strong> governs everything</span>
+            <span><strong>Money &amp; contracts</strong> always come to you</span>
+            <span><strong>One tap</strong> stops it all</span>
+          </div>
+        </div>
+        <div className="mt-10 text-center">
+          <Link
+            href={appHref}
+            onClick={() => onLandingCta("footer")}
+            className="inline-block rounded-full bg-ink px-6 py-3 text-sm font-medium text-cream transition hover:opacity-90"
+          >
+            Start your company — free
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Footer: the honest line + the depth pages ── */}
+      <footer className="border-t-[1.5px] border-ink">
+        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-6">
+          <p className="text-[11.5px] italic text-ink-faint" style={serif}>
+            Operated by AI employees under human governance — every claim above is verifiable.
+          </p>
+          <nav className="flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-ink-faint">
+            <Link href="/how-it-works" className="transition hover:text-ink">How it works</Link>
+            <Link href="/dashboard" className="transition hover:text-ink">Dashboard</Link>
+            <Link href="/playbooks" className="transition hover:text-ink">Playbooks</Link>
+            <Link href="/compare" className="transition hover:text-ink">Compare</Link>
+            <Link href="/blog" className="transition hover:text-ink">Blog</Link>
+            <Link href="/terms" className="transition hover:text-ink">Terms</Link>
+            <Link href="/privacy" className="transition hover:text-ink">Privacy</Link>
+          </nav>
         </div>
       </footer>
     </main>
-  );
-}
-
-function Mono({ children }: { children: React.ReactNode }) {
-  return <span className="text-text">{children}</span>;
-}
-
-function Box({
-  title,
-  sub,
-  wide,
-  children,
-}: {
-  title: string;
-  sub: string;
-  wide?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={`glass-panel hover-lift rounded-xl p-5 ${wide ? "md:col-span-2" : ""}`}>
-      <div className="text-sm font-semibold">{title}</div>
-      <p className="mt-0.5 text-xs text-muted">{sub}</p>
-      <div className="mt-3">{children}</div>
-    </div>
   );
 }
