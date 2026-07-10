@@ -17,10 +17,10 @@ import { performanceWeightedAllocations, overageForAllocation, breachesForAlloca
 import { successRateByAgent } from "@/lib/engine/agent-performance";
 import { loadWallet } from "@/lib/engine/wallet-db";
 import { decideSpend } from "@/lib/engine/wallet";
-import { draftProgressPost, shouldShare } from "@/lib/engine/buildinpublic";
+import { draftPersonaPost, draftProgressPost, shouldShare } from "@/lib/engine/buildinpublic";
 import { postToBluesky, postToMastodon } from "@/lib/engine/execution";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
-import { POLICY } from "@/lib/engine/policy";
+import { POLICY, platformMarketingAllowed } from "@/lib/engine/policy";
 import { loadActiveOrgRuns, saveOrgRun } from "@/lib/engine/org-runs-db";
 import { applyRecordedDecisions } from "@/lib/engine/apply-decisions-db";
 import { advanceOrgRun } from "@/lib/engine/org-run-step";
@@ -264,9 +264,12 @@ export async function GET(req: Request) {
 
       // Build-in-public — if this company opted in, post a REAL shipped milestone to competitor.inc's
       // OWN social accounts (never the customer's). The public stream is the platform's marketing.
+      // GOVERNED (Receipts Campaign): runs only while platformMarketingAllowed — the policy flag is the
+      // standing yes and the kill switch halts it with everything else (no more flag bypass). The post is
+      // persona-authored (Vera·CTO / Kenji·Analytics / Marcus·CEO) and honestly overnight-stamped.
       // Fail-soft + gated on Bluesky/Mastodon keys; posts nothing when there's no verified milestone.
-      if (shouldShare(company, activities)) {
-        const post = draftProgressPost(company, activities);
+      if (platformMarketingAllowed(POLICY) && shouldShare(company, activities)) {
+        const post = draftPersonaPost(company, activities, { overnight: true }) ?? draftProgressPost(company, activities);
         if (post) {
           await Promise.allSettled([postToBluesky({ text: post }), postToMastodon({ text: post })]).catch(() => {});
         }

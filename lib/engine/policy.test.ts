@@ -172,3 +172,12 @@ describe("governApprovals — five-gate filter on the Approval Inbox", () => {
     expect(decide(green({ agent: "growth", type: "video" })).verdict).toBe("QUEUE");
   });
 });
+
+describe("receipts campaign — platform marketing is governed, not a bypass", () => {
+  it("standing yes while the policy flag is on; the kill switch halts it with everything else", async () => {
+    const { platformMarketingAllowed, POLICY } = await import("./policy");
+    expect(platformMarketingAllowed()).toBe(true); // the standing, policy-visible yes
+    expect(platformMarketingAllowed({ ...POLICY, spend: { ...POLICY.spend, killSwitch: true } })).toBe(false);
+    expect(platformMarketingAllowed({ ...POLICY, channels: { ...POLICY.channels, platformMarketing: { autoPost: false } } })).toBe(false);
+  });
+});

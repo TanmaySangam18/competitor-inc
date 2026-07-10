@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pickMilestone, draftProgressPost, shouldShare } from "./buildinpublic";
+import { pickMilestone, draftProgressPost, draftPersonaPost, receiptCardUrl, shouldShare } from "./buildinpublic";
 import type { Activity, Company, Proof } from "./types";
 
 const act = (over: Partial<Activity>): Activity => ({
@@ -42,5 +42,31 @@ describe("build-in-public", () => {
     expect(shouldShare(company({ shareInPublic: true, status: "validating" }), acts)).toBe(false);
     expect(shouldShare(company({ shareInPublic: true }), acts)).toBe(true);
     expect(shouldShare(company({ shareInPublic: true }), [act({ action: "mused", cost: 0 })])).toBe(false);
+  });
+});
+
+describe("receipts campaign — persona-authored posts (slice 2)", () => {
+  it("a shipped build is signed by Vera · CTO, clearly AI, with the real URL — and overnight only when true", () => {
+    const acts = [act({ action: "Shipped the booking app", cost: 30, proof: { kind: "url", value: "https://x-post-two.vercel.app" } as Proof })];
+    const p = draftPersonaPost(company(), acts, { overnight: true })!;
+    expect(p).toContain("Vera · Chief Technology Officer");
+    expect(p).toContain("https://x-post-two.vercel.app");
+    expect(p).toContain("while the founder slept");
+    expect(p).toContain("I'm an AI employee");
+    const day = draftPersonaPost(company(), acts)!;
+    expect(day).not.toContain("while the founder slept"); // the line is only written when it is TRUE
+  });
+
+  it("a verified metric is signed by Kenji · Analytics; nothing verified ⇒ null (never invents)", () => {
+    const metric = draftPersonaPost(company(), [act({ action: "Closed the experiment", proof: { kind: "metric", value: "6.1% conversion" } as Proof })])!;
+    expect(metric).toContain("Kenji · Head of Analytics");
+    expect(metric).toContain("6.1% conversion");
+    expect(draftPersonaPost(company(), [act({ action: "wrote notes", status: "done" })])).toBeNull();
+    expect(draftPersonaPost(company(), [])).toBeNull();
+  });
+
+  it("receiptCardUrl builds the slice-1 route URL (which re-verifies liveness itself)", () => {
+    const u = receiptCardUrl("https://competitor.inc/", "Booking app", "https://x.vercel.app", "8px rhythm");
+    expect(u).toBe("https://competitor.inc/api/receipt-card?title=Booking+app&url=https%3A%2F%2Fx.vercel.app&review=8px+rhythm");
   });
 });

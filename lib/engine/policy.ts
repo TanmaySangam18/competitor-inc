@@ -52,6 +52,10 @@ export interface Policy {
     email: { allowed: "opted_in_only" | "any"; compliance: string[]; autoSend: boolean };
     ads: { allowedAccounts: "connected_only" | "any"; autoLaunch: boolean };
     social: { massDm: "forbidden" | "allowed"; autoPost: boolean };
+    // The PLATFORM's own marketing accounts (build-in-public). Distinct from customer channels: posting
+    // verified milestones on competitor.inc's own Bluesky/Mastodon is a standing, policy-visible yes —
+    // not a bypass. Still honesty-gated upstream (only verified milestones) + halted by the kill switch.
+    platformMarketing: { autoPost: boolean };
   };
   // What the system does on its own when something breaks while you're asleep. NOTE: for side-effecting
   // POSTs (email/spend/deploy) we deliberately do NOT blind-retry (double-send risk) — apiDown is handled
@@ -122,6 +126,7 @@ export const POLICY: Policy = {
     email: { allowed: "opted_in_only", compliance: ["unsubscribe_link", "sender_identity", "consent_basis"], autoSend: false },
     ads: { allowedAccounts: "connected_only", autoLaunch: false },
     social: { massDm: "forbidden", autoPost: false },
+    platformMarketing: { autoPost: true },
   },
   failurePolicy: {
     apiDown: { retries: 3, backoff: "exponential", then: "alert_and_pause" },
@@ -254,3 +259,9 @@ export function promotionEligible(record: PromotionRecord, policy: Policy = POLI
 // nights — approved every time, zero incidents — promote it APPROVE → AUTO (Level 3). Never promote the
 // forbiddenActions floor. You're not chasing Level 4 on money/legal/irreversible actions — that's the
 // liability, not the prize.
+
+// Receipts Campaign: may the platform auto-post its own verified-milestone marketing right now?
+// One switch kills it with everything else; the flag makes the standing yes policy-visible.
+export function platformMarketingAllowed(policy: Policy = POLICY): boolean {
+  return !policy.spend.killSwitch && policy.channels.platformMarketing.autoPost;
+}
