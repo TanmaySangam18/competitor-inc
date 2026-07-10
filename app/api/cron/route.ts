@@ -22,6 +22,7 @@ import { postToBluesky, postToMastodon } from "@/lib/engine/execution";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY } from "@/lib/engine/policy";
 import { loadActiveOrgRuns, saveOrgRun } from "@/lib/engine/org-runs-db";
+import { applyRecordedDecisions } from "@/lib/engine/apply-decisions-db";
 import { advanceOrgRun } from "@/lib/engine/org-run-step";
 import { isComplete } from "@/lib/engine/org-run";
 import { serverRealExecutor } from "@/lib/engine/real-executor";
@@ -104,6 +105,19 @@ export async function GET(req: Request) {
     try {
       const company = toCompany(row);
       if (!company.ledger || typeof company.ledger !== "object") company.ledger = { ...EMPTY };
+
+      // ── Consent Rails (slice 2b): apply the human's recorded phone decisions LAPTOP-OFF, through the
+      // double gate (signed mandate + policy floor). Fail-soft: an error here never blocks the shift,
+      // and by construction an outage can never widen authority (missing mandate ⇒ everything holds).
+      try {
+        const applied = await applyRecordedDecisions(sb, company.id);
+        if (applied.applied || applied.rejected || applied.held) {
+          console.log(`[/api/cron] decisions for ${company.id}: applied=${applied.applied} rejected=${applied.rejected} held=${applied.held}`);
+        }
+      } catch (e) {
+        console.error("[/api/cron] apply-decisions:", e instanceof Error ? e.message : "unknown");
+      }
+
       // Read-back: recall what earlier nights did so this shift builds on it (coherence over time)…
       const recalled = (await recall(sb, company.id, company.idea, 5).catch(() => [])).join(" • ");
       // …and the BKG: a structured summary of what this company already knows about itself, derived
