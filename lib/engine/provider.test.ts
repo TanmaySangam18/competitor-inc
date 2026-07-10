@@ -129,3 +129,25 @@ describe("shift", () => {
     }
   });
 });
+
+describe("scoreIdea — the printed pair can never contradict the tag (defect 2026-07-10)", () => {
+  const core = (waitlist: number) => ({ waitlist, ctr: 2, costPerSignup: 2, spend: 40 });
+
+  it("a zero/absent conversion falls back to a coherent estimate — never '0% conversion (positive)'", () => {
+    for (let i = 0; i < 200; i++) {
+      const r = scoreIdea(core(120), `seed-${i}`, { conversion: 0 });
+      const landing = r.experiments.find((e) => e.key === "landing")!;
+      const conv = parseFloat(landing.metric.split("· ")[1]);
+      expect(conv).toBeGreaterThan(0); // the self-contradicting zero can't print
+      if (landing.signal === "positive") expect(conv).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it("signal reads BOTH printed numbers: high signups + weak conversion is never 'positive'", () => {
+    const r = scoreIdea(core(120), "any-seed", { conversion: 1.2 });
+    const landing = r.experiments.find((e) => e.key === "landing")!;
+    expect(landing.metric).toContain("1.2% conversion");
+    expect(landing.signal).not.toBe("positive"); // 1.2% < the 2% positive bar, whatever the count
+  });
+});
+

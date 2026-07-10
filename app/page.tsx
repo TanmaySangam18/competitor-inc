@@ -74,6 +74,7 @@ export default function LandingPage() {
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const mountTs = useRef(Date.now());
   const firedStart = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null); // "Try another idea" refocuses the box
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
@@ -164,6 +165,7 @@ export default function LandingPage() {
 
         <div className="press mt-7 flex max-w-[520px] items-center gap-2 rounded-2xl bg-cream-2 p-1.5 pl-4">
           <input
+            ref={inputRef}
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && runDemo()}
@@ -211,13 +213,34 @@ export default function LandingPage() {
                 <span className="text-sm font-semibold">
                   Verdict: {verdictLabel} <span className="font-normal text-ink-muted">· {verdict.confidence}% confidence</span>
                 </span>
-                <Link
-                  href={appHref}
-                  onClick={() => onLandingCta("demo")}
-                  className="rounded-xl bg-pine px-4 py-2 text-[13px] font-semibold text-cream transition hover:brightness-110"
-                >
-                  Build it for real
-                </Link>
+                {/* The CTA agrees with the verdict (defect 2026-07-10): after an honest "don't build",
+                    trying another idea is the PRIMARY action; building anyway stays possible but quiet.
+                    Saying "don't" and shouting "build!" in the same breath is the money-printer voice. */}
+                {verdict.verdict === "weak" ? (
+                  <span className="flex flex-wrap items-center gap-2">
+                    <Link
+                      href={appHref}
+                      onClick={() => onLandingCta("demo-override")}
+                      className="rounded-xl border-[1.5px] border-ink/40 px-4 py-2 text-[13px] font-medium text-ink-muted transition hover:border-ink hover:text-ink"
+                    >
+                      Build it anyway
+                    </Link>
+                    <button
+                      onClick={() => { setVerdict(null); setLines([]); setIdea(""); inputRef.current?.focus(); }}
+                      className="rounded-xl bg-pine px-4 py-2 text-[13px] font-semibold text-cream transition hover:brightness-110"
+                    >
+                      Try another idea
+                    </button>
+                  </span>
+                ) : (
+                  <Link
+                    href={appHref}
+                    onClick={() => onLandingCta("demo")}
+                    className="rounded-xl bg-pine px-4 py-2 text-[13px] font-semibold text-cream transition hover:brightness-110"
+                  >
+                    Build it for real
+                  </Link>
+                )}
               </div>
             )}
           </div>

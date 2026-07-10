@@ -92,13 +92,18 @@ const fin = (v: unknown): v is number => typeof v === "number" && Number.isFinit
 
 export function scoreIdea(core: ValidationCore, seed: string, extras?: ScoreExtras) {
   const rng = mulberry32(hash("score:" + seed));
-  const conv = fin(extras?.conversion) ? round(Math.max(0, extras!.conversion!), 1) : round(between(rng, 2, 9), 1);
+  // Coherence guard (defect 2026-07-10: "127 signups · 0% conversion (positive)"): these are ESTIMATES
+  // ("Projected signups + conversion"), so the printed pair must be internally consistent — a zero/absent
+  // conversion alongside real projected signups is estimator noise, not data; fall back to the
+  // deterministic estimate rather than print a self-contradicting line.
+  const conv = fin(extras?.conversion) && extras!.conversion! > 0 ? round(extras!.conversion!, 1) : round(between(rng, 2, 9), 1);
   const fakedoor = fin(extras?.clickThrough) ? round(Math.max(0, extras!.clickThrough!), 1) : round(between(rng, 1.5, 12), 1);
   const searches = fin(extras?.searchVolume) ? Math.max(0, Math.round(extras!.searchVolume!)) : Math.round(between(rng, 200, 18000));
   const competition = extras?.competition && COMPETITION.includes(extras.competition) ? extras.competition : pick(rng, [...COMPETITION]);
   const sig = (good: boolean, mid: boolean): Experiment["signal"] => (good ? "positive" : mid ? "weak" : "negative");
   const experiments: Experiment[] = [
-    { key: "landing", label: "Landing page + waitlist", detail: "Projected signups + conversion", metric: `${core.waitlist} signups · ${conv}% conversion`, signal: sig(core.waitlist >= 40, core.waitlist >= 20) },
+    // The signal reads BOTH numbers it prints — count and conversion can never disagree with the tag.
+    { key: "landing", label: "Landing page + waitlist", detail: "Projected signups + conversion", metric: `${core.waitlist} signups · ${conv}% conversion`, signal: sig(core.waitlist >= 40 && conv >= 2, core.waitlist >= 20 && conv >= 1) },
     { key: "fakedoor", label: "Fake-door test", detail: "A “Get started” click-through estimate", metric: `${fakedoor}% clicked through`, signal: sig(fakedoor >= 6, fakedoor >= 3) },
     { key: "ads", label: "Paid demand test", detail: "Small ad smoke-test (your budget)", metric: `${core.ctr}% CTR · $${core.costPerSignup}/signup`, signal: sig(core.ctr >= 3 && core.costPerSignup <= 1.5, core.costPerSignup <= 2.5) },
     { key: "search", label: "Search demand", detail: "Existing intent for this problem", metric: `${searches.toLocaleString()}/mo searches · ${competition} competition`, signal: sig(searches >= 4000 && competition !== "high", searches >= 1500) },
