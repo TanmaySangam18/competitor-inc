@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LedgerShell, Eyebrow, serifStyle } from "@/components/ledger/LedgerShell";
+import { GateProbe } from "./GateProbe";
 
 export const metadata: Metadata = {
   title: "Integrations — competitor.inc",
@@ -59,7 +60,18 @@ export default function IntegrationsPage() {
           ))}
         </div>
 
-        <p className="mt-8 text-xs italic text-ink-faint" style={serifStyle}>
+        {/* The launch-gate diagnostic: the SERVER reads this env at runtime; the CLIENT chip shows what
+            was INLINED into the bundle at build time. Both ON ⇒ the campus gate is fully live; a
+            mismatch is the Sensitive-toggle trap made visible. */}
+        <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-rule pt-5">
+          <span className="text-sm font-medium" style={serifStyle}>Campus launch gate</span>
+          <span className={`rounded-md border px-2 py-0.5 font-mono text-[10px] tracking-[0.08em] ${process.env.NEXT_PUBLIC_CAMPUS_GATE === "1" ? "border-pine font-semibold text-pine" : "border-rule text-ink-faint"}`}>
+            SERVER: {process.env.NEXT_PUBLIC_CAMPUS_GATE === "1" ? "ON" : process.env.NEXT_PUBLIC_CAMPUS_GATE ? `"${process.env.NEXT_PUBLIC_CAMPUS_GATE}"` : "NOT SET"}
+          </span>
+          <GateProbe />
+        </div>
+
+        <p className="mt-6 text-xs italic text-ink-faint" style={serifStyle}>
           Statuses are presence checks on the server&apos;s own configuration — never keys, never values, and
           never claimed when absent.
         </p>
