@@ -24,6 +24,7 @@ export function LedgerFooter() {
           <Link href="/dashboard" className="transition hover:text-ink">Dashboard</Link>
           <Link href="/playbooks" className="transition hover:text-ink">Playbooks</Link>
           <Link href="/compare" className="transition hover:text-ink">Compare</Link>
+          <Link href="/integrations" className="transition hover:text-ink">Integrations</Link>
           <Link href="/blog" className="transition hover:text-ink">Blog</Link>
           <Link href="/terms" className="transition hover:text-ink">Terms</Link>
           <Link href="/privacy" className="transition hover:text-ink">Privacy</Link>
