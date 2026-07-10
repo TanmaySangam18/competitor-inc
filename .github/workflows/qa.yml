@@ -1,0 +1,22 @@
+name: qa
+# Platform CI (Block R4) — the same gate every local slice passes, now enforced on every push:
+# env-guard (NEXT_PUBLIC manifest) → tsc → 763 tests → next build → smoke/fuzz. Keyless by design —
+# the whole QA suite runs in simulated mode with zero secrets, so CI needs none (and can't leak any).
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci
+      - run: npm run qa
