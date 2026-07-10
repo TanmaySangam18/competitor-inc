@@ -120,6 +120,18 @@ function Card({ title, desc, children }: { title: string; desc?: string; childre
 }
 
 function Brand({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
+  const b = cfg.config.brand;
+  const field = (label: string, key: "tone" | "audience" | "avoid", placeholder: string) => (
+    <label className="block">
+      <span className="text-xs font-medium text-muted">{label}</span>
+      <input
+        value={b[key]}
+        onChange={(e) => cfg.setBrand({ [key]: e.target.value })}
+        placeholder={placeholder}
+        className="mt-1 w-full rounded-xl border border-border bg-bg/50 px-3 py-2 text-sm text-text outline-none placeholder:text-muted-2 focus:border-coral/40"
+      />
+    </label>
+  );
   return (
     <Card title="Brand voice · soul.md" desc="The DNA every agent inherits — tone, values, and the lines they won't cross.">
       <textarea
@@ -128,7 +140,14 @@ function Brand({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
         rows={7}
         className="w-full resize-none rounded-xl border border-border bg-bg/50 p-4 text-sm leading-relaxed text-text outline-none focus:border-coral/40"
       />
-      <p className="mt-2 flex items-center gap-1.5 text-xs text-mint"><Check size={13} /> Saved automatically</p>
+      {/* Block 6a — structured brand training: guided fields for founders who don't write soul.md prose.
+          Composed into every agent call via getSoul(); empty fields change nothing. */}
+      <div className="mt-4 grid gap-3 border-t border-border pt-4 sm:grid-cols-3">
+        {field("Tone", "tone", "confident, dry humor, short sentences")}
+        {field("Audience", "audience", "busy agency owners who hate fluff")}
+        {field("Never use", "avoid", "buzzwords, exclamation points, emoji")}
+      </div>
+      <p className="mt-2 flex items-center gap-1.5 text-xs text-mint"><Check size={13} /> Saved automatically — every draft inherits this</p>
     </Card>
   );
 }

@@ -13,8 +13,19 @@ export interface AgentConfig {
 
 export type ProviderMode = "frontier" | "private" | "simulated";
 
+// Block 6a (Resleeve's "brand-trained on your style", our way): STRUCTURED brand fields a first-time
+// founder can fill without knowing how to write a soul.md. Composed into a directive and appended to
+// the soul at the getSoul() choke point — every model-backed draft (validate/sell/shift/chat/Team Room)
+// inherits it with zero call-site changes.
+export interface BrandVoice {
+  tone: string; // e.g. "confident, dry humor, short sentences"
+  audience: string; // e.g. "busy agency owners who hate fluff"
+  avoid: string; // e.g. "exclamation points, buzzwords like 'unlock', emoji"
+}
+
 export interface EngineConfig {
   soul: string;
+  brand: BrandVoice;
   agents: Record<AgentRole, AgentConfig>;
   providerMode: ProviderMode;
   byok: ByokConfig;
@@ -33,6 +44,7 @@ export const DEFAULT_CONFIG: EngineConfig = {
     "Optimize for the user's real outcome, not vanity metrics — and tell the truth even when it " +
     "means recommending we don't build it. The user is the founder; never act on anything " +
     "consequential without their explicit sign-off.",
+  brand: { tone: "", audience: "", avoid: "" },
   agents: ROLES.reduce(
     (acc, r) => {
       acc[r] = { enabled: true, scope: AGENTS[r].blurb };
@@ -104,16 +116,34 @@ export function getConnections(): Connections | null {
   return null;
 }
 
-// Read the founder's brand voice (soul.md) for injection into every agent call (validate/sell/shift/
-// chat) — so "the DNA every agent inherits" is literally true, not just saved. Returns undefined when
-// unset/empty (engine then runs its built-in default voice).
+// Compose the structured brand fields into a compact directive (Block 6a). Pure + testable. Empty
+// fields contribute nothing; all empty ⇒ undefined (byte-identical behavior for founders who never
+// touch the brand card).
+export function brandDirective(brand: Partial<BrandVoice> | null | undefined): string | undefined {
+  if (!brand) return undefined;
+  const parts: string[] = [];
+  const tone = brand.tone?.trim();
+  const audience = brand.audience?.trim();
+  const avoid = brand.avoid?.trim();
+  if (tone) parts.push(`Write in this tone: ${tone.slice(0, 200)}.`);
+  if (audience) parts.push(`You are writing for: ${audience.slice(0, 200)}.`);
+  if (avoid) parts.push(`Never use: ${avoid.slice(0, 200)}.`);
+  return parts.length ? `Brand voice — ${parts.join(" ")}` : undefined;
+}
+
+// Read the founder's brand voice (soul.md + the structured brand fields) for injection into every agent
+// call (validate/sell/shift/chat) — so "the DNA every agent inherits" is literally true, not just saved.
+// Returns undefined when unset/empty (engine then runs its built-in default voice).
 export function getSoul(): string | undefined {
   if (typeof window === "undefined") return undefined;
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return undefined;
-    const soul = (JSON.parse(raw) as EngineConfig).soul;
-    return typeof soul === "string" && soul.trim() ? soul.trim().slice(0, 800) : undefined;
+    const cfg = JSON.parse(raw) as Partial<EngineConfig>;
+    const soul = typeof cfg.soul === "string" && cfg.soul.trim() ? cfg.soul.trim().slice(0, 800) : undefined;
+    const brand = brandDirective(cfg.brand);
+    if (soul && brand) return `${soul}\n${brand}`;
+    return soul ?? brand;
   } catch {
     return undefined;
   }
@@ -168,6 +198,8 @@ export function useConfig() {
             byok: parsed.byok && typeof parsed.byok === "object" ? { ...DEFAULT_CONFIG.byok, ...parsed.byok } : DEFAULT_CONFIG.byok,
             connections: parsed.connections && typeof parsed.connections === "object" ? { ...DEFAULT_CONFIG.connections, ...parsed.connections } : DEFAULT_CONFIG.connections,
             notify: parsed.notify && typeof parsed.notify === "object" ? { ...DEFAULT_CONFIG.notify, ...parsed.notify } : DEFAULT_CONFIG.notify,
+            // A config saved before Block 6a has no brand fields — default them (same per-key pattern).
+            brand: parsed.brand && typeof parsed.brand === "object" ? { ...DEFAULT_CONFIG.brand, ...parsed.brand } : DEFAULT_CONFIG.brand,
           });
         }
       }
@@ -187,6 +219,10 @@ export function useConfig() {
   }, [config, hydrated]);
 
   const setSoul = useCallback((soul: string) => setConfig((c) => ({ ...c, soul })), []);
+  const setBrand = useCallback(
+    (patch: Partial<BrandVoice>) => setConfig((c) => ({ ...c, brand: { ...c.brand, ...patch } })),
+    []
+  );
   const setProviderMode = useCallback(
     (providerMode: ProviderMode) => setConfig((c) => ({ ...c, providerMode })),
     []
@@ -218,7 +254,7 @@ export function useConfig() {
   );
   const reset = useCallback(() => setConfig(DEFAULT_CONFIG), []);
 
-  return { config, hydrated, setSoul, setProviderMode, toggleAgent, setAgentScope, setByok, setConnections, setNotify, reset };
+  return { config, hydrated, setSoul, setBrand, setProviderMode, toggleAgent, setAgentScope, setByok, setConnections, setNotify, reset };
 }
 
 // Read the opt-in customer-notify target (used outside React). Returns the chat id or null.

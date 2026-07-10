@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateByok } from "./config";
+import { validateByok, brandDirective } from "./config";
 
 describe("validateByok — BYOK shape guard (defense-in-depth before the SSRF check)", () => {
   it("treats an unset config as valid (no BYOK = simulated, not an error)", () => {
@@ -40,3 +40,26 @@ describe("validateByok — BYOK shape guard (defense-in-depth before the SSRF ch
     expect(validateByok({ provider: "openai", apiKey: "sk-x", baseUrl: "", model: "" }).ok).toBe(false);
   });
 });
+
+describe("brandDirective — structured brand training (Block 6a)", () => {
+  it("all-empty ⇒ undefined (founders who skip the card change nothing)", () => {
+    expect(brandDirective(null)).toBeUndefined();
+    expect(brandDirective({})).toBeUndefined();
+    expect(brandDirective({ tone: "  ", audience: "", avoid: " " })).toBeUndefined();
+  });
+
+  it("composes only the filled fields, clamped", () => {
+    const d = brandDirective({ tone: "dry, confident", avoid: "emoji" })!;
+    expect(d).toContain("Write in this tone: dry, confident.");
+    expect(d).toContain("Never use: emoji.");
+    expect(d).not.toContain("writing for");
+    expect(brandDirective({ tone: "x".repeat(500) })!.length).toBeLessThan(260); // 200-char clamp holds
+  });
+
+  it("full profile reads as one compact directive", () => {
+    const d = brandDirective({ tone: "warm", audience: "agency owners", avoid: "buzzwords" })!;
+    expect(d.startsWith("Brand voice — ")).toBe(true);
+    expect(d).toContain("You are writing for: agency owners.");
+  });
+});
+
