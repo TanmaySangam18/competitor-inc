@@ -37,11 +37,60 @@ function fonts() {
   return fontsPromise;
 }
 
+// The metric variant — same ledger card, the number where the URL would be, "VERIFIED · METRIC" stamp.
+function metricCard(title: string, value: string, serif: ArrayBuffer | null, mono: ArrayBuffer | null) {
+  const serifFamily = serif ? "Fraunces" : "serif";
+  const monoFamily = mono ? "JetBrains Mono" : "monospace";
+  return new ImageResponse(
+    (
+      <div style={{ width: "100%", height: "100%", display: "flex", background: CREAM, padding: "44px", fontFamily: serifFamily }}>
+        <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", background: CREAM2, border: `3px solid ${INK}`, borderRadius: "28px", boxShadow: `10px 10px 0 ${INK}`, padding: "56px 64px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", fontFamily: monoFamily, fontSize: 22, letterSpacing: "0.14em", color: SIENNA, fontWeight: 500 }}>MEASURED BY THE COMPANY · COMPETITOR.INC</div>
+            <div style={{ display: "flex", transform: "rotate(-3deg)", border: `4px solid ${SIENNA}`, color: SIENNA, borderRadius: "10px", padding: "8px 18px", fontFamily: monoFamily, fontSize: 26, fontWeight: 500, letterSpacing: "0.1em" }}>VERIFIED · METRIC</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", fontSize: 56, color: INK, fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.01em" }}>{title}</div>
+            <div style={{ display: "flex", marginTop: 24, fontFamily: monoFamily, fontSize: 40, color: PINE, fontWeight: 500 }}>{value}</div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: `2px solid ${RULE}`, paddingTop: 28 }}>
+            <div style={{ display: "flex", fontFamily: monoFamily, fontSize: 22, color: INK_MUTED }}>first-party measurement · server-signed</div>
+            <div style={{ display: "flex", fontSize: 22, color: INK_MUTED, fontStyle: "italic" }}>never projected, never invented</div>
+          </div>
+        </div>
+      </div>
+    ),
+    {
+      width: 1200,
+      height: 630,
+      fonts: [
+        ...(serif ? [{ name: "Fraunces", data: serif, weight: 500 as const, style: "normal" as const }] : []),
+        ...(mono ? [{ name: "JetBrains Mono", data: mono, weight: 500 as const, style: "normal" as const }] : []),
+      ],
+      headers: { "cache-control": "public, s-maxage=3600, stale-while-revalidate=86400" },
+    }
+  );
+}
+
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams;
   const title = (q.get("title") ?? "").slice(0, 80).trim() || "A real product, shipped";
   const review = (q.get("review") ?? "").slice(0, 120).trim();
   const raw = (q.get("url") ?? "").trim();
+
+  // ── METRIC receipts (Block 6b, honest closure): a metric can't be re-verified from params like a
+  // live URL can — so metric cards mint ONLY with a valid server HMAC (signedMetricCardUrl). No secret
+  // configured ⇒ 503; bad/missing sig ⇒ 403. Nobody outside our server can fabricate a stamped number.
+  if (q.get("kind") === "metric") {
+    const value = (q.get("value") ?? "").slice(0, 120).trim();
+    const sig = (q.get("sig") ?? "").trim();
+    if (!value) return new Response("value required", { status: 400 });
+    const { verifyMetricSig, signMetricCard } = await import("@/lib/engine/receipt-sign");
+    if (!signMetricCard(title, value)) return new Response("metric receipts not configured", { status: 503 });
+    if (!verifyMetricSig(title, value, sig)) return new Response("invalid signature — no receipt", { status: 403 });
+    const { serif, mono } = await fonts();
+    return metricCard(title, value, serif, mono);
+  }
 
   // The honesty gate: only a real https *.vercel.app deploy can appear on a receipt…
   let live: URL;
