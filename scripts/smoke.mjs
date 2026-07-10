@@ -50,7 +50,7 @@ async function run() {
   console.log("• routes");
   const home = await get("/");
   if (home) { const t = await home.text(); t.includes("competitor.inc") ? ok("/ contains brand") : fail("/ missing 'competitor.inc'"); }
-  await get("/dashboard"); await get("/login"); await get("/live"); await get("/dashboard/settings"); await get("/join"); await get("/how-it-works"); await get("/delegation"); await get("/nu"); await get("/house"); await get("/house/board"); await get("/house/ledger"); await get("/house/cohort");
+  await get("/dashboard"); await get("/login"); await get("/live"); await get("/dashboard/settings"); await get("/join"); await get("/how-it-works"); await get("/nu"); await get("/house"); await get("/house/board"); await get("/house/ledger"); await get("/house/cohort");
   await get("/proof");
   await get("/watch"); await get("/orchestrator"); // consolidated surfaces → redirect to /dashboard (200 after follow)
   // ChatOps reflection endpoint: founder-gated. A guest must get 200 + an EMPTY list — never someone's messages.

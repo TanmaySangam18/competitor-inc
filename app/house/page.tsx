@@ -1,40 +1,32 @@
 "use client";
 
-// /house — "The House": competitor.inc, run by its own agent crew (customer zero). PRIVATE — founder
-// only. The Office (/delegation) builds the USER's company; the House is competitor.inc building and
-// growing ITSELF. Same 3D floor as the Office, but vivid (colorful figures with faces) and gated.
+// /house — "The Founder Console": competitor.inc's own private cockpit. Founder-only, gated.
+// The old 3D "moving agents" floor (DelegationScene + ambient banter) was RETIRED — a real software
+// company doesn't ship a toy office. This is a clean index into the genuine internal tooling: the
+// receipted revenue ledger, the pipeline, the metrics board, the cohort view, and the funding pack.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { ArrowLeft, KeyRound, Loader2, Lock, MessagesSquare, Send } from "lucide-react";
+import { ArrowLeft, BarChart3, KeyRound, Landmark, LineChart, Loader2, Lock, Receipt, Users } from "lucide-react";
 import { LogoMark } from "@/components/Logo";
 import { useAuth } from "@/lib/engine/useAuth";
-import { DELEGATION, type DelegationAgent } from "@/lib/engine/delegation";
-import { pickExchange, type BanterCtx, type Turn } from "@/lib/engine/banter";
-import { AGENTS, type AgentRole } from "@/lib/engine/types";
-import { getByok } from "@/lib/engine/config";
 import { FOUNDER_EMAILS } from "@/lib/engine/founders";
 import { SignupsWidget } from "@/components/house/SignupsWidget";
-
-const DelegationScene = dynamic(() => import("../delegation/DelegationScene"), {
-  ssr: false,
-  loading: () => (
-    <div className="grid h-full w-full place-items-center">
-      <Loader2 className="animate-spin text-muted-2" size={28} />
-    </div>
-  ),
-});
-
-const BY_ROLE = Object.fromEntries(DELEGATION.map((a) => [a.role, a])) as Record<AgentRole, DelegationAgent>;
-
-// Founder allow-list lives in lib/engine/founders.ts (shared with the dashboard's full-access gate).
 
 // The on-device unlock is a dev convenience and must NEVER work on a public URL. Only true localhost.
 function hostIsLocalhost(): boolean {
   if (typeof window === "undefined") return false;
   return /^(localhost|127\.0\.0\.1|0\.0\.0\.0|::1|\[::1\])$/.test(window.location.hostname);
 }
+
+// The real internal tooling — each is its own gated page under /house.
+const TOOLS: { href: string; title: string; desc: string; icon: typeof Receipt }[] = [
+  { href: "/house/proof", title: "Proof & receipts", desc: "The private, receipted revenue ledger — real numbers only, no projected fiction.", icon: Receipt },
+  { href: "/house/ledger", title: "Revenue pipeline", desc: "The cohort-owner pipeline toward $10K MRR.", icon: LineChart },
+  { href: "/house/board", title: "Metrics board", desc: "The live KPI board (secret-gated).", icon: BarChart3 },
+  { href: "/house/cohort", title: "Cohort", desc: "Cohort view with sample data.", icon: Users },
+  { href: "/house/funding", title: "Funding pack", desc: "The private founder funding pack.", icon: Landmark },
+];
 
 export default function House() {
   const { user, ready, configured } = useAuth();
@@ -54,122 +46,6 @@ export default function House() {
     ? !!user && !user.guest && FOUNDER_EMAILS.includes(user.email.toLowerCase())
     : isLocalhost && unlocked;
 
-  // ── Ambient House conversation (competitor.inc growing itself) ──
-  const [speaker, setSpeaker] = useState<Turn | null>(null);
-  const [transcript, setTranscript] = useState<Turn[]>([]);
-  const ctxRef = useRef<BanterCtx>({ company: "competitor.inc", idea: "the honest AI co-founder", working: true });
-  const queueRef = useRef<Turn[]>([]);
-  const lastIdRef = useRef<number | undefined>(undefined);
-  // True while a founder directive is streaming a real (Sonnet) reply — pause the ambient banter so
-  // it doesn't talk over the agent actually responding.
-  const busyRef = useRef(false);
-  const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    if (!isFounder) return;
-    const tick = () => {
-      if (busyRef.current) return;
-      if (queueRef.current.length === 0) {
-        const ex = pickExchange(ctxRef.current, lastIdRef.current);
-        lastIdRef.current = ex.id;
-        queueRef.current = ex.turns;
-      }
-      const turn = queueRef.current.shift();
-      if (turn) {
-        setSpeaker(turn);
-        setTranscript((t) => [...t, turn].slice(-40));
-      }
-    };
-    tick();
-    const iv = setInterval(tick, 3400);
-    return () => clearInterval(iv);
-  }, [isFounder]);
-
-  const spotlight = useMemo<AgentRole | null>(() => speaker?.role ?? null, [speaker]);
-  const feedRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
-  }, [transcript]);
-
-  // ── Founder → crew directives (you tell the agents what to do next) ──
-  const [directive, setDirective] = useState("");
-  const [target, setTarget] = useState<AgentRole>("ceo");
-  const [directives, setDirectives] = useState<{ text: string; role: AgentRole; at: number }[]>([]);
-  useEffect(() => {
-    try { const raw = localStorage.getItem("cofounder:house:directives"); if (raw) setDirectives(JSON.parse(raw)); } catch { /* ignore */ }
-  }, []);
-  const sendDirective = async () => {
-    const text = directive.trim();
-    if (!text || busyRef.current) return;
-    const role = target;
-    const entry = { text, role, at: Date.now() };
-    setDirectives((d) => {
-      const next = [entry, ...d].slice(0, 50);
-      try { localStorage.setItem("cofounder:house:directives", JSON.stringify(next)); } catch { /* ignore */ }
-      return next;
-    });
-    setDirective("");
-    busyRef.current = true;
-    setBusy(true);
-
-    // The addressed agent answers for real (Sonnet 4.6 via /api/engine) in its own voice + playbook,
-    // about competitor.inc itself (customer zero). Streamed onto the floor. Consequential moves
-    // (spend, outreach, posting, deploys) it drafts and queues for your sign-off — never auto-ships.
-    const a = AGENTS[role];
-    const soul =
-      `You are ${a.name}, the ${a.label} agent at competitor.inc — the proof-first AI co-founder. ` +
-      `Right now you're working on competitor.inc ITSELF (customer zero), not a user's company. Your playbook: ${a.playbook}. ` +
-      `Your responsibilities: ${a.responsibilities.join("; ")}. ` +
-      (a.objections ? `Reassure these common worries when relevant: ${a.objections.join("; ")}. ` : "") +
-      `Reply in-character: concise, specific, action-oriented — name the concrete next steps you'd take. ` +
-      `Anything consequential (spending money, outreach, posting publicly, deploying) you DRAFT and queue for the founder's approval — say so; never claim you already shipped it.`;
-
-    // Streaming bubble: append one floor entry for this agent and update it live as tokens arrive.
-    setTranscript((t) => [...t, { role, text: "…" }].slice(-40));
-    const update = (txt: string) => {
-      setSpeaker({ role, text: txt });
-      setTranscript((t) => { const copy = t.slice(); copy[copy.length - 1] = { role, text: txt }; return copy; });
-    };
-
-    try {
-      const res = await fetch("/api/engine", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          kind: "chat",
-          company: { name: "competitor.inc", idea: "the proof-first AI co-founder that validates demand before building" },
-          message: text,
-          soul,
-          byok: getByok() ?? undefined,
-        }),
-      });
-      const consequential = !!res.headers.get("x-approval");
-      let acc = "";
-      if (!res.body) {
-        const d = await res.json().catch(() => ({} as { reply?: string }));
-        acc = d.reply ?? "On it.";
-        update(acc);
-      } else {
-        const reader = res.body.getReader();
-        const dec = new TextDecoder();
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          acc += dec.decode(value, { stream: true });
-          update(acc);
-        }
-      }
-      // Honest human-in-the-loop signal: a consequential ask is flagged as waiting on the founder.
-      if (consequential) {
-        setTranscript((t) => [...t, { role, text: "🔔 Queued for your approval — nothing consequential ships without your yes." }].slice(-40));
-      }
-    } catch {
-      update("I couldn't reach the engine just now — try again?");
-    } finally {
-      busyRef.current = false;
-      setBusy(false);
-    }
-  };
-
   // ── Gate screens ────────────────────────────────────────────────
   if (!ready) {
     return <div className="grid min-h-screen place-items-center bg-bg"><Loader2 className="animate-spin text-muted-2" size={28} /></div>;
@@ -181,7 +57,7 @@ export default function House() {
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-surface-2 text-muted"><Lock size={26} /></span>
           <h1 className="mt-5 text-2xl font-bold">The House is private</h1>
           <p className="mt-2 text-sm text-muted">
-            This is competitor.inc&apos;s own internal floor — founder only. Users never see it.
+            This is competitor.inc&apos;s own internal console — founder only. Users never see it.
           </p>
           {configured ? (
             <Link href="/login" className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-bg transition hover:brightness-110">
@@ -213,14 +89,10 @@ export default function House() {
     );
   }
 
-  // ── The House floor (founder view) ─────────────────────────────
+  // ── The Founder Console (founder view) ─────────────────────────────
   return (
-    <main id="main" className="relative h-[100dvh] w-full overflow-hidden bg-bg mesh">
-      <div className="absolute inset-0">
-        <DelegationScene phase="working" spotlight={spotlight} speech={speaker} vivid faces />
-      </div>
-
-      <header className="glass-nav absolute inset-x-0 top-0 z-20">
+    <main id="main" className="relative min-h-[100dvh] w-full bg-bg mesh">
+      <header className="glass-nav sticky top-0 z-20">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
           <div className="flex items-center gap-3">
             <Link href="/dashboard" className="flex items-center gap-2 text-muted transition hover:text-text">
@@ -234,117 +106,33 @@ export default function House() {
               <Lock size={9} /> private
             </span>
           </div>
-          <span className="hidden text-xs text-muted-2 sm:inline">competitor.inc, run by its own agents</span>
+          <span className="hidden text-xs text-muted-2 sm:inline">competitor.inc — founder console</span>
         </div>
       </header>
 
-      {/* Founder command bar — tell the crew what to do next */}
-      <div className="pointer-events-auto absolute left-1/2 top-20 z-20 w-[min(92vw,40rem)] -translate-x-1/2">
-        <div className="clay-panel p-3">
-          <div className="flex items-center gap-2">
-            <select
-              value={target}
-              onChange={(e) => setTarget(e.target.value as AgentRole)}
-              aria-label="Choose which agent to direct"
-              className="shrink-0 rounded-lg border border-border bg-surface px-2.5 py-2 text-xs font-medium outline-none"
-            >
-              {DELEGATION.map((a) => (
-                <option key={a.role} value={a.role}>{a.name}</option>
-              ))}
-            </select>
-            <input
-              value={directive}
-              onChange={(e) => setDirective(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendDirective()}
-              disabled={busy}
-              placeholder={busy ? `${AGENTS[target].name} is working…` : "Tell the crew what to do next…"}
-              aria-label="Command the crew"
-              className="w-full rounded-lg bg-bg/60 px-3 py-2 text-sm outline-none placeholder:text-muted-2 disabled:opacity-60"
-            />
-            <button
-              onClick={sendDirective}
-              disabled={!directive.trim() || busy}
-              aria-label="Send directive"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-coral text-bg transition hover:brightness-110 disabled:opacity-40"
-            >
-              {busy ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-            </button>
-          </div>
-          {directives.length > 0 && (
-            <div className="mt-2 max-h-24 space-y-1 overflow-y-auto border-t border-border pt-2">
-              {directives.slice(0, 5).map((d, i) => (
-                <div key={i} className="flex items-center gap-1.5 text-[11px]">
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: BY_ROLE[d.role].color }} />
-                  <span className="shrink-0 font-mono text-text">{BY_ROLE[d.role].name}</span>
-                  <span className="truncate text-muted-2">{d.text}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <div className="mx-auto max-w-5xl px-5 py-10 lg:pr-72">
+        <h1 className="text-2xl font-bold">Founder console</h1>
+        <p className="mt-1 max-w-xl text-sm text-muted">
+          competitor.inc&apos;s own private cockpit — the real, receipted internals. Every number here is
+          measured, never projected.
+        </p>
 
-      {/* Founder-only launch metric — top right */}
-      <SignupsWidget app="lockin" label="Lockin signups" />
-
-      {/* Crew (vivid) — bottom left */}
-      <aside className="glass-panel pointer-events-auto absolute bottom-4 left-4 z-20 w-[17rem] max-w-[calc(100vw-2rem)] rounded-2xl p-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-2">The House crew</h2>
-        <ul className="mt-3 space-y-2.5">
-          {DELEGATION.map((a) => {
-            const active = spotlight === a.role;
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {TOOLS.map((t) => {
+            const Icon = t.icon;
             return (
-              <li key={a.role} className="flex items-start gap-2.5">
-                <span
-                  className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded-full ring-1 ring-black/20"
-                  style={{ background: a.color, boxShadow: active ? `0 0 0 3px ${a.color}55` : undefined }}
-                />
-                <div className="min-w-0">
-                  <div className="text-sm font-medium leading-tight">
-                    {a.name} <span className="text-muted-2">· {a.label}</span>
-                    {active && <span className="ml-1.5 text-[10px] text-text">● speaking</span>}
-                  </div>
-                </div>
-              </li>
+              <Link key={t.href} href={t.href} className="clay-panel group p-5 transition hover:brightness-105">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-surface-2 text-text"><Icon size={18} /></span>
+                <h2 className="mt-3 text-sm font-semibold">{t.title}</h2>
+                <p className="mt-1 text-[13px] leading-snug text-muted-2">{t.desc}</p>
+              </Link>
             );
           })}
-        </ul>
-        <p className="mt-3 border-t border-border pt-2.5 text-[11px] leading-relaxed text-muted-2">
-          Customer zero — we grow competitor.inc with its own crew. Consequential moves wait for your yes.
-        </p>
-      </aside>
-
-      {/* House conversation (claymorphism) — bottom right */}
-      <div className="pointer-events-auto absolute bottom-4 right-4 z-20 w-[22rem] max-w-[calc(100vw-2rem)]">
-        <div className="clay-panel flex max-h-[46vh] flex-col p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-2">
-              <MessagesSquare size={13} /> The House floor
-            </h2>
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-2">
-              <span className="live-dot h-1.5 w-1.5 rounded-full bg-text" /> live
-            </span>
-          </div>
-          <div ref={feedRef} className="mt-3 flex-1 space-y-2.5 overflow-y-auto pr-1">
-            {transcript.length === 0 ? (
-              <p className="text-[11px] text-muted-2">The crew is settling in…</p>
-            ) : (
-              transcript.map((t, i) => {
-                const a = BY_ROLE[t.role];
-                return (
-                  <div key={i} className="flex items-start gap-2">
-                    <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-black/15" style={{ background: a.color }} />
-                    <div className="min-w-0 text-[12px] leading-snug">
-                      <span className="font-mono text-[11px] font-semibold text-text">{a.name}</span>
-                      <span className="text-muted"> {t.text}</span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
         </div>
       </div>
+
+      {/* Founder-only launch metric — floats top-right (its own absolute positioning). */}
+      <SignupsWidget app="lockin" label="Lockin signups" />
     </main>
   );
 }

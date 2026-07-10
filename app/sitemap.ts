@@ -8,7 +8,7 @@ import { SITE_URL } from "@/lib/site";
 // robots.ts allows crawling (NEXT_PUBLIC_SITE_PUBLIC=1 at launch); it's ready and waiting.
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  const staticRoutes = ["", "/how-it-works", "/delegation", "/playbooks", "/compare", "/nu", "/proof", "/join", "/blog", "/privacy", "/terms"];
+  const staticRoutes = ["", "/how-it-works", "/playbooks", "/compare", "/nu", "/proof", "/join", "/blog", "/privacy", "/terms"];
   const playbookRoutes = PLAYBOOKS.map((p) => `/playbooks/${p.slug}`);
   const blogRoutes = POSTS.map((p) => `/blog/${p.slug}`);
   return [...staticRoutes, ...playbookRoutes, ...blogRoutes].map((path) => ({

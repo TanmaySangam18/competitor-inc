@@ -8,8 +8,8 @@ import { useAuth } from "@/lib/engine/useAuth";
 
 // Beta feedback widget — a small floating button on every page. Writes to the Supabase `feedback`
 // table (insert-only RLS; run supabase/migrations/0002_feedback.sql). Hidden when Supabase isn't
-// configured, and on the immersive 3D routes so it doesn't clutter them.
-const HIDE_ON = ["/house", "/delegation"];
+// configured, and on the private founder console so it doesn't clutter it.
+const HIDE_ON = ["/house"];
 
 export function FeedbackWidget() {
   const pathname = usePathname();
