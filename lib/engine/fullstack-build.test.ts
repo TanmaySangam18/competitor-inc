@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import yaml from "js-yaml";
+import { load as parseYaml } from "js-yaml";
 import _sodium from "libsodium-wrappers";
 import {
   dispatchFullstackBuild,
@@ -65,7 +65,7 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
   });
 
   it("generates VALID, parseable YAML with the expected steps (guards against inline `: ` breaking the file)", () => {
-    const doc = yaml.load(buildFullstackWorkflowYaml()) as {
+    const doc = parseYaml(buildFullstackWorkflowYaml()) as {
       jobs: { build: { steps: { name?: string; run?: string }[] } };
     };
     // parses at all (an inline `run: printf '...eslint: {...}'` scalar would throw here)
