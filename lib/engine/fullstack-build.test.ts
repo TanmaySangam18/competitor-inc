@@ -12,6 +12,8 @@ import {
   aiFeatureBrief,
   impliesSaaS,
   saasBrief,
+  impliesPlatform,
+  platformBrief,
 } from "./fullstack-build";
 import type { FetchLike } from "./aider-build";
 
@@ -251,6 +253,49 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
       const wfPut = gh.calls.find((c) => c.url.includes("build-fullstack.yml"));
       const yaml = Buffer.from(JSON.parse(wfPut!.body!).content, "base64").toString("utf8");
       expect(yaml).toMatch(/app\/api\/auth\/route\.ts/);
+    });
+  });
+
+  describe("S5 — platform-class builds (versioned public API a third party integrates against)", () => {
+    it("detects public-API / developer / integration intent — conservatively", () => {
+      for (const g of [
+        "a public API developers can build on",
+        "a REST API with API keys for third-party integrations",
+        "a platform with webhooks and an SDK",
+        "an API-first inventory service",
+      ]) expect(impliesPlatform(g)).toBe(true);
+      for (const g of ["a personal journal app", "a wedding RSVP page", "a pomodoro timer"])
+        expect(impliesPlatform(g)).toBe(false);
+    });
+
+    it("the platform brief demands a versioned API + API-key auth + OpenAPI + tenant isolation", () => {
+      const p = fullstackPromptFile("a public API developers can build on");
+      expect(p).toMatch(/app\/api\/v1\//);
+      expect(p.toLowerCase()).toContain("api key");
+      expect(p.toLowerCase()).toContain("openapi");
+      expect(p.toLowerCase()).toContain("v1 must never"); // versioning discipline
+      expect(p.toLowerCase()).toContain("hash of each key"); // never store plaintext keys
+      expect(platformBrief().toLowerCase()).toContain("another tenant's data"); // isolation, graded
+    });
+
+    it("a non-platform product gets NO v1 API in its brief (detector isn't trigger-happy)", () => {
+      expect(fullstackPromptFile("a pomodoro timer")).not.toMatch(/app\/api\/v1\//);
+    });
+
+    it("the workflow adds the v1 API + keys + openapi to Aider's file set only when withPlatform is set", () => {
+      const plat = buildFullstackWorkflowYaml(undefined, undefined, { withPlatform: true });
+      expect(plat).toMatch(/app\/api\/v1\/items\/route\.ts/);
+      expect(plat).toMatch(/app\/api\/keys\/route\.ts/);
+      expect(plat).toMatch(/app\/openapi\.json/);
+      expect(buildFullstackWorkflowYaml()).not.toMatch(/app\/api\/v1\//); // default unchanged
+    });
+
+    it("a platform goal wires the v1 API THROUGH dispatch into the committed workflow", async () => {
+      const gh = fakeGitHub();
+      await dispatchFullstackBuild({ goal: "a public API for developers to build on", token: "t", fetchImpl: gh.fetchImpl });
+      const wfPut = gh.calls.find((c) => c.url.includes("build-fullstack.yml"));
+      const yaml = Buffer.from(JSON.parse(wfPut!.body!).content, "base64").toString("utf8");
+      expect(yaml).toMatch(/app\/api\/v1\/items\/route\.ts/);
     });
   });
 

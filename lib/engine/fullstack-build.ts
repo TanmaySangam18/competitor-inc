@@ -79,7 +79,33 @@ export function fullstackPromptFile(goal: string, opts: { recall?: string; suite
     `  ipsum, never "get started by editing".`,
     `Aim for the calm, content-first polish of Linear / Stripe / Apple — clarity and restraint over decoration.`,
     ...(impliesSaaS(goal) ? ["", saasBrief()] : []),
+    ...(impliesPlatform(goal) ? ["", platformBrief()] : []),
     ...(impliesAiFeature(goal) ? ["", aiFeatureBrief()] : []),
+  ].join("\n");
+}
+
+// S5 (Platform-class rung). Detect when the product is meant for OTHERS to build on — a public/versioned
+// API, developer integrations, webhooks, an SDK. Conservative: a false positive only adds an API surface.
+export function impliesPlatform(goal: string): boolean {
+  return /\b(public api|rest api|api[- ]?first|developer|integrat|webhook|third[- ]?part|build on (it|top)|platform|sdk|api key|api access|open ?api)\b/i.test(goal);
+}
+
+// The additive brief for a PLATFORM-CLASS product — the S5 shape: a stable, versioned, documented API a
+// THIRD PARTY can integrate against (the customer's own "Graph"). The contract is what makes it trustworthy
+// to build on: versioning that doesn't break, keys distinct from user login, machine-readable docs.
+export function platformBrief(): string {
+  return [
+    `PLATFORM API (this product is meant for OTHERS to build on — a public, versioned API):`,
+    `- Expose a VERSIONED public REST API under app/api/v1/ with STABLE, documented contracts. v1 must never`,
+    `  break — additive changes only; a breaking change is a new version, never a mutation of v1.`,
+    `- THIRD-PARTY AUTH via API KEYS, distinct from user login (app/api/keys/route.ts to mint/list/revoke a`,
+    `  key). A machine caller authenticates with its key (Authorization: Bearer), NEVER a user session cookie.`,
+    `  Keys are scoped to their owner's data and revocable; store only a HASH of each key, never the plaintext.`,
+    `- MACHINE-READABLE DOCS: serve an OpenAPI 3 spec at a stable path (app/openapi.json or app/api/openapi)`,
+    `  describing every v1 endpoint, so an integrator can discover the API without reading source.`,
+    `- Rate-limit per key; return clear, typed JSON errors (never a bare 500); fail closed (401/403) on a`,
+    `  missing or revoked key. Every read stays scoped to the key's owner — one tenant's key can never reach`,
+    `  another tenant's data.`,
   ].join("\n");
 }
 
@@ -142,11 +168,12 @@ export function aiFeatureBrief(): string {
 // The Actions workflow: scaffold Next → Aider implements → deploy to Vercel (production). Best-effort;
 // Slice 2 iterates it against real runs. The repo's default GITHUB_TOKEN pushes; the only secrets are the
 // free model key (LLM_API_KEY) and VERCEL_TOKEN.
-export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV, opts: { withChat?: boolean; withSaas?: boolean } = {}): string {
+export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV, opts: { withChat?: boolean; withSaas?: boolean; withPlatform?: boolean } = {}): string {
   // The files Aider is allowed to edit. The base (page + items) is byte-identical to before; a grounded AI
   // feature (R10) adds the chat route; a real SaaS (S3) adds the auth route + the login/dashboard pages.
   const fileSet = ["app/page.tsx", "app/api/items/route.ts"];
   if (opts.withSaas) fileSet.push("app/login/page.tsx", "app/dashboard/page.tsx", "app/api/auth/route.ts");
+  if (opts.withPlatform) fileSet.push("app/api/v1/items/route.ts", "app/api/keys/route.ts", "app/openapi.json");
   if (opts.withChat) fileSet.push("app/api/chat/route.ts");
   const files = fileSet.join(" ");
   // P2 (seed): a structural review that verifies a GROUNDED build actually implements the cite-or-abstain +
@@ -374,7 +401,7 @@ export async function dispatchFullstackBuild(opts: {
       });
     const wf = await commitFile(
       ".github/workflows/build-fullstack.yml",
-      buildFullstackWorkflowYaml(opts.model ?? FS_MODEL, FS_KEY_ENV, { withChat: impliesAiFeature(opts.goal), withSaas: impliesSaaS(opts.goal) }),
+      buildFullstackWorkflowYaml(opts.model ?? FS_MODEL, FS_KEY_ENV, { withChat: impliesAiFeature(opts.goal), withSaas: impliesSaaS(opts.goal), withPlatform: impliesPlatform(opts.goal) }),
     );
     if (!wf.ok) return { error: `commit workflow → HTTP ${wf.status}${wf.status === 403 ? " — the token needs the 'workflow' scope" : ""}` };
     if (!opts.fetchImpl) await new Promise((r) => setTimeout(r, 3000));
