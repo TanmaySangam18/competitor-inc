@@ -15,7 +15,20 @@ const nextConfig: NextConfig = {
   // so a silently-blocked deploy pipeline (the Vercel seatBlock incident) is visible, not quiet.
   env: { BUILD_STAMP: String(Date.now()) },
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      // Everything except /decisions keeps the blanket clickjacking DENY.
+      { source: "/((?!decisions$).*)", headers: securityHeaders },
+      // /decisions (the Executive Inbox) is embedded by the coworker desktop app. XFO has no allow-list,
+      // so this one path swaps DENY for a TIGHT CSP frame-ancestors: self + the coworker's local app
+      // origin only (apps serve at <slug>.apps.localhost:3210). Every other header stays identical.
+      {
+        source: "/decisions",
+        headers: [
+          ...securityHeaders.filter((h) => h.key !== "X-Frame-Options"),
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self' http://executive-inbox.apps.localhost:3210" },
+        ],
+      },
+    ];
   },
   // Clean URLs for the standalone static apps we launch (served from public/<app>/index.html).
   async rewrites() {

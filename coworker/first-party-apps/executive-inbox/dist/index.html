@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- Executive Inbox (Competitor.Inc first-party coworker app).
+     A thin, honest shell: it frames the engine's authenticated /decisions page — the queue itself lives
+     server-side behind the principal's own session; this app holds no data and no secrets. The engine URL
+     is configurable (localStorage) so the same app works against local dev or the deployed engine. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Executive Inbox</title>
+  <style>
+    :root { color-scheme: light; }
+    html, body { margin: 0; height: 100%; background: #F5EFE3; font: 13px/1.5 ui-sans-serif, system-ui, sans-serif; color: #1A1712; }
+    .bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #D9D0BE; background: #FDFBF6; }
+    .bar strong { font-weight: 600; }
+    .bar input { flex: 1; min-width: 0; border: 1px solid #D9D0BE; border-radius: 4px; padding: 4px 8px; font: inherit; background: #fff; }
+    .bar button { border: 1px solid #1A1712; background: none; border-radius: 4px; padding: 4px 12px; font: inherit; cursor: pointer; }
+    .bar button:hover { background: #F5EFE3; }
+    iframe { display: block; width: 100%; height: calc(100% - 41px); border: 0; }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <strong>Executive Inbox</strong>
+    <input id="engine" type="url" spellcheck="false" aria-label="Engine URL" />
+    <button id="go">Connect</button>
+  </div>
+  <iframe id="frame" title="Decisions awaiting you"></iframe>
+  <script>
+    var DEFAULT_ENGINE = "http://localhost:3000";
+    var input = document.getElementById("engine");
+    var frame = document.getElementById("frame");
+    function engineBase() {
+      try { return localStorage.getItem("competitor.engineUrl") || DEFAULT_ENGINE; } catch { return DEFAULT_ENGINE; }
+    }
+    function connect(base) {
+      var clean = (base || "").trim().replace(/\/+$/, "") || DEFAULT_ENGINE;
+      try { localStorage.setItem("competitor.engineUrl", clean); } catch {}
+      input.value = clean;
+      frame.src = clean + "/decisions";
+    }
+    document.getElementById("go").addEventListener("click", function () { connect(input.value); });
+    input.addEventListener("keydown", function (e) { if (e.key === "Enter") connect(input.value); });
+    connect(engineBase());
+  </script>
+</body>
+</html>
