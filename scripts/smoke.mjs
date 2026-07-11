@@ -200,6 +200,10 @@ async function run() {
   await post("/api/import/verify", {}, 400);
   const pf = await get("/api/proof");
   if (pf) { const j = await pf.json(); (j.locked || Array.isArray(j.cards)) ? ok("proof acks (locked without secret)") : fail("proof shape bad"); }
+  // Change Desk (R9): a change is a governed build_software act. Field validation fires before any db/session,
+  // so a missing-field call is a deterministic 400 in any env (proves the route is wired + validating).
+  const chBad = await post("/api/change", {}, 400);
+  if (chBad) { const j = await chBad.json(); j.ok === false ? ok("change desk validates input (400 on missing fields)") : fail("change shape bad"); }
 
   const fb = await post("/api/feedback", { message: "smoke feedback", path: "/smoke" }, 200);
   if (fb) { const j = await fb.json(); j.ok ? ok("feedback acks (fail-soft)") : fail("feedback shape bad"); }
