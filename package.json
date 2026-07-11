@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "prove": "vitest run lib/sim/proving-ground.report.test.ts --reporter=verbose",
     "typecheck": "tsc --noEmit",
     "verify": "tsc --noEmit && vitest run && next build",
     "qa": "node scripts/env-guard.mjs && tsc --noEmit && vitest run && next build && node scripts/smoke.mjs",
