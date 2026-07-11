@@ -4,6 +4,7 @@ import { FULLSTACK_BUILDS, dispatchFullstackBuild, fullstackConfigured } from "@
 import { registerProduct, listProductsForUser } from "@/lib/engine/products-db";
 import { seedArchitectureIfMissing } from "@/lib/engine/product-memory-db";
 import { suiteRecall } from "@/lib/org/suite";
+import { readinessFromCaps } from "@/lib/engine/autosetup";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isFounderEmail } from "@/lib/engine/founders";
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
@@ -143,12 +144,16 @@ export async function GET(req: Request) {
     }
     return Response.json({ ok: true, ms, org, model: model ?? "default", repo: out.repo, url: out.url, registered, note: "Repo created + secrets injected + workflow dispatched + product registered under you. Open the repo's Actions tab to watch the build; it deploys to Vercel when it finishes." });
   }
+  const caps = capabilities();
   return Response.json({
     ok: true,
     provider: process.env.MODEL_PROVIDER ?? "simulated",
     realModelConfigured: realModelConfigured(),
-    capabilities: capabilities(),
-    connectors: connectorStatus(capabilities()),
+    capabilities: caps,
+    connectors: connectorStatus(caps),
+    // Zero-config onboarding ([[zero-config-onboarding]]): the plain-language readiness the UI shows —
+    // "what the org can do now" + the single highest-value next connection. No flags, no jargon.
+    readiness: readinessFromCaps(caps),
   });
 }
 
