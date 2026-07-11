@@ -173,6 +173,28 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     });
   });
 
+  describe("P1 — product-memory recall flows into a change build", () => {
+    it("a first build (no recall) has no 'CONTINUING' framing", () => {
+      expect(fullstackPromptFile("a notes app")).not.toContain("CONTINUING an existing product");
+    });
+
+    it("a recall brief is injected AHEAD of everything, so the agent continues the product", () => {
+      const recall = 'PRODUCT MEMORY — you are CONTINUING an existing product ("notes-app"), NOT starting fresh.';
+      const brief = fullstackPromptFile("add tags to notes", { recall });
+      expect(brief).toContain(recall);
+      expect(brief.indexOf(recall)).toBe(0); // first thing the agent reads
+    });
+
+    it("dispatch threads recall into the committed PROMPT.md", async () => {
+      const gh = fakeGitHub();
+      const recall = 'PRODUCT MEMORY — you are CONTINUING an existing product ("x"), NOT starting fresh.';
+      await dispatchFullstackBuild({ goal: "add export", token: "t", fetchImpl: gh.fetchImpl, recall });
+      const promptPut = gh.calls.find((c) => c.url.includes("PROMPT.md"));
+      const body = Buffer.from(JSON.parse(promptPut!.body!).content, "base64").toString("utf8");
+      expect(body).toContain(recall);
+    });
+  });
+
   describe("fetchDeployedUrl (Slice 2 — capture the live Vercel URL from the workflow)", () => {
     const withContent = (text: string): FetchLike => async () => ({
       ok: true, status: 200, json: async () => ({ content: Buffer.from(text, "utf8").toString("base64") }),

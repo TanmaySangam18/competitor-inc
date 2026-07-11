@@ -36,8 +36,12 @@ function repoName(goal: string): string {
 }
 
 // What Aider implements (committed as PROMPT.md). Full-stack: a Next.js page + a real API route + persistence.
-export function fullstackPromptFile(goal: string): string {
+export function fullstackPromptFile(goal: string, opts: { recall?: string } = {}): string {
+  const recall = opts.recall?.trim();
   return [
+    // P1: when this product has memory, the agent is told it is CONTINUING it (architecture + prior ADRs)
+    // BEFORE anything else — so it extends the product instead of rebuilding it. Empty on a first build.
+    ...(recall ? [recall, ""] : []),
     architectKnowledge(), // P0: every build starts on the public frontier — grounding, isolation, verify, adopt.
     ``,
     `Implement a small but REAL, working full-stack web app in this Next.js (App Router, TypeScript, Tailwind CSS) project for:`,
@@ -256,6 +260,7 @@ export async function dispatchFullstackBuild(opts: {
   token: string;
   fetchImpl?: FetchLike;
   model?: string;
+  recall?: string; // P1: product-memory recall brief (present on a CHANGE to an existing product)
 }): Promise<{ url: string; repo: string } | { error: string }> {
   const fetchImpl = opts.fetchImpl ?? (globalThis.fetch as unknown as FetchLike);
   const headers = {
@@ -306,7 +311,7 @@ export async function dispatchFullstackBuild(opts: {
     );
     if (!wf.ok) return { error: `commit workflow → HTTP ${wf.status}${wf.status === 403 ? " — the token needs the 'workflow' scope" : ""}` };
     if (!opts.fetchImpl) await new Promise((r) => setTimeout(r, 3000));
-    const pr = await commitFile("PROMPT.md", fullstackPromptFile(opts.goal));
+    const pr = await commitFile("PROMPT.md", fullstackPromptFile(opts.goal, { recall: opts.recall }));
     if (!pr.ok) return { error: `commit PROMPT.md → HTTP ${pr.status}` };
 
     // The PROMPT.md push triggered the `on: push` build. Return the repo (always resolves) as the honest
