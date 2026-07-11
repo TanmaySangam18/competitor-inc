@@ -24,7 +24,7 @@ import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import { useTheme } from "@/contexts/theme-context"
 import { toast } from "sonner"
-import { AnthropicIcon, DiscordIcon, GenericApiIcon, GitHubIcon, GoogleIcon, OllamaIcon, OpenAIIcon, OpenRouterIcon, VercelIcon } from "@/components/onboarding/provider-icons"
+import { AnthropicIcon, GenericApiIcon, GoogleIcon, OllamaIcon, OpenAIIcon, OpenRouterIcon, VercelIcon } from "@/components/onboarding/provider-icons"
 import { AccountSettings } from "@/components/settings/account-settings"
 import { ConnectedAccountsSettings } from "@/components/settings/connected-accounts-settings"
 import { MobileChannelsSettings } from "@/components/settings/mobile-channels-settings"
@@ -140,28 +140,9 @@ function HelpSettings() {
         <h4 className="text-sm font-medium">Help &amp; Support</h4>
         <p className="text-xs text-muted-foreground mt-0.5">Get help from our community</p>
       </div>
-      <Button
-        variant="outline"
-        className="w-full justify-start gap-3 h-auto py-3"
-        onClick={() => window.open("https://github.com/rowboatlabs/rowboat/issues/new", "_blank")}
-      >
-        <GitHubIcon className="size-5 shrink-0" />
-        <div className="flex flex-col items-start">
-          <span className="text-sm font-medium">Report a bug</span>
-          <span className="text-xs text-muted-foreground">Send feedback to the Rowboat team</span>
-        </div>
-      </Button>
-      <Button
-        variant="outline"
-        className="w-full justify-start gap-3 h-auto py-3"
-        onClick={() => window.open("https://discord.com/invite/wajrgmJQ6b", "_blank")}
-      >
-        <DiscordIcon className="size-5 shrink-0" />
-        <div className="flex flex-col items-start">
-          <span className="text-sm font-medium">Join our Discord</span>
-          <span className="text-xs text-muted-foreground">Chat with the community</span>
-        </div>
-      </Button>
+      {/* MODIFIED by Competitor.Inc (see coworker/NOTICE.md): upstream's feedback channels (their GitHub
+          issue tracker + their Discord) REMOVED — sending our users' bug reports to upstream would be
+          wrong for both sides. Competitor.Inc's own support path lands here later. */}
       <Button
         variant="outline"
         className="w-full justify-start gap-3 h-auto py-3"
@@ -2231,15 +2212,12 @@ export function SettingsDialog({ children, defaultTab = "account", open: control
     if (open) setActiveTab(defaultTab)
   }, [open, defaultTab])
 
-  // Check if user is signed in to Rowboat
+  // MODIFIED by Competitor.Inc (see coworker/NOTICE.md): upstream's hosted-account check REMOVED —
+  // this fork has no Rowboat-cloud account, so the hosted-models path can never activate; models come
+  // exclusively from the user's own keys or local runtimes (the BYO branch below).
   useEffect(() => {
     if (!open) return
-    window.ipc.invoke('oauth:getState', null).then((result) => {
-      const connected = result.config?.rowboat?.connected ?? false
-      setRowboatConnected(connected)
-    }).catch(() => {
-      setRowboatConnected(false)
-    })
+    setRowboatConnected(false)
   }, [open])
 
   // Hybrid mode: the Models tab is shown in both modes — signed-in users can

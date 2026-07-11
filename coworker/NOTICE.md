@@ -17,10 +17,12 @@ header; full detail in this repository's git history):
 3. **Display-string rebrand** — product-name prose in user-facing copy
    (notification default title, onboarding/tour, video call, billing copy,
    integration labels) now reads "Competitor Coworker" / "your Coworker".
-   References to upstream's own cloud services ("Rowboat account" sign-in,
-   "Rowboat default" hosted models, "feedback to the Rowboat team") are
-   deliberately NOT renamed — they describe upstream's real services and will
-   be REMOVED (not relabeled) in a subsequent change.
+4. **Upstream-cloud paths REMOVED (not relabeled)** — the hosted-account
+   sign-in row (connectors popover), the hosted-models activation check
+   (settings dialog: the connected state is pinned false, so the BYO-keys /
+   local-runtimes branch is the only models path), and upstream's feedback
+   channels (their GitHub issue tracker + Discord links). Sending our users
+   or their bug reports to upstream's services would be wrong for both sides.
 
 "Rowboat" is a name/mark of Rowboat Labs and is NOT licensed to us — this fork
 ships under Competitor.Inc's own name. Attribution here is gratitude, not

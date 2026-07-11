@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { useState } from "react"
-import { AlertTriangle, Loader2, Mic, Mail, Calendar, User } from "lucide-react"
+import { AlertTriangle, Loader2, Mic, Mail, Calendar } from "lucide-react"
 
 import {
   Popover,
@@ -209,21 +209,9 @@ export function ConnectorsPopover({ children, tooltip, open: openProp, onOpenCha
             </div>
           ) : (
             <>
-              {/* Rowboat Account - show in "all" mode always, or in "unconnected" mode only when not connected */}
-              {c.providers.includes('rowboat') && (() => {
-                const rowboatState = c.providerStates['rowboat']
-                const isRowboatConnected = rowboatState?.isConnected && !rowboatState?.isLoading
-                if (isUnconnectedMode && isRowboatConnected) return null
-                return (
-                  <>
-                    <div className="px-2 py-1.5">
-                      <span className="text-xs font-medium text-muted-foreground">Account</span>
-                    </div>
-                    {renderOAuthProvider('rowboat', 'Competitor Coworker', <User className="size-4" />, 'Log in to your Coworker account')}
-                    <Separator className="my-2" />
-                  </>
-                )
-              })()}
+              {/* MODIFIED by Competitor.Inc (see coworker/NOTICE.md): upstream's hosted-account sign-in
+                  REMOVED (not relabeled) — this fork has no Rowboat-cloud account; models come from the
+                  user's own keys or local runtimes. */}
 
               {/* Email & Calendar Section */}
               {(c.useComposioForGoogle || c.useComposioForGoogleCalendar || c.providers.includes('google')) && hasUnconnectedEmailCalendar && (
