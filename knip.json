@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "ignore": ["coworker/**"],
+  "ignoreDependencies": [],
+  "entry": ["app/**/route.ts", "app/**/page.tsx", "app/**/layout.tsx", "app/**/*.tsx", "middleware.ts", "scripts/*.mjs", "lib/**/*.test.ts"],
+  "project": ["app/**/*.{ts,tsx}", "lib/**/*.ts", "components/**/*.tsx", "scripts/**/*.mjs"]
+}
