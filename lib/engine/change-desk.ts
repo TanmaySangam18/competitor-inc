@@ -48,7 +48,7 @@ export function changeAdr(memory: ProductMemory, request: string, now: number): 
 
 // Injectable seam — real defaults are the DB + the build dispatcher; tests pass fakes.
 export interface ChangeDeps {
-  loadMemory: (client: SupabaseClient, companyId: string, product: string) => Promise<ProductMemory>;
+  loadMemory: (client: SupabaseClient, userId: string, product: string) => Promise<ProductMemory>;
   dispatch: (opts: { goal: string; token: string; model?: string; recall?: string }) => Promise<{ url: string; repo: string } | { error: string }>;
   saveDoc: (client: SupabaseClient, userId: string, companyId: string, product: string, doc: ProductDoc) => Promise<void>;
   now: () => number;
@@ -86,7 +86,7 @@ export async function runChange(input: ChangeInput, deps: ChangeDeps = defaultDe
   if (!request) return { ok: false, error: "empty change request" };
   if (!input.product?.trim()) return { ok: false, error: "product required" };
 
-  const memory = await deps.loadMemory(input.client, input.companyId, input.product);
+  const memory = await deps.loadMemory(input.client, input.userId, input.product);
 
   // Lay the compounding foundation if it's missing: no change should pile decisions onto an empty memory.
   // Seed the architecture anchor (best-effort persist), and add it to THIS load so the recall below already

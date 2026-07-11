@@ -2,6 +2,7 @@ import { serviceClient } from "@/lib/engine/service";
 import { runChat, runShift, runValidate, runSell, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, generateSiteFiles, modelForAgent } from "@/lib/engine/server";
 import { FULLSTACK_BUILDS, dispatchFullstackBuild, fullstackConfigured } from "@/lib/engine/fullstack-build";
 import { registerProduct } from "@/lib/engine/products-db";
+import { seedArchitectureIfMissing } from "@/lib/engine/product-memory-db";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isFounderEmail } from "@/lib/engine/founders";
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
@@ -121,6 +122,10 @@ export async function GET(req: Request) {
       if (svc) {
         const product = out.repo.split("/").pop() || out.repo;
         await registerProduct(svc, { userId: data.user.id, companyId: null, product, repo: out.repo, goal });
+        // Lay the compounding foundation now, at first build, with the REAL founding goal — so a later
+        // change recalls the true architecture instead of the change-desk's "(founding goal not on record)"
+        // fallback. Keyed on (user_id, product), company null — the owner-level identity (decision c).
+        await seedArchitectureIfMissing(svc, data.user.id, null, product, goal);
         registered = true;
       }
     } catch (e) {

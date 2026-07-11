@@ -32,13 +32,14 @@ export function rowsToMemory(product: string, rows: ProductDocRow[] | null): Pro
   return { product, docs: rows.map(rowToProductDoc) };
 }
 
-/** Load a product's full memory for the recall brief. Any DB error ⇒ empty memory (a build never blocks on
- *  a memory outage — it just starts fresh rather than crashing). */
-export async function loadProductMemory(client: SupabaseClient, companyId: string, product: string): Promise<ProductMemory> {
+/** Load a product's full memory for the recall brief. Keyed on the registry identity (user_id, product)
+ *  per decision (c) — company is optional, so a founder raw-build (no company) still has memory under its
+ *  owner. Any DB error ⇒ empty memory (a build never blocks on a memory outage — it starts fresh). */
+export async function loadProductMemory(client: SupabaseClient, userId: string, product: string): Promise<ProductMemory> {
   const { data, error } = await client
     .from("product_docs")
     .select("product,kind,seq,title,body,created_at")
-    .eq("company_id", companyId)
+    .eq("user_id", userId)
     .eq("product", product)
     .order("kind", { ascending: true })
     .order("seq", { ascending: true });
@@ -53,22 +54,23 @@ export async function loadProductMemory(client: SupabaseClient, companyId: strin
 export async function seedArchitectureIfMissing(
   client: SupabaseClient,
   userId: string,
-  companyId: string,
+  companyId: string | null,
   product: string,
   goal: string,
   now: number = Date.now(),
 ): Promise<boolean> {
-  const memory = await loadProductMemory(client, companyId, product);
+  const memory = await loadProductMemory(client, userId, product);
   if (memory.docs.some((d) => d.kind === "architecture")) return false;
   await saveProductDoc(client, userId, companyId, product, architectureDoc(product, goal, now));
   return true;
 }
 
-/** Record one product doc (architecture on first build; an ADR per accepted change). Service-role write. */
+/** Record one product doc (architecture on first build; an ADR per accepted change). Service-role write.
+ *  companyId is optional (decision c) — a founder raw-build files under its owner with no company. */
 export async function saveProductDoc(
   client: SupabaseClient,
   userId: string,
-  companyId: string,
+  companyId: string | null,
   product: string,
   doc: ProductDoc,
 ): Promise<void> {
