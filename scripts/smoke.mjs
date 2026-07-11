@@ -54,6 +54,7 @@ async function run() {
   await get("/proof");
   await get("/decisions"); // the Executive Inbox (Day One) — renders signed-out empty state
   await get("/connect"); // the MACHINA onboarding surface — connect-and-go, reads live readiness
+  await get("/machina"); // the MACHINA landing candidate — static marketing front door
   await get("/watch"); await get("/orchestrator"); // consolidated surfaces → redirect to /dashboard (200 after follow)
   // ChatOps reflection endpoint: founder-gated. A guest must get 200 + an EMPTY list — never someone's messages.
   { const r = await get("/api/chatops/messages"); if (r) { const d = await r.json().catch(() => ({})); (Array.isArray(d.messages) && d.messages.length === 0) ? ok("chatops empty for guest (no leak)") : fail("chatops must be empty for a guest"); } }
