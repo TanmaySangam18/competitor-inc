@@ -1,8 +1,9 @@
 import { serviceClient } from "@/lib/engine/service";
 import { runChat, runShift, runValidate, runSell, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, generateSiteFiles, modelForAgent } from "@/lib/engine/server";
 import { FULLSTACK_BUILDS, dispatchFullstackBuild, fullstackConfigured } from "@/lib/engine/fullstack-build";
-import { registerProduct } from "@/lib/engine/products-db";
+import { registerProduct, listProductsForUser } from "@/lib/engine/products-db";
 import { seedArchitectureIfMissing } from "@/lib/engine/product-memory-db";
+import { suiteRecall } from "@/lib/org/suite";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isFounderEmail } from "@/lib/engine/founders";
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
@@ -107,8 +108,18 @@ export async function GET(req: Request) {
     // into the workflow's `aider --model <x>` shell command, so allow only safe model-id chars (no injection).
     const modelParam = (url.searchParams.get("model") || "").trim();
     const model = /^[a-zA-Z0-9/._:-]{1,80}$/.test(modelParam) ? modelParam : undefined;
+    // S4: if you already run other products, this new one JOINS your suite — assemble the suite recall
+    // from your EXISTING products (scoped to you) so the build reuses one sign-on + the shared data layer
+    // instead of standing alone. Empty for your first product. Best-effort — never blocks the build.
+    const svc = serviceClient();
+    let suiteRecallBrief: string | undefined;
+    if (svc) {
+      const existing = await listProductsForUser(svc, data.user.id).catch(() => []);
+      const brief = suiteRecall({ company: "your workspace", products: existing.map((p) => ({ slug: p.product, purpose: p.foundingGoal || p.product })) });
+      suiteRecallBrief = brief || undefined;
+    }
     const t0 = Date.now();
-    const out = await dispatchFullstackBuild({ goal, token, model });
+    const out = await dispatchFullstackBuild({ goal, token, model, suiteRecall: suiteRecallBrief });
     const ms = Date.now() - t0;
     if ("error" in out) {
       return Response.json({ ok: false, ms, org, model: model ?? "default", reason: out.error });
@@ -118,7 +129,6 @@ export async function GET(req: Request) {
     // suite/product-memory can find it. Best-effort: a registry hiccup never fails a build that shipped.
     let registered = false;
     try {
-      const svc = serviceClient();
       if (svc) {
         const product = out.repo.split("/").pop() || out.repo;
         await registerProduct(svc, { userId: data.user.id, companyId: null, product, repo: out.repo, goal });

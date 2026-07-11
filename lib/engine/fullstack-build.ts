@@ -320,6 +320,7 @@ export async function dispatchFullstackBuild(opts: {
   fetchImpl?: FetchLike;
   model?: string;
   recall?: string; // P1: product-memory recall brief (present on a CHANGE to an existing product)
+  suiteRecall?: string; // S4: suite recall (present when the owner already runs other products — reuse the substrate)
 }): Promise<{ url: string; repo: string } | { error: string }> {
   const fetchImpl = opts.fetchImpl ?? (globalThis.fetch as unknown as FetchLike);
   const headers = {
@@ -377,7 +378,7 @@ export async function dispatchFullstackBuild(opts: {
     );
     if (!wf.ok) return { error: `commit workflow → HTTP ${wf.status}${wf.status === 403 ? " — the token needs the 'workflow' scope" : ""}` };
     if (!opts.fetchImpl) await new Promise((r) => setTimeout(r, 3000));
-    const pr = await commitFile("PROMPT.md", fullstackPromptFile(opts.goal, { recall: opts.recall }));
+    const pr = await commitFile("PROMPT.md", fullstackPromptFile(opts.goal, { recall: opts.recall, suiteRecall: opts.suiteRecall }));
     if (!pr.ok) return { error: `commit PROMPT.md → HTTP ${pr.status}` };
 
     // The PROMPT.md push triggered the `on: push` build. Return the repo (always resolves) as the honest

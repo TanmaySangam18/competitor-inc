@@ -276,6 +276,18 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     });
   });
 
+  describe("S4 — the suite recall threads into a build so a 2nd product joins, not stands alone", () => {
+    it("dispatch threads suiteRecall into the committed PROMPT.md, ahead of the goal", async () => {
+      const gh = fakeGitHub();
+      const suiteRecall = 'PRODUCT SUITE — this customer ("your workspace") already runs 2 product(s), and this new one JOINS that suite.';
+      await dispatchFullstackBuild({ goal: "a scheduling tool", token: "t", fetchImpl: gh.fetchImpl, suiteRecall });
+      const promptPut = gh.calls.find((c) => c.url.includes("PROMPT.md"));
+      const body = Buffer.from(JSON.parse(promptPut!.body!).content, "base64").toString("utf8");
+      expect(body).toContain(suiteRecall);
+      expect(body.indexOf(suiteRecall)).toBeLessThan(body.indexOf("a scheduling tool")); // frames the whole build
+    });
+  });
+
   describe("fetchDeployedUrl (Slice 2 — capture the live Vercel URL from the workflow)", () => {
     const withContent = (text: string): FetchLike => async () => ({
       ok: true, status: 200, json: async () => ({ content: Buffer.from(text, "utf8").toString("base64") }),

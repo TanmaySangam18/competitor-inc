@@ -62,9 +62,13 @@ export async function registerProduct(client: SupabaseClient, input: RegisterInp
   if (error) throw new Error(`registerProduct: ${error.message}`);
 }
 
-/** The owner's products, newest first (RLS scopes to auth.uid — a caller only ever sees their own). */
-export async function listProductsForUser(client: SupabaseClient): Promise<Product[]> {
-  const { data, error } = await client.from("products").select("*").order("created_at", { ascending: false }).limit(100);
+/** The owner's products, newest first. Pass userId to scope EXPLICITLY — required with a service-role
+ *  client (which bypasses RLS): without it a service-role read would return every user's products. With a
+ *  session client RLS also scopes to auth.uid, but the explicit filter is the safe default. */
+export async function listProductsForUser(client: SupabaseClient, userId?: string): Promise<Product[]> {
+  let q = client.from("products").select("*").order("created_at", { ascending: false }).limit(100);
+  if (userId) q = q.eq("user_id", userId);
+  const { data, error } = await q;
   if (error) return []; // outage reads as empty, never a throw mid-request
   return ((data as ProductRow[]) ?? []).map(rowToProduct);
 }
