@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { adrDoc, nextAdrSeq, recallBrief, type ProductDoc, type ProductMemory } from "@/lib/org/product-memory";
+import { adrDoc, architectureDoc, nextAdrSeq, recallBrief, type ProductDoc, type ProductMemory } from "@/lib/org/product-memory";
 import { loadProductMemory, saveProductDoc } from "./product-memory-db";
 import { dispatchFullstackBuild } from "./fullstack-build";
 
@@ -69,6 +69,7 @@ export interface ChangeInput {
   request: string;
   token: string;
   model?: string;
+  foundingGoal?: string; // the product's original purpose — used to seed the architecture anchor if missing
 }
 
 export type ChangeResult =
@@ -86,6 +87,21 @@ export async function runChange(input: ChangeInput, deps: ChangeDeps = defaultDe
   if (!input.product?.trim()) return { ok: false, error: "product required" };
 
   const memory = await deps.loadMemory(input.client, input.companyId, input.product);
+
+  // Lay the compounding foundation if it's missing: no change should pile decisions onto an empty memory.
+  // Seed the architecture anchor (best-effort persist), and add it to THIS load so the recall below already
+  // reflects it. Honest fallback when the founding goal wasn't recorded at first-build time.
+  if (!memory.docs.some((d) => d.kind === "architecture")) {
+    const goal = input.foundingGoal?.trim() || `(founding goal not on record) — the product "${input.product}" as it now stands`;
+    const arch = architectureDoc(input.product, goal, deps.now());
+    memory.docs.push(arch);
+    try {
+      await deps.saveDoc(input.client, input.userId, input.companyId, input.product, arch);
+    } catch (e) {
+      console.error("[change-desk] architecture seed persist failed (will retry next change):", e instanceof Error ? e.message : "unknown");
+    }
+  }
+
   const { recall, changeGoal } = planChange(memory, request);
 
   const built = await deps.dispatch({ goal: changeGoal, token: input.token, model: input.model, recall });

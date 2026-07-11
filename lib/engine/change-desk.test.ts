@@ -50,14 +50,18 @@ describe("Change Desk (R9) — changes compound, they don't rebuild", () => {
     expect(saveDoc).toHaveBeenCalledOnce();
   });
 
-  it("a FIRST change to a product with no memory still works (recall empty, ADR-1)", async () => {
+  it("a FIRST change to a memory-less product SEEDS the architecture anchor, so it continues (not rebuilds)", async () => {
+    const saveDoc = vi.fn(async () => {});
     const dispatch = vi.fn(async (o: { recall?: string }) => {
-      expect(o.recall ?? "").toBe(""); // nothing to recall on a fresh product
+      // The seed gives the change a foundation — recall is NO LONGER empty on a fresh product.
+      expect(o.recall ?? "").toContain("CONTINUING an existing product");
+      expect(o.recall ?? "").toContain("a real-time chat app"); // the founding goal survives into recall
       return { url: "https://github.com/x/app", repo: "x/app" };
     });
-    const deps: ChangeDeps = { loadMemory: async () => emptyMemory("app"), dispatch, saveDoc: async () => {}, now: () => NOW };
-    const res = await runChange({ client, userId: "u", companyId: "c", product: "app", request: "add dark mode", token: "t" }, deps);
-    expect(res.ok && res.adrSeq).toBe(1);
+    const deps: ChangeDeps = { loadMemory: async () => emptyMemory("app"), dispatch, saveDoc, now: () => NOW };
+    const res = await runChange({ client, userId: "u", companyId: "c", product: "app", request: "add dark mode", token: "t", foundingGoal: "a real-time chat app" }, deps);
+    expect(res.ok && res.adrSeq).toBe(1); // architecture is seq 0; the change is ADR-1
+    expect(saveDoc).toHaveBeenCalledTimes(2); // the architecture seed + the change ADR
   });
 
   it("a failed build does NOT record an ADR (we only log decisions that shipped)", async () => {

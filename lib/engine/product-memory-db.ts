@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { emptyMemory, type ProductDoc, type ProductDocKind, type ProductMemory } from "@/lib/org/product-memory";
+import { architectureDoc, emptyMemory, type ProductDoc, type ProductDocKind, type ProductMemory } from "@/lib/org/product-memory";
 
 // Persistence for Product Memory (P1, migration 0028). Mirrors org_runs: the OWNER reads their product's
 // docs (auth.uid RLS); WRITES are service-role only (the build / Change-Desk step executor records
@@ -44,6 +44,24 @@ export async function loadProductMemory(client: SupabaseClient, companyId: strin
     .order("seq", { ascending: true });
   if (error) return emptyMemory(product);
   return rowsToMemory(product, (data as ProductDocRow[]) ?? null);
+}
+
+/** Lay the compounding foundation: write the founding architecture doc (seq 0) IF the product has none
+ *  yet. Idempotent — a product is anchored exactly once, so re-runs never duplicate or overwrite it.
+ *  Returns true if it seeded, false if the anchor already existed. This is what makes every SUBSEQUENT
+ *  change build on a foundation instead of an empty memory (the S3 compounding spine). */
+export async function seedArchitectureIfMissing(
+  client: SupabaseClient,
+  userId: string,
+  companyId: string,
+  product: string,
+  goal: string,
+  now: number = Date.now(),
+): Promise<boolean> {
+  const memory = await loadProductMemory(client, companyId, product);
+  if (memory.docs.some((d) => d.kind === "architecture")) return false;
+  await saveProductDoc(client, userId, companyId, product, architectureDoc(product, goal, now));
+  return true;
 }
 
 /** Record one product doc (architecture on first build; an ADR per accepted change). Service-role write. */
