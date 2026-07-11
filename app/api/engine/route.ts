@@ -1,6 +1,7 @@
 import { serviceClient } from "@/lib/engine/service";
 import { runChat, runShift, runValidate, runSell, realModelConfigured, detectChatApproval, streamChatReply, probeModel, probeBuildModel, generateSiteFiles, modelForAgent } from "@/lib/engine/server";
 import { FULLSTACK_BUILDS, dispatchFullstackBuild, fullstackConfigured } from "@/lib/engine/fullstack-build";
+import { registerProduct } from "@/lib/engine/products-db";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { isFounderEmail } from "@/lib/engine/founders";
 import { runSupervisedGoal } from "@/lib/engine/orchestrator";
@@ -111,7 +112,21 @@ export async function GET(req: Request) {
     if ("error" in out) {
       return Response.json({ ok: false, ms, org, model: model ?? "default", reason: out.error });
     }
-    return Response.json({ ok: true, ms, org, model: model ?? "default", repo: out.repo, url: out.url, note: "Repo created + secrets injected + workflow dispatched. Open the repo's Actions tab to watch the build; it deploys to Vercel when it finishes." });
+    // (c) products registry: attach the built product to its OWNER (you). A founder raw-build has no
+    // company, so it files under the user with company_id=null — the product still has an owner, and the
+    // suite/product-memory can find it. Best-effort: a registry hiccup never fails a build that shipped.
+    let registered = false;
+    try {
+      const svc = serviceClient();
+      if (svc) {
+        const product = out.repo.split("/").pop() || out.repo;
+        await registerProduct(svc, { userId: data.user.id, companyId: null, product, repo: out.repo, goal });
+        registered = true;
+      }
+    } catch (e) {
+      console.error("[probe] product register failed:", e instanceof Error ? e.message : "unknown");
+    }
+    return Response.json({ ok: true, ms, org, model: model ?? "default", repo: out.repo, url: out.url, registered, note: "Repo created + secrets injected + workflow dispatched + product registered under you. Open the repo's Actions tab to watch the build; it deploys to Vercel when it finishes." });
   }
   return Response.json({
     ok: true,
