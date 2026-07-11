@@ -36,9 +36,13 @@ function repoName(goal: string): string {
 }
 
 // What Aider implements (committed as PROMPT.md). Full-stack: a Next.js page + a real API route + persistence.
-export function fullstackPromptFile(goal: string, opts: { recall?: string } = {}): string {
+export function fullstackPromptFile(goal: string, opts: { recall?: string; suiteRecall?: string } = {}): string {
   const recall = opts.recall?.trim();
+  const suiteRecall = opts.suiteRecall?.trim();
   return [
+    // S4: when the customer already runs a suite, the agent is told to REUSE the shared substrate (one
+    // sign-on, shared data, conventions) FIRST of all — so a new product joins the suite, not stands alone.
+    ...(suiteRecall ? [suiteRecall, ""] : []),
     // P1: when this product has memory, the agent is told it is CONTINUING it (architecture + prior ADRs)
     // BEFORE anything else — so it extends the product instead of rebuilding it. Empty on a first build.
     ...(recall ? [recall, ""] : []),
