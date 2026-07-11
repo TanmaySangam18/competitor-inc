@@ -1,11 +1,10 @@
 "use client";
 
-// The landing — "The Company Ledger" (2026-07-10, plan: temporal-honking-cosmos.md).
-// A beautifully printed company charter: cream stock, ink rules, serif headlines, letterpress cards,
-// and REAL stamped receipts (live, design-reviewed builds anyone can click). No gradients, no glass,
-// no AI-cliché — the design is human-grade; the copy stays honest about what runs the company (the
-// one AI disclosure line lives in the footer). Mechanisms preserved verbatim from the previous
-// landing: first-party demo events, signup attribution, the keyless inline validation demo.
+// The "prove it" demo, at /build — reskinned to the MACHINA theme (2026-07-11) to match the front door
+// at /: pure black/white, monospace, zero-radius, heavy display. STYLING ONLY — every mechanism is
+// preserved verbatim: first-party demo events, signup attribution, the keyless inline validation demo,
+// and the honesty fixes (#59 the demand read can't contradict itself; #60 a weak verdict makes "try
+// another idea" the primary action, "build anyway" the quiet one — never the money-printer voice).
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -56,14 +55,12 @@ const RECEIPTS = [
 ];
 
 const STEPS = [
-  { n: "1", title: "Describe it", body: "One sentence. Demand gets tested first — weak ideas get told, not built." },
-  { n: "2", title: "It gets built", body: "Engineered, design-reviewed, deployed — verified live before you see a link." },
-  { n: "3", title: "It keeps running", body: "Support, growth, upkeep — overnight, under rules you signed once." },
+  { n: "01", title: "Describe it", body: "One sentence. Demand gets tested first — weak ideas get told, not built." },
+  { n: "02", title: "It gets built", body: "Engineered, design-reviewed, deployed — verified live before you see a link." },
+  { n: "03", title: "It keeps running", body: "Support, growth, upkeep — overnight, under rules you signed once." },
 ];
 
-const serif = { fontFamily: "var(--font-serif), Georgia, serif" } as const;
-
-export default function LandingPage() {
+export default function BuildDemoPage() {
   const { user, ready } = useAuth();
   const appHref = user ? "/dashboard" : "/signup";
 
@@ -124,26 +121,22 @@ export default function LandingPage() {
   const verdictLabel = verdict?.verdict === "strong" ? "worth building" : verdict?.verdict === "weak" ? "don’t build this" : "needs a tweak";
 
   return (
-    <main id="main" className="min-h-screen bg-cream text-ink">
+    <main id="main" className="min-h-screen bg-white font-mono text-black">
       <TrackBeacon slug="home" />
 
       {/* ── Nav: the wordmark (with the quiet door), sign in, one CTA ── */}
-      <header className="border-b-[1.5px] border-ink bg-cream">
+      <header className="border-b-2 border-black">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4">
           <SecretHouseDoor>
-            <span className="cursor-default select-none text-[17px] font-semibold" style={serif}>
-              competitor<span className="text-sienna">.inc</span>
+            <span className="cursor-default select-none text-[17px] font-bold tracking-tight">
+              competitor<span className="text-[#8C3A22]">.inc</span>
             </span>
           </SecretHouseDoor>
-          <nav className="flex items-center gap-5">
+          <nav className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.15em]">
             {ready && !user && (
-              <Link href="/login" className="text-[13px] text-ink-muted transition hover:text-ink">Sign in</Link>
+              <Link href="/login" className="border-2 border-black px-3 py-2 hover:bg-black hover:text-white">Sign in</Link>
             )}
-            <Link
-              href={appHref}
-              onClick={() => onLandingCta("nav")}
-              className="rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-cream transition hover:opacity-90"
-            >
+            <Link href={appHref} onClick={() => onLandingCta("nav")} className="bg-black px-3 py-2 text-white hover:bg-[#8C3A22]">
               Start your company
             </Link>
           </nav>
@@ -152,18 +145,16 @@ export default function LandingPage() {
 
       {/* ── Hero: the charter statement + the one input ── */}
       <section className="mx-auto max-w-3xl px-5 pb-14 pt-16">
-        <p className="font-mono text-[11px] font-semibold tracking-[0.14em] text-sienna">A WORKING SOFTWARE COMPANY, ON DEMAND</p>
-        <h1 className="mt-4 text-[40px] font-medium leading-[1.08] sm:text-[46px]" style={serif}>
-          Describe the software.
-          <br />
-          <em className="font-normal">A company</em> builds it.
+        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#8C3A22]">■ A working software company, on demand</p>
+        <h1 className="mt-5 text-4xl font-black uppercase leading-[0.95] tracking-tighter sm:text-6xl">
+          Describe the software.<br />A company builds it.
         </h1>
-        <p className="mt-5 max-w-[480px] text-base leading-relaxed text-ink-muted">
+        <p className="mt-6 max-w-[480px] text-sm leading-relaxed text-black/70">
           Engineers, a design lead, quality, support — a real organization that tests your idea, ships to a
           live URL, and runs what it shipped. You approve anything that matters.
         </p>
 
-        <div className="press mt-7 flex max-w-[520px] items-center gap-2 rounded-2xl bg-cream-2 p-1.5 pl-4">
+        <div className="mt-8 flex max-w-[520px] items-center gap-0 border-2 border-black">
           <input
             ref={inputRef}
             value={idea}
@@ -171,12 +162,12 @@ export default function LandingPage() {
             onKeyDown={(e) => e.key === "Enter" && runDemo()}
             placeholder="A booking page for my tutoring business…"
             aria-label="Describe your software idea"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-ink-faint"
+            className="w-full bg-transparent px-4 py-3 text-sm outline-none placeholder:text-black/40"
           />
           <button
             onClick={() => runDemo()}
             disabled={!idea.trim() || running}
-            className="shrink-0 rounded-xl bg-pine px-4 py-2.5 text-[13px] font-semibold text-cream transition hover:brightness-110 disabled:opacity-40"
+            className="shrink-0 self-stretch border-l-2 border-black bg-black px-5 text-[12px] font-bold uppercase tracking-wider text-white transition hover:bg-[#8C3A22] disabled:opacity-40"
           >
             {running ? "Working…" : "Put it to work"}
           </button>
@@ -186,32 +177,32 @@ export default function LandingPage() {
             <button
               key={s}
               onClick={() => runDemo(s)}
-              className="rounded-full border border-rule bg-cream-2 px-3 py-1 text-xs text-ink-muted transition hover:border-ink hover:text-ink"
+              className="border border-black/25 px-3 py-1 text-xs text-black/70 transition hover:border-black hover:text-black"
             >
               {s}
             </button>
           ))}
         </div>
-        <p className="mt-4 text-[12.5px] italic text-ink-faint" style={serif}>
+        <p className="mt-4 text-[12px] text-black/50">
           Free to try — and it will tell you honestly if your idea isn’t worth building.
         </p>
 
         {/* The demand read — quiet ledger rows, not a terminal. Appears only once a demo runs. */}
         {(lines.length > 0 || verdict || running) && (
-          <div className="press mt-6 max-w-[520px] rounded-2xl bg-cream-2 px-5 py-4">
-            <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-sienna">THE DEMAND READ</p>
+          <div className="mt-6 max-w-[520px] border-2 border-black px-5 py-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8C3A22]">The demand read</p>
             <div className="mt-2">
               {lines.map((l, i) => (
-                <p key={i} className="reveal border-t border-rule py-2 font-mono text-[11.5px] leading-relaxed text-ink-muted first:border-t-0">
+                <p key={i} className="reveal border-t border-black/15 py-2 text-[11.5px] leading-relaxed text-black/70 first:border-t-0">
                   {l}
                 </p>
               ))}
-              {running && lines.length === 0 && <p className="py-2 text-xs text-ink-faint">Reading real demand…</p>}
+              {running && lines.length === 0 && <p className="py-2 text-xs text-black/40">Reading real demand…</p>}
             </div>
             {verdict && (
-              <div className="reveal mt-2 flex flex-wrap items-center justify-between gap-3 border-t-[1.5px] border-ink pt-3">
-                <span className="text-sm font-semibold">
-                  Verdict: {verdictLabel} <span className="font-normal text-ink-muted">· {verdict.confidence}% confidence</span>
+              <div className="reveal mt-2 flex flex-wrap items-center justify-between gap-3 border-t-2 border-black pt-3">
+                <span className="text-sm font-bold uppercase tracking-wide">
+                  Verdict: {verdictLabel} <span className="font-normal normal-case text-black/60">· {verdict.confidence}% confidence</span>
                 </span>
                 {/* The CTA agrees with the verdict (defect 2026-07-10): after an honest "don't build",
                     trying another idea is the PRIMARY action; building anyway stays possible but quiet.
@@ -221,13 +212,13 @@ export default function LandingPage() {
                     <Link
                       href={appHref}
                       onClick={() => onLandingCta("demo-override")}
-                      className="rounded-xl border-[1.5px] border-ink/40 px-4 py-2 text-[13px] font-medium text-ink-muted transition hover:border-ink hover:text-ink"
+                      className="border border-black/40 px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-black/60 transition hover:border-black hover:text-black"
                     >
                       Build it anyway
                     </Link>
                     <button
                       onClick={() => { setVerdict(null); setLines([]); setIdea(""); inputRef.current?.focus(); }}
-                      className="rounded-xl bg-pine px-4 py-2 text-[13px] font-semibold text-cream transition hover:brightness-110"
+                      className="bg-black px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-white transition hover:bg-[#8C3A22]"
                     >
                       Try another idea
                     </button>
@@ -236,7 +227,7 @@ export default function LandingPage() {
                   <Link
                     href={appHref}
                     onClick={() => onLandingCta("demo")}
-                    className="rounded-xl bg-pine px-4 py-2 text-[13px] font-semibold text-cream transition hover:brightness-110"
+                    className="bg-black px-4 py-2 text-[12px] font-bold uppercase tracking-wider text-white transition hover:bg-[#8C3A22]"
                   >
                     Build it for real
                   </Link>
@@ -248,32 +239,32 @@ export default function LandingPage() {
       </section>
 
       {/* ── The receipts: real builds, live now, with the review that shipped them ── */}
-      <section className="border-t-[1.5px] border-ink bg-cream-2">
+      <section className="border-t-2 border-black">
         <div className="mx-auto max-w-3xl px-5 py-12">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-2xl font-medium" style={serif}>The receipts</h2>
-            <p className="text-[12.5px] text-ink-muted">Real builds, live right now. Click them — we insist.</p>
+            <h2 className="text-2xl font-black uppercase tracking-tight">The receipts</h2>
+            <p className="text-[12px] text-black/60">Real builds, live right now. Click them — we insist.</p>
           </div>
           <div className="mt-5">
-            {RECEIPTS.map((r, i) => (
+            {RECEIPTS.map((r) => (
               <div
                 key={r.host}
-                className={`flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-rule px-1 py-4 ${i === RECEIPTS.length - 1 ? "border-b" : ""}`}
+                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-black/15 px-1 py-4 last:border-b"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold">{r.title}</p>
-                  <p className="mt-1 font-mono text-[11px] leading-relaxed text-ink-muted">{r.review}</p>
+                  <p className="text-sm font-bold">{r.title}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-black/60">{r.review}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   <a
                     href={r.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="font-mono text-[11.5px] text-pine underline decoration-dotted underline-offset-4 transition hover:decoration-solid"
+                    className="text-[11.5px] text-[#1F5130] underline decoration-dotted underline-offset-4 transition hover:decoration-solid"
                   >
                     {r.host} ↗
                   </a>
-                  <span className="stamp">VERIFIED · LIVE</span>
+                  <span className="border-2 border-[#1F5130] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[#1F5130]">Verified · Live</span>
                 </div>
               </div>
             ))}
@@ -286,14 +277,14 @@ export default function LandingPage() {
         <div className="grid gap-8 sm:grid-cols-3">
           {STEPS.map((s) => (
             <div key={s.n}>
-              <p className="text-3xl text-sienna" style={serif}>{s.n}</p>
-              <p className="mb-1 mt-1.5 text-sm font-semibold">{s.title}</p>
-              <p className="text-[13px] leading-relaxed text-ink-muted">{s.body}</p>
+              <p className="text-4xl font-black text-black/15">{s.n}</p>
+              <p className="mb-1 mt-2 text-sm font-bold uppercase tracking-wide">{s.title}</p>
+              <p className="text-[13px] leading-relaxed text-black/70">{s.body}</p>
             </div>
           ))}
         </div>
-        <div className="press mt-10 rounded-2xl bg-cream px-6 py-5">
-          <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-sienna">THE GOVERNANCE, IN FULL</p>
+        <div className="mt-10 border-2 border-black px-6 py-5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8C3A22]">The governance, in full</p>
           <div className="mt-2.5 flex flex-wrap gap-x-7 gap-y-1.5 text-[13px]">
             <span><strong>One signature</strong> governs everything</span>
             <span><strong>Money &amp; contracts</strong> always come to you</span>
@@ -304,7 +295,7 @@ export default function LandingPage() {
           <Link
             href={appHref}
             onClick={() => onLandingCta("footer")}
-            className="inline-block rounded-full bg-ink px-6 py-3 text-sm font-medium text-cream transition hover:opacity-90"
+            className="inline-block bg-black px-8 py-4 text-[12px] font-bold uppercase tracking-wider text-white transition hover:bg-[#8C3A22]"
           >
             Start your company — free
           </Link>
@@ -312,19 +303,19 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer: the honest line + the depth pages ── */}
-      <footer className="border-t-[1.5px] border-ink">
+      <footer className="border-t-2 border-black">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-6">
-          <p className="text-[11.5px] italic text-ink-faint" style={serif}>
+          <p className="text-[11px] uppercase tracking-[0.15em] text-black/50">
             Operated by AI employees under human governance — every claim above is verifiable.
           </p>
-          <nav className="flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-ink-faint">
-            <Link href="/how-it-works" className="transition hover:text-ink">How it works</Link>
-            <Link href="/dashboard" className="transition hover:text-ink">Dashboard</Link>
-            <Link href="/playbooks" className="transition hover:text-ink">Playbooks</Link>
-            <Link href="/compare" className="transition hover:text-ink">Compare</Link>
-            <Link href="/blog" className="transition hover:text-ink">Blog</Link>
-            <Link href="/terms" className="transition hover:text-ink">Terms</Link>
-            <Link href="/privacy" className="transition hover:text-ink">Privacy</Link>
+          <nav className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] uppercase tracking-[0.12em] text-black/50">
+            <Link href="/how-it-works" className="transition hover:text-black">How it works</Link>
+            <Link href="/dashboard" className="transition hover:text-black">Dashboard</Link>
+            <Link href="/playbooks" className="transition hover:text-black">Playbooks</Link>
+            <Link href="/compare" className="transition hover:text-black">Compare</Link>
+            <Link href="/blog" className="transition hover:text-black">Blog</Link>
+            <Link href="/terms" className="transition hover:text-black">Terms</Link>
+            <Link href="/privacy" className="transition hover:text-black">Privacy</Link>
           </nav>
         </div>
       </footer>
