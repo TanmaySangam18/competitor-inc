@@ -30,6 +30,11 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // The "prove it" demo moved off / (now the MACHINA landing) to /build on 2026-07-11. Keep the old
+  // entry point working: /demo → /build (permanent).
+  async redirects() {
+    return [{ source: "/demo", destination: "/build", permanent: true }];
+  },
   // Clean URLs for the standalone static apps we launch (served from public/<app>/index.html).
   async rewrites() {
     return [
