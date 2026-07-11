@@ -13,6 +13,7 @@ import "server-only";
 // live Vercel URL. Flag-gated (FULLSTACK_BUILDS) + fail-soft: null → caller falls back to the static build.
 
 import { makeBuildExecute } from "./build-executor";
+import { architectKnowledge } from "./architect-knowledge";
 import { setRepoSecret } from "./github-secrets";
 import type { ExecuteFn } from "./supervisor";
 import type { Connections } from "./types";
@@ -37,6 +38,8 @@ function repoName(goal: string): string {
 // What Aider implements (committed as PROMPT.md). Full-stack: a Next.js page + a real API route + persistence.
 export function fullstackPromptFile(goal: string): string {
   return [
+    architectKnowledge(), // P0: every build starts on the public frontier — grounding, isolation, verify, adopt.
+    ``,
     `Implement a small but REAL, working full-stack web app in this Next.js (App Router, TypeScript, Tailwind CSS) project for:`,
     ``,
     goal,
@@ -67,13 +70,48 @@ export function fullstackPromptFile(goal: string): string {
     `- Voice: real, specific microcopy for THIS product (headings, buttons, empty-state text). Never lorem`,
     `  ipsum, never "get started by editing".`,
     `Aim for the calm, content-first polish of Linear / Stripe / Apple — clarity and restraint over decoration.`,
+    ...(impliesAiFeature(goal) ? ["", aiFeatureBrief()] : []),
+  ].join("\n");
+}
+
+// R10 (S2 rung — "a copilot for MY business," honestly scoped). Detect when the requested product wants an
+// assistant/chat/"answer questions about my data" capability. Conservative on purpose: a false positive
+// bloats the brief with a chat feature nobody asked for, so match only clear intent.
+export function impliesAiFeature(goal: string): boolean {
+  return /\b(co-?pilot|assistant|chat\s?bot|chat\b|ask (it|questions?)|answer(s|ing)? (questions?|about)|q ?& ?a|knowledge base|natural language|summar(y|ise|ize)|search (my|through) )/i.test(goal);
+}
+
+// The additive brief for a GROUNDED AI feature. It builds the SAME contract the Synthetic Proving Ground
+// enforces (lib/sim/proving-ground.ts): retrieve over the app's OWN data, cite the records, abstain when
+// nothing matches — never hallucinate. No cross-user leakage. This is the honest S2 capability: a mini
+// copilot grounded on the customer's data, not a general chatbot pretending to know things.
+export function aiFeatureBrief(): string {
+  return [
+    `AI FEATURE (this product asked for an assistant / chat / "answer questions about my data"):`,
+    `- Add a REAL grounded chat endpoint at app/api/chat/route.ts (POST { question: string }).`,
+    `- It MUST answer ONLY from the data this app itself stores (the items in /api/items) — RETRIEVE the`,
+    `  relevant records first, then answer from them, and INCLUDE the specific records/ids you used as`,
+    `  citations in the response. This is retrieval-grounded, not the model's open-world memory.`,
+    `- If no stored record is relevant to the question, return a clear "I don't have a record about that"`,
+    `  answer with an empty citations array. NEVER fabricate an answer — a confident wrong answer is failure.`,
+    `- Scope every retrieval to the current user/workspace; a question must never surface another user's data.`,
+    `- If an LLM key (e.g. ANTHROPIC_API_KEY / OPENAI_API_KEY) is present in env, use it to phrase the answer`,
+    `  FROM the retrieved records only; if absent, return a deterministic extractive answer built from the`,
+    `  matched records (still grounded + cited). Either way the answer is backed by real stored data.`,
+    `- Add a small chat panel in app/page.tsx: a question input, the grounded answer, and its citations shown`,
+    `  as links/chips to the underlying records. Design it to the same bar as the rest of the UI.`,
   ].join("\n");
 }
 
 // The Actions workflow: scaffold Next → Aider implements → deploy to Vercel (production). Best-effort;
 // Slice 2 iterates it against real runs. The repo's default GITHUB_TOKEN pushes; the only secrets are the
 // free model key (LLM_API_KEY) and VERCEL_TOKEN.
-export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV): string {
+export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV, opts: { withChat?: boolean } = {}): string {
+  // The files Aider is allowed to edit. When the product wants a grounded AI feature (R10), the chat route
+  // joins the set so the agent can actually create it. Default (no chat) is byte-identical to before.
+  const files = opts.withChat
+    ? "app/page.tsx app/api/items/route.ts app/api/chat/route.ts"
+    : "app/page.tsx app/api/items/route.ts";
   return `name: build-fullstack
 on:
   push:
@@ -112,19 +150,19 @@ jobs:
           printf '%s\\n' "- name: ${model}" "  use_temperature: false" "  edit_format: whole" > "$SETTINGS"
           # SCAFFOLD = the app is still the untouched Next.js starter (the agent didn't implement the feature).
           SCAFFOLD() { grep -qiE "edit the page\.tsx|To get started, edit|Get started by editing" app/page.tsx; }
-          aider --yes --model ${model} --model-settings-file "$SETTINGS" --message-file ../PROMPT.md app/page.tsx app/api/items/route.ts 2>&1 | tee -a ../aider.log
+          aider --yes --model ${model} --model-settings-file "$SETTINGS" --message-file ../PROMPT.md ${files} 2>&1 | tee -a ../aider.log
           for i in 1 2 3 4; do
             if npm run build > ../build.log 2>&1; then
               # A clean build is NOT enough — the default starter also builds. Require the REAL feature.
               if ! SCAFFOLD; then echo "build passed + real feature implemented (attempt $i)"; exit 0; fi
               echo "builds, but app/page.tsx is STILL the default scaffold — forcing a real implementation (attempt $i)"
-              aider --yes --model ${model} --model-settings-file "$SETTINGS" --message "You left the DEFAULT Next.js starter in app/page.tsx. Replace it ENTIRELY with the real, working UI for the product described in PROMPT.md, and implement a real GET+POST handler in app/api/items/route.ts. No starter boilerplate, no 'get started by editing' text." app/page.tsx app/api/items/route.ts 2>&1 | tee -a ../aider.log
+              aider --yes --model ${model} --model-settings-file "$SETTINGS" --message "You left the DEFAULT Next.js starter in app/page.tsx. Replace it ENTIRELY with the real, working UI for the product described in PROMPT.md, and implement a real GET+POST handler in app/api/items/route.ts. No starter boilerplate, no 'get started by editing' text." ${files} 2>&1 | tee -a ../aider.log
               continue
             fi
             echo "build failed (attempt $i) — feeding the error back to the agent to self-repair"
             ERR=$(tail -60 ../build.log)
             aider --yes --model ${model} --model-settings-file "$SETTINGS" --message "The Next.js production build failed. Fix ALL build, type, and lint errors so 'npm run build' passes cleanly. Do not remove features. Build output:
-          $ERR" app/page.tsx app/api/items/route.ts 2>&1 | tee -a ../aider.log
+          $ERR" ${files} 2>&1 | tee -a ../aider.log
           done
           # Honest final gate: NEVER ship the blank starter as "the product". If it still builds only as the
           # scaffold (or won't build), FAIL — deploy-url stays empty, and the product stays honestly "building".
@@ -189,7 +227,7 @@ jobs:
           else
             echo "the deployed app does NOT serve a real page (HTTP $SMOKE_CODE / empty / still the starter) — one functional repair pass"
             ERR=$(head -c 800 /tmp/smoke.html)
-            aider --yes --model ${model} --model-settings-file "$SETTINGS" --message "The DEPLOYED app at runtime returned HTTP $SMOKE_CODE, empty HTML, or is STILL the default Next.js starter. Implement the REAL homepage for the product in PROMPT.md plus a working GET+POST /api/items — no starter boilerplate, no 'get started by editing' text. Response start: $ERR" app/page.tsx app/api/items/route.ts 2>&1 | tee -a ../aider.log
+            aider --yes --model ${model} --model-settings-file "$SETTINGS" --message "The DEPLOYED app at runtime returned HTTP $SMOKE_CODE, empty HTML, or is STILL the default Next.js starter. Implement the REAL homepage for the product in PROMPT.md plus a working GET+POST /api/items — no starter boilerplate, no 'get started by editing' text. Response start: $ERR" ${files} 2>&1 | tee -a ../aider.log
             npm run build || true
             URL2=$(vercel deploy --prod --yes --token "$VT" 2>&1 | grep -oE "https://[a-z0-9.-]+\.vercel\.app" | tail -1)
             [ -n "$URL2" ] && echo "$URL2" > ../deploy-url.txt
@@ -262,7 +300,10 @@ export async function dispatchFullstackBuild(opts: {
         headers,
         body: JSON.stringify({ message: `chore: add ${path}`, content: Buffer.from(content, "utf8").toString("base64") }),
       });
-    const wf = await commitFile(".github/workflows/build-fullstack.yml", buildFullstackWorkflowYaml(opts.model ?? FS_MODEL));
+    const wf = await commitFile(
+      ".github/workflows/build-fullstack.yml",
+      buildFullstackWorkflowYaml(opts.model ?? FS_MODEL, FS_KEY_ENV, { withChat: impliesAiFeature(opts.goal) }),
+    );
     if (!wf.ok) return { error: `commit workflow → HTTP ${wf.status}${wf.status === 403 ? " — the token needs the 'workflow' scope" : ""}` };
     if (!opts.fetchImpl) await new Promise((r) => setTimeout(r, 3000));
     const pr = await commitFile("PROMPT.md", fullstackPromptFile(opts.goal));

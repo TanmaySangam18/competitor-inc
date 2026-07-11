@@ -8,6 +8,8 @@ import {
   fullstackConfigured,
   fullstackBuildExecutor,
   fetchDeployedUrl,
+  impliesAiFeature,
+  aiFeatureBrief,
 } from "./fullstack-build";
 import type { FetchLike } from "./aider-build";
 
@@ -127,6 +129,48 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     // flag is unset in the test env → the path stays off and the caller uses the static build
     expect(fullstackConfigured({ githubToken: "ghp_x" } as never)).toBe(false);
     expect(fullstackBuildExecutor({ githubToken: "ghp_x" } as never)).toBeNull();
+  });
+
+  describe("R10 — grounded AI-feature builds ('a copilot for MY business', honestly scoped)", () => {
+    it("detects assistant/chat/'answer questions about my data' intent — conservatively", () => {
+      for (const g of [
+        "a CRM with an assistant that answers questions about my customers",
+        "a customer-support copilot for my docs",
+        "a knowledge base I can chat with",
+        "let me ask questions about my notes",
+        "summarize my meeting notes",
+      ]) expect(impliesAiFeature(g)).toBe(true);
+      for (const g of ["a habit tracker with streaks", "a todo list", "an invoice generator", "a landing page for my bakery"])
+        expect(impliesAiFeature(g)).toBe(false);
+    });
+
+    it("the AI-feature brief demands a GROUNDED, cited, abstaining chat route (the proving-ground contract)", () => {
+      const p = fullstackPromptFile("a helpdesk copilot that answers questions about my tickets");
+      expect(p).toMatch(/app\/api\/chat\/route\.ts/);
+      expect(p.toLowerCase()).toContain("citations");
+      expect(p.toLowerCase()).toContain("never fabricate");
+      expect(p.toLowerCase()).toContain("another user's data"); // isolation
+      // the standalone brief carries the same contract
+      expect(aiFeatureBrief().toLowerCase()).toContain("retrieve");
+    });
+
+    it("a non-AI product gets NO chat route in its brief (detector is not trigger-happy)", () => {
+      const p = fullstackPromptFile("a habit tracker with streaks");
+      expect(p).not.toMatch(/app\/api\/chat\/route\.ts/);
+    });
+
+    it("the workflow adds the chat route to Aider's file set only when withChat is set", () => {
+      expect(buildFullstackWorkflowYaml(undefined, undefined, { withChat: true })).toMatch(/app\/api\/chat\/route\.ts/);
+      expect(buildFullstackWorkflowYaml()).not.toMatch(/app\/api\/chat\/route\.ts/); // default unchanged
+    });
+
+    it("an AI-feature goal wires the chat route THROUGH dispatch into the committed workflow", async () => {
+      const gh = fakeGitHub();
+      await dispatchFullstackBuild({ goal: "a copilot that answers questions about my inventory", token: "t", fetchImpl: gh.fetchImpl });
+      const wfPut = gh.calls.find((c) => c.url.includes("build-fullstack.yml"));
+      const yaml = Buffer.from(JSON.parse(wfPut!.body!).content, "base64").toString("utf8");
+      expect(yaml).toMatch(/app\/api\/chat\/route\.ts/);
+    });
   });
 
   describe("fetchDeployedUrl (Slice 2 — capture the live Vercel URL from the workflow)", () => {
