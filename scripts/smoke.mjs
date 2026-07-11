@@ -217,6 +217,11 @@ async function run() {
   if (tw) { const j = await tw.json(); j.ok ? ok("telegram webhook acks (ignores unverified)") : fail("tg webhook shape bad"); }
   const td = await get("/api/telegram/decisions?ids=11111111-2222-3333-4444-555555555555");
   if (td) { const j = await td.json(); j.decisions && typeof j.decisions === "object" ? ok("telegram decisions shape ok") : fail("tg decisions shape bad"); }
+  // The executive decision queue (Day One): GET = honest empty inbox without DB; POST validates input
+  const dqueue = await get("/api/decisions");
+  if (dqueue) { const j = await dqueue.json(); j.ok === true && Array.isArray(j.decisions) ? ok("decision queue reads (empty inbox without session)") : fail("decision queue shape bad"); }
+  await post("/api/decisions", {}, 400);
+  await post("/api/decisions", { id: "x", verb: "modify" }, 400); // modify without a note refused
 
   console.log("• api 400s");
   await post("/api/engine", { kind: "nope" }, 400);

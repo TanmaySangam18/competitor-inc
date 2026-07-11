@@ -1,3 +1,4 @@
+// MODIFIED by Competitor.Inc (see coworker/NOTICE.md): display strings rebranded.
 // Builtin tools: notifications domain. Entries moved VERBATIM from the historical
 // monolith — the merge order in ../builtin-tools.ts preserves the original
 // catalog key order (provider-payload bytes; see the key-order test there).
@@ -17,7 +18,7 @@ export const notificationTools: z.infer<typeof BuiltinToolsSchema> = {
         permission: "none",
         description: "Show a native OS notification to the user. Clicking the notification opens the provided link in the default browser, or focuses the Rowboat app if no link is given.",
         inputSchema: z.object({
-            title: z.string().min(1).max(120).optional().describe("Bold headline shown at the top of the notification. Defaults to 'Rowboat'."),
+            title: z.string().min(1).max(120).optional().describe("Bold headline shown at the top of the notification. Defaults to 'Competitor Coworker'."),
             message: z.string().min(1).describe("Body text of the notification."),
             link: z.string().url().refine((v) => /^(https?|rowboat):\/\//i.test(v), {
                 message: "link must be an http(s):// or rowboat:// URL",

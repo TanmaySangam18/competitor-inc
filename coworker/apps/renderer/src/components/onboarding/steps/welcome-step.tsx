@@ -1,3 +1,4 @@
+// MODIFIED by Competitor.Inc (see coworker/NOTICE.md): display strings rebranded.
 import { Loader2, CheckCircle2 } from "lucide-react"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
@@ -25,7 +26,7 @@ export function WelcomeStep({ state }: WelcomeStepProps) {
         {/* Logo with ambient glow */}
         <div className="relative shrink-0">
           <div className="absolute inset-0 size-12 rounded-2xl bg-primary/10 blur-xl scale-[2.5]" />
-          <img src="/logo-only.png" alt="Rowboat" className="relative size-12" />
+          <img src="/logo-only.png" alt="Competitor Coworker" className="relative size-12" />
         </div>
       </motion.div>
 

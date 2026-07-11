@@ -13,6 +13,10 @@ let initAttempted = false;
 let identifiedUserId: string | null = null;
 
 function getClient(): PostHog | null {
+  // MODIFIED by Competitor.Inc (see coworker/NOTICE.md): telemetry hard-disabled in this fork —
+  // even a stray POSTHOG_KEY in the user's env must never send data to upstream's project.
+  const TELEMETRY_DISABLED = true as boolean;
+  if (TELEMETRY_DISABLED) { initAttempted = true; return null; }
   if (initAttempted) return client;
   initAttempted = true;
   if (!POSTHOG_KEY) {

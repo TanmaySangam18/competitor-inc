@@ -1,3 +1,4 @@
+// MODIFIED by Competitor.Inc (see coworker/NOTICE.md): display strings rebranded.
 "use client"
 
 import * as React from "react"
@@ -218,7 +219,7 @@ export function ConnectorsPopover({ children, tooltip, open: openProp, onOpenCha
                     <div className="px-2 py-1.5">
                       <span className="text-xs font-medium text-muted-foreground">Account</span>
                     </div>
-                    {renderOAuthProvider('rowboat', 'Rowboat', <User className="size-4" />, 'Log in to your Rowboat account')}
+                    {renderOAuthProvider('rowboat', 'Competitor Coworker', <User className="size-4" />, 'Log in to your Coworker account')}
                     <Separator className="my-2" />
                   </>
                 )

@@ -1,3 +1,4 @@
+// MODIFIED by Competitor.Inc (see coworker/NOTICE.md): display strings rebranded.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
@@ -91,7 +92,7 @@ const providerDisplayNames: Record<string, string> = {
   openrouter: 'OpenRouter',
   aigateway: 'AI Gateway',
   'openai-compatible': 'OpenAI-Compatible',
-  rowboat: 'Rowboat',
+  rowboat: 'Competitor Coworker',
 }
 
 type ProviderName = "openai" | "anthropic" | "google" | "openrouter" | "aigateway" | "ollama" | "openai-compatible" | "rowboat"

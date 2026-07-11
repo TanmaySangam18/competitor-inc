@@ -1,3 +1,4 @@
+// MODIFIED by Competitor.Inc (see coworker/NOTICE.md): display strings rebranded.
 import { BrowserWindow, Notification, shell } from "electron";
 import type { INotificationService, NotifyInput } from "@x/core/dist/application/notification/service.js";
 import { shouldSuppressDuringStartupGrace } from "@x/core/dist/application/notification/service.js";
@@ -25,7 +26,7 @@ export class ElectronNotificationService implements INotificationService {
         return Notification.isSupported();
     }
 
-    notify({ title = "Rowboat", message, link, actionLabel, secondaryActions, onlyWhenBackground, suppressDuringStartupGrace }: NotifyInput): void {
+    notify({ title = "Competitor Coworker", message, link, actionLabel, secondaryActions, onlyWhenBackground, suppressDuringStartupGrace }: NotifyInput): void {
         // Startup grace: a reopen replays every background task that completed
         // while the app was closed, so grace-eligible notifications fired in the
         // first moments after launch are dropped to avoid a notification flood.

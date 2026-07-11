@@ -1,3 +1,4 @@
+// MODIFIED by Competitor.Inc (see coworker/NOTICE.md): display strings rebranded.
 "use client"
 
 import * as React from "react"
@@ -45,7 +46,7 @@ const tabs: TabConfig[] = [
     id: "account",
     label: "Account",
     icon: User,
-    description: "Manage your Rowboat account",
+    description: "Manage your Coworker account",
   },
   {
     id: "connections",
@@ -57,7 +58,7 @@ const tabs: TabConfig[] = [
     id: "mobile",
     label: "Mobile",
     icon: Smartphone,
-    description: "Chat with Rowboat from WhatsApp or Telegram",
+    description: "Chat with your Coworker from WhatsApp or Telegram",
   },
   {
     id: "models",
@@ -1333,7 +1334,7 @@ const providerDisplayNames: Record<string, string> = {
   openrouter: 'OpenRouter',
   aigateway: 'AI Gateway',
   'openai-compatible': 'OpenAI-Compatible',
-  rowboat: 'Rowboat',
+  rowboat: 'Competitor Coworker',
 }
 
 const HYBRID_SEP = "::"
@@ -2185,7 +2186,7 @@ function NotificationSettings({ dialogOpen }: { dialogOpen: boolean }) {
   return (
     <div className="space-y-5">
       <div className="text-sm text-muted-foreground leading-relaxed">
-        Choose which desktop notifications Rowboat sends you. Ambient notifications are only shown
+        Choose which desktop notifications Competitor Coworker sends you. Ambient notifications are only shown
         when the app is in the background.
       </div>
 

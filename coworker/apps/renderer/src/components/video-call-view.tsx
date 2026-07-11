@@ -1,3 +1,4 @@
+// MODIFIED by Competitor.Inc (see coworker/NOTICE.md): display strings rebranded.
 import { useEffect, useRef, useState } from 'react'
 import { Mic, MicOff, Minimize2, MonitorUp, PhoneOff, Presentation, Square, User, Video, VideoOff } from 'lucide-react'
 
@@ -85,7 +86,7 @@ export function VideoCallView({
   const assistantSpeaking = ttsState === 'speaking'
 
   const caption = assistantSpeaking && assistantCaption
-    ? { who: 'Rowboat', text: assistantCaption }
+    ? { who: 'Competitor Coworker', text: assistantCaption }
     : interimText
       ? { who: 'You', text: interimText }
       : null
@@ -153,7 +154,7 @@ export function VideoCallView({
           ) : (
             <span
               className="flex h-40 w-40 items-center justify-center rounded-full bg-sky-600 text-7xl font-medium text-white"
-              aria-label="Rowboat"
+              aria-label="Competitor Coworker"
             >
               R
             </span>
