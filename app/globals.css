@@ -8,21 +8,26 @@
      joins the Company Ledger family. Same warm paper + ink + sienna/pine as the marketing site, but
      calmer — flat panels + hairlines (working surfaces, not letterpress theatrics). ONE remap re-skins
      every cockpit component: the app token names stay, their values become the ledger palette. */
-  --color-bg: #fbf8f1; /* soft cream canvas (was clinical white) */
-  --color-surface: #f5efe3; /* cream panels */
-  --color-surface-2: #ece4d2; /* deeper cream (chips, wells) */
-  --color-border: rgba(26, 23, 18, 0.14); /* ink hairlines */
+  /* MACHINA remap (2026-07-11): the cockpit + Ledger token palette shifts from cream/ink to pure
+     monochrome to match the MACHINA front door. ONE remap re-skins every token-based surface (dashboard,
+     deep pages) at once — names stay, values become black/white; the sienna + pine accents carry through.
+     (Radius + fonts intentionally left so circular avatars/readability don't break — zero-radius/mono is
+     per-surface polish, done explicitly on the funnel pages.) */
+  --color-bg: #ffffff; /* pure white canvas */
+  --color-surface: #ffffff; /* white panels (separated by borders, MACHINA-style) */
+  --color-surface-2: #f2f2f0; /* faint gray wells/chips (keeps separation without a fill color) */
+  --color-border: rgba(0, 0, 0, 0.16); /* black hairlines */
 
-  /* The accents finally carry the brand hues (names stay so every text-coral/bg-mint/… class works):
-     coral → sienna (primary action/stamps) · mint → pine (success/live) · amber → warm ochre. */
-  --color-coral: #8c3a22; /* sienna — primary buttons become sienna-on-cream */
+  /* Accents carry through (names stay so every text-coral/bg-mint/… class works): sienna + pine — the
+     exact accents the MACHINA funnel uses. */
+  --color-coral: #8c3a22; /* sienna — primary action/stamps */
   --color-amber: #9a6a1f; /* warm ochre (warnings) */
   --color-mint: #1f5130; /* pine (success, verified, live) */
-  --color-violet: #5c5348; /* warm neutral */
+  --color-violet: #555049; /* neutral */
 
-  --color-text: #1a1712; /* ink */
-  --color-muted: #6b6355;
-  --color-muted-2: #9a9184;
+  --color-text: #111111; /* near-black ink */
+  --color-muted: #565656;
+  --color-muted-2: #8c8c8c;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -32,14 +37,14 @@
 
   /* "The Company Ledger" landing palette (2026-07-10) — additive; the app tokens above are untouched.
      Cream stock + ink + ruled lines; dual accent: pine (action) + sienna (stamps/eyebrows/numerals). */
-  --color-cream: #f5efe3;
-  --color-cream-2: #fdfbf6;
-  --color-ink: #1a1712;
-  --color-ink-muted: #6b6355;
-  --color-ink-faint: #9a9184;
-  --color-pine: #1f5130;
-  --color-sienna: #8c3a22;
-  --color-rule: #d9d0be;
+  --color-cream: #f7f7f5; /* was cream — now faint neutral for section backgrounds */
+  --color-cream-2: #ffffff; /* white cards */
+  --color-ink: #111111;
+  --color-ink-muted: #565656;
+  --color-ink-faint: #8c8c8c;
+  --color-pine: #1f5130; /* accent (unchanged) */
+  --color-sienna: #8c3a22; /* accent (unchanged) */
+  --color-rule: #e3e3e0; /* light hairline dividers */
 }
 
 html {
