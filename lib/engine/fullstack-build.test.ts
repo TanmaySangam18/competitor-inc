@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { load as parseYaml } from "js-yaml";
 import _sodium from "libsodium-wrappers";
 import {
@@ -33,6 +33,11 @@ function fakeGitHub(overrides: Record<string, { ok: boolean; status: number; bod
 }
 
 describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)", () => {
+  // dispatch now fails fast without a model key (see the fail-fast test below). Give the happy-path tests one.
+  let prevAnthropicKey: string | undefined;
+  beforeEach(() => { prevAnthropicKey = process.env.FULLSTACK_ANTHROPIC_KEY; process.env.FULLSTACK_ANTHROPIC_KEY = "sk-ant-test-key"; });
+  afterEach(() => { if (prevAnthropicKey === undefined) delete process.env.FULLSTACK_ANTHROPIC_KEY; else process.env.FULLSTACK_ANTHROPIC_KEY = prevAnthropicKey; });
+
   it("runs the full sequence and returns the repo url (honest 'building' artifact — never a guessed live URL)", async () => {
     const gh = fakeGitHub();
     const out = await dispatchFullstackBuild({ goal: "a tutoring marketplace", token: "t", fetchImpl: gh.fetchImpl });
@@ -122,6 +127,22 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     } finally {
       if (prevL === undefined) delete process.env.FULLSTACK_LLM_API_KEY; else process.env.FULLSTACK_LLM_API_KEY = prevL;
       if (prevV === undefined) delete process.env.FULLSTACK_VERCEL_TOKEN; else process.env.FULLSTACK_VERCEL_TOKEN = prevV;
+    }
+  });
+
+  it("fails fast (no orphan repo) when no model key is available — Sensitive vars don't survive `vercel env pull`", async () => {
+    const prevA = process.env.FULLSTACK_ANTHROPIC_KEY;
+    const prevL = process.env.FULLSTACK_LLM_API_KEY;
+    delete process.env.FULLSTACK_ANTHROPIC_KEY; // undo the beforeEach — simulate the empty-Sensitive-var case
+    delete process.env.FULLSTACK_LLM_API_KEY;
+    try {
+      const gh = fakeGitHub();
+      const out = await dispatchFullstackBuild({ goal: "x", token: "t", fetchImpl: gh.fetchImpl });
+      expect((out as { error: string }).error).toMatch(/no build model key/i);
+      expect(gh.calls.some((c) => c.url.endsWith("/user/repos"))).toBe(false); // never created a repo
+    } finally {
+      if (prevA === undefined) delete process.env.FULLSTACK_ANTHROPIC_KEY; else process.env.FULLSTACK_ANTHROPIC_KEY = prevA;
+      if (prevL === undefined) delete process.env.FULLSTACK_LLM_API_KEY; else process.env.FULLSTACK_LLM_API_KEY = prevL;
     }
   });
 

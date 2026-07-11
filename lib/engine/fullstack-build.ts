@@ -295,6 +295,14 @@ export async function dispatchFullstackBuild(opts: {
     "content-type": "application/json",
   };
   try {
+    // A build with no model key yields nothing but an orphan repo + a cryptic auth failure deep in the
+    // Action log (litellm "x-api-key header is required"). Fail fast + honestly BEFORE creating anything.
+    // NOTE (learned the hard way): Vercel "Sensitive" env vars resolve only at runtime on the server —
+    // `vercel env pull` returns them EMPTY — so this build must be triggered server-side, not via pulled creds.
+    const llmKey = (process.env.FULLSTACK_ANTHROPIC_KEY || process.env.FULLSTACK_LLM_API_KEY || "").trim();
+    if (!llmKey) {
+      return { error: "no build model key — set a non-empty FULLSTACK_ANTHROPIC_KEY in the environment that RUNS the build. (Vercel 'Sensitive' vars don't survive `env pull`; trigger the build server-side.)" };
+    }
     const repo = repoName(opts.goal);
     // Create under a GitHub ORG when FULLSTACK_GH_ORG is set (inherits org secrets); else the user account
     // (per-repo secret injection below makes that work with zero org).
@@ -316,9 +324,8 @@ export async function dispatchFullstackBuild(opts: {
     // The build-model key: prefer FULLSTACK_ANTHROPIC_KEY (the founder can create it fresh, since the legacy
     // FULLSTACK_LLM_API_KEY already holds the old Groq key). Injected as the repo's LLM_API_KEY secret, which
     // the workflow hands to Aider under FS_KEY_ENV (ANTHROPIC_API_KEY by default).
-    const llmKey = process.env.FULLSTACK_ANTHROPIC_KEY || process.env.FULLSTACK_LLM_API_KEY;
     const vercelToken = process.env.FULLSTACK_VERCEL_TOKEN;
-    if (llmKey) await setRepoSecret(fetchImpl, opts.token, fullName, "LLM_API_KEY", llmKey);
+    await setRepoSecret(fetchImpl, opts.token, fullName, "LLM_API_KEY", llmKey); // guaranteed non-empty (gated above)
     if (vercelToken) await setRepoSecret(fetchImpl, opts.token, fullName, "VERCEL_TOKEN", vercelToken);
 
     // Commit the workflow FIRST, then PROMPT.md. The workflow runs `on: push`, so the SECOND commit
