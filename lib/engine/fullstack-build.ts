@@ -74,7 +74,35 @@ export function fullstackPromptFile(goal: string, opts: { recall?: string } = {}
     `- Voice: real, specific microcopy for THIS product (headings, buttons, empty-state text). Never lorem`,
     `  ipsum, never "get started by editing".`,
     `Aim for the calm, content-first polish of Linear / Stripe / Apple — clarity and restraint over decoration.`,
+    ...(impliesSaaS(goal) ? ["", saasBrief()] : []),
     ...(impliesAiFeature(goal) ? ["", aiFeatureBrief()] : []),
+  ].join("\n");
+}
+
+// S3 (Real SaaS rung). Detect when the product wants accounts / auth / a multi-page product — the shape
+// S3 is about (built across sessions, iterated by the Change Desk). Conservative: a false positive only
+// adds auth + a couple of pages to the brief.
+export function impliesSaaS(goal: string): boolean {
+  return /\b(saas|sign[- ]?up|sign[- ]?in|log[- ]?in|login|accounts?|authentication|user accounts?|dashboard|admin panel|roles?|permissions?|multi[- ]?user|members? area|portal|subscriptions?|multi[- ]?page|multi[- ]?tenant)\b/i.test(goal);
+}
+
+// The additive brief for a REAL SaaS: auth + a protected multi-page product + per-user data isolation.
+// The isolation contract is the SAME one the proving grounds enforce — one account can never read
+// another's rows — because that is what makes a real product trustworthy, and it is graded.
+export function saasBrief(): string {
+  return [
+    `REAL SAAS (this product asked for accounts / auth / a multi-page product):`,
+    `- AUTH: sign up + log in. Use Supabase Auth when SUPABASE_URL + SUPABASE_ANON_KEY exist (email+password`,
+    `  is fine); otherwise a minimal signed session cookie so it still runs zero-config. NEVER store plaintext`,
+    `  passwords and NEVER roll custom crypto — use the platform/library primitives.`,
+    `- MULTIPLE REAL ROUTES: a public landing (app/page.tsx), an auth page (app/login/page.tsx), and a`,
+    `  PROTECTED area (app/dashboard/page.tsx) that redirects to login when signed out.`,
+    `- PER-USER DATA (graded isolation): every row carries an owner; every query filters to the CURRENT user`,
+    `  so one account can never read another's rows (Supabase RLS on auth.uid when configured; an explicit`,
+    `  owner check otherwise).`,
+    `- The API (app/api/items/route.ts) REQUIRES an authenticated user and scopes reads/writes to them; it`,
+    `  fails closed (401) for anyone signed out.`,
+    `- Keep it coherent + typed; it must \`next build\` and run on Vercel. Hold the same design bar on every page.`,
   ].join("\n");
 }
 
@@ -110,12 +138,13 @@ export function aiFeatureBrief(): string {
 // The Actions workflow: scaffold Next → Aider implements → deploy to Vercel (production). Best-effort;
 // Slice 2 iterates it against real runs. The repo's default GITHUB_TOKEN pushes; the only secrets are the
 // free model key (LLM_API_KEY) and VERCEL_TOKEN.
-export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV, opts: { withChat?: boolean } = {}): string {
-  // The files Aider is allowed to edit. When the product wants a grounded AI feature (R10), the chat route
-  // joins the set so the agent can actually create it. Default (no chat) is byte-identical to before.
-  const files = opts.withChat
-    ? "app/page.tsx app/api/items/route.ts app/api/chat/route.ts"
-    : "app/page.tsx app/api/items/route.ts";
+export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV, opts: { withChat?: boolean; withSaas?: boolean } = {}): string {
+  // The files Aider is allowed to edit. The base (page + items) is byte-identical to before; a grounded AI
+  // feature (R10) adds the chat route; a real SaaS (S3) adds the auth route + the login/dashboard pages.
+  const fileSet = ["app/page.tsx", "app/api/items/route.ts"];
+  if (opts.withSaas) fileSet.push("app/login/page.tsx", "app/dashboard/page.tsx", "app/api/auth/route.ts");
+  if (opts.withChat) fileSet.push("app/api/chat/route.ts");
+  const files = fileSet.join(" ");
   // P2 (seed): a structural review that verifies a GROUNDED build actually implements the cite-or-abstain +
   // isolation contract — not just that the brief asked for it. Only on AI-feature builds (so it doesn't tax
   // every build), same snapshot-revert-on-break discipline as the Design-Lead gate (never ship broken).
@@ -340,7 +369,7 @@ export async function dispatchFullstackBuild(opts: {
       });
     const wf = await commitFile(
       ".github/workflows/build-fullstack.yml",
-      buildFullstackWorkflowYaml(opts.model ?? FS_MODEL, FS_KEY_ENV, { withChat: impliesAiFeature(opts.goal) }),
+      buildFullstackWorkflowYaml(opts.model ?? FS_MODEL, FS_KEY_ENV, { withChat: impliesAiFeature(opts.goal), withSaas: impliesSaaS(opts.goal) }),
     );
     if (!wf.ok) return { error: `commit workflow → HTTP ${wf.status}${wf.status === 403 ? " — the token needs the 'workflow' scope" : ""}` };
     if (!opts.fetchImpl) await new Promise((r) => setTimeout(r, 3000));

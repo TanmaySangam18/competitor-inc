@@ -10,6 +10,8 @@ import {
   fetchDeployedUrl,
   impliesAiFeature,
   aiFeatureBrief,
+  impliesSaaS,
+  saasBrief,
 } from "./fullstack-build";
 import type { FetchLike } from "./aider-build";
 
@@ -202,6 +204,53 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
       const wfPut = gh.calls.find((c) => c.url.includes("build-fullstack.yml"));
       const yaml = Buffer.from(JSON.parse(wfPut!.body!).content, "base64").toString("utf8");
       expect(yaml).toMatch(/app\/api\/chat\/route\.ts/);
+    });
+  });
+
+  describe("S3 — real SaaS builds (accounts + auth + per-user data, multi-page)", () => {
+    it("detects account/auth/multi-page intent — conservatively", () => {
+      for (const g of [
+        "a project-management SaaS with team accounts and a dashboard",
+        "a habit tracker where users sign up and log in",
+        "an admin panel with roles and permissions",
+        "a members portal with subscriptions",
+      ]) expect(impliesSaaS(g)).toBe(true);
+      for (const g of ["a single-page tip calculator", "a static landing page for my cafe", "a color palette generator"])
+        expect(impliesSaaS(g)).toBe(false);
+    });
+
+    it("the SaaS brief demands auth + a protected multi-page product + per-user isolation", () => {
+      const p = fullstackPromptFile("a CRM SaaS with accounts and a dashboard");
+      expect(p).toMatch(/app\/login\/page\.tsx/);
+      expect(p).toMatch(/app\/dashboard\/page\.tsx/);
+      expect(p.toLowerCase()).toContain("never store plaintext");
+      expect(p.toLowerCase()).toContain("another's rows"); // per-user isolation, graded
+      expect(saasBrief().toLowerCase()).toContain("fails closed (401)");
+    });
+
+    it("a single-page product gets NO auth/pages in its brief (detector isn't trigger-happy)", () => {
+      const p = fullstackPromptFile("a single-page tip calculator");
+      expect(p).not.toMatch(/app\/login\/page\.tsx/);
+    });
+
+    it("the workflow adds auth + login/dashboard to Aider's file set only when withSaas is set", () => {
+      const saas = buildFullstackWorkflowYaml(undefined, undefined, { withSaas: true });
+      expect(saas).toMatch(/app\/login\/page\.tsx/);
+      expect(saas).toMatch(/app\/dashboard\/page\.tsx/);
+      expect(saas).toMatch(/app\/api\/auth\/route\.ts/);
+      expect(buildFullstackWorkflowYaml()).not.toMatch(/app\/login\/page\.tsx/); // default unchanged
+      // the file set stays valid YAML with both features on
+      const both = buildFullstackWorkflowYaml(undefined, undefined, { withSaas: true, withChat: true });
+      expect(both).toMatch(/app\/api\/chat\/route\.ts/);
+      expect(both).toMatch(/app\/login\/page\.tsx/);
+    });
+
+    it("a SaaS goal wires the auth route THROUGH dispatch into the committed workflow", async () => {
+      const gh = fakeGitHub();
+      await dispatchFullstackBuild({ goal: "a SaaS with user accounts and a dashboard", token: "t", fetchImpl: gh.fetchImpl });
+      const wfPut = gh.calls.find((c) => c.url.includes("build-fullstack.yml"));
+      const yaml = Buffer.from(JSON.parse(wfPut!.body!).content, "base64").toString("utf8");
+      expect(yaml).toMatch(/app\/api\/auth\/route\.ts/);
     });
   });
 
