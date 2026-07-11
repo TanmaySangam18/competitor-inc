@@ -6,7 +6,7 @@
 import Link from "next/link";
 import { useAuth } from "@/lib/engine/useAuth";
 
-export const serif = { fontFamily: "var(--font-serif), Georgia, serif" } as const;
+const serif = { fontFamily: "var(--font-serif), Georgia, serif" } as const;
 
 export function LedgerNav() {
   const { user, ready } = useAuth();

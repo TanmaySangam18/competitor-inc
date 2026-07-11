@@ -38,11 +38,11 @@ function write(u: Usage) {
 }
 
 /** Free (metered) when there's no BYOK key — BYOK users run on their own bill, uncapped. */
-export function isMetered(): boolean {
+function isMetered(): boolean {
   return !getByok();
 }
 
-export function remaining(kind: Kind): number {
+function remaining(kind: Kind): number {
   if (!isMetered()) return Infinity;
   return Math.max(0, FREE_CAPS[kind] - read()[kind]);
 }

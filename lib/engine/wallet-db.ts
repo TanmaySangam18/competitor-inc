@@ -67,7 +67,7 @@ export async function loadWallet(sb: SupabaseClient, companyId: string): Promise
   }
 }
 
-export async function recordWalletTxn(
+async function recordWalletTxn(
   sb: SupabaseClient,
   companyId: string,
   walletId: string,

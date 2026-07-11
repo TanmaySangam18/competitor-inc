@@ -233,7 +233,7 @@ export const MANUFACTURING_SUB_AGENTS: SubAgentTemplate[] = [
   },
 ];
 
-export const ENGINEERING_SUB_AGENTS: SubAgentTemplate[] = [
+const ENGINEERING_SUB_AGENTS: SubAgentTemplate[] = [
   {
     name: "Firmware Engineer",
     focus: "Embedded systems, motor control, BMS, thermal management",
@@ -254,7 +254,7 @@ export const ENGINEERING_SUB_AGENTS: SubAgentTemplate[] = [
   },
 ];
 
-export const GROWTH_SUB_AGENTS: SubAgentTemplate[] = [
+const GROWTH_SUB_AGENTS: SubAgentTemplate[] = [
   {
     name: "Demand Generation Agent",
     focus: "Paid ads, conversion optimization, funnel analysis",

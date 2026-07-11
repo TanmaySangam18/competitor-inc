@@ -72,28 +72,6 @@ export const DELEGATION: DelegationAgent[] = ORDER.map((role) => ({
   desk: DESK[role],
 }));
 
-/** Map a dynamic crew (see lib/engine/dynamic-crew.ts) onto the office floor. Canonical play names
- *  (Apex, Forge, Rig, …) stay on the figures so banter/labels never drift; the crew decides WHICH
- *  roles are on the floor. Every role has a desk/tone/color (the Records are exhaustive). */
-export function delegationForCrew(profiles: Array<{ role: AgentRole; playbook?: string }>): DelegationAgent[] {
-  const seen = new Set<AgentRole>();
-  const out: DelegationAgent[] = [];
-  for (const p of profiles) {
-    if (seen.has(p.role)) continue; // one figure per role on the floor
-    seen.add(p.role);
-    out.push({
-      role: p.role,
-      name: AGENTS[p.role].name,
-      label: AGENTS[p.role].label,
-      blurb: AGENTS[p.role].blurb,
-      playbook: p.playbook || AGENTS[p.role].playbook,
-      tone: TONE[p.role],
-      color: COLOR[p.role],
-      desk: DESK[p.role],
-    });
-  }
-  return out.length > 0 ? out : DELEGATION;
-}
 
 /** A grayscale hex for a given tone (0..1). Keeps everything monochrome. */
 export function toneHex(tone: number): string {

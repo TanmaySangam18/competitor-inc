@@ -54,8 +54,3 @@ export async function provisionBackend(
   }
 }
 
-// The named provider object, so callers can hold a `BackendProvider` reference.
-export const SupabaseBackendProvider: BackendProvider = {
-  name: "supabase-shared-multitenant",
-  provision: (tenant, spec) => provisionBackend(tenant, spec),
-};

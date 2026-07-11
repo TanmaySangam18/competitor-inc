@@ -23,7 +23,7 @@ const KILL_KEY = "cofounder:killswitch";
 
 // Autopilot pauses (rather than piling up consequential actions) once this many approvals are
 // waiting. Shared by the interval guard and the derived `autopilotPaused` flag so they can't drift.
-export const AUTOPILOT_PAUSE_AT = 3;
+const AUTOPILOT_PAUSE_AT = 3;
 
 interface Store {
   companies: Company[];

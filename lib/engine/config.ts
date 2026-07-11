@@ -38,7 +38,7 @@ export interface EngineConfig {
 
 const ROLES = Object.keys(AGENTS) as AgentRole[];
 
-export const DEFAULT_CONFIG: EngineConfig = {
+const DEFAULT_CONFIG: EngineConfig = {
   soul:
     "Warm, candid, and a little playful. Prove there's real demand before building anything. " +
     "Optimize for the user's real outcome, not vanity metrics — and tell the truth even when it " +

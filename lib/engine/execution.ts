@@ -231,7 +231,7 @@ export async function buildOnGitHub(
 }
 
 // ── Phase 2: Vercel deploy ───────────────────────────────────────────────────
-export async function deployToVercel(): Promise<ExecOutcome> {
+async function deployToVercel(): Promise<ExecOutcome> {
   const hook = process.env.VERCEL_DEPLOY_HOOK_URL;
   if (!hook) return disabled();
   try {
@@ -266,7 +266,7 @@ export async function sendEmail(
 }
 
 // ── Phase 3: Payments (Stripe payment link) ──────────────────────────────────
-export async function createPaymentLink(): Promise<ExecOutcome> {
+async function createPaymentLink(): Promise<ExecOutcome> {
   const key = process.env.STRIPE_SECRET_KEY;
   const price = process.env.STRIPE_PRICE_ID;
   if (!key || !price) return disabled();
@@ -288,7 +288,7 @@ export async function createPaymentLink(): Promise<ExecOutcome> {
 }
 
 // ── Phase 3: Ads (operator-supplied webhook to their own ad pipeline) ─────────
-export async function placeAd(
+async function placeAd(
   spec: { objective: string; budget: number; copy: string },
   hook: string | undefined = process.env.ADS_WEBHOOK_URL,
   enforceSsrf = false
@@ -370,7 +370,7 @@ export async function postToMastodon(opts: { text: string }): Promise<ExecOutcom
 // Reddit blocks datacenter IPs for anonymous reads, but AUTHENTICATED API calls from a server are fine.
 // Never autonomous — only fires for a post the founder approved. Subreddit + rules are the founder's
 // responsibility (reddiquette); we default to the user's profile ("u_<name>") which is always postable.
-export async function postToReddit(opts: { title: string; text: string; subreddit?: string }): Promise<ExecOutcome> {
+async function postToReddit(opts: { title: string; text: string; subreddit?: string }): Promise<ExecOutcome> {
   const id = process.env.REDDIT_CLIENT_ID;
   const secret = process.env.REDDIT_CLIENT_SECRET;
   const user = process.env.REDDIT_USERNAME;

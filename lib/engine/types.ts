@@ -94,11 +94,6 @@ export interface SubAgent {
   spent: number; // amount actually spent
 }
 
-// Hierarchical agent execution tracking
-export interface AgentHierarchy {
-  topLevelAgents: AgentRole[];
-  subAgentsByParent: Map<string, SubAgent[]>;
-}
 
 export interface Ledger {
   spent: number;
@@ -139,11 +134,6 @@ export interface Company {
   shareInPublic?: boolean;
 }
 
-export interface EngineState {
-  company: Company | null;
-  activities: Activity[];
-  approvals: ApprovalItem[];
-}
 
 // Operate layer (EOS): quarterly Rocks + an Issues list, per company. Gated behind a flag.
 export interface Rock {

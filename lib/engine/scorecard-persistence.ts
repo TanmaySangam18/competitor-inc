@@ -93,7 +93,7 @@ export async function saveScorecardSnapshot(
 /**
  * Fetch historical snapshots for trending
  */
-export async function fetchScorecardHistory(
+async function fetchScorecardHistory(
   companyId: string,
   limit: number = 30
 ): Promise<ScorecardSnapshot[]> {
@@ -132,7 +132,7 @@ export async function fetchScorecardHistory(
 /**
  * Calculate trends for a metric across historical snapshots
  */
-export function calculateMetricTrend(
+function calculateMetricTrend(
   metricName: string,
   snapshots: ScorecardSnapshot[]
 ): ScorecardTrend {
@@ -213,7 +213,7 @@ export function calculateMetricTrend(
 /**
  * Get all metric trends
  */
-export async function getScorecardTrends(companyId: string): Promise<ScorecardTrend[]> {
+async function getScorecardTrends(companyId: string): Promise<ScorecardTrend[]> {
   const snapshots = await fetchScorecardHistory(companyId, 30);
 
   // Extract unique metric names
@@ -238,7 +238,7 @@ export async function getScorecardTrends(companyId: string): Promise<ScorecardTr
 /**
  * Check if a Rock is on track to hit its target
  */
-export function assessRockProgress(
+function assessRockProgress(
   rockTarget: number,
   currentValue: number,
   nightsElapsed: number,

@@ -9,7 +9,7 @@ import { useEffect } from "react";
 // Source convention: `<utm_source|ref|referrer-host>` + optional `/c:<utm_campaign>` suffix —
 // campaign-level attribution rides inside the existing `source` column, no schema change. The
 // attribution engine parses the suffix back out (parseCampaign).
-export function beaconSource(): string | undefined {
+function beaconSource(): string | undefined {
   try {
     const q = new URLSearchParams(window.location.search);
     const src = q.get("utm_source") || q.get("ref") || (document.referrer ? new URL(document.referrer).hostname : "");

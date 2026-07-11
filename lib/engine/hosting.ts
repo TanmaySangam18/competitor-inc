@@ -39,11 +39,6 @@ export function isolationContract(): string[] {
   ];
 }
 
-// The contract a hosting backend implements. buildOnGitHub (execution.ts) is the first conformer.
-export interface HostingProvider {
-  readonly name: string;
-  provision(tenant: TenantContext, spec: { repo: string; description: string; files: Record<string, string> }): Promise<{ ok: boolean; url?: string; error?: string }>;
-}
 
 // Reverse of the shipped-URL contract: recover the GitHub repo ("owner/name") from a product URL so
 // the dashboard can offer "own your code" doors (repo / StackBlitz / Replit). Returns null for

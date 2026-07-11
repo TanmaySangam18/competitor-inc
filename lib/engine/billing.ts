@@ -67,8 +67,6 @@ export const TIERS: PricingTier[] = [
     cta: "Apply for a slot",
   },
 ];
-// Back-compat: the dashboard Build gate keys off the Operator checkout.
-export const CHECKOUT_URL = CHECKOUT_URLS.operator;
 
 export const billingLive = (): boolean => !!CHECKOUT_URLS.operator;
 // Is a specific tier's checkout configured yet?

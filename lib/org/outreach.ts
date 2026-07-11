@@ -114,7 +114,7 @@ export function outreachGate(lead: Lead): GateResult {
 }
 
 // Our offer, one place. The message drafter always sells THIS.
-export const OUR_OFFER =
+const OUR_OFFER =
   "an autonomous software delivery + growth team — we build, ship, support, and sell your client software so you can take on more work without hiring";
 
 export interface FirstTouch { subject: string; body: string }

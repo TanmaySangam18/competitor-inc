@@ -758,14 +758,6 @@ export function reportingChain(id: string): OrgRole[] {
   return chain;
 }
 
-export function rolesByDepartment(departmentId: string): OrgRole[] {
-  return ROLES.filter((r) => r.department === departmentId);
-}
-
-export function rolesByExecFn(fn: AgentRole): OrgRole[] {
-  return ROLES.filter((r) => r.execFn === fn);
-}
-
 export const orgSize = (): number => ROLES.length;
 
 export interface OrgIssue {

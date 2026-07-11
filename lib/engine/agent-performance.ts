@@ -16,7 +16,7 @@ export interface AgentPerformance {
   successRate: number; // done / (done + failed), in [0,1]; 0.5 when there's no signal yet
 }
 
-export function performanceByAgent(activities: Activity[]): Record<string, AgentPerformance> {
+function performanceByAgent(activities: Activity[]): Record<string, AgentPerformance> {
   const acc: Record<string, AgentPerformance> = {};
   for (const a of activities) {
     const p = (acc[a.agent] ??= { agent: a.agent, done: 0, failed: 0, spent: 0, successRate: 0.5 });

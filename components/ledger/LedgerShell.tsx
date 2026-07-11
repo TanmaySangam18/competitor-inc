@@ -12,7 +12,7 @@ export function Eyebrow({ children }: { children: React.ReactNode }) {
   return <p className="font-mono text-[11px] font-semibold tracking-[0.14em] text-sienna">{children}</p>;
 }
 
-export function LedgerFooter() {
+function LedgerFooter() {
   return (
     <footer className="border-t-[1.5px] border-ink">
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-6">

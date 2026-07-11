@@ -65,14 +65,14 @@ export async function applyOptimisticThenPersist<S>(
 // One-time upload marker, per user, so a later legitimately-empty DB (e.g. the user deleted everything) does
 // NOT re-upload tombstoned data.
 const MIGRATED_PREFIX = "cofounder:migrated:";
-export function isMigrated(uid: string): boolean {
+function isMigrated(uid: string): boolean {
   try {
     return typeof window !== "undefined" && window.localStorage.getItem(MIGRATED_PREFIX + uid) === "1";
   } catch {
     return false;
   }
 }
-export function markMigrated(uid: string): void {
+function markMigrated(uid: string): void {
   try {
     window.localStorage.setItem(MIGRATED_PREFIX + uid, "1");
   } catch {

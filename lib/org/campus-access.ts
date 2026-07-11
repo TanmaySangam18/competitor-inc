@@ -11,7 +11,7 @@
 // spam. This mirrors Block 3's outreachGate for the campus context.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const CAMPUS_DOMAIN = "northeastern.edu";
+const CAMPUS_DOMAIN = "northeastern.edu";
 
 // The campus gate is OFF by default (the general product + the founder's own access are unaffected). Flip
 // NEXT_PUBLIC_CAMPUS_GATE="1" for the NU dogfood launch → then only verified @northeastern.edu members
