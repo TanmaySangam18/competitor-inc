@@ -116,6 +116,32 @@ export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV
   const files = opts.withChat
     ? "app/page.tsx app/api/items/route.ts app/api/chat/route.ts"
     : "app/page.tsx app/api/items/route.ts";
+  // P2 (seed): a structural review that verifies a GROUNDED build actually implements the cite-or-abstain +
+  // isolation contract — not just that the brief asked for it. Only on AI-feature builds (so it doesn't tax
+  // every build), same snapshot-revert-on-break discipline as the Design-Lead gate (never ship broken).
+  const architectReview = opts.withChat
+    ? `
+      - name: Architect review — grounding correctness (P2; only when the product has an AI feature)
+        working-directory: \${{ github.event.repository.name }}
+        env:
+          ${keyEnv}: \${{ secrets.LLM_API_KEY }}
+        run: |
+          set +e
+          SETTINGS="$GITHUB_WORKSPACE/aider.settings.yml"
+          printf '%s\\n' "- name: ${model}" "  use_temperature: false" "  edit_format: whole" > "$SETTINGS"
+          git config user.name "competitor-bot" && git config user.email "actions@users.noreply.github.com"
+          git add -A && git commit -m "wip: pre-architect-review snapshot [skip ci]" > /dev/null 2>&1 || true
+          SNAPA=$(git rev-parse HEAD)
+          aider --yes --model ${model} --model-settings-file "$SETTINGS" --message "You are the ARCHITECT reviewing app/api/chat/route.ts before it ships. This is a GROUNDED assistant — grade it hard against this contract and EDIT the code to satisfy every point (or leave it if it already does): (1) it RETRIEVES from the app's own stored data (the items in /api/items) and answers ONLY from what it retrieved; (2) it returns the specific records/ids it used as CITATIONS; (3) when nothing relevant is found it returns a clear 'no matching record' answer with an EMPTY citations array — it must NEVER fabricate an answer; (4) every read is scoped to the current user/workspace so one user can never see another's data; (5) inputs are validated and it fails closed (4xx) on bad input, never a 500. Keep the response JSON shape stable and all functionality working." app/api/chat/route.ts app/api/items/route.ts 2>&1 | tee -a ../aider.log
+          if npm run build > ../build.log 2>&1; then
+            echo "architect review: build still green — shipping the reviewed logic"
+          else
+            echo "architect review broke the build — reverting to the pre-review snapshot (never ship broken)"
+            git reset --hard "$SNAPA" > /dev/null 2>&1
+            git clean -fd app > /dev/null 2>&1
+            npm run build > ../build.log 2>&1 || { echo "revert failed to build — impossible state, failing honestly"; exit 1; }
+          fi`
+    : "";
   return `name: build-fullstack
 on:
   push:
@@ -194,7 +220,7 @@ jobs:
             git reset --hard "$SNAP" > /dev/null 2>&1
             git clean -fd app > /dev/null 2>&1
             npm run build > ../build.log 2>&1 || { echo "revert failed to build — impossible state, failing honestly"; exit 1; }
-          fi
+          fi${architectReview}
       - name: Deploy to Vercel + make it public
         working-directory: \${{ github.event.repository.name }}
         env:

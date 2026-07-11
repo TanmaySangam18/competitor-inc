@@ -164,6 +164,17 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
       expect(buildFullstackWorkflowYaml()).not.toMatch(/app\/api\/chat\/route\.ts/); // default unchanged
     });
 
+    it("P2: an Architect grounding-review step is added ONLY for AI-feature builds, and the YAML still parses", () => {
+      const withChat = buildFullstackWorkflowYaml(undefined, undefined, { withChat: true });
+      expect(withChat).toContain("Architect review — grounding correctness");
+      expect(withChat).toContain("NEVER fabricate"); // the cite-or-abstain contract is enforced structurally
+      expect(buildFullstackWorkflowYaml()).not.toContain("Architect review"); // default build unaffected
+      // the conditional step didn't break YAML validity
+      const doc = parseYaml(withChat) as { jobs: { build: { steps: { name?: string }[] } } };
+      const names = doc.jobs.build.steps.map((s) => s.name).filter(Boolean);
+      expect(names).toContain("Architect review — grounding correctness (P2; only when the product has an AI feature)");
+    });
+
     it("an AI-feature goal wires the chat route THROUGH dispatch into the committed workflow", async () => {
       const gh = fakeGitHub();
       await dispatchFullstackBuild({ goal: "a copilot that answers questions about my inventory", token: "t", fetchImpl: gh.fetchImpl });
