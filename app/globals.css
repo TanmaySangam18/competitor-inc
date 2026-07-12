@@ -62,6 +62,15 @@ body {
   overflow-x: hidden;
 }
 
+/* MACHINA crisp (2026-07-11, task #57): square every box corner app-wide — the MACHINA look — for the
+   cockpit + all panels at once. UNLAYERED on purpose: an unlayered rule beats Tailwind's @layer utilities
+   in the cascade, so this reliably overrides rounded-lg/xl/2xl/etc (the @theme --radius-* override did NOT
+   take in this v4 setup — verified). `rounded-full` is EXCLUDED so circular avatars/badges/pills stay
+   round. Reversible: delete this block. */
+[class*="rounded"]:not([class*="rounded-full"]) {
+  border-radius: 0 !important;
+}
+
 /* Craft bar (2026-07-10, Block 4): headings are the DISPLAY sans (Space Grotesk) with tight tracking —
    mono-as-headings read "dev tool", not product. Mono stays for what it's FOR: the wordmark, numbers,
    logs, proofs, code (explicit font-mono classes). One rule, every page lifts. */
