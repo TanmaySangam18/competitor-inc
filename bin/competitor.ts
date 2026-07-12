@@ -82,6 +82,21 @@ function cmdPlan(args: string[]) {
   for (const step of p.chain) line(`  • ${step}`);
 }
 
+async function cmdRun(args: string[]) {
+  const goal = args.filter((a) => !a.startsWith("--")).join(" ").trim();
+  if (!goal) { line(`usage: npm run competitor -- run "<goal>"`); process.exitCode = 1; return; }
+  const c = await core.coordinate(goal, { operate: Boolean(flags(args).operate) });
+  const { tasks, proceed, escalate } = c.summary;
+  line(`competitor — run  (${tasks} tasks: ${proceed} proceed, ${escalate} escalate-to-founder)`);
+  line(`  goal: ${c.goal}`);
+  line(``);
+  c.plan.tasks.forEach((t, i) => {
+    const d = c.decisions[i];
+    const tag = d.decision === "escalate-to-founder" ? "⛳ founder" : "▶ proceed";
+    line(`  ${tag}  ${t.orgTitle ?? t.role}: ${t.goal}`);
+  });
+}
+
 function cmdHelp() {
   line(`competitor — the company OS, from the terminal`);
   line(``);
@@ -91,6 +106,7 @@ function cmdHelp() {
   line(`                           run one action through the governance engine → AUTO | QUEUE | BLOCK`);
   line(`  deliberate "<task>"     convene the relevant roles → a governed Decision Record`);
   line(`  plan "<goal>"           break a goal into the org's IC→lead→sign-off task chain`);
+  line(`  run "<goal>"            plan it AND govern every task → what proceeds vs escalates`);
   line(`  help                     this`);
   line(``);
   line(`  e.g.  npm run competitor -- decide --type spend --agent marketing --amount 600`);
@@ -105,6 +121,7 @@ async function main() {
     case "decide": cmdDecide(rest); break;
     case "deliberate": await cmdDeliberate(rest); break;
     case "plan": cmdPlan(rest); break;
+    case "run": await cmdRun(rest); break;
     case "help": case undefined: cmdHelp(); break;
     default:
       line(`unknown command: ${cmd}`);
