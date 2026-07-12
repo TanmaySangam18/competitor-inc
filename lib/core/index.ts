@@ -24,6 +24,7 @@ import { coordinate, type Coordination } from "./coordinate";
 import { checkHealth, type Health, type HealthCheck } from "./health";
 import { paymentsConfigured, connectProduct, checkoutUrl, type Onboarding } from "./payments";
 import { outreachFor, AGENCY_ICP, qualifyLead, outreachGate, type OutreachPlan, type Lead, type ICP } from "./outreach";
+import { outreachConfigured, compliantMessage, sendFirstTouch, type SendResult } from "./outreach-send";
 import { triageTicket, ticketToSignal, improve, type Signal, type Ticket, type TicketTriage, type OperateCycle } from "./operate";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
@@ -88,9 +89,9 @@ export { triageTicket, improve };
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
-  outreach: { icp: AGENCY_ICP, qualify: qualifyLead, gate: outreachGate, for: outreachFor },
+  outreach: { icp: AGENCY_ICP, qualify: qualifyLead, gate: outreachGate, for: outreachFor, configured: outreachConfigured, compliant: compliantMessage, send: sendFirstTouch },
   operate: { triageTicket, ticketToSignal, improve },
 };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle };
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult };
 export default core;

@@ -135,6 +135,8 @@ function cmdOutreach(args: string[]) {
   } else {
     line(`  (no draft — the no-spam rail blocked this contact)`);
   }
+  line(``);
+  line(`  send:  ${core.outreach.configured() ? "configured — governed transmit ready (CAN-SPAM + AI-disclosed)" : "not configured — add a send credential to transmit"}`);
 }
 
 function cmdOperate(args: string[]) {
