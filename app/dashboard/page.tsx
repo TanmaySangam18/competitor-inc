@@ -62,6 +62,7 @@ import { Onboarding } from "@/components/dashboard/Onboarding";
 import { ChatTab } from "@/components/dashboard/ChatTab";
 import { TeamRoomTab } from "@/components/dashboard/TeamRoomTab";
 import { CrewBoard } from "@/components/dashboard/CrewBoard";
+import { DashSidebar } from "@/components/dashboard/DashSidebar";
 import { BrainTab } from "@/components/dashboard/BrainTab";
 import { OperateTab } from "@/components/dashboard/OperateTab";
 import { ActivityRow } from "@/components/dashboard/ActivityRow";
@@ -166,7 +167,9 @@ function DashboardInner() {
   }
 
   return (
-    <div id="main" className="flex h-[100dvh] flex-col overflow-hidden">
+    <div id="main" className="flex h-[100dvh] overflow-hidden">
+      <DashSidebar />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
       <TopBar r={r} premium={premium} gateOn={gateOn} />
       <SelfEnrichPanel />
       {r.blocked && (
@@ -201,6 +204,7 @@ function DashboardInner() {
             {r.company?.status === "rejected" && <Rejected r={r} onBuild={goBuild} />}
           </div>
         )}
+      </div>
       </div>
     </div>
   );
@@ -669,17 +673,17 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
 
       {/* ZONE 1 — the desk: what needs YOU. Full-width, auto-height, never clipped. When the inbox is
           clear it collapses to a slim status band instead of an empty panel. */}
-      {r.pendingApprovals.length === 0 && !r.killSwitch ? (
-        <div id="approval-inbox" className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm">
+      {r.pendingApprovals.length === 0 ? (
+        <div id="approval-inbox" className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm">
           <span className="font-mono text-[11px] text-muted-2">⚡ {autoRanCount} ran autonomously</span>
           <span className="text-muted-2">·</span>
-          <span className="text-muted">Inbox clear — only money over caps, contracts, pricing, deletion, and launches land here.</span>
+          <span className="text-muted">{r.killSwitch ? "Paused — the team proposes, nothing runs; anything consequential will queue here." : "Inbox clear — only money over caps, contracts, pricing, deletion, and launches land here."}</span>
           <button
-            onClick={() => r.setKillSwitch(true)}
-            title="Hard-stop the autonomous loop instantly — everything queues for you."
-            className="ml-auto rounded-lg border border-border px-2.5 py-1 font-mono text-[11px] font-semibold text-muted transition hover:border-coral/50 hover:text-coral"
+            onClick={() => r.setKillSwitch(!r.killSwitch)}
+            title={r.killSwitch ? "Resume the autonomous loop." : "Hard-stop the autonomous loop instantly — everything queues for you."}
+            className={`ml-auto rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold transition ${r.killSwitch ? "border-coral bg-coral/10 text-coral" : "border-border text-muted hover:border-coral/50 hover:text-coral"}`}
           >
-            kill switch
+            {r.killSwitch ? "halted — resume" : "kill switch"}
           </button>
         </div>
       ) : (

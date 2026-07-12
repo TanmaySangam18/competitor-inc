@@ -16,18 +16,18 @@ export default function LandingInput() {
     router.push(q ? `/build?idea=${encodeURIComponent(q)}` : "/build");
   };
   return (
-    <div className="flex w-full max-w-xl items-stretch border-2 border-black text-left">
+    <div className="flex w-full max-w-xl items-stretch overflow-hidden rounded-2xl border border-border bg-surface text-left shadow-sm">
       <input
         value={idea}
         onChange={(e) => setIdea(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && go()}
         placeholder="A study-tracker SaaS for night-shift nurses…"
         aria-label="Describe your software in one sentence"
-        className="w-full bg-transparent px-4 py-3.5 text-sm outline-none placeholder:text-black/40"
+        className="w-full bg-transparent px-4 py-3.5 text-sm outline-none placeholder:text-muted-2"
       />
       <button
         onClick={go}
-        className="shrink-0 border-l-2 border-black bg-black px-6 text-[12px] font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#8C3A22]"
+        className="shrink-0 bg-coral px-6 text-[13px] font-semibold text-white transition hover:brightness-110"
       >
         Build it →
       </button>
