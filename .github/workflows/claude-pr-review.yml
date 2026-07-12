@@ -1,0 +1,54 @@
+name: Claude PR Review
+
+# Claude PR Reviewer (marketplace: drillan/claude-pr-reviewer). Reviews every PR + responds to @claude
+# mentions. Gated on the ANTHROPIC_API_KEY secret so PRs stay green (with a notice) until it's set —
+# add it in repo Settings → Secrets and variables → Actions. Pairs with qa.yml (the hard tsc/test/build gate);
+# this is the judgment layer on top.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gate on API key present
+        id: gate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY not set — skipping Claude PR review. Add it in Settings → Secrets to enable."
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+
+      - name: Claude PR review
+        if: steps.gate.outputs.enabled == 'true'
+        uses: drillan/claude-pr-reviewer@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          review_language: English
+          custom_prompt: |
+            This is competitor.inc — a verifiable autonomous AI software company. Hold the house bar:
+            - Honesty floor is ABSOLUTE: flag any fabricated data, fake proof/metrics/receipts, or any claim
+              not backed by a real value. "Real numbers only."
+            - Governance: money-movement, outbound sends, and irreversible actions must stay human-approved
+              or behind the policy engine — never silently autonomous.
+            - QA gate: the change must keep tsc + tests + build + smoke green (see qa.yml).
+            Prioritize correctness, security (authz, input validation, fail-closed defaults), then simplification.
+            Be concise and specific — cite file:line.
