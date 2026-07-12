@@ -59,16 +59,29 @@ function convene(task: string, size: number): { chair: OrgRole; panel: OrgRole[]
   return { chair, panel };
 }
 
-export function deliberate(task: string, opts: { size?: number } = {}): DecisionRecord {
+// The reasoner produces a participant's stance. DEFAULT = mandate-derived (deterministic, no model, no
+// key). REAL model-reasoned debate plugs in HERE — same signature, async-ready — when a provider/key is
+// connected (the last phase). Supply a real reasoner and the record is no longer flagged `simulated`.
+export type Reasoner = (input: {
+  roleId: string; title: string; mandate: string; escalatesWhen: string; task: string;
+}) => string | Promise<string>;
+
+const defaultReasoner: Reasoner = ({ mandate, escalatesWhen }) => `${mandate} (escalates when: ${escalatesWhen})`;
+
+export async function deliberate(
+  task: string,
+  opts: { size?: number; reasoner?: Reasoner } = {},
+): Promise<DecisionRecord> {
   const clean = (task || "").trim();
   const { chair, panel } = convene(clean, opts.size ?? 3);
   const room = [chair, ...panel];
+  const reasoner = opts.reasoner ?? defaultReasoner;
 
-  const positions: Position[] = room.map((r) => ({
-    roleId: r.id,
-    title: r.title,
-    stance: `${r.mandate} (escalates when: ${r.escalatesWhen})`,
-  }));
+  const positions: Position[] = [];
+  for (const r of room) {
+    const stance = await reasoner({ roleId: r.id, title: r.title, mandate: r.mandate, escalatesWhen: r.escalatesWhen, task: clean });
+    positions.push({ roleId: r.id, title: r.title, stance });
+  }
 
   const t = clean.toLowerCase();
   const highRisk = HIGH_RISK.some((k) => t.includes(k));
@@ -84,6 +97,6 @@ export function deliberate(task: string, opts: { size?: number } = {}): Decision
     decision,
     decidedBy: chair.title,
     rationale,
-    simulated: true,
+    simulated: !opts.reasoner, // real reasoner supplied → real reasoning, not simulated
   };
 }
