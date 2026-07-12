@@ -75,6 +75,15 @@ export default function BuildDemoPage() {
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
+  // Arriving from the one-screen landing (/?…): if an idea was typed there, auto-run the demo here so
+  // "describe → it works" flows without a second keystroke. Read from the URL directly (client-only, no
+  // Suspense needed). Runs once on mount.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("idea");
+    if (q && q.trim()) void runDemo(q.trim());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // The inline demo (unchanged mechanism): real model-backed validation server-side, deterministic
   // keyless fallback on any failure — instant, honest, no signup wall before the aha.
   async function runDemo(raw?: string) {
