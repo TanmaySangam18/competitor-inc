@@ -105,6 +105,17 @@ async function cmdDoctor() {
   if (!h.ok) process.exitCode = 1;
 }
 
+function cmdPayments() {
+  const configured = core.payments.configured();
+  line(`competitor — payments  (${configured ? "LIVE — Stripe connected" : "not configured"})`);
+  line(`  model:   Stripe Connect — a product's buyers pay the CUSTOMER's own account; we orchestrate, never hold it`);
+  line(`  in:      POST /api/payments/stripe (verified webhook) → revenue_events (the honest ledger)`);
+  line(`  floor:   payouts / refunds / transfers stay founder-approved`);
+  if (!configured) line(`  enable:  add STRIPE_SECRET_KEY (+ STRIPE_WEBHOOK_SECRET) in the env — then a product can charge`);
+  // read-only by design: onboarding a Stripe account is a real side effect → done from the governed
+  // engine / an authenticated dashboard action (core.connectProduct), never casually from the CLI.
+}
+
 function cmdHelp() {
   line(`competitor — the company OS, from the terminal`);
   line(``);
@@ -116,6 +127,7 @@ function cmdHelp() {
   line(`  plan "<goal>"           break a goal into the org's IC→lead→sign-off task chain`);
   line(`  run "<goal>"            plan it AND govern every task → what proceeds vs escalates`);
   line(`  doctor                   self-check: is the whole company OS coherent + alive?`);
+  line(`  payments                 the money layer's status (Stripe Connect)`);
   line(`  help                     this`);
   line(``);
   line(`  e.g.  npm run competitor -- decide --type spend --agent marketing --amount 600`);
@@ -131,6 +143,7 @@ async function main() {
     case "deliberate": await cmdDeliberate(rest); break;
     case "plan": cmdPlan(rest); break;
     case "run": await cmdRun(rest); break;
+    case "payments": cmdPayments(); break;
     case "doctor": await cmdDoctor(); break;
     case "help": case undefined: cmdHelp(); break;
     default:
