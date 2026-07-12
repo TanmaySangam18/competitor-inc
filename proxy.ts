@@ -3,16 +3,39 @@ import { createServerClient } from "@supabase/ssr";
 import { isCampusEmail, campusGateEnabled } from "@/lib/org/campus-access";
 import { isFounderEmail } from "@/lib/engine/founders";
 
-// Next 16 renamed the `middleware` file convention to `proxy` (same request-interception API). This refreshes
-// the Supabase auth session cookie on the authed surfaces, so server-side reads (esp. the /api/execute
-// keystone) always see a valid user instead of falsely refusing on an expired token. No-op when Supabase is
-// unconfigured (offline/sim) so the local product is unchanged.
+// Next 16's request-interception layer (renamed from `middleware`). Two jobs:
+//  1) MAINTENANCE GATE — while the backend is rebuilt, public pages show /maintenance. Default: Vercel
+//     PRODUCTION = down; dev / CI / preview = up (so work, tests, and previews aren't blocked). Toggle in
+//     Vercel: MAINTENANCE=0 → go live · MAINTENANCE=1 → force on. APIs + assets stay reachable.
+//  2) Supabase session refresh + the campus gate on the AUTHED surfaces (unchanged) — so server-side reads
+//     (esp. the /api/execute keystone) always see a valid user. No-op when Supabase is unconfigured.
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+function inMaintenance(): boolean {
+  if (process.env.MAINTENANCE === "0") return false;
+  if (process.env.MAINTENANCE === "1") return true;
+  return process.env.VERCEL_ENV === "production";
+}
+
+const AUTHED_API = new Set(["/api/execute", "/api/enrich", "/api/proof"]);
+const isAuthedSurface = (p: string) => p.startsWith("/dashboard") || p.startsWith("/house") || AUTHED_API.has(p);
+
 export async function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // 1) Maintenance — public pages only (APIs and /maintenance are excluded here; assets via the matcher).
+  if (inMaintenance() && !pathname.startsWith("/api/") && pathname !== "/maintenance") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/maintenance";
+    url.search = "";
+    return NextResponse.rewrite(url);
+  }
+
   const res = NextResponse.next({ request: req });
-  if (!URL || !ANON) return res; // unconfigured → do nothing
+
+  // 2) Session refresh + campus gate — only on the authed surfaces (don't call getUser on every public page).
+  if (!isAuthedSurface(pathname) || !URL || !ANON) return res;
   try {
     const supabase = createServerClient(URL, ANON, {
       cookies: {
@@ -26,14 +49,12 @@ export async function proxy(req: NextRequest) {
     });
     const { data } = await supabase.auth.getUser(); // refreshes the session + writes refreshed cookies onto `res`
 
-    // Defense-in-depth NU gate (Phase 4): the OAuth callback blocks a non-campus sign-in, but a session
-    // ISSUED BEFORE the gate was turned on would otherwise keep reaching /dashboard. When the gate is on,
-    // block an authed non-campus, non-founder user on every authed surface — 403 for APIs, redirect for
-    // pages. Anonymous requests fall through (the page/route handles its own sign-in redirect).
+    // Defense-in-depth NU gate: block an authed non-campus, non-founder user on every authed surface when
+    // the gate is on — 403 for APIs, redirect for pages. Anonymous requests fall through.
     if (campusGateEnabled()) {
       const email = data?.user?.email;
       if (email && !isCampusEmail(email) && !isFounderEmail(email)) {
-        if (req.nextUrl.pathname.startsWith("/api/")) {
+        if (pathname.startsWith("/api/")) {
           return NextResponse.json({ ok: false, error: "campus_only" }, { status: 403 });
         }
         const url = req.nextUrl.clone();
@@ -49,7 +70,8 @@ export async function proxy(req: NextRequest) {
   return res;
 }
 
-// Scope to the authed surfaces only — never run on public/marketing/static routes.
+// All routes except Next internals, the favicon, and the maintenance page itself. APIs ARE matched so the
+// authed-API session refresh still runs; the maintenance gate above skips anything under /api.
 export const config = {
-  matcher: ["/dashboard/:path*", "/house/:path*", "/api/execute", "/api/enrich", "/api/proof"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|maintenance).*)"],
 };
