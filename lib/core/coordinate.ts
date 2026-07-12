@@ -33,6 +33,12 @@ export async function coordinate(
     goal: g,
     plan: p,
     decisions,
-    summary: { tasks: p.tasks.length, proceed: decisions.length - escalate, escalate, simulated: !opts.reasoner },
+    summary: {
+      tasks: p.tasks.length,
+      proceed: decisions.length - escalate,
+      escalate,
+      // real if every task's decision used real reasoning (injected reasoner or a live model key)
+      simulated: decisions.length > 0 ? decisions.every((d) => d.simulated) : !opts.reasoner,
+    },
   };
 }
