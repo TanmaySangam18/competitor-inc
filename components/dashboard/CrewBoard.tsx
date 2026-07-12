@@ -36,7 +36,7 @@ export function CrewBoard({ r }: { r: ReturnType<typeof useEngine> }) {
   return (
     <div className="rounded-3xl glass-panel p-5 sm:p-6">
       <div className="flex items-center gap-2 text-sm font-semibold">
-        Crew board
+        Team
         <span className="text-muted-2">· what everyone&apos;s on</span>
       </div>
 
@@ -81,7 +81,7 @@ export function CrewBoard({ r }: { r: ReturnType<typeof useEngine> }) {
               <div className="mt-1 text-[11px] text-muted-2">Validating, building, drafting — results land in the other columns.</div>
             </Card>
           ) : (
-            <Empty>Idle — run tonight&apos;s shift to put the crew to work.</Empty>
+            <Empty>Idle — hit Run to put the team to work.</Empty>
           )}
         </Column>
 

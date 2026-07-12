@@ -166,7 +166,7 @@ function DashboardInner() {
   }
 
   return (
-    <div id="main" className="min-h-screen">
+    <div id="main" className="flex h-[100dvh] flex-col overflow-hidden">
       <TopBar r={r} premium={premium} gateOn={gateOn} />
       <SelfEnrichPanel />
       {r.blocked && (
@@ -185,17 +185,22 @@ function DashboardInner() {
         </div>
       )}
       {r.company && !r.blocked && <BringYourKeysNudge />}
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-hidden px-6 py-5">
         <EntitlementNotice email={user?.email} />
-        {!r.company && (
-          companyCreateLocked({ gateOn, founder: isFounderEmail(user?.email), paid, currentCount: r.companies.length })
-            ? <UpgradeToAddCompany count={r.companies.length} onBack={() => r.switchCompany(r.companies[0]?.id ?? null)} />
-            : <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} onDemo={r.loadDemo} onImport={r.importCompany} />
+        {r.company?.status === "operating" ? (
+          <Operating r={r} entitled={entitled} userEmail={user?.email} trialStartedAt={trialStartedAt} />
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {!r.company && (
+              companyCreateLocked({ gateOn, founder: isFounderEmail(user?.email), paid, currentCount: r.companies.length })
+                ? <UpgradeToAddCompany count={r.companies.length} onBack={() => r.switchCompany(r.companies[0]?.id ?? null)} />
+                : <Onboarding onSubmit={r.createCompany} hasOthers={r.companies.length > 0} onDemo={r.loadDemo} onImport={r.importCompany} />
+            )}
+            {r.company?.status === "validating" && <ValidationRunning idea={r.company.idea} />}
+            {r.company?.status === "validated" && <ValidationGate r={r} onBuild={goBuild} />}
+            {r.company?.status === "rejected" && <Rejected r={r} onBuild={goBuild} />}
+          </div>
         )}
-        {r.company?.status === "validating" && <ValidationRunning idea={r.company.idea} />}
-        {r.company?.status === "validated" && <ValidationGate r={r} onBuild={goBuild} />}
-        {r.company?.status === "rejected" && <Rejected r={r} onBuild={goBuild} />}
-        {r.company?.status === "operating" && <Operating r={r} entitled={entitled} userEmail={user?.email} trialStartedAt={trialStartedAt} />}
       </div>
     </div>
   );
@@ -617,7 +622,7 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
   // scrolls (a ledger is a scrolling document), panels never do, nothing is ever clipped. Zone order =
   // the founder's questions in priority: What needs me? → The numbers → What's happening? → Everything else.
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       {/* Company strip + primary actions (fixed) */}
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
@@ -637,11 +642,11 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
             <button onClick={r.revalidate} disabled={r.working !== null} title="Re-run the demand test" className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2.5 text-sm font-medium text-muted transition hover:text-text disabled:opacity-50">
               {r.working === "validating" ? <><Loader2 size={15} className="animate-spin" /> Re-testing…</> : <><FlaskConical size={15} /> Re-test</>}
             </button>
-            <button onClick={doBlitz} disabled={r.working !== null || blitzDone} title="Surge drafts launch posts for your approval" className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition disabled:opacity-70 ${blitzDone ? "border-mint/40 text-mint" : "border-border text-muted hover:text-text"}`}>
-              {blitzDone ? <><Check size={15} /> Drafted</> : <><Megaphone size={15} /> Blitz</>}
+            <button onClick={doBlitz} disabled={r.working !== null || blitzDone} title="Marketing drafts launch posts for your approval" className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition disabled:opacity-70 ${blitzDone ? "border-mint/40 text-mint" : "border-border text-muted hover:text-text"}`}>
+              {blitzDone ? <><Check size={15} /> Drafted</> : <><Megaphone size={15} /> Accelerate</>}
             </button>
             <button onClick={r.runShift} disabled={r.working !== null} className="inline-flex items-center gap-2 rounded-xl bg-coral px-4 py-2.5 font-semibold text-bg transition hover:brightness-110 disabled:opacity-50">
-              {r.working === "shift" ? <><Loader2 size={16} className="animate-spin" /> Working…</> : <><Moon size={16} /> Run tonight&apos;s shift</>}
+              {r.working === "shift" ? <><Loader2 size={16} className="animate-spin" /> Working…</> : <><Moon size={16} /> Run</>}
             </button>
           </div>
         )}
@@ -716,76 +721,60 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
         </GlassCard>
       )}
 
-      {/* ZONE 2 — the numbers: scoreboard + a stats pie (where the org's work went) + who's working. */}
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <StatsPie activities={r.activities} nights={c.night} tasksDone={c.ledger.tasksDone} />
-        <TeamRoster activities={r.activities} roles={roles} />
-      </div>
-
-      {/* ZONE 2b — the numbers: one full-width scoreboard row, auto-height, stats never clipped. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {stats.map((s) => <Stat key={s.label} label={s.label} val={s.val} />)}
-      </div>
-      {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
-        entitled ? (
-          <>
-            <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] px-4 py-3">
-              <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-mint" /><div className="min-w-0"><div className="text-sm font-medium">Your product is live</div><div className="truncate text-xs text-mint">{c.product.url}</div></div></div>
-              <span className="ml-2 shrink-0 rounded-lg border border-border px-2 py-1 text-xs text-muted transition group-hover:text-text">View ↗</span>
-            </a>
-            {!checkoutLiveFor("operator") && <FoundingMember tier="operator" email={userEmail} />}
-          </>
-        ) : (
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-coral/30 bg-coral/[0.05] px-4 py-3">
-            <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-coral" /><div className="text-sm font-medium">Built &amp; live</div><Lock size={15} className="shrink-0 text-coral" /></div>
-            <a href={userEmail ? checkoutUrlFor(userEmail) : "/login"} className="flex items-center gap-2 rounded-xl bg-coral px-3 py-2 text-sm font-semibold text-bg transition hover:opacity-90">Unlock — Operator $199/mo <ArrowRight size={14} /></a>
+      {/* FIXED-VIEWPORT WORKSPACE (2026-07-12, founder: "one page, no scroll"): the page never scrolls —
+          a left rail (at-a-glance stats) + the main workspace panel, each scrolling INTERNALLY only. */}
+      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(290px,340px)_1fr]">
+        {/* Left rail — at-a-glance: the stats pie, the team, the scoreboard, the live-URL state. */}
+        <div className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-1">
+          <StatsPie activities={r.activities} nights={c.night} tasksDone={c.ledger.tasksDone} />
+          <TeamRoster activities={r.activities} roles={roles} />
+          <div className="grid grid-cols-2 gap-2">
+            {stats.map((s) => <Stat key={s.label} label={s.label} val={s.val} />)}
           </div>
-        )
-      ) : c.product ? (
-        <div className="flex items-center gap-2 rounded-2xl border border-amber/25 bg-amber/[0.05] px-4 py-3 text-sm"><Rocket size={16} className="shrink-0 text-amber" /><span>Shipping your site… <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect keys →</Link></span></div>
-      ) : null}
-
-      {/* ZONE 3 — the Glass Box: the live feed, full-width, natural height (the page is the scroll). */}
-      <GlassCard title="The Glass Box" subtitle="every action, logged" icon={ShieldCheck}>
-        <div className="space-y-4">
-          <LiveGlassBox company={c} />
-          {r.activities.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border px-6 py-8 text-center text-sm text-muted-2">Nothing yet. Hit <span className="text-muted">Run tonight&apos;s shift</span> and watch it work.</div>
-          ) : (
-            <div className="space-y-2.5">
-              <AnimatePresence initial={false}>
-                {r.activities.slice(0, 30).map((a) => <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} lockedUrl={lockedUrl} />)}
-              </AnimatePresence>
-              {r.activities.length > 30 && (
-                <p className="pt-1 text-center text-xs text-muted-2">Showing the latest 30 — the full ledger lives in History below.</p>
-              )}
-            </div>
-          )}
+          {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
+            entitled ? (
+              <>
+                <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] px-4 py-3">
+                  <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-mint" /><div className="min-w-0"><div className="text-sm font-medium">Your product is live</div><div className="truncate text-xs text-mint">{c.product.url}</div></div></div>
+                  <span className="ml-2 shrink-0 rounded-lg border border-border px-2 py-1 text-xs text-muted transition group-hover:text-text">View ↗</span>
+                </a>
+                {!checkoutLiveFor("operator") && <FoundingMember tier="operator" email={userEmail} />}
+              </>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-coral/30 bg-coral/[0.05] px-4 py-3">
+                <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-coral" /><div className="text-sm font-medium">Built &amp; live</div><Lock size={15} className="shrink-0 text-coral" /></div>
+                <a href={userEmail ? checkoutUrlFor(userEmail) : "/login"} className="flex items-center gap-2 rounded-xl bg-coral px-3 py-2 text-sm font-semibold text-bg transition hover:opacity-90">Unlock — Operator $199/mo <ArrowRight size={14} /></a>
+              </div>
+            )
+          ) : c.product ? (
+            <div className="flex items-center gap-2 rounded-2xl border border-amber/25 bg-amber/[0.05] px-4 py-3 text-sm"><Rocket size={16} className="shrink-0 text-amber" /><span>Shipping your site… <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect keys →</Link></span></div>
+          ) : null}
         </div>
-      </GlassCard>
 
-      {/* ZONE 4 — everything else, same tabs, natural height (no more below-the-fold burial). */}
-      <SecondaryPanel r={r} c={c} roles={roles} entitled={entitled} />
+        {/* Main workspace — Activity is the default surface; the rest is depth. Scrolls internally. */}
+        <SecondaryPanel r={r} c={c} roles={roles} entitled={entitled} lockedUrl={lockedUrl} />
+      </div>
     </div>
   );
 }
 
-/* ── Secondary drawer — the deeper surfaces, one tab open at a time (full-width, legible) ── */
-type SecTab = "brief" | "team" | "crew" | "growth" | "marketing" | "chat" | "brain" | "operate" | "history";
+/* ── Main workspace panel — one surface at a time (Activity is the default; the rest is depth) ── */
+type SecTab = "activity" | "brief" | "team" | "agents" | "growth" | "marketing" | "chat" | "knowledge" | "operate" | "history";
 
-function SecondaryPanel({ r, c, roles, entitled }: { r: ReturnType<typeof useEngine>; c: Company; roles: AgentRole[]; entitled: boolean }) {
+function SecondaryPanel({ r, c, roles, entitled, lockedUrl }: { r: ReturnType<typeof useEngine>; c: Company; roles: AgentRole[]; entitled: boolean; lockedUrl?: string }) {
   const tabs: { key: SecTab; label: string }[] = [
-    { key: "brief", label: "Morning brief" },
-    { key: "team", label: "Team room" },
-    { key: "crew", label: "Crew" },
+    { key: "activity", label: "Activity" },
+    { key: "brief", label: "Brief" },
+    { key: "team", label: "Team" },
+    { key: "agents", label: "Agents" },
     { key: "growth", label: "Growth" },
     { key: "marketing", label: "Marketing" },
     { key: "chat", label: "Chat" },
-    { key: "brain", label: "Company Brain" },
+    { key: "knowledge", label: "Knowledge" },
     ...(OPERATE_ENABLED ? [{ key: "operate" as SecTab, label: "Operate" }] : []),
     { key: "history", label: "History" },
   ];
-  const [tab, setTab] = useState<SecTab>("brief");
+  const [tab, setTab] = useState<SecTab>("activity");
   return (
     <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl glass-panel p-4 lg:h-full">
       <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-border pb-3">
@@ -802,6 +791,23 @@ function SecondaryPanel({ r, c, roles, entitled }: { r: ReturnType<typeof useEng
         ))}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto pr-1 pt-4">
+        {tab === "activity" && (
+          <div className="space-y-4">
+            <LiveGlassBox company={c} />
+            {r.activities.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border px-6 py-8 text-center text-sm text-muted-2">Nothing yet. Hit <span className="text-muted">Run</span> and watch it work.</div>
+            ) : (
+              <div className="space-y-2.5">
+                <AnimatePresence initial={false}>
+                  {r.activities.slice(0, 30).map((a) => <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} lockedUrl={lockedUrl} />)}
+                </AnimatePresence>
+                {r.activities.length > 30 && (
+                  <p className="pt-1 text-center text-xs text-muted-2">Showing the latest 30 — the full log lives in History.</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
         {tab === "brief" && (
           <div className="space-y-3">
             <CoachCard company={c} />
@@ -815,7 +821,7 @@ function SecondaryPanel({ r, c, roles, entitled }: { r: ReturnType<typeof useEng
             />
           </div>
         )}
-        {tab === "crew" && (
+        {tab === "agents" && (
           <div className="space-y-4">
             <CrewBoard r={r} />
             <CrewBox />
@@ -840,7 +846,7 @@ function SecondaryPanel({ r, c, roles, entitled }: { r: ReturnType<typeof useEng
         )}
         {tab === "team" && <TeamRoomTab company={c} r={r} />}
         {tab === "chat" && <ChatTab company={c} r={r} />}
-        {tab === "brain" && <BrainTab r={r} />}
+        {tab === "knowledge" && <BrainTab r={r} />}
         {OPERATE_ENABLED && tab === "operate" && <OperateTab r={r} c={c} />}
         {tab === "history" && <HistoryTab activities={r.activities} company={c} />}
       </div>

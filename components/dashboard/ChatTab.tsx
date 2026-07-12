@@ -46,7 +46,7 @@ export function ChatTab({ company, r }: { company: Company; r: ReturnType<typeof
     pending.forEach((p) => r.resolveApproval(p.id, approve));
     if (approve) {
       setMsgs((m) => [...m, { role: "agent", text:
-        `✅ Approved${titles.length > 1 ? ` (${titles.length})` : ""}: ${titles.join("; ")}. Cleared from your inbox and logged in the Glass Box — you can undo any of it there. Each one executes for real the moment its channel is connected; until then it's governed, not sent. Nothing was fabricated.` }]);
+        `✅ Approved${titles.length > 1 ? ` (${titles.length})` : ""}: ${titles.join("; ")}. Cleared from your inbox and logged in Activity — you can undo any of it there. Each one executes for real the moment its channel is connected; until then it's governed, not sent. Nothing was fabricated.` }]);
     } else {
       setMsgs((m) => [...m, { role: "agent", text: `🚫 Rejected${titles.length > 1 ? ` (${titles.length})` : ""}: ${titles.join("; ")}. Nothing went out.` }]);
     }

@@ -216,7 +216,7 @@ export function LiveGlassBox({ company }: { company?: Pick<Company, "name" | "id
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-muted">
           <span className="live-dot inline-block h-2 w-2 rounded-full bg-coral" />
-          The Live Glass Box · see the work, not just the stats
+          Live preview · see the work, not just the stats
         </h2>
         <span className="hidden text-[11px] text-muted-2 sm:inline">{i + 1} / {screens.length}</span>
       </div>
