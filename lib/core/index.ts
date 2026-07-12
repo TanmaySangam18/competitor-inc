@@ -18,7 +18,7 @@ import {
   type ActionContext, type PolicyDecision, type Verdict, type ExecAction,
 } from "@/lib/engine/policy";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
-import { deliberate, type DecisionRecord, type Position } from "./deliberate";
+import { deliberate, type DecisionRecord, type Position, type Reasoner } from "./deliberate";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -60,5 +60,5 @@ export { deliberate };
 
 export const core = { org, agents, governance, deliberate };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position };
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner };
 export default core;

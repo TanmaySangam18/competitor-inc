@@ -58,10 +58,10 @@ function cmdDecide(args: string[]) {
   line(`  reason:  ${d.reason}`);
 }
 
-function cmdDeliberate(args: string[]) {
+async function cmdDeliberate(args: string[]) {
   const task = args.filter((a) => !a.startsWith("--")).join(" ").trim();
   if (!task) { line(`usage: npm run competitor -- deliberate "<task>"`); process.exitCode = 1; return; }
-  const d = core.deliberate(task);
+  const d = await core.deliberate(task);
   line(`competitor — deliberation${d.simulated ? "   (structure + governance real; reasoned debate pending a model key)" : ""}`);
   line(`  task:  ${d.task}`);
   line(`  room:  ${d.participants.join(", ")}`);
@@ -86,14 +86,18 @@ function cmdHelp() {
   line(`        npm run competitor -- deliberate "launch a paid ads campaign for $2000"`);
 }
 
-switch (cmd) {
-  case "org": cmdOrg(); break;
-  case "agents": cmdAgents(); break;
-  case "decide": cmdDecide(rest); break;
-  case "deliberate": cmdDeliberate(rest); break;
-  case "help": case undefined: cmdHelp(); break;
-  default:
-    line(`unknown command: ${cmd}`);
-    cmdHelp();
-    process.exitCode = 1;
+async function main() {
+  switch (cmd) {
+    case "org": cmdOrg(); break;
+    case "agents": cmdAgents(); break;
+    case "decide": cmdDecide(rest); break;
+    case "deliberate": await cmdDeliberate(rest); break;
+    case "help": case undefined: cmdHelp(); break;
+    default:
+      line(`unknown command: ${cmd}`);
+      cmdHelp();
+      process.exitCode = 1;
+  }
 }
+
+main();
