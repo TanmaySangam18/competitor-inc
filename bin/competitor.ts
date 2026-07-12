@@ -97,6 +97,14 @@ async function cmdRun(args: string[]) {
   });
 }
 
+async function cmdDoctor() {
+  const h = await core.checkHealth();
+  line(`competitor — doctor  (${h.ok ? "ALL SYSTEMS GO" : "ATTENTION NEEDED"})`);
+  line(``);
+  for (const c of h.checks) line(`  ${c.ok ? "✓" : "✗"}  ${c.name.padEnd(12)} ${c.detail}`);
+  if (!h.ok) process.exitCode = 1;
+}
+
 function cmdHelp() {
   line(`competitor — the company OS, from the terminal`);
   line(``);
@@ -107,6 +115,7 @@ function cmdHelp() {
   line(`  deliberate "<task>"     convene the relevant roles → a governed Decision Record`);
   line(`  plan "<goal>"           break a goal into the org's IC→lead→sign-off task chain`);
   line(`  run "<goal>"            plan it AND govern every task → what proceeds vs escalates`);
+  line(`  doctor                   self-check: is the whole company OS coherent + alive?`);
   line(`  help                     this`);
   line(``);
   line(`  e.g.  npm run competitor -- decide --type spend --agent marketing --amount 600`);
@@ -122,6 +131,7 @@ async function main() {
     case "deliberate": await cmdDeliberate(rest); break;
     case "plan": cmdPlan(rest); break;
     case "run": await cmdRun(rest); break;
+    case "doctor": await cmdDoctor(); break;
     case "help": case undefined: cmdHelp(); break;
     default:
       line(`unknown command: ${cmd}`);
