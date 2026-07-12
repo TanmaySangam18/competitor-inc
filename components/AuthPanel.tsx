@@ -80,82 +80,82 @@ export default function AuthPanel({ mode }: { mode: "signin" | "signup" }) {
     }
   }
 
-  // MACHINA theme (2026-07-11): monochrome, monospace, zero-radius — matches the front door. Styling only;
-  // every handler (OAuth, magic link, guest, validation, honest error copy) preserved verbatim.
+  // Teal front door (2026-07-12): matches the landing + cockpit design system. Styling only; every handler
+  // (OAuth, magic link, guest, validation, honest error copy) preserved verbatim.
   return (
-    <div className="grid min-h-screen place-items-center bg-white px-6 font-mono text-black">
+    <div className="grid min-h-[100dvh] place-items-center bg-bg px-6 text-text">
       <div className="w-full max-w-sm">
-        <Link href="/" className="block text-center text-xl font-bold tracking-tight">
-          competitor<span className="text-[#8C3A22]">.inc</span>
+        <Link href="/" className="block text-center text-xl font-semibold tracking-tight">
+          competitor<span className="text-coral">.inc</span>
         </Link>
 
-        <h1 className="mt-8 text-center text-3xl font-black uppercase tracking-tight">{signup ? "Start free" : "Welcome back"}</h1>
-        <p className="mt-2 text-center text-sm text-black/60">
-          {signup ? "Prove your idea tonight. You stay the founder." : "Pick up where your co-founder left off."}
+        <h1 className="mt-8 text-center text-3xl font-semibold tracking-tight">{signup ? "Start free" : "Welcome back"}</h1>
+        <p className="mt-2 text-center text-sm text-muted">
+          {signup ? "Describe your software — a real AI team builds and runs it. You stay in control." : "Pick up where your AI team left off."}
         </p>
 
         {sent ? (
-          <div className="mt-8 border-2 border-[#1F5130] p-7 text-center">
-            <Check className="mx-auto text-[#1F5130]" />
-            <p className="mt-3 text-sm text-black/70">Check <span className="font-bold text-black">{email}</span> for a magic link.</p>
+          <div className="mt-8 rounded-2xl border border-mint/40 bg-mint/[0.05] p-7 text-center">
+            <Check className="mx-auto text-mint" />
+            <p className="mt-3 text-sm text-muted">Check <span className="font-medium text-text">{email}</span> for a magic link.</p>
           </div>
         ) : (
           <div className="mt-8 space-y-2.5">
             <button onClick={() => oauth("google")} disabled={!!busy}
-              className="flex w-full items-center justify-center gap-2.5 border-2 border-black bg-white py-3 text-sm font-bold uppercase tracking-wide transition hover:bg-black hover:text-white disabled:opacity-50">
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-surface py-3 text-sm font-medium transition hover:border-coral/50 disabled:opacity-50">
               {busy === "google" ? <Loader2 size={16} className="animate-spin" /> : <GoogleMark />} Continue with Google
             </button>
             <button onClick={() => oauth("github")} disabled={!!busy}
-              className="flex w-full items-center justify-center gap-2.5 border-2 border-black bg-white py-3 text-sm font-bold uppercase tracking-wide transition hover:bg-black hover:text-white disabled:opacity-50">
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-border bg-surface py-3 text-sm font-medium transition hover:border-coral/50 disabled:opacity-50">
               {busy === "github" ? <Loader2 size={16} className="animate-spin" /> : <Github size={17} />} Continue with GitHub
             </button>
 
-            <div className="flex items-center gap-3 py-1 text-[11px] uppercase tracking-[0.2em] text-black/40">
-              <span className="h-px flex-1 bg-black/20" /> or <span className="h-px flex-1 bg-black/20" />
+            <div className="flex items-center gap-3 py-1 text-[11px] uppercase tracking-[0.2em] text-muted-2">
+              <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
             </div>
 
-            <label className={`flex items-center gap-2 border-2 px-3 py-2.5 ${emailErr ? "border-[#8C3A22]" : "border-black"}`}>
-              <Mail size={16} className="text-black/40" />
+            <label className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 ${emailErr ? "border-coral" : "border-border"}`}>
+              <Mail size={16} className="text-muted-2" />
               <input type="email" value={email}
                 onChange={(e) => { setEmail(e.target.value); if (emailErr) setEmailErr(""); }}
                 onBlur={checkEmail}
                 onKeyDown={(e) => e.key === "Enter" && emailLink()}
                 placeholder="you@company.com" aria-label="Email address" aria-invalid={!!emailErr}
-                className="w-full bg-transparent text-sm outline-none placeholder:text-black/40" />
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-2" />
             </label>
-            {emailErr && <p className="text-xs font-medium text-[#8C3A22]" role="alert">{emailErr}</p>}
+            {emailErr && <p className="text-xs font-medium text-coral" role="alert">{emailErr}</p>}
             <button onClick={emailLink} disabled={!!busy}
-              className="flex w-full items-center justify-center gap-2 bg-black py-3 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-[#8C3A22] disabled:opacity-40">
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-coral py-3 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-40">
               {busy === "email" ? <Loader2 size={16} className="animate-spin" /> : null} Email me a magic link
             </button>
           </div>
         )}
 
-        {err && <p className="mt-3 text-center text-xs text-[#8C3A22]">{err}</p>}
+        {err && <p className="mt-3 text-center text-xs text-coral">{err}</p>}
 
         {signup && (
-          <p className="mt-4 text-center text-[11px] leading-relaxed text-black/50">
+          <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-2">
             By continuing you agree to our{" "}
-            <Link href="/terms" className="underline underline-offset-2 hover:text-black">Terms</Link> and{" "}
-            <Link href="/privacy" className="underline underline-offset-2 hover:text-black">Privacy Policy</Link>.
+            <Link href="/terms" className="underline underline-offset-2 hover:text-coral">Terms</Link> and{" "}
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-coral">Privacy Policy</Link>.
             We&apos;ll only email you about your account — no marketing without your okay.
           </p>
         )}
 
         <button onClick={() => router.push("/dashboard")}
-          className="group mt-5 flex w-full items-center justify-center gap-2 text-sm text-black/60 transition hover:text-black">
+          className="group mt-5 flex w-full items-center justify-center gap-2 text-sm text-muted transition hover:text-text">
           Continue as guest <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />
         </button>
 
-        <p className="mt-6 text-center text-xs text-black/50">
+        <p className="mt-6 text-center text-xs text-muted-2">
           {signup ? "Already have an account? " : "New here? "}
-          <Link href={signup ? "/login" : "/signup"} className="font-bold text-[#8C3A22] hover:underline">
+          <Link href={signup ? "/login" : "/signup"} className="font-medium text-coral hover:underline">
             {signup ? "Sign in" : "Create one"}
           </Link>
         </p>
         {!configured && (
-          <p className="mt-3 text-center text-[11px] text-black/50">
-            Local mode — Google/GitHub activate once Supabase + the providers are configured (see the runbook).
+          <p className="mt-3 text-center text-[11px] text-muted-2">
+            Sign-in activates once the accounts are connected — until then, continue as guest.
           </p>
         )}
       </div>
