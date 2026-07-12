@@ -88,10 +88,15 @@ Give me each value by pasting it as an env var (I'll tell you the exact name), o
 - (If setup is heavy, I can run the durable loop on the existing Vercel Cron first and move to Temporal later.)
 
 ### 10. Payments + licensing (Block 4)
-- **Polar** stays as merchant-of-record for now (already wired). For software licensing add **Keygen**
-  (keygen.sh) when we reach it, and/or **Stripe** for direct entitlements.
-- Give me (when we get there): `KEYGEN_API_TOKEN` (+ `STRIPE_SECRET_KEY` if we use Stripe).
-- Note: refunds/payouts stay founder-approved (the money-movement floor).
+- **Polar** stays as merchant-of-record for OUR OWN subscription billing (already wired) — separate concern.
+- **Stripe Connect** (NEW 2026-07-12, task #78 — the money-layer moat): so the products our org builds
+  SHIP already able to transact, with funds flowing to the CUSTOMER's own connected account (we orchestrate,
+  never hold the money). Code scaffolded + tested (fail-closed without keys). To turn it on:
+  - Create a **Stripe platform account** → enable Connect (Standard accounts).
+  - Give me: `STRIPE_SECRET_KEY` (sk_...) + `STRIPE_WEBHOOK_SECRET` (whsec_..., from a webhook endpoint
+    pointed at `/api/payments/stripe`). Non-sensitive success/refresh URLs I set myself.
+- For software licensing (later): **Keygen** (keygen.sh) → `KEYGEN_API_TOKEN`.
+- Note: refunds/payouts/transfers stay founder-approved (the money-movement floor) — I never move money.
 
 ### 11. Telemetry for the funding pack (Block 5)
 - **LangSmith** (smith.langchain.com) or **Langfuse** — agent tracing. Plus **Sentry** for errors
