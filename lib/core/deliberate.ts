@@ -68,6 +68,13 @@ export type Reasoner = (input: {
 
 const defaultReasoner: Reasoner = ({ mandate, escalatesWhen }) => `${mandate} (escalates when: ${escalatesWhen})`;
 
+// The brain auto-connects: when a model key is present, the deliberation reasons for REAL (via the lazily-
+// loaded model reasoner — kept out of the CLI/test import graph); otherwise it stays on the honest,
+// mandate-derived default. An explicitly injected reasoner (e.g. in tests) always wins.
+export function hasModelKey(): boolean {
+  return !!(process.env.MODEL_API_KEY || process.env.ANTHROPIC_API_KEY);
+}
+
 export async function deliberate(
   task: string,
   opts: { size?: number; reasoner?: Reasoner } = {},
@@ -75,7 +82,8 @@ export async function deliberate(
   const clean = (task || "").trim();
   const { chair, panel } = convene(clean, opts.size ?? 3);
   const room = [chair, ...panel];
-  const reasoner = opts.reasoner ?? defaultReasoner;
+  const useModel = !opts.reasoner && hasModelKey();
+  const reasoner: Reasoner = opts.reasoner ?? (useModel ? (await import("./model-reasoner")).modelReasoner : defaultReasoner);
 
   const positions: Position[] = [];
   for (const r of room) {
@@ -97,6 +105,6 @@ export async function deliberate(
     decision,
     decidedBy: chair.title,
     rationale,
-    simulated: !opts.reasoner, // real reasoner supplied → real reasoning, not simulated
+    simulated: !opts.reasoner && !useModel, // real reasoning (injected reasoner OR model key) → not simulated
   };
 }

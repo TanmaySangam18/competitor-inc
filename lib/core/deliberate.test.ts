@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deliberate, type Reasoner } from "./deliberate";
+import { deliberate, hasModelKey, type Reasoner } from "./deliberate";
 
 describe("deliberate — the structured, governed deliberation seed", () => {
   it("convenes a real panel with the chair first and a stance per participant", async () => {
@@ -33,5 +33,18 @@ describe("deliberate — the structured, governed deliberation seed", () => {
     const d = await deliberate("improve retention", { reasoner: fake });
     expect(d.simulated).toBe(false); // real reasoner supplied → not simulated
     expect(d.positions[0].stance).toContain(`reasons about "improve retention"`);
+  });
+
+  it("gates the real model on a key being present (hasModelKey)", () => {
+    const priorModel = process.env.MODEL_API_KEY;
+    const priorAnthropic = process.env.ANTHROPIC_API_KEY;
+    delete process.env.MODEL_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
+    expect(hasModelKey()).toBe(false); // no key → honest simulated default
+    process.env.MODEL_API_KEY = "test-key";
+    expect(hasModelKey()).toBe(true); // key present → real reasoning auto-selected
+    if (priorModel === undefined) delete process.env.MODEL_API_KEY;
+    else process.env.MODEL_API_KEY = priorModel;
+    if (priorAnthropic !== undefined) process.env.ANTHROPIC_API_KEY = priorAnthropic;
   });
 });
