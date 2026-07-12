@@ -3,10 +3,15 @@
 A legible index for any AI agent (or human) working this repo. Following the loop-engineering principle that
 an agent-ready codebase is **legible · executable · verifiable**. Keep this file ~100 lines and current.
 
+**How to behave here → `CLAUDE.md`** (auto-loaded each session) **+ `docs/OPERATING-PROMPT.md`** (the full
+constitution): logic-first, evidence-only, no guessing, smallest-correct-change, recommend-before-large-changes.
+This file is the technical map + the verifier; those two govern posture.
+
 ## What this is
 competitor.inc — the honest AI co-founder: it **validates a startup idea before building it**, then runs the
-company with an agent crew the founder **approves**. Wedge: proof-first (Glass Box), human-in-control
-(Approval Inbox), verify-before-done, **0% revenue share**. Niche: **first-time / student founders**.
+company with an agent crew the founder **approves**. Wedge: proof-first (Activity / audit trail), human-in-control
+(Approval Inbox), verify-before-done. Beachhead: **boutique / solo software agencies + technical consultants**
+(see memory `gtm-beachhead-agencies`; earlier "student founders" framing is superseded).
 Next.js 16 (App Router) · TypeScript (strict) · Tailwind v4 · framer-motion · three.js.
 
 ## The verifier (run this — it's how "done" is judged)
@@ -25,7 +30,7 @@ independent verifier.)
   - `crew.ts` — `generateCrew(idea)` dynamic per-company specialists. `memory.ts` — pgvector agent memory. `observability.ts` — gated trace wrapper. `refcode.ts` — referral code.
   - `playbooks.ts` — the public `/playbooks` registry (methodology, neutral voice). `delegation.ts` — 3D office data. `config.ts` — per-agent scope/soul + BYOK. `db.ts`/`sync.ts` — Supabase mappers + write-through.
 - `app/` — routes: `page.tsx` (landing) · `dashboard` · `join` · `t/[slug]` (demand test) · `house` (+`house/board`) · `playbooks` · `delegation` · `api/{engine,execute,cron,waitlist,demand,metrics}` · `sitemap.ts`/`robots.ts`.
-- `supabase/migrations/` — `0001_init` → `0005_agent_memory` (run in order in the Supabase SQL editor).
+- `supabase/migrations/` — `0001_init` → latest (currently `0031_demo_bookings`); run in order in the Supabase SQL editor.
 - `scripts/smoke.mjs` — E2E route sweep + API fuzz (port 3041). `docs/` — strategy + intel + plans.
 
 ## Hard rules (do not weaken these for "more autonomy")
@@ -41,7 +46,8 @@ independent verifier.)
 ## Conventions
 - Match surrounding style; keep changes minimal + tested. Add/extend a vitest test when you change engine logic.
 - New gated capability → add to `capabilities()` + `runAction()` + `.env.example`, default OFF, fail-soft.
-- Work happens on branch **`build-to-keys`** (PR #2) until the founder merges to `main`.
+- Work happens on short-lived feature branches → PR → `main` (founder merges). Every PR is gated by
+  `qa.yml` (tsc/tests/build/smoke) + `claude-pr-review.yml` (Claude review, honesty/governance/QA bar).
 - Public `/playbooks` = neutral founder resource (methodology only); never "how we built competitor.inc."
 
 ## Going live (founder action — Block 0)
