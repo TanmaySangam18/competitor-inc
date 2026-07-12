@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono, Archivo_Black, Fraunces } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import { StorageMigrator } from "@/components/StorageMigrator";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { SignupAttribution } from "@/components/SignupAttribution";
 import { SITE_URL } from "@/lib/site";
@@ -90,7 +89,6 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} ${jetBrainsMono.variable} ${archivoBlack.variable} ${fraunces.variable}`}
     >
       <body>
-        <StorageMigrator />
         <SignupAttribution />
         <Analytics />
         <a
