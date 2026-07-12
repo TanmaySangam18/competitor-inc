@@ -22,6 +22,7 @@ import { deliberate, type DecisionRecord, type Position, type Reasoner } from ".
 import { plan, type Plan } from "./plan";
 import { coordinate, type Coordination } from "./coordinate";
 import { checkHealth, type Health, type HealthCheck } from "./health";
+import { paymentsConfigured, connectProduct, checkoutUrl, type Onboarding } from "./payments";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -70,7 +71,14 @@ export { coordinate };
 // ── HEALTH: the body's vitals — one self-check that the whole core is coherent + alive (keyless).
 export { checkHealth };
 
-export const core = { org, agents, governance, deliberate, plan, coordinate, checkHealth };
+// ── PAYMENTS (Phase 3): onboard a product's own Stripe + open checkout. Funds settle to the CUSTOMER;
+// we orchestrate, never hold the money. Fail-soft (configured:false) until a key is connected.
+export { paymentsConfigured, connectProduct, checkoutUrl };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck };
+export const core = {
+  org, agents, governance, deliberate, plan, coordinate, checkHealth,
+  payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
+};
+
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding };
 export default core;
