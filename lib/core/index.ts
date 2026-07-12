@@ -20,6 +20,7 @@ import {
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
 import { deliberate, type DecisionRecord, type Position, type Reasoner } from "./deliberate";
 import { plan, type Plan } from "./plan";
+import { coordinate, type Coordination } from "./coordinate";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -62,7 +63,10 @@ export { deliberate };
 // ── PLAN (Phase 2): a goal → a coordinated task plan mapped to the org's IC→lead→sign-off chain.
 export { plan };
 
-export const core = { org, agents, governance, deliberate, plan };
+// ── COORDINATE (Phase 2): the loop closed — goal → plan → deliberate+govern every task → one result.
+export { coordinate };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan };
+export const core = { org, agents, governance, deliberate, plan, coordinate };
+
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination };
 export default core;
