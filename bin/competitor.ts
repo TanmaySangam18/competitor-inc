@@ -137,6 +137,39 @@ function cmdOutreach(args: string[]) {
   }
 }
 
+function cmdOperate(args: string[]) {
+  const f = flags(args);
+  const body = typeof f.body === "string" ? f.body : "";
+  if (!body) {
+    line(`usage: npm run competitor -- operate --type bug|info|feature|billing --body "<end-user ticket>" [--regulated]`);
+    process.exitCode = 1; return;
+  }
+  const ticket: import("@/lib/core").Ticket = {
+    id: "cli",
+    type: (typeof f.type === "string" ? f.type : "bug") as import("@/lib/core").Ticket["type"],
+    body,
+  };
+  const tri = core.operate.triageTicket(ticket);
+  line(`competitor — operate (end-user ticket)`);
+  line(`  ticket: [${ticket.type}] ${body}`);
+  line(`  route:  ${tri.route}  (${tri.autonomy})`);
+  line(`  why:    ${tri.why}`);
+  if (tri.route === "fix") {
+    const cycle = core.operate.improve({
+      product: "your product",
+      signals: [core.operate.ticketToSignal(ticket)],
+      regulated: f.regulated === true,
+    });
+    line(``);
+    line(`  → improvement loop:`);
+    for (const a of cycle.actions) {
+      const tag = a.lane === "auto" ? "▶ auto" : a.lane === "owner-approval" ? "⛳ your OK" : "⛔ held";
+      line(`     ${tag}  ${a.task}`);
+    }
+    line(`  ${cycle.report}`);
+  }
+}
+
 function cmdPayments() {
   const configured = core.payments.configured();
   line(`competitor — payments  (${configured ? "LIVE — Stripe connected" : "not configured"})`);
@@ -161,6 +194,7 @@ function cmdHelp() {
   line(`  doctor                   self-check: is the whole company OS coherent + alive?`);
   line(`  payments                 the money layer's status (Stripe Connect)`);
   line(`  outreach --company "<x>"  qualify a lead → no-spam gate → honest first-touch draft`);
+  line(`  operate --type .. --body "<ticket>"  triage an end-user ticket → the governed improvement loop`);
   line(`  help                     this`);
   line(``);
   line(`  e.g.  npm run competitor -- decide --type spend --agent marketing --amount 600`);
@@ -178,6 +212,7 @@ async function main() {
     case "run": await cmdRun(rest); break;
     case "payments": cmdPayments(); break;
     case "outreach": cmdOutreach(rest); break;
+    case "operate": cmdOperate(rest); break;
     case "doctor": await cmdDoctor(); break;
     case "help": case undefined: cmdHelp(); break;
     default:

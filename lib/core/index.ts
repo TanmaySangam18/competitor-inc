@@ -24,6 +24,7 @@ import { coordinate, type Coordination } from "./coordinate";
 import { checkHealth, type Health, type HealthCheck } from "./health";
 import { paymentsConfigured, connectProduct, checkoutUrl, type Onboarding } from "./payments";
 import { outreachFor, AGENCY_ICP, qualifyLead, outreachGate, type OutreachPlan, type Lead, type ICP } from "./outreach";
+import { triageTicket, ticketToSignal, improve, type Signal, type Ticket, type TicketTriage, type OperateCycle } from "./operate";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -80,11 +81,16 @@ export { paymentsConfigured, connectProduct, checkoutUrl };
 // honest named-AI first-touch. Keyless; sending (Gmail) + sourcing (Explee) light up with their keys.
 export { outreachFor };
 
+// ── OPERATE (Phase 5): the autonomous improvement loop — end-user tickets + product signals → governed
+// fixes (auto vs the owner's approval vs blocked) → verify → report. The operator layer, not just a builder.
+export { triageTicket, improve };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
   outreach: { icp: AGENCY_ICP, qualify: qualifyLead, gate: outreachGate, for: outreachFor },
+  operate: { triageTicket, ticketToSignal, improve },
 };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP };
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle };
 export default core;
