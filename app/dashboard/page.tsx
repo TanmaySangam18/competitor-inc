@@ -50,6 +50,7 @@ import DemandRadarPanel from "@/components/DemandRadarPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import MomTestKit from "@/components/MomTestKit";
 import SpecialistCrew from "@/components/dashboard/SpecialistCrew";
+import TerminalFeed from "@/components/dashboard/TerminalFeed";
 import BringYourKeysNudge from "@/components/dashboard/BringYourKeysNudge";
 import CampaignPanel from "@/components/CampaignPanel";
 import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
@@ -713,6 +714,10 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
             )}
         </GlassCard>
       )}
+
+      {/* THE TERMINAL — the org's real work streamed as a raw feed (founder recreation: the cockpit hero,
+          "backend raw tech being built"). Renders only real activities; honest empty state, never faked. */}
+      <TerminalFeed activities={r.activities} company={c} />
 
       {/* ZONE 2 — the numbers: one full-width scoreboard row, auto-height, stats never clipped. */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
