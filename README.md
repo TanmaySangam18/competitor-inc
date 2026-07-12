@@ -20,14 +20,22 @@ tell you *don't build this* — and it keeps working while your laptop is closed
 This README explains the whole thing — the plain‑English story **and** the technical guts — so anyone
 (technical or not) can understand what we built, why, and how to run it.
 
-> ### 🧭 Current direction (2026‑07): the one‑executive company
+> ### 🧭 Current direction (2026‑07): build → sell → collect
 >
-> The north star: **one human executive, a decision queue, an AI org that never sleeps.** The org runs
-> the company around the clock; the only things that reach the human are concise **prepared decisions**
-> — a drafted contract, a drafted invoice, a launch plan — to **approve / reject / modify**
-> ([`lib/org/decision-queue.ts`](lib/org/decision-queue.ts), fed by the drafting desks in
+> The north star: **collected, settled revenue — $10k in a trailing‑30‑day window** — earned by an AI org
+> that builds **and operates** real software for customers, under **one signed, capped, revocable mandate**.
+> The only things that reach the human are concise **prepared decisions** to approve / reject / modify
+> ([`lib/org/decision-queue.ts`](lib/org/decision-queue.ts), fed by
 > [`lib/org/executive-desks.ts`](lib/org/executive-desks.ts) and the governed tool gate in
-> [`lib/mcp/tools.ts`](lib/mcp/tools.ts)).
+> [`lib/mcp/tools.ts`](lib/mcp/tools.ts)). The full product spec is the
+> [**Product Playbook**](docs/PRODUCT-PLAYBOOK.md); the path from here is
+> [**Roadmap → $10k**](docs/ROADMAP-TO-10K.md).
+>
+> The cockpit is a **one‑page, no‑scroll dashboard** — soft‑teal, left‑sidebar IA, real software‑company
+> job titles (CEO / Software Engineer / DevOps / …), a live stats pie. Every action is logged with proof;
+> the irreducible acts (money, contracts, deletion) always come back to a human; and a product the org
+> builds ships **able to transact** — Stripe Connect rails where funds flow to the customer and we only
+> orchestrate ([`lib/payments/stripe-connect.ts`](lib/payments/stripe-connect.ts)).
 >
 > The product's face is **the coworker** — a local‑first desktop surface forked from
 > [Rowboat](https://github.com/rowboatlabs/rowboat) (Apache‑2.0) and vendored at a pinned SHA in
@@ -35,9 +43,9 @@ This README explains the whole thing — the plain‑English story **and** the t
 > (plan: [`docs/ROWBOAT-FORK-PLAN.md`](docs/ROWBOAT-FORK-PLAN.md)). Portions built on Rowboat by
 > Rowboat Labs — attribution and license in [`coworker/NOTICE.md`](coworker/NOTICE.md).
 >
-> Honest state: the smallest rung is **proven live** (an agent‑built, agent‑run grounded app, verified
-> 2026‑07‑11); the executive‑company vision is the ladder we climb rung by rung — no rung is claimed
-> before its receipt.
+> Honest state: the machine is largely built (capability ladder S1–S3, governance, verifiable‑revenue
+> rails scaffolded); the **goal is ~10–15%** — $0 collected, 0 paying customers. The arc now is
+> **Build (done) → Sell (now) → Collect**. No rung is claimed before its receipt.
 
 ---
 
