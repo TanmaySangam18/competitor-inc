@@ -11,6 +11,7 @@
     "test:watch": "vitest",
     "prove": "vitest run lib/sim/proving-ground.report.test.ts --reporter=verbose",
     "typecheck": "tsc --noEmit",
+    "competitor": "tsx bin/competitor.ts",
     "verify": "tsc --noEmit && vitest run && next build",
     "qa": "node scripts/env-guard.mjs && tsc --noEmit && vitest run && next build && node scripts/smoke.mjs",
     "scan": "node scripts/secret-scan.mjs",
@@ -43,6 +44,7 @@
     "js-yaml": "^5.2.1",
     "playwright": "^1.61.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.0",
     "typescript": "^5",
     "vitest": "^4.1.8"
   }
