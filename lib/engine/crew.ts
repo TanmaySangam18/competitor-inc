@@ -145,13 +145,13 @@ export function generateCrew(idea: string): CrewSpec {
   if (!best || bestScore === 0) {
     return {
       domain: DEFAULT_CREW.label,
-      summary: `Tuned for a first software company: ${DEFAULT_CREW.specialists.length} specialists join Apex, Forge, Pitch, Guard & Surge.`,
+      summary: `Tuned for a first software company: ${DEFAULT_CREW.specialists.length} specialists join the core team.`,
       specialists: DEFAULT_CREW.specialists,
     };
   }
   return {
     domain: best.label,
-    summary: `Tuned for ${best.label}: ${best.specialists.length} specialists join Apex, Forge, Pitch, Guard & Surge.`,
+    summary: `Tuned for ${best.label}: ${best.specialists.length} specialists join the core team.`,
     specialists: best.specialists,
   };
 }

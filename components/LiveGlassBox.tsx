@@ -145,7 +145,7 @@ function EmailScreen({ brand, domain }: { brand: string; domain: string }) {
     <div className="flex h-full items-center justify-center bg-surface px-5 py-4">
       <div className="w-full max-w-[18rem] overflow-hidden rounded-xl border border-border bg-bg/70">
         <div className="space-y-1 border-b border-border px-4 py-2.5 text-[10px]">
-          <div className="flex justify-between"><span className="text-muted-2">From</span><span className="font-medium">Apex · {brand}</span></div>
+          <div className="flex justify-between"><span className="text-muted-2">From</span><span className="font-medium">CEO · {brand}</span></div>
           <div className="flex justify-between"><span className="text-muted-2">To</span><span className="font-medium">you@your-inbox.com</span></div>
           <div className="pt-0.5 text-[12px] font-semibold">Welcome to {brand} — here&apos;s your first step</div>
         </div>
