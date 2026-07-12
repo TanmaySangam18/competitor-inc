@@ -202,7 +202,7 @@ export interface AgentSpec {
 }
 export const AGENTS: Record<AgentRole, AgentSpec> = {
   ceo: {
-    name: "Apex",
+    name: "CEO",
     label: "Strategy",
     blurb: "Calls the strategy & unit economics — what to double down on, what to cut",
     playbook: "Playing to Win (Lafley & Martin)",
@@ -224,7 +224,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     ],
   },
   engineering: {
-    name: "Forge",
+    name: "Software Engineer",
     label: "Engineering",
     blurb: "Ships the product — deploys only after it verifies",
     playbook: "Shape Up (Basecamp)",
@@ -245,7 +245,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     ],
   },
   marketing: {
-    name: "Pitch",
+    name: "Marketing Manager",
     label: "Marketing",
     blurb: "Runs pre-launch demand — finds the one channel that converts and gets you to launch",
     playbook: "Bullseye / Traction (Weinberg & Mares)",
@@ -270,7 +270,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     objections: ["Is this a scam?", "Will it spend my money without asking?", "Am I locked in?", "What if it tells me not to build?"],
   },
   manufacturing: {
-    name: "Rig",
+    name: "DevOps Engineer",
     label: "Manufacturing",
     blurb: "Runs ops & supply — sourcing, quality, cost-down (dynamic-crew ideas that ship physical product)",
     playbook: "Toyota Production System (lean ops)",
@@ -292,7 +292,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     ],
   },
   support: {
-    name: "Guard",
+    name: "Customer Support",
     label: "Support",
     blurb: "Handles users — can refund, can't touch payments",
     playbook: "The Effortless Experience (CEB)",
@@ -315,7 +315,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     objections: ["Will a human help me?", "Can I get a refund?", "Can I export my data and leave?"],
   },
   growth: {
-    name: "Surge",
+    name: "Growth Lead",
     label: "Growth",
     blurb: "Runs post-launch growth loops — referrals, retention, the compounding flywheel (drafts posts for your sign-off)",
     playbook: "Hacking Growth (Sean Ellis)",
@@ -340,7 +340,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     objections: ["I have no audience", "I'm not a marketer", "Will this come across as spammy?"],
   },
   finance: {
-    name: "Ledger",
+    name: "Finance",
     label: "Finance",
     blurb: "Owns runway, unit economics, and receipts — prepares the money packet; only you move money",
     playbook: "Financial Intelligence (Berman & Knight)",
@@ -362,7 +362,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     ],
   },
   legal: {
-    name: "Counsel",
+    name: "Legal Counsel",
     label: "Legal",
     blurb: "Prepares contracts, ToS, and compliance packets — drafts everything; only you sign",
     playbook: "Compliance-by-design (least-privilege, consent-first)",
@@ -384,7 +384,7 @@ export const AGENTS: Record<AgentRole, AgentSpec> = {
     ],
   },
   ops: {
-    name: "Pulse",
+    name: "Operations",
     label: "Operations",
     blurb: "Runs internal process, vendors, and logistics drafts — removes the constraint, keeps things moving",
     playbook: "The Goal / Theory of Constraints (Goldratt)",

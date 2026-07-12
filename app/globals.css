@@ -13,21 +13,25 @@
      deep pages) at once — names stay, values become black/white; the sienna + pine accents carry through.
      (Radius + fonts intentionally left so circular avatars/readability don't break — zero-radius/mono is
      per-surface polish, done explicitly on the funnel pages.) */
-  --color-bg: #ffffff; /* pure white canvas */
-  --color-surface: #ffffff; /* white panels (separated by borders, MACHINA-style) */
-  --color-surface-2: #f2f2f0; /* faint gray wells/chips (keeps separation without a fill color) */
-  --color-border: rgba(0, 0, 0, 0.16); /* black hairlines */
+  /* TEAL COCKPIT (2026-07-12, founder-approved Bookary-style redesign; retires MACHINA monochrome): soft
+     mint canvas + white rounded cards + ONE deep-teal brand hue doing all the accent work. ONE remap
+     re-skins every token-based surface — names stay (bg-coral/text-mint/… all keep working), values
+     become the teal palette. Reversible. */
+  --color-bg: #eef4f1; /* soft mint canvas (cards sit on it) */
+  --color-surface: #ffffff; /* white rounded cards */
+  --color-surface-2: #e6efeb; /* faint teal-grey wells/chips */
+  --color-border: rgba(15, 110, 86, 0.14); /* teal-tinted hairlines */
 
-  /* Accents carry through (names stay so every text-coral/bg-mint/… class works): sienna + pine — the
-     exact accents the MACHINA funnel uses. */
-  --color-coral: #8c3a22; /* sienna — primary action/stamps */
+  /* One accent, systematized (names stay so every text-coral/bg-mint/… class works): teal is primary
+     action; the deeper pine reads success/verified/live; ochre = warnings. */
+  --color-coral: #0f6e56; /* teal — primary action */
   --color-amber: #9a6a1f; /* warm ochre (warnings) */
-  --color-mint: #1f5130; /* pine (success, verified, live) */
-  --color-violet: #555049; /* neutral */
+  --color-mint: #0f6e56; /* teal (success, verified, live) */
+  --color-violet: #4a5a54; /* neutral slate-teal */
 
-  --color-text: #111111; /* near-black ink */
-  --color-muted: #565656;
-  --color-muted-2: #8c8c8c;
+  --color-text: #10201b; /* near-black ink, faint teal */
+  --color-muted: #51625b;
+  --color-muted-2: #8aa39a;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -60,15 +64,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-}
-
-/* MACHINA crisp (2026-07-11, task #57): square every box corner app-wide — the MACHINA look — for the
-   cockpit + all panels at once. UNLAYERED on purpose: an unlayered rule beats Tailwind's @layer utilities
-   in the cascade, so this reliably overrides rounded-lg/xl/2xl/etc (the @theme --radius-* override did NOT
-   take in this v4 setup — verified). `rounded-full` is EXCLUDED so circular avatars/badges/pills stay
-   round. Reversible: delete this block. */
-[class*="rounded"]:not([class*="rounded-full"]) {
-  border-radius: 0 !important;
 }
 
 /* Craft bar (2026-07-10, Block 4): headings are the DISPLAY sans (Space Grotesk) with tight tracking —

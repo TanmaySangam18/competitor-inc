@@ -49,10 +49,27 @@ Give me each value by pasting it as an env var (I'll tell you the exact name), o
   enabling the WhatsApp sender on your Twilio number and confirming your own number to receive.
 - Give me: your WhatsApp number to receive briefings. (Reminder: no group chats on WA — Slack is the room.)
 
-### 6. Leads + enrichment (Block 3)
-- **Clay** (clay.com) — richest; or **Apollo** (apollo.io) — cheaper to start.
-- Give me: `CLAY_API_KEY` or `APOLLO_API_KEY`.
-- Cost: Apollo has a usable free tier; Clay ~$149/mo (trial).
+### 6. Leads + enrichment (Block 3) — UPDATED 2026-07-12 after API research
+- **Explee** (explee.com) — DECIDED over Clay/Apollo: NL semantic search as an API primitive (our fuzzy
+  ICPs like "boutique software agencies" work natively), public OpenAPI, 10k req/hr, per-credit billing.
+  Free tier (500 credits) → Starter $49/mo. Apollo's API needs ~$357/mo (3-seat Org plan) — skip.
+  Clay $185/mo — skip. We use Explee for SEARCH + ENRICH + DEDUP only; sending stays on OUR rail
+  (never their AutoGTM mailboxes — breaks named-AI disclosure).
+- Give me: `EXPLEE_API_KEY` (from explee.com/api-keys after you create the account).
+- Cost: $0 to start, $49/mo when we outgrow free credits.
+
+### 6b. Competitive-selling rail (Block 3) — NEW 2026-07-12
+- **Firecrawl** (firecrawl.dev) — weekly competitor-site watch → auto battlecards. Free tier first,
+  Hobby $16/mo later. Give me: `FIRECRAWL_API_KEY`.
+- **Cal.com** — free tier; create the account, I create event types + booking links + webhooks via API.
+  Give me: `CALCOM_API_KEY`.
+- **Gmail sending — the one structural item:** consumer @gmail.com breaks autonomy (test-mode OAuth
+  tokens die every 7 days). The fix: **Google Workspace on your own domain** + an INTERNAL OAuth app
+  with only the `gmail.send` scope (no Google verification needed, tokens don't expire). Then:
+  SPF + DKIM + DMARC records on the domain, and enroll it in Google Postmaster Tools.
+- Sending rails regardless of volume: one-click unsubscribe, CAN-SPAM footer w/ physical address,
+  warm-up at tens/day, auto-halt gate on spam complaints. Workspace trial caps sends at 500/day
+  until ~$100 has been paid — fine at our volumes.
 
 ### 7. Vapi  — the voice agent for booked/inbound calls only (Block 3)
 - Sign up at vapi.ai → connect your Twilio number.

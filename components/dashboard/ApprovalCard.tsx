@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { Check, Copy, X } from "lucide-react";
-import { AGENTS, type AgentRole, type ApprovalKind } from "@/lib/engine/types";
+import { type AgentRole, type ApprovalKind } from "@/lib/engine/types";
+import { ROLE_TITLE } from "@/lib/org/role-titles";
 import { useCopy } from "@/components/useCopy";
 
 // Copy-first kinds: WE never post to the founder's accounts or generate on their credits — they
@@ -12,7 +13,6 @@ import { useCopy } from "@/components/useCopy";
 const SOCIAL_KINDS: ApprovalKind[] = ["twitter", "linkedin", "bluesky", "mastodon", "reddit"];
 
 export function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }: { title: string; detail: string; agent: AgentRole; kind?: ApprovalKind; onApprove: () => void; onReject: () => void }) {
-  const A = AGENTS[agent];
   const { copied, copy: copyText } = useCopy(2000);
   const isVideo = kind === "video";
   const isSocial = (kind && SOCIAL_KINDS.includes(kind)) || isVideo;
@@ -23,7 +23,7 @@ export function ApprovalCard({ title, detail, agent, kind, onApprove, onReject }
   return (
     <motion.div layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="rounded-2xl border border-coral/30 bg-coral/[0.05] p-4">
       <div className="flex items-center justify-between">
-        <div className="text-[11px] uppercase tracking-wide text-muted-2">{A.name} · needs your ok</div>
+        <div className="text-[11px] uppercase tracking-wide text-muted-2">{ROLE_TITLE[agent]} · needs your ok</div>
         {kindLabel && <div className="rounded-md bg-coral/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-coral">{kindLabel}</div>}
       </div>
       <div className="mt-1 text-sm font-semibold">{title}</div>

@@ -2,14 +2,14 @@
 
 import { motion } from "framer-motion";
 import { Check, Lock, Undo2, Ban } from "lucide-react";
-import { AGENTS, type Activity } from "@/lib/engine/types";
+import { type Activity } from "@/lib/engine/types";
 import { rationaleFor } from "@/lib/engine/rationale";
+import { ROLE_TITLE } from "@/lib/org/role-titles";
 import { agentStyle } from "@/components/dashboard/agentStyle";
 import { reversibility, canOfferUndo } from "@/lib/engine/reversibility";
 
 export function ActivityRow({ a, onUndo, lockedUrl }: { a: Activity; onUndo: () => void; lockedUrl?: string }) {
   const S = agentStyle[a.agent];
-  const A = AGENTS[a.agent];
   const failed = a.status === "failed-credited";
   // Honest undo: only offer it where a real reversal exists; otherwise say plainly it can't be recalled.
   const rev = reversibility(a);
@@ -28,7 +28,7 @@ export function ActivityRow({ a, onUndo, lockedUrl }: { a: Activity; onUndo: () 
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-muted-2">
-          {A.name} · night {a.night}
+          {ROLE_TITLE[a.agent]} · night {a.night}
           {a.meta && <span className="normal-case tracking-normal">· {a.meta}</span>}
         </div>
         <div className={`mt-0.5 text-sm ${a.undone ? "text-muted line-through" : "text-text"}`}>{a.action}</div>

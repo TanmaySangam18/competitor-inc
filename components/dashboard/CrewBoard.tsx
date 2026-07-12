@@ -1,9 +1,10 @@
 "use client";
+import { ROLE_TITLE } from "@/lib/org/role-titles";
 
 import { useMemo } from "react";
 import { Loader2, Inbox, CheckCircle2, Moon, Network } from "lucide-react";
 import type { useEngine } from "@/lib/engine/useEngine";
-import { AGENTS, type AgentRole } from "@/lib/engine/types";
+import { type AgentRole } from "@/lib/engine/types";
 import { generateCrewFromIdea, matchBenchmarkCompany } from "@/lib/engine/dynamic-crew";
 
 // The Crew Board — the board metaphor done natively (no Miro dependency). One glanceable strip of what
@@ -13,7 +14,7 @@ import { generateCrewFromIdea, matchBenchmarkCompany } from "@/lib/engine/dynami
 //   Shipped ✓        — recent done activities carrying real proof
 // This strengthens the Glass Box; it never becomes a separate source of truth.
 
-const agentName = (role: AgentRole) => AGENTS[role]?.name ?? role;
+const agentName = (role: AgentRole) => ROLE_TITLE[role] ?? role;
 
 export function CrewBoard({ r }: { r: ReturnType<typeof useEngine> }) {
   const working = r.working === "shift";

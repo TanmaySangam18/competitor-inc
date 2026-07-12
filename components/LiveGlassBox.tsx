@@ -29,15 +29,15 @@ import {
 import type { AgentRole, Company } from "@/lib/engine/types";
 
 const agentMeta: Record<AgentRole, { name: string; icon: LucideIcon; accent: string; ring: string }> = {
-  ceo: { name: "Apex", icon: TrendingUp, accent: "text-violet", ring: "bg-violet/12" },
-  engineering: { name: "Forge", icon: Code2, accent: "text-mint", ring: "bg-mint/12" },
-  marketing: { name: "Pitch", icon: Megaphone, accent: "text-amber", ring: "bg-amber/12" },
-  manufacturing: { name: "Rig", icon: Code2, accent: "text-amber", ring: "bg-amber/12" },
-  support: { name: "Guard", icon: LifeBuoy, accent: "text-coral", ring: "bg-coral/12" },
-  growth: { name: "Surge", icon: TrendingUp, accent: "text-mint", ring: "bg-mint/12" },
-  finance: { name: "Ledger", icon: Landmark, accent: "text-mint", ring: "bg-mint/12" },
-  legal: { name: "Counsel", icon: Scale, accent: "text-violet", ring: "bg-violet/12" },
-  ops: { name: "Pulse", icon: Settings, accent: "text-amber", ring: "bg-amber/12" },
+  ceo: { name: "CEO", icon: TrendingUp, accent: "text-violet", ring: "bg-violet/12" },
+  engineering: { name: "Software Engineer", icon: Code2, accent: "text-mint", ring: "bg-mint/12" },
+  marketing: { name: "Marketing Manager", icon: Megaphone, accent: "text-amber", ring: "bg-amber/12" },
+  manufacturing: { name: "DevOps Engineer", icon: Code2, accent: "text-amber", ring: "bg-amber/12" },
+  support: { name: "Customer Support", icon: LifeBuoy, accent: "text-coral", ring: "bg-coral/12" },
+  growth: { name: "Growth Lead", icon: TrendingUp, accent: "text-mint", ring: "bg-mint/12" },
+  finance: { name: "Finance", icon: Landmark, accent: "text-mint", ring: "bg-mint/12" },
+  legal: { name: "Legal Counsel", icon: Scale, accent: "text-violet", ring: "bg-violet/12" },
+  ops: { name: "Operations", icon: Settings, accent: "text-amber", ring: "bg-amber/12" },
 };
 
 type Screen = { role: AgentRole; doing: string; node: React.ReactNode };

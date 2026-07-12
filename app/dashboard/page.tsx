@@ -50,7 +50,8 @@ import DemandRadarPanel from "@/components/DemandRadarPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import MomTestKit from "@/components/MomTestKit";
 import SpecialistCrew from "@/components/dashboard/SpecialistCrew";
-import TerminalFeed from "@/components/dashboard/TerminalFeed";
+import StatsPie from "@/components/dashboard/StatsPie";
+import TeamRoster from "@/components/dashboard/TeamRoster";
 import BringYourKeysNudge from "@/components/dashboard/BringYourKeysNudge";
 import CampaignPanel from "@/components/CampaignPanel";
 import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
@@ -715,11 +716,13 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
         </GlassCard>
       )}
 
-      {/* THE TERMINAL — the org's real work streamed as a raw feed (founder recreation: the cockpit hero,
-          "backend raw tech being built"). Renders only real activities; honest empty state, never faked. */}
-      <TerminalFeed activities={r.activities} company={c} />
+      {/* ZONE 2 — the numbers: scoreboard + a stats pie (where the org's work went) + who's working. */}
+      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+        <StatsPie activities={r.activities} nights={c.night} tasksDone={c.ledger.tasksDone} />
+        <TeamRoster activities={r.activities} roles={roles} />
+      </div>
 
-      {/* ZONE 2 — the numbers: one full-width scoreboard row, auto-height, stats never clipped. */}
+      {/* ZONE 2b — the numbers: one full-width scoreboard row, auto-height, stats never clipped. */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map((s) => <Stat key={s.label} label={s.label} val={s.val} />)}
       </div>
