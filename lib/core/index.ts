@@ -18,6 +18,7 @@ import {
   type ActionContext, type PolicyDecision, type Verdict, type ExecAction,
 } from "@/lib/engine/policy";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
+import { deliberate, type DecisionRecord, type Position } from "./deliberate";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -53,7 +54,11 @@ export const governance = {
   policy: POLICY,
 };
 
-export const core = { org, agents, governance };
+// ── DELIBERATE (Phase 2 seed): convene the right roles on a task → a governed Decision Record. The seam
+// where real model-reasoned debate plugs in; today the stances are mandate-derived (flagged simulated).
+export { deliberate };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole };
+export const core = { org, agents, governance, deliberate };
+
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position };
 export default core;

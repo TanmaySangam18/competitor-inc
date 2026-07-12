@@ -58,6 +58,20 @@ function cmdDecide(args: string[]) {
   line(`  reason:  ${d.reason}`);
 }
 
+function cmdDeliberate(args: string[]) {
+  const task = args.filter((a) => !a.startsWith("--")).join(" ").trim();
+  if (!task) { line(`usage: npm run competitor -- deliberate "<task>"`); process.exitCode = 1; return; }
+  const d = core.deliberate(task);
+  line(`competitor — deliberation${d.simulated ? "   (structure + governance real; reasoned debate pending a model key)" : ""}`);
+  line(`  task:  ${d.task}`);
+  line(`  room:  ${d.participants.join(", ")}`);
+  line(``);
+  for (const p of d.positions) line(`  ${p.title} — ${p.stance}`);
+  line(``);
+  line(`  decision: ${d.decision}  (by ${d.decidedBy})`);
+  line(`  why:      ${d.rationale}`);
+}
+
 function cmdHelp() {
   line(`competitor — the company OS, from the terminal`);
   line(``);
@@ -65,15 +79,18 @@ function cmdHelp() {
   line(`  agents                   the governed agent roster (real titles)`);
   line(`  decide [--type ..] [--agent ..] [--amount N] [--no-reversible] ...`);
   line(`                           run one action through the governance engine → AUTO | QUEUE | BLOCK`);
+  line(`  deliberate "<task>"     convene the relevant roles → a governed Decision Record`);
   line(`  help                     this`);
   line(``);
   line(`  e.g.  npm run competitor -- decide --type spend --agent marketing --amount 600`);
+  line(`        npm run competitor -- deliberate "launch a paid ads campaign for $2000"`);
 }
 
 switch (cmd) {
   case "org": cmdOrg(); break;
   case "agents": cmdAgents(); break;
   case "decide": cmdDecide(rest); break;
+  case "deliberate": cmdDeliberate(rest); break;
   case "help": case undefined: cmdHelp(); break;
   default:
     line(`unknown command: ${cmd}`);
