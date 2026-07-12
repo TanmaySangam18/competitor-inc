@@ -72,6 +72,16 @@ async function cmdDeliberate(args: string[]) {
   line(`  why:      ${d.rationale}`);
 }
 
+function cmdPlan(args: string[]) {
+  const goal = args.filter((a) => !a.startsWith("--")).join(" ").trim();
+  if (!goal) { line(`usage: npm run competitor -- plan "<goal>"`); process.exitCode = 1; return; }
+  const p = core.plan(goal, { operate: Boolean(flags(args).operate) });
+  line(`competitor — plan  (${p.tasks.length} tasks)`);
+  line(`  goal: ${p.goal}`);
+  line(``);
+  for (const step of p.chain) line(`  • ${step}`);
+}
+
 function cmdHelp() {
   line(`competitor — the company OS, from the terminal`);
   line(``);
@@ -80,10 +90,12 @@ function cmdHelp() {
   line(`  decide [--type ..] [--agent ..] [--amount N] [--no-reversible] ...`);
   line(`                           run one action through the governance engine → AUTO | QUEUE | BLOCK`);
   line(`  deliberate "<task>"     convene the relevant roles → a governed Decision Record`);
+  line(`  plan "<goal>"           break a goal into the org's IC→lead→sign-off task chain`);
   line(`  help                     this`);
   line(``);
   line(`  e.g.  npm run competitor -- decide --type spend --agent marketing --amount 600`);
   line(`        npm run competitor -- deliberate "launch a paid ads campaign for $2000"`);
+  line(`        npm run competitor -- plan "a booking tool for a dog groomer"`);
 }
 
 async function main() {
@@ -92,6 +104,7 @@ async function main() {
     case "agents": cmdAgents(); break;
     case "decide": cmdDecide(rest); break;
     case "deliberate": await cmdDeliberate(rest); break;
+    case "plan": cmdPlan(rest); break;
     case "help": case undefined: cmdHelp(); break;
     default:
       line(`unknown command: ${cmd}`);
