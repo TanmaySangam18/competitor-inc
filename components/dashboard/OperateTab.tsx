@@ -31,7 +31,7 @@ export function OperateTab({ r, c }: { r: ReturnType<typeof useEngine>; c: Compa
   ];
 
   const review =
-    `This quarter Apex shipped ${c.ledger.tasksDone} task${c.ledger.tasksDone === 1 ? "" : "s"} for ${c.name} ` +
+    `This quarter the team shipped ${c.ledger.tasksDone} task${c.ledger.tasksDone === 1 ? "" : "s"} for ${c.name} ` +
     `at $${net.toFixed(2)} net spend — marginal cost ~$0 (BYOK / free-tier). Validation confidence ` +
     `${c.validation?.confidence ?? "—"}%. ${doneRocks}/${r.operate.rocks.length} Rocks done, ${openCount} open issue${openCount === 1 ? "" : "s"}. ` +
     (openCount > 0 ? "Recommended focus: run IDS on the top issue." : "Recommended focus: keep shipping the winners.");
