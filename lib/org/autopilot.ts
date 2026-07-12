@@ -12,7 +12,7 @@
 // existing decide()/governApprovals behavior any current caller depends on. New surface, proven core.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { POLICY, withinCaps, type Policy, type ActionContext } from "@/lib/engine/policy";
+import { POLICY, withinCaps, absoluteBlock, type Policy, type ActionContext } from "@/lib/engine/policy";
 import type { AgentRole, ApprovalItem } from "@/lib/engine/types";
 import { getRole } from "./organization";
 
@@ -43,13 +43,10 @@ const auto = (reason: string): AutopilotDecision => ({ mode: "auto", reason });
 // The autopilot posture for a single proposed action. Order matters: the hard floors first, then the
 // founder-gated classes, then caps, then — by default — GO.
 export function autopilotMode(ctx: ActionContext, policy: Policy = POLICY): AutopilotDecision {
-  // Hard floors — identical to decide(): the kill switch and the forbidden set are absolute.
-  if (policy.spend.killSwitch) return block("kill switch engaged — all actions halted");
-  if (policy.forbiddenActions.has(ctx.type)) return block("forbidden by policy");
-
-  // Per-agent NEVER cell still blocks (a role acting outside its remit).
-  const bucket = policy.matrix[ctx.agent]?.[ctx.type as keyof (typeof policy.matrix)[AgentRole]];
-  if (bucket === "NEVER") return block(`not permitted for the ${ctx.agent} agent`);
+  // Absolute floor (kill switch · forbidden · per-agent NEVER) — owned by policy.ts and shared with
+  // decide(); never re-implemented here, so the two governance paths can't drift apart.
+  const floored = absoluteBlock(ctx, policy);
+  if (floored) return block(floored);
 
   // High-consequence classes always wait for the founder — the whole point of the honesty floor.
   if (FOUNDER_GATED_KINDS.has(ctx.type)) return queue("high-consequence — founder sign-off required");
