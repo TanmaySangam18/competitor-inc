@@ -105,6 +105,38 @@ async function cmdDoctor() {
   if (!h.ok) process.exitCode = 1;
 }
 
+function cmdOutreach(args: string[]) {
+  const f = flags(args);
+  const company = typeof f.company === "string" ? f.company : "";
+  if (!company) {
+    line(`usage: npm run competitor -- outreach --company "<name>" [--source referral|inbound|community|event|list] [--trigger "..."] [--title "..."] [--size N] [--name "..."] [--permission]`);
+    process.exitCode = 1; return;
+  }
+  const lead: import("@/lib/core").Lead = {
+    id: "cli",
+    company,
+    name: typeof f.name === "string" ? f.name : undefined,
+    title: typeof f.title === "string" ? f.title : undefined,
+    companySize: f.size !== undefined ? Number(f.size) : undefined,
+    source: (typeof f.source === "string" ? f.source : "list") as import("@/lib/core").Lead["source"],
+    triggerReason: typeof f.trigger === "string" ? f.trigger : undefined,
+    contactPermission: f.permission === true || undefined,
+    signals: typeof f.signals === "string" ? f.signals.split(",").map((s) => s.trim()) : undefined,
+  };
+  const p = core.outreach.for(lead);
+  line(`competitor — outreach`);
+  line(`  lead:  ${company}${lead.title ? ` (${lead.title})` : ""} · source: ${lead.source}`);
+  line(`  fit:   ${p.qualification.fit}/100 · ${p.qualification.tier}`);
+  line(`  gate:  ${p.gate.allowed ? "✓ allowed" : "✗ blocked"} — ${p.gate.reason}`);
+  if (p.draft) {
+    line(``);
+    line(`  subject: ${p.draft.subject}`);
+    line(`  ${p.draft.body}`);
+  } else {
+    line(`  (no draft — the no-spam rail blocked this contact)`);
+  }
+}
+
 function cmdPayments() {
   const configured = core.payments.configured();
   line(`competitor — payments  (${configured ? "LIVE — Stripe connected" : "not configured"})`);
@@ -128,6 +160,7 @@ function cmdHelp() {
   line(`  run "<goal>"            plan it AND govern every task → what proceeds vs escalates`);
   line(`  doctor                   self-check: is the whole company OS coherent + alive?`);
   line(`  payments                 the money layer's status (Stripe Connect)`);
+  line(`  outreach --company "<x>"  qualify a lead → no-spam gate → honest first-touch draft`);
   line(`  help                     this`);
   line(``);
   line(`  e.g.  npm run competitor -- decide --type spend --agent marketing --amount 600`);
@@ -144,6 +177,7 @@ async function main() {
     case "plan": cmdPlan(rest); break;
     case "run": await cmdRun(rest); break;
     case "payments": cmdPayments(); break;
+    case "outreach": cmdOutreach(rest); break;
     case "doctor": await cmdDoctor(); break;
     case "help": case undefined: cmdHelp(); break;
     default:
