@@ -23,6 +23,7 @@ import { plan, type Plan } from "./plan";
 import { coordinate, type Coordination } from "./coordinate";
 import { checkHealth, type Health, type HealthCheck } from "./health";
 import { paymentsConfigured, connectProduct, checkoutUrl, type Onboarding } from "./payments";
+import { outreachFor, AGENCY_ICP, qualifyLead, outreachGate, type OutreachPlan, type Lead, type ICP } from "./outreach";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -75,10 +76,15 @@ export { checkHealth };
 // we orchestrate, never hold the money. Fail-soft (configured:false) until a key is connected.
 export { paymentsConfigured, connectProduct, checkoutUrl };
 
+// ── OUTREACH (Phase 4): the reach rail — qualify a lead against the ICP, run the no-spam gate, draft an
+// honest named-AI first-touch. Keyless; sending (Gmail) + sourcing (Explee) light up with their keys.
+export { outreachFor };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
+  outreach: { icp: AGENCY_ICP, qualify: qualifyLead, gate: outreachGate, for: outreachFor },
 };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding };
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP };
 export default core;
