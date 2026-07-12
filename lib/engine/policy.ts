@@ -166,26 +166,34 @@ export function withinCaps(ctx: ActionContext, policy: Policy = POLICY): boolean
   return true;
 }
 
-// The enforcement engine. One function, one verdict — the whole governance model in 25 lines.
+// The ABSOLUTE FLOOR — actions refused no matter what: the kill switch, the forbidden set, and a per-agent
+// NEVER cell. Defined ONCE here and shared by decide() (below) and lib/org/autopilot.ts, so the safety
+// floor can never drift between the two governance paths. (Uses the same `matrix ?? defaultDecision`
+// fallback decide() has always used, so behavior is identical.)
+export function absoluteBlock(ctx: ActionContext, policy: Policy = POLICY): string | null {
+  if (policy.spend.killSwitch) return "kill switch engaged — all actions halted";
+  if (policy.forbiddenActions.has(ctx.type)) return "forbidden by policy";
+  const bucket = policy.matrix[ctx.agent]?.[ctx.type as ExecAction] ?? policy.defaultDecision;
+  if (bucket === "NEVER") return `not permitted for the ${ctx.agent} agent`;
+  return null;
+}
+
+// The enforcement engine. One function, one verdict — the whole governance model.
 export function decide(ctx: ActionContext, policy: Policy = POLICY): PolicyDecision {
   const block = (reason: string): PolicyDecision => ({ verdict: "BLOCK", reason });
   const queue = (reason: string): PolicyDecision => ({ verdict: "QUEUE", reason });
 
-  // Hard floor — the kill switch halts everything, instantly.
-  if (policy.spend.killSwitch) return block("kill switch engaged — all actions halted");
+  // Hard floor (kill switch · forbidden · per-agent NEVER) — the one shared definition.
+  const floored = absoluteBlock(ctx, policy);
+  if (floored) return block(floored);
 
   // Gate 1 — Can it act? (a scoped credential exists)
   if (policy.gates.requireCredential && ctx.hasCredential === false) return block("no credential or scope for this action");
-
-  // Hard floor — explicitly forbidden actions never run, even if every gate would pass.
-  if (policy.forbiddenActions.has(ctx.type)) return block("forbidden by policy");
-
   // Gate 2 — Is it lawful? (passes the compliance gate)
   if (policy.gates.requireCompliance && ctx.compliancePass === false) return block("failed compliance gate");
 
-  // Per-agent permission.
+  // Per-agent permission (NEVER already handled by the floor above).
   const bucket = policy.matrix[ctx.agent]?.[ctx.type as ExecAction] ?? policy.defaultDecision;
-  if (bucket === "NEVER") return block(`not permitted for the ${ctx.agent} agent`);
   if (bucket === "APPROVE") return queue("requires human approval");
 
   // bucket === AUTO — must still clear the remaining gates to run unattended.
