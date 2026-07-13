@@ -27,6 +27,7 @@ import { outreachFor, AGENCY_ICP, qualifyLead, outreachGate, type OutreachPlan, 
 import { outreachConfigured, compliantMessage, sendFirstTouch, type SendResult } from "./outreach-send";
 import { triageTicket, ticketToSignal, improve, type Signal, type Ticket, type TicketTriage, type OperateCycle } from "./operate";
 import { listServices, getService, SERVICES, type Service, type ServiceStatus } from "./services";
+import { conversation, conversationFrom, conversationSlackText, initialsOf, type Conversation, type Turn } from "./conversation";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -92,13 +93,19 @@ export { triageTicket, improve };
 // planned). This is the offering surface; the capabilities themselves live in the modules above.
 export { listServices, getService };
 
+// ── CONVERSATION: the team room made watchable — a governed deliberation rendered as a chair-led
+// conversation the customer can watch (on the website + posted to Slack). A presentation over the REAL
+// Decision Record; carries the same `simulated` honesty flag. Live reasoning wakes with a model key.
+export { conversation, conversationFrom, conversationSlackText };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
   outreach: { icp: AGENCY_ICP, qualify: qualifyLead, gate: outreachGate, for: outreachFor, configured: outreachConfigured, compliant: compliantMessage, send: sendFirstTouch },
   operate: { triageTicket, ticketToSignal, improve },
   listServices, getService, services: SERVICES,
+  room: { conversation, from: conversationFrom, slackText: conversationSlackText, initials: initialsOf },
 };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus };
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn };
 export default core;

@@ -172,6 +172,19 @@ function cmdOperate(args: string[]) {
   }
 }
 
+async function cmdRoom(args: string[]) {
+  const task = args.filter((a) => !a.startsWith("--")).join(" ").trim();
+  if (!task) { line(`usage: npm run competitor -- room "<task>"`); process.exitCode = 1; return; }
+  const convo = await core.room.conversation(task);
+  line(`competitor — team room${convo.simulated ? "   (structure + governance real; live reasoning wakes with a model key)" : ""}`);
+  line(`  task: ${convo.task}`);
+  line(``);
+  for (const t of convo.turns) {
+    const tag = t.kind === "decision" ? "⛳" : t.kind === "open" ? "▸" : "·";
+    line(`  ${tag} ${t.title}: ${t.text}`);
+  }
+}
+
 function cmdServices() {
   const services = core.listServices();
   const badge = (s: string) => (s === "ready" ? "ready" : s === "partial" ? "partial" : "planned");
@@ -207,6 +220,7 @@ function cmdHelp() {
   line(`  deliberate "<task>"     convene the relevant roles → a governed Decision Record`);
   line(`  plan "<goal>"           break a goal into the org's IC→lead→sign-off task chain`);
   line(`  run "<goal>"            plan it AND govern every task → what proceeds vs escalates`);
+  line(`  room "<task>"           watch the team deliberate it → a chair-led conversation`);
   line(`  doctor                   self-check: is the whole company OS coherent + alive?`);
   line(`  services                 the catalog a customer can hire (build-run-sell, growth, support, ...)`);
   line(`  payments                 the money layer's status (Stripe Connect)`);
@@ -227,6 +241,7 @@ async function main() {
     case "deliberate": await cmdDeliberate(rest); break;
     case "plan": cmdPlan(rest); break;
     case "run": await cmdRun(rest); break;
+    case "room": await cmdRoom(rest); break;
     case "payments": cmdPayments(); break;
     case "services": cmdServices(); break;
     case "outreach": cmdOutreach(rest); break;
