@@ -10,6 +10,14 @@ super-intelligence or AGI. We aim as high as real engineering allows and never s
 never claim omniscience, never fake capability, and the safety floor (kill switch, spend caps, human-for-
 high-risk, honesty, verify-before-done) is permanent and grows *with* the intelligence, not against it.
 
+> **2026-07-13 — governing spec adopted as reference.** The founder's six governing docs (CLAUDE,
+> MASTER_DIRECTIVE, REQUIREMENTS, ORG_56_ROLES, INFRASTRUCTURE_AND_CREDENTIALS, HUMAN_TODO) are now the
+> authority on safety + sequence. The **business-ranked build candidates** distilled from them — awaiting the
+> founder's greenlight — live in **[docs/GOVERNING-SPEC-PLAN.md](GOVERNING-SPEC-PLAN.md)**. Top pick: the
+> **Tier-A safety spine** (black-box audit log + real stop button, T0–T3 risk gate, simulation failure-drills,
+> customer-abuse containment) — it's the ship-gate *and* the sellable moat. **No quarantine:** we build
+> greenlit items end to end and delete whatever they supersede.
+
 ## The body scoreboard (how alive is it, honestly)
 | System | In the company | Status |
 |---|---|---|
