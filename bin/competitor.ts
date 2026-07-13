@@ -172,6 +172,20 @@ function cmdOperate(args: string[]) {
   }
 }
 
+function cmdServices() {
+  const services = core.listServices();
+  const badge = (s: string) => (s === "ready" ? "ready" : s === "partial" ? "partial" : "planned");
+  line(`competitor — services  (${services.length} the customer can hire)`);
+  line(`  ready = built + tested, keyless (needs a key to act live) · partial = some pieces built · planned = decided, not built`);
+  line(``);
+  for (const s of services) {
+    line(`  ${s.flagship ? "★" : " "} [${badge(s.status).padEnd(7)}] ${s.name}`);
+    line(`      ${s.summary}`);
+    line(`      run by: ${s.agents.join(", ")}`);
+    line(``);
+  }
+}
+
 function cmdPayments() {
   const configured = core.payments.configured();
   line(`competitor — payments  (${configured ? "LIVE — Stripe connected" : "not configured"})`);
@@ -194,6 +208,7 @@ function cmdHelp() {
   line(`  plan "<goal>"           break a goal into the org's IC→lead→sign-off task chain`);
   line(`  run "<goal>"            plan it AND govern every task → what proceeds vs escalates`);
   line(`  doctor                   self-check: is the whole company OS coherent + alive?`);
+  line(`  services                 the catalog a customer can hire (build-run-sell, growth, support, ...)`);
   line(`  payments                 the money layer's status (Stripe Connect)`);
   line(`  outreach --company "<x>"  qualify a lead → no-spam gate → honest first-touch draft`);
   line(`  operate --type .. --body "<ticket>"  triage an end-user ticket → the governed improvement loop`);
@@ -213,6 +228,7 @@ async function main() {
     case "plan": cmdPlan(rest); break;
     case "run": await cmdRun(rest); break;
     case "payments": cmdPayments(); break;
+    case "services": cmdServices(); break;
     case "outreach": cmdOutreach(rest); break;
     case "operate": cmdOperate(rest); break;
     case "doctor": await cmdDoctor(); break;

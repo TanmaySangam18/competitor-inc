@@ -26,6 +26,7 @@ import { paymentsConfigured, connectProduct, checkoutUrl, type Onboarding } from
 import { outreachFor, AGENCY_ICP, qualifyLead, outreachGate, type OutreachPlan, type Lead, type ICP } from "./outreach";
 import { outreachConfigured, compliantMessage, sendFirstTouch, type SendResult } from "./outreach-send";
 import { triageTicket, ticketToSignal, improve, type Signal, type Ticket, type TicketTriage, type OperateCycle } from "./operate";
+import { listServices, getService, SERVICES, type Service, type ServiceStatus } from "./services";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -86,12 +87,18 @@ export { outreachFor };
 // fixes (auto vs the owner's approval vs blocked) → verify → report. The operator layer, not just a builder.
 export { triageTicket, improve };
 
+// ── SERVICES: the catalog a customer hires from — the flagship build-run-sell plus growth, support, sales,
+// market-watch, and data-copilot. Each maps to real roles and carries an HONEST status (ready/partial/
+// planned). This is the offering surface; the capabilities themselves live in the modules above.
+export { listServices, getService };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
   outreach: { icp: AGENCY_ICP, qualify: qualifyLead, gate: outreachGate, for: outreachFor, configured: outreachConfigured, compliant: compliantMessage, send: sendFirstTouch },
   operate: { triageTicket, ticketToSignal, improve },
+  listServices, getService, services: SERVICES,
 };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult };
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus };
 export default core;
