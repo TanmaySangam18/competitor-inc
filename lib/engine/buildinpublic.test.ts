@@ -49,7 +49,7 @@ describe("receipts campaign — persona-authored posts (slice 2)", () => {
   it("a shipped build is signed by Vera · CTO, clearly AI, with the real URL — and overnight only when true", () => {
     const acts = [act({ action: "Shipped the booking app", cost: 30, proof: { kind: "url", value: "https://x-post-two.vercel.app" } as Proof })];
     const p = draftPersonaPost(company(), acts, { overnight: true })!;
-    expect(p).toContain("Vera · Chief Technology Officer");
+    expect(p).toContain("Vera · Engineering Lead");
     expect(p).toContain("https://x-post-two.vercel.app");
     expect(p).toContain("while the founder slept");
     expect(p).toContain("I'm an AI employee");
@@ -59,7 +59,7 @@ describe("receipts campaign — persona-authored posts (slice 2)", () => {
 
   it("a verified metric is signed by Kenji · Analytics; nothing verified ⇒ null (never invents)", () => {
     const metric = draftPersonaPost(company(), [act({ action: "Closed the experiment", proof: { kind: "metric", value: "6.1% conversion" } as Proof })])!;
-    expect(metric).toContain("Kenji · Head of Analytics");
+    expect(metric).toContain("Kenji · Auditor");
     expect(metric).toContain("6.1% conversion");
     expect(draftPersonaPost(company(), [act({ action: "wrote notes", status: "done" })])).toBeNull();
     expect(draftPersonaPost(company(), [])).toBeNull();
@@ -95,7 +95,7 @@ describe("receipts campaign — ledger reruns (slice 3b)", () => {
       act({ action: "closed experiment", cost: 99, proof: { kind: "metric", value: "5%" } as Proof }), // metric ≠ rerunnable
     ];
     const r = draftLedgerRerun(company(), history, { siteUrl: "https://competitor-inc-zeta.vercel.app" })!;
-    expect(r).toMatch(/^From the ledger — Vera · Chief Technology Officer/); // look-back framing, never fresh news
+    expect(r).toMatch(/^From the ledger — Vera · Engineering Lead/); // look-back framing, never fresh news
     expect(r).toContain("Still live: https://z.vercel.app");
     expect(r).toContain("/?ref=receipts");
   });

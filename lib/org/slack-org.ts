@@ -19,16 +19,13 @@ export interface DeptChannel { deptId: string; channel: string; icon: string; na
 
 const DEPT_ICON: Record<string, string> = {
   executive: ":crown:",
-  engineering: ":hammer_and_wrench:",
   product: ":compass:",
-  design: ":art:",
+  engineering: ":hammer_and_wrench:",
   quality: ":test_tube:",
-  revenue: ":moneybag:",
-  customer: ":handshake:",
-  licensing: ":key:",
+  operations: ":satellite:",
   finance: ":bar_chart:",
-  legal: ":balance_scale:",
-  data: ":chart_with_upwards_trend:",
+  growth: ":moneybag:",
+  knowledge: ":books:",
 };
 
 export const DEPT_CHANNELS: DeptChannel[] = DEPARTMENTS.map((d) => ({
@@ -42,17 +39,17 @@ export function channelForDepartment(deptId: string): string {
   return DEPT_CHANNELS.find((c) => c.deptId === deptId)?.channel ?? "general";
 }
 
-// The engine executes work under 9 AgentRoles; the org has 55 titled positions. Map each execFn to the
+// The engine executes work under 9 AgentRoles; the org has 56 titled positions. Map each execFn to the
 // department whose channel its work belongs in, and to the department head who "signs" the standup line.
 const EXECFN_DEPT: Record<AgentRole, string> = {
   ceo: "executive",
   engineering: "engineering",
   manufacturing: "engineering",
-  marketing: "revenue",
-  growth: "revenue",
-  support: "customer",
+  marketing: "growth",
+  growth: "growth",
+  support: "operations",
   finance: "finance",
-  legal: "legal",
+  legal: "finance",
   ops: "executive",
 };
 

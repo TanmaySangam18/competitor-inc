@@ -22,7 +22,7 @@ function kindOf(message: string): "bug" | "confusion" | "praise" | "other" {
 }
 
 export function draftSupportReply(feedback: { message: string; email?: string | null }): SupportReply {
-  const role = getRole("head-of-customer-success");
+  const role = getRole("customer-success-manager");
   const p = role ? personaFor(role) : { name: "Theo" };
   const author = role ? `${p.name} · ${role.title}` : "Customer Success";
   const kind = kindOf(feedback.message);

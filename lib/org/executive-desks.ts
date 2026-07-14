@@ -39,7 +39,7 @@ export function draftInvoice(input: InvoiceInput): EnqueueInput {
     title: `Invoice ${input.invoiceNumber} to ${input.customer} — ${money(total)}`,
     summary: `Finance drafted invoice ${input.invoiceNumber} for ${input.customer}: ${input.lines.length} line item(s), total ${money(total)}, due ${input.dueDate}. Approve to send.`,
     artifact: body,
-    preparedBy: "chief-financial-officer",
+    preparedBy: "finance-controller",
   };
 }
 
@@ -70,7 +70,7 @@ export function draftContract(input: ContractInput): EnqueueInput {
     title: `Contract with ${input.counterparty} — ${input.purpose}`,
     summary: `Legal drafted a ${input.termMonths}-month agreement with ${input.counterparty} covering ${input.purpose}${input.valueCents ? ` (${money(input.valueCents)})` : ""}; ${input.keyTerms.length} key terms flagged. Approve, reject, or send back with changes.`,
     artifact: body,
-    preparedBy: "general-counsel",
+    preparedBy: "legal-compliance-analyst",
   };
 }
 

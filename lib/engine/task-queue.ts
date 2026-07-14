@@ -21,7 +21,7 @@ export interface AgentTask {
   // ── Optional ORG attribution (Phase 2) ──────────────────────────────────────
   // Ties a task to a real POSITION in the org chart (lib/org/organization.ts) so execution reflects the
   // IC→lead→exec hierarchy, not a flat crew. Absent on the legacy flat decomposeGoal plan.
-  orgRoleId?: string; // the specific position, e.g. "fullstack-engineer"
+  orgRoleId?: string; // the specific position, e.g. "backend-engineer"
   orgTitle?: string; // the position NAME shown in the Glass Box / Slack (founder mandate: names = positions)
   orgLevel?: "exec" | "director" | "lead" | "ic";
   reportsToTitle?: string | null; // the position this work rolls up to (renders the visible chain)

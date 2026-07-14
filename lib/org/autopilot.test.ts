@@ -38,11 +38,11 @@ describe("autopilot — the governance flip", () => {
 
   it("resolves a real ORG role's action via its execFn", () => {
     // CFO proposing a payout → always the founder (money movement).
-    expect(roleAutopilotMode("chief-financial-officer", { type: "payout" }, testPolicy).mode).toBe("queue");
+    expect(roleAutopilotMode("finance-controller", { type: "payout" }, testPolicy).mode).toBe("queue");
     // SDR sending outreach → runs unattended under standing authorization.
-    expect(roleAutopilotMode("sales-development-representative", { type: "outreach" }, testPolicy).mode).toBe("auto");
+    expect(roleAutopilotMode("sales-development-rep", { type: "outreach" }, testPolicy).mode).toBe("auto");
     // General Counsel signing → the founder, always.
-    expect(roleAutopilotMode("general-counsel", { type: "sign" }, testPolicy).mode).toBe("queue");
+    expect(roleAutopilotMode("legal-compliance-analyst", { type: "sign" }, testPolicy).mode).toBe("queue");
   });
 
   it("partitions a batch into run-now / founder-queue / dropped", () => {

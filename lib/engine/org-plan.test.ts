@@ -29,16 +29,16 @@ describe("org-plan — hierarchical DAG from the real org chart", () => {
 
   it("the build rolls up the visible IC → lead → manager chain", () => {
     const t = byId(buildOrgPlan("x"));
-    expect(t["build-ic"].orgTitle).toBe("Full-Stack Engineer");
+    expect(t["build-ic"].orgTitle).toBe("Backend Engineer");
     expect(t["build-ic"].orgLevel).toBe("ic");
-    expect(t["build-review"].orgTitle).toBe("Full-Stack Team Lead");
-    expect(t["build-review"].orgLevel).toBe("lead");
-    expect(t["build-signoff"].orgTitle).toBe("VP of Engineering");
+    expect(t["build-review"].orgTitle).toBe("Engineering Lead");
+    expect(t["build-review"].orgLevel).toBe("director");
+    expect(t["build-signoff"].orgTitle).toBe("Chief of Staff");
     // the chain is wired by dependencies: ic → review → signoff
     expect(t["build-review"].blockingOn).toContain("build-ic");
     expect(t["build-signoff"].blockingOn).toContain("build-review");
     // and each names who it rolls up to
-    expect(t["build-ic"].reportsToTitle).toBe("Full-Stack Team Lead");
+    expect(t["build-ic"].reportsToTitle).toBe("Engineering Lead");
   });
 
   it("every task is independently verified — never self-graded by the same position", () => {
@@ -51,8 +51,8 @@ describe("org-plan — hierarchical DAG from the real org chart", () => {
 
   it("the build review is checked cross-department by Quality (real independence)", () => {
     const t = byId(buildOrgPlan("x"));
-    expect(t["build-review"].verifierOrgRoleId).toBe("head-of-quality");
-    expect(getRole("head-of-quality")!.department).not.toBe(getRole("fullstack-team-lead")!.department);
+    expect(t["build-review"].verifierOrgRoleId).toBe("qa-lead");
+    expect(getRole("qa-lead")!.department).not.toBe(getRole("engineering-lead")!.department);
   });
 
   it("operate adds launch/support/monetize/comply, each gated on a verified product", () => {
@@ -83,7 +83,7 @@ describe("org-plan — hierarchical DAG from the real org chart", () => {
 
   it("renders the chain as human-readable Glass Box lines", () => {
     const lines = renderOrgChain(buildOrgPlan("a CRM", { operate: true }));
-    expect(lines.some((l) => l.includes("Full-Stack Engineer"))).toBe(true);
+    expect(lines.some((l) => l.includes("Backend Engineer"))).toBe(true);
     expect(lines.some((l) => l.includes("escalates to founder"))).toBe(true);
   });
 });

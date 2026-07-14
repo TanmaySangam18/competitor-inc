@@ -38,7 +38,7 @@ export function TeamRoomTab({ company, r }: { company: Company; r: ReturnType<ty
     () => activeRoles(stage).filter((x) => x.level === "exec" || x.level === "director" || x.level === "lead"),
     [stage],
   );
-  const [roleId, setRoleId] = useState(leaders[0]?.id ?? "chief-executive-officer");
+  const [roleId, setRoleId] = useState(leaders[0]?.id ?? "chief-of-staff");
   const role: OrgRole | undefined = leaders.find((x) => x.id === roleId) ?? leaders[0];
 
   const [msgs, setMsgs] = useState<RoomMsg[]>([]);

@@ -97,7 +97,7 @@ describe("makeRealExecutor (Phase 2 — real work, not narration)", () => {
     // the build's artifact flowed up the chain and was verified live at each level
     expect(out.artifacts.some((a) => a.url === "https://focus-app-x.vercel.app")).toBe(true);
     // the Glass-Box log shows the real positions + the founder escalation, not a flat list
-    expect(out.log.some((l) => l.includes("Full-Stack Engineer"))).toBe(true);
+    expect(out.log.some((l) => l.includes("Backend Engineer"))).toBe(true);
     expect(out.log.some((l) => l.includes("escalates to founder"))).toBe(true);
   });
 

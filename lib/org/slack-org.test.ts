@@ -11,28 +11,28 @@ const act = (agent: Activity["agent"], action: string, meta?: string): Activity 
 
 describe("slack-org — the team room", () => {
   it("has one channel per department, with #exec aliased", () => {
-    expect(DEPT_CHANNELS.length).toBe(11);
+    expect(DEPT_CHANNELS.length).toBe(8);
     expect(channelForDepartment("executive")).toBe("exec");
     expect(channelForDepartment("engineering")).toBe("engineering");
-    expect(channelForDepartment("revenue")).toBe("revenue");
+    expect(channelForDepartment("growth")).toBe("growth");
   });
 
   it("routes each engine execFn to a department channel", () => {
-    expect(departmentForExecFn("growth")).toBe("revenue");
-    expect(departmentForExecFn("marketing")).toBe("revenue");
-    expect(departmentForExecFn("support")).toBe("customer");
+    expect(departmentForExecFn("growth")).toBe("growth");
+    expect(departmentForExecFn("marketing")).toBe("growth");
+    expect(departmentForExecFn("support")).toBe("operations");
     expect(departmentForExecFn("ceo")).toBe("executive");
-    expect(departmentForExecFn("legal")).toBe("legal");
+    expect(departmentForExecFn("legal")).toBe("finance");
   });
 
   it("posts AS the agent — title is the Slack sender name, not a bot name", () => {
-    const sdr = agentSlackIdentity({ roleId: "sales-development-representative" });
-    expect(sdr.username).toBe("Sales Development Representative");
-    expect(sdr.icon_emoji).toBe(":moneybag:"); // revenue dept icon
+    const sdr = agentSlackIdentity({ roleId: "sales-development-rep" });
+    expect(sdr.username).toBe("Sales Development Rep");
+    expect(sdr.icon_emoji).toBe(":moneybag:"); // growth dept icon
 
     // A bare execFn falls back to that department's head title.
     const eng = agentSlackIdentity({ execFn: "engineering" });
-    expect(eng.username).toBe("Chief Technology Officer");
+    expect(eng.username).toBe("Engineering Lead");
     expect(eng.icon_emoji).toBe(":hammer_and_wrench:");
   });
 
@@ -45,14 +45,14 @@ describe("slack-org — the team room", () => {
     const posts = composeStandup("BrewOps", 5, activities);
     const byDept = Object.fromEntries(posts.map((p) => [p.deptId, p]));
     // Only departments that did work appear.
-    expect(Object.keys(byDept).sort()).toEqual(["engineering", "revenue"]);
+    expect(Object.keys(byDept).sort()).toEqual(["engineering", "growth"]);
     expect(byDept.engineering.channel).toBe("engineering");
-    expect(byDept.engineering.title).toBe("Chief Technology Officer");
+    expect(byDept.engineering.title).toBe("Engineering Lead");
     expect(byDept.engineering.text).toContain("Shipped the checkout flow");
-    expect(byDept.revenue.text).toContain("Sent 15 warmed outreach notes");
-    expect(byDept.revenue.text).toContain("Drafted the launch post");
+    expect(byDept.growth.text).toContain("Sent 15 warmed outreach notes");
+    expect(byDept.growth.text).toContain("Drafted the launch post");
     // A silent department produces no post.
-    expect(byDept.legal).toBeUndefined();
+    expect(byDept.finance).toBeUndefined();
   });
 
   it("composes the CEO founder briefing with the counts that matter", () => {

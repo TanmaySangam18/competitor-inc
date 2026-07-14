@@ -60,8 +60,8 @@ describe("funding pack — the anti-money-printer artifact", () => {
 
   it("roster summary covers all departments with role titles", () => {
     const roster = orgRosterSummary();
-    expect(roster.length).toBe(11);
+    expect(roster.length).toBe(8);
     expect(roster.every((d) => d.roles.length > 0)).toBe(true);
-    expect(roster.flatMap((d) => d.roles)).toContain("Chief Executive Officer");
+    expect(roster.flatMap((d) => d.roles)).toContain("Chief of Staff");
   });
 });

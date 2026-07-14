@@ -59,7 +59,7 @@ describe("durable org run — the crash-safe state machine", () => {
     expect(ids).toContain("build-signoff");
     const buildIc = run.tasks.find((t) => t.id === "build-ic")!;
     expect(buildIc.action).toBe("build"); // dispatches, not narrates
-    expect(buildIc.orgTitle).toBe("Full-Stack Engineer");
+    expect(buildIc.orgTitle).toBe("Backend Engineer");
     expect(buildIc.verifierOrgRoleId).toBeTruthy();
     // the founder-gated acts carry their explicit desk, ready to escalate
     expect(run.tasks.find((t) => t.id === "monetize")!.deskAct?.kind).toBe("move_money");

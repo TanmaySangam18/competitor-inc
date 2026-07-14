@@ -9,11 +9,11 @@ describe("Day One — the executive's decision queue (approve / reject / modify)
   it("the desks draft real artifacts: finance an invoice, legal a contract — nothing sent or signed", () => {
     const inv = draftInvoice({ customer: "Rivera Lab", invoiceNumber: "INV-001", dueDate: "2026-08-01", lines: [{ description: "Study tool build", amountCents: 100000 }, { description: "Monthly operation", amountCents: 50000 }] });
     expect(inv.kind).toBe("invoice");
-    expect(inv.preparedBy).toBe("chief-financial-officer");
+    expect(inv.preparedBy).toBe("finance-controller");
     expect(inv.artifact).toContain("TOTAL: $1500.00");
     expect(inv.artifact).toContain("DRAFT");
     const con = draftContract({ counterparty: "Rivera Lab", purpose: "pilot software build + operation", termMonths: 3, valueCents: 300000, keyTerms: ["data never leaves the lab's machines", "either party may terminate with 14 days notice"] });
-    expect(con.preparedBy).toBe("general-counsel");
+    expect(con.preparedBy).toBe("legal-compliance-analyst");
     expect(con.artifact).toContain("only a human signature can execute it");
   });
 
@@ -51,7 +51,7 @@ describe("Day One — the executive's decision queue (approve / reject / modify)
     // the queue is empty; the audit trail holds every touch
     expect(executiveView(q)).toHaveLength(0);
     expect(q.items.find((i) => i.id === "d1")!.history.map((h) => h.event)).toEqual([
-      "prepared by general-counsel",
+      "prepared by legal-compliance-analyst",
       "modify requested: make the term 6 months, not 3",
       "revision 1 resubmitted",
       "approved by principal",

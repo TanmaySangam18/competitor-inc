@@ -4,7 +4,7 @@ import { draftSupportReply } from "./support-desk";
 describe("support desk — Theo drafts, a human sends (Block 6d)", () => {
   it("classifies a bug report and answers honestly — logged, no promised dates", () => {
     const r = draftSupportReply({ message: "The build button is broken, I get an error every time" });
-    expect(r.author).toBe("Theo · Head of Customer Success");
+    expect(r.author).toBe("Theo · Customer Success Manager");
     expect(r.body).toContain("flagging");
     expect(r.body).toContain("logged it");
     expect(r.body).not.toMatch(/we will fix|by tomorrow|next week/i); // no fabricated timeline

@@ -44,22 +44,22 @@ interface Stage {
 // a real OrgRole id in organization.ts — a typo fails loudly in `mustRole` (and in the tests) rather than
 // silently skipping work.
 const STAGES: Stage[] = [
-  { id: "plan", icRoleId: "chief-executive-officer", verb: "Set the brief, scope, and success metric for", priority: 10, action: "plan", verifierRoleId: "head-of-analytics" },
+  { id: "plan", icRoleId: "chief-of-staff", verb: "Set the brief, scope, and success metric for", priority: 10, action: "plan", verifierRoleId: "auditor" },
   { id: "spec", icRoleId: "product-manager", verb: "Write the product spec + acceptance criteria for", priority: 9, action: "plan" },
-  { id: "build", icRoleId: "fullstack-engineer", verb: "Build the working software for", priority: 8, action: "build", deepChain: true, verifierRoleId: "head-of-quality" },
-  { id: "quality", icRoleId: "manual-qa-analyst", verb: "Run the verify-before-done gate on", priority: 6, action: "verify", verifierRoleId: "head-of-quality" },
+  { id: "build", icRoleId: "backend-engineer", verb: "Build the working software for", priority: 8, action: "build", deepChain: true, verifierRoleId: "qa-lead" },
+  { id: "quality", icRoleId: "functional-test-engineer", verb: "Run the verify-before-done gate on", priority: 6, action: "verify", verifierRoleId: "qa-lead" },
   // ── operate: run the shipped product as a business ──
   {
-    id: "launch", icRoleId: "content-marketer", verb: "Draft the launch announcement for", priority: 5, action: "draft", operate: true,
+    id: "launch", icRoleId: "content-writer", verb: "Draft the launch announcement for", priority: 5, action: "draft", operate: true,
     desk: { kind: "approve_publish", title: "Approve the launch post", action: "Review the drafted announcement, then approve to publish" },
   },
-  { id: "care", icRoleId: "support-engineer-tier-1", verb: "Prepare customer support + onboarding for", priority: 4, action: "draft", operate: true },
+  { id: "care", icRoleId: "support-agent-tier-1", verb: "Prepare customer support + onboarding for", priority: 4, action: "draft", operate: true },
   {
-    id: "monetize", icRoleId: "billing-operations-specialist", verb: "Set up billing + licensing for", priority: 4, action: "draft", operate: true,
+    id: "monetize", icRoleId: "bookkeeper", verb: "Set up billing + licensing for", priority: 4, action: "draft", operate: true,
     desk: { kind: "move_money", title: "Approve billing go-live", action: "Connect the payout account (KYC), then approve billing to go live — only a human can" },
   },
   {
-    id: "comply", icRoleId: "compliance-officer", verb: "Draft the terms, privacy, and compliance for", priority: 3, action: "draft", operate: true,
+    id: "comply", icRoleId: "legal-compliance-analyst", verb: "Draft the terms, privacy, and compliance for", priority: 3, action: "draft", operate: true,
     desk: { kind: "sign_contract", title: "Review and sign the terms", action: "Review the drafted terms / privacy, then sign — only a human can" },
   },
 ];
@@ -76,7 +76,7 @@ function mustRole(id: string): OrgRole {
 function verifierIdFor(role: OrgRole, override?: string): string {
   if (override && override !== role.id) return override;
   if (role.reportsTo && role.reportsTo !== role.id) return role.reportsTo;
-  return "head-of-analytics"; // the root (CEO) is checked against evidence, not by a subordinate
+  return "auditor"; // the root (CEO) is checked against evidence, not by a subordinate
 }
 
 function taskFor(

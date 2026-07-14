@@ -13,7 +13,7 @@ describe("twilio-notify — the founder's phone line", () => {
   });
 
   it("prefixes the agent's TITLE (identity in-body, since SMS has no sender name)", () => {
-    expect(withAgentPrefix("chief-executive-officer", "night 5 wrapped")).toBe("Chief Executive Officer: night 5 wrapped");
+    expect(withAgentPrefix("chief-of-staff", "night 5 wrapped")).toBe("Chief of Staff: night 5 wrapped");
     expect(withAgentPrefix(undefined, "hi")).toBe("competitor.inc: hi");
     expect(withAgentPrefix("not-a-role", "hi")).toBe("competitor.inc: hi");
   });
@@ -26,7 +26,7 @@ describe("twilio-notify — the founder's phone line", () => {
   it("is inert without creds (fail-soft) — never throws", async () => {
     clearEnv();
     expect(twilioConfig()).toBeNull();
-    const r = await notifyFounder("chief-executive-officer", "test");
+    const r = await notifyFounder("chief-of-staff", "test");
     expect(r.ok).toBe(false);
     expect(r.error).toContain("not configured");
   });
@@ -37,7 +37,7 @@ describe("twilio-notify — the founder's phone line", () => {
     const cfg = twilioConfig();
     expect(cfg?.sid).toBe("ACxxx");
     // configured, but no founder destination + no from-number → refuses, doesn't throw or send
-    const r = await notifyFounder("general-counsel", "test");
+    const r = await notifyFounder("legal-compliance-analyst", "test");
     expect(r.ok).toBe(false);
     expect(r.error).toContain("destination");
   });

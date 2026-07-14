@@ -128,10 +128,10 @@ describe("supervisor — end to end", () => {
 
 describe("supervisor — org-role independence (Phase 2)", () => {
   it("accepts a lead verifying an IC in the SAME execFn (would be 'self-graded' by engine-role alone)", async () => {
-    const task: AgentTask = { id: "build-ic", goal: "build it", role: "engineering", blockingOn: [], priority: 1, orgRoleId: "fullstack-engineer" };
+    const task: AgentTask = { id: "build-ic", goal: "build it", role: "engineering", blockingOn: [], priority: 1, orgRoleId: "backend-engineer" };
     const execute: ExecuteFn = () => ({
       ok: true, spentCents: 0, proof: { kind: "url", value: "https://x.dev/1" },
-      verifierRole: "engineering", verifierOrgRoleId: "fullstack-team-lead", // same execFn, different POSITION
+      verifierRole: "engineering", verifierOrgRoleId: "engineering-lead", // same execFn, different POSITION
     });
     const out = await runSupervisor([task], execute, opts());
     expect(out.completed).toEqual(["build-ic"]);
@@ -139,17 +139,17 @@ describe("supervisor — org-role independence (Phase 2)", () => {
   });
 
   it("rejects the SAME org position grading its own work (even when the engine-role differs)", async () => {
-    const task: AgentTask = { id: "x", goal: "", role: "engineering", blockingOn: [], priority: 1, orgRoleId: "fullstack-engineer" };
+    const task: AgentTask = { id: "x", goal: "", role: "engineering", blockingOn: [], priority: 1, orgRoleId: "backend-engineer" };
     const execute: ExecuteFn = () => ({
       ok: true, spentCents: 0, proof: { kind: "metric", value: "x" },
-      verifierRole: "support", verifierOrgRoleId: "fullstack-engineer", // different execFn, but SAME position
+      verifierRole: "support", verifierOrgRoleId: "backend-engineer", // different execFn, but SAME position
     });
     const out = await runSupervisor([task], execute, opts());
     expect(out.failed).toEqual(["x"]);
   });
 
   it("an org task with no org-position verifier fails (verify-before-done at position level)", async () => {
-    const task: AgentTask = { id: "x", goal: "", role: "engineering", blockingOn: [], priority: 1, orgRoleId: "fullstack-engineer" };
+    const task: AgentTask = { id: "x", goal: "", role: "engineering", blockingOn: [], priority: 1, orgRoleId: "backend-engineer" };
     const execute: ExecuteFn = () => ({ ok: true, spentCents: 0, proof: { kind: "metric", value: "x" }, verifierRole: "support" });
     const out = await runSupervisor([task], execute, opts());
     expect(out.failed).toEqual(["x"]);

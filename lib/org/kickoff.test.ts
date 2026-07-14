@@ -23,16 +23,16 @@ describe("kickoff — company-wide mobilization from one brief", () => {
     expect(k.plans.length).toBe(DEPARTMENTS.length);
     const eng = k.plans.find((p) => p.deptId === "engineering")!;
     expect(eng.channel).toBe("engineering");
-    expect(eng.headTitle).toBe("Chief Technology Officer");
-    // the 56th agent shows up on the roster, on day 1
-    expect(eng.tasks.some((t) => t.title === "Reliability & Prompt Engineer")).toBe(true);
+    expect(eng.headTitle).toBe("Engineering Lead");
+    // the AI/Prompt engineer shows up on the roster, on day 1
+    expect(eng.tasks.some((t) => t.title === "AI / Prompt Engineer")).toBe(true);
   });
 
   it("produces a standup post per active department (ready for Slack)", () => {
     expect(k.standupPosts.length).toBe(DEPARTMENTS.length);
     const exec = k.standupPosts.find((p) => p.channel === "exec")!;
     expect(exec.text).toContain("Kickoff");
-    expect(exec.headRoleId).toBe("chief-executive-officer");
+    expect(exec.headRoleId).toBe("chief-of-staff");
   });
 
   it("gives the founder a single plain-English briefing", () => {

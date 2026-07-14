@@ -21,8 +21,8 @@ interface Decision {
 }
 
 const ROLE_NAMES: Record<string, string> = {
-  "general-counsel": "Naomi · General Counsel",
-  "chief-financial-officer": "Chief Financial Officer",
+  "legal-compliance-analyst": "Naomi · General Counsel",
+  "finance-controller": "Chief Financial Officer",
   "chief-of-staff": "Chief of Staff",
 };
 

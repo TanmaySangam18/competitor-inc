@@ -31,10 +31,10 @@ export interface StageSignals {
 // come online to sell + support a live product; licensing/finance to collect money; legal for the
 // full-depth company running real contracts.
 const STAGE_DEPARTMENTS: Record<CompanyStage, string[]> = {
-  garage: ["executive", "engineering", "product", "design", "quality"],
-  seed: ["executive", "engineering", "product", "design", "quality", "revenue", "customer", "data"],
-  growth: ["executive", "engineering", "product", "design", "quality", "revenue", "customer", "data", "licensing", "finance"],
-  enterprise: DEPARTMENTS.map((d) => d.id), // all 11 — the full company
+  garage: ["executive", "product", "engineering", "quality"],
+  seed: ["executive", "product", "engineering", "quality", "operations", "growth"],
+  growth: ["executive", "product", "engineering", "quality", "operations", "growth", "finance"],
+  enterprise: DEPARTMENTS.map((d) => d.id), // all 8 — the full company (adds Knowledge & Memory)
 };
 
 // Human-readable story per stage — the Living Org narrates growth honestly ("Revenue came online when
@@ -48,17 +48,17 @@ export const STAGE_STORY: Record<CompanyStage, { label: string; unlockedBy: stri
   seed: {
     label: "Seed",
     unlockedBy: "Your product went live (verified)",
-    story: "Your product is live, so the company grew: Revenue, Customer Success, and Data came online to find users and learn from them.",
+    story: "Your product is live, so the company grew: Production & Operations (support) and Growth (marketing + sales) came online to run it and find users.",
   },
   growth: {
     label: "Growth",
     unlockedBy: "Real users arrived",
-    story: "People are using it, so Licensing and Finance came online — pricing, billing, and unit economics, collected cleanly.",
+    story: "People are using it, so Business & Finance came online — pricing, billing, and unit economics, collected cleanly.",
   },
   enterprise: {
     label: "Enterprise",
     unlockedBy: "Real, repeating revenue",
-    story: "The company runs at full depth — Legal & Compliance joined, and every department operates with its complete team.",
+    story: "The company runs at full depth — Knowledge & Memory joined, and every department operates with its complete team.",
   },
 };
 

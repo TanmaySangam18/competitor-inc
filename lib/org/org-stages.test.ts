@@ -55,9 +55,9 @@ describe("staged enterprise — stages advance only on REAL signals (honesty inv
 
   it("stageDiff narrates growth — garage→seed gains revenue/customer/data and their roles", () => {
     const d = stageDiff("garage", "seed");
-    expect(d.departments.map((x) => x.id).sort()).toEqual(["customer", "data", "revenue"]);
+    expect(d.departments.map((x) => x.id).sort()).toEqual(["growth", "operations"]);
     expect(d.roles.length).toBeGreaterThan(0);
-    expect(d.roles.every((r) => ["customer", "data", "revenue"].includes(r.department))).toBe(true);
+    expect(d.roles.every((r) => ["growth", "operations"].includes(r.department))).toBe(true);
   });
 
   it("every stage has a story + every active role belongs to an active department", () => {

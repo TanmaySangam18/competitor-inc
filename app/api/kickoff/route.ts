@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         posted++;
       }
       const founderCh = process.env.SLACK_DIGEST_CHANNEL;
-      if (founderCh) { await postAsAgent(founderCh, { roleId: "chief-executive-officer" }, k.founderBriefing); posted++; }
+      if (founderCh) { await postAsAgent(founderCh, { roleId: "chief-of-staff" }, k.founderBriefing); posted++; }
     } catch (e) {
       console.error("[/api/kickoff] slack post failed:", e instanceof Error ? e.message : "unknown");
     }

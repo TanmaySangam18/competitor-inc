@@ -30,7 +30,7 @@ export interface PreparedDecision {
   title: string; // one line, executive-grade
   summary: string; // the concise brief the principal actually reads
   artifact: string; // the full drafted thing (contract text, invoice body, launch plan …)
-  preparedBy: string; // org role id, e.g. "general-counsel"
+  preparedBy: string; // org role id, e.g. "legal-compliance-analyst"
   status: DecisionStatus;
   revision: number; // how many times it went around the modify loop
   history: { at: number; event: string }[]; // audit trail — every touch recorded

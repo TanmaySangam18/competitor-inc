@@ -101,7 +101,7 @@ describe("durable step executor — advance one task, persist, resume", () => {
     // the created repo is carried out of the run so the client can poll the async verified live URL
     expect(buildRepo(run)).toBe("o/x");
     // the Glass Box shows the real position + who it rolls up to (visible hierarchy)
-    expect(acts.some((a) => (a.meta ?? "").includes("Full-Stack Engineer"))).toBe(true);
+    expect(acts.some((a) => (a.meta ?? "").includes("Backend Engineer"))).toBe(true);
     // exactly the founder-gated acts escalate as NEEDS-YOU (publish / money / signature), never auto-fired
     const needs = acts.filter((a) => a.action.startsWith("NEEDS YOU"));
     expect(needs).toHaveLength(3);

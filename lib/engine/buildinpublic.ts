@@ -55,8 +55,8 @@ export function shouldShare(company: Company, activities: Activity[]): boolean {
 // null without a real milestone; the "while the founder slept" line only when it's TRUE (the overnight cron).
 
 const AUTHOR_BY_PROOF: Record<string, string> = {
-  url: "chief-technology-officer",
-  metric: "head-of-analytics",
+  url: "engineering-lead",
+  metric: "auditor",
 };
 
 /** The receipt-card image URL for a live-URL milestone (slice 1 route re-verifies liveness itself). */
@@ -74,7 +74,7 @@ export function draftPersonaPost(
 ): string | null {
   const m = pickMilestone(activities);
   if (!m) return null;
-  const role = getRole(AUTHOR_BY_PROOF[m.proof?.kind ?? ""] ?? "chief-executive-officer");
+  const role = getRole(AUTHOR_BY_PROOF[m.proof?.kind ?? ""] ?? "chief-of-staff");
   if (!role) return null;
   const p = personaFor(role);
   const proofNote = m.proof
@@ -111,7 +111,7 @@ export function draftLedgerRerun(
   const withUrl = history.filter((a) => !a.undone && a.status === "done" && a.proof?.kind === "url");
   if (withUrl.length === 0) return null;
   const m = withUrl.reduce((best, a) => (a.cost > best.cost ? a : best), withUrl[0]);
-  const role = getRole("chief-technology-officer");
+  const role = getRole("engineering-lead");
   if (!role) return null;
   const p = personaFor(role);
   const sig = opts.siteUrl ? `${opts.siteUrl.replace(/\/$/, "")}/?ref=receipts` : "competitor.inc";
