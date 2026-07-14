@@ -28,6 +28,9 @@ import { outreachConfigured, compliantMessage, sendFirstTouch, type SendResult }
 import { triageTicket, ticketToSignal, improve, type Signal, type Ticket, type TicketTriage, type OperateCycle } from "./operate";
 import { listServices, getService, SERVICES, type Service, type ServiceStatus } from "./services";
 import { conversation, conversationFrom, conversationSlackText, initialsOf, type Conversation, type Turn } from "./conversation";
+import { auditLog, AuditLog, MemoryAuditSink, type AuditEntry, type AuditInput, type AuditSink, type IntegrityResult } from "./audit";
+import { killSwitch, type KillSwitchState } from "./killswitch";
+import { governAction, type GovernResult, type GovernOptions } from "./govern";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -98,6 +101,11 @@ export { listServices, getService };
 // Decision Record; carries the same `simulated` honesty flag. Live reasoning wakes with a model key.
 export { conversation, conversationFrom, conversationSlackText };
 
+// ── CONTROL PLANE (Tier A1 · REQUIREMENTS §3, DoD #1/#2): the black-box recorder (append-only, tamper-
+// evident audit ledger) + the out-of-band kill switch (global/per-agent/per-customer). governAction is the
+// single governed entry point: kill switch → decide() → audit-record, in that order, every time.
+export { auditLog, killSwitch, governAction };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
@@ -105,7 +113,11 @@ export const core = {
   operate: { triageTicket, ticketToSignal, improve },
   listServices, getService, services: SERVICES,
   room: { conversation, from: conversationFrom, slackText: conversationSlackText, initials: initialsOf },
+  govern: governAction,
+  audit: auditLog,
+  killSwitch,
 };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn };
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn, AuditEntry, AuditInput, AuditSink, IntegrityResult, KillSwitchState, GovernResult, GovernOptions };
+export { AuditLog, MemoryAuditSink };
 export default core;

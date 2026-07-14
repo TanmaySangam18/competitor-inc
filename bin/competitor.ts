@@ -185,6 +185,38 @@ async function cmdRoom(args: string[]) {
   }
 }
 
+function cmdControl() {
+  const ks = core.killSwitch.status();
+  const integ = core.audit.verifyIntegrity();
+  line(`competitor — control plane (out-of-band)`);
+  line(`  global stop:   ${ks.global ? "ENGAGED — all actions halted" : "clear"}`);
+  line(`  stopped agents: ${ks.agents.length ? ks.agents.join(", ") : "(none)"}`);
+  line(`  frozen customers: ${ks.customers.length ? ks.customers.join(", ") : "(none)"}`);
+  line(`  audit ledger:  ${integ.count} entries · integrity ${integ.ok ? "OK" : `BROKEN at #${integ.brokenAt} (${integ.reason})`}`);
+}
+
+function cmdStop(args: string[], engage: boolean) {
+  const f = flags(args);
+  const verb = engage ? "engage" : "clear";
+  if (f.global) { engage ? core.killSwitch.engageGlobal() : core.killSwitch.disengageGlobal(); line(`global stop ${engage ? "ENGAGED" : "cleared"}`); }
+  else if (typeof f.agent === "string") { engage ? core.killSwitch.stopAgent(f.agent) : core.killSwitch.resumeAgent(f.agent); line(`agent "${f.agent}" ${engage ? "stopped" : "resumed"}`); }
+  else if (typeof f.customer === "string") { engage ? core.killSwitch.freezeCustomer(f.customer) : core.killSwitch.unfreezeCustomer(f.customer); line(`customer "${f.customer}" ${engage ? "frozen" : "unfrozen"}`); }
+  else { line(`usage: npm run competitor -- ${engage ? "stop" : "resume"} --global | --agent <id> | --customer <id>`); process.exitCode = 1; return; }
+  cmdControl();
+}
+
+function cmdAudit(args: string[]) {
+  const f = flags(args);
+  const n = f.n !== undefined ? Number(f.n) : 10;
+  const all = core.audit.all();
+  const integ = core.audit.verifyIntegrity();
+  line(`competitor — audit ledger (${all.length} entries · integrity ${integ.ok ? "OK" : "BROKEN"})`);
+  for (const e of all.slice(-n)) {
+    line(`  #${e.seq} ${e.ts}  ${e.actor} · ${e.action}${e.customer ? ` (${e.customer})` : ""} → ${e.verdict ?? "?"}${e.rationale ? ` — ${e.rationale}` : ""}`);
+  }
+  if (all.length === 0) line(`  (empty — the ledger records governed actions at runtime)`);
+}
+
 function cmdServices() {
   const services = core.listServices();
   const badge = (s: string) => (s === "ready" ? "ready" : s === "partial" ? "partial" : "planned");
@@ -222,6 +254,10 @@ function cmdHelp() {
   line(`  run "<goal>"            plan it AND govern every task → what proceeds vs escalates`);
   line(`  room "<task>"           watch the team deliberate it → a chair-led conversation`);
   line(`  doctor                   self-check: is the whole company OS coherent + alive?`);
+  line(`  control                  the out-of-band control plane: kill-switch state + audit integrity`);
+  line(`  stop  --global | --agent <id> | --customer <id>     throw a kill switch`);
+  line(`  resume --global | --agent <id> | --customer <id>    clear a kill switch`);
+  line(`  audit [--n N]            the append-only black-box ledger (last N + integrity check)`);
   line(`  services                 the catalog a customer can hire (build-run-sell, growth, support, ...)`);
   line(`  payments                 the money layer's status (Stripe Connect)`);
   line(`  outreach --company "<x>"  qualify a lead → no-spam gate → honest first-touch draft`);
@@ -242,6 +278,10 @@ async function main() {
     case "plan": cmdPlan(rest); break;
     case "run": await cmdRun(rest); break;
     case "room": await cmdRoom(rest); break;
+    case "control": cmdControl(); break;
+    case "stop": cmdStop(rest, true); break;
+    case "resume": cmdStop(rest, false); break;
+    case "audit": cmdAudit(rest); break;
     case "payments": cmdPayments(); break;
     case "services": cmdServices(); break;
     case "outreach": cmdOutreach(rest); break;
