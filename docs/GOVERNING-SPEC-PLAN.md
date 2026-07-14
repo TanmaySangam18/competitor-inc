@@ -19,8 +19,10 @@ Definition of Done). Everything we build is meant to ship; everything superseded
 > precedent store · **✅ D** vault client / multi-provider / prompts-as-code / anti-Goodhart / GDPR ·
 > **✅ Phase 0** map+registry+human-todo · **✅ DoD scorecard** (lib/core/readiness.ts + /review control
 > room). **Honest gate result: 6 pass / 2 partial / 0 todo → NOT customer-ready** (partials #6 CI-on-
-> prompt-change + #7 no-KPI-in-prompts = connect-phase enforcement). **⬜ C1 (only remainder):** the
-> destructive 65→56 org reconcile — mapped + de-risked here, executed as a dedicated careful pass (task #88).
+> prompt-change + #7 no-KPI-in-prompts = connect-phase enforcement). **✅ C1 DONE:** org reconciled to the
+> canonical 56 roles / 8 departments (no CEO agent; +24 new roles; old model deleted, no aliases). **ALL
+> A→D COMPLETE** — 1029 tests green, `competitor org` → 56 positions, integrity OK. Remaining to lift
+> maintenance for a paying customer: the 2 DoD partials + the 🔒 founder items (HUMAN_TODO).
 
 ---
 
