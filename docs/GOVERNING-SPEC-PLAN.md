@@ -12,6 +12,16 @@ Definition of Done). Everything we build is meant to ship; everything superseded
 **Status legend:** ✅ built · ◐ seed/partial · ⬜ missing (code I can build keyless) · 🔒 human + money
 (founder's 2%). **Verified against code 2026-07-13** (grep/read of lib, app, scripts).
 
+> **BUILD STATUS — 2026-07-13 (founder greenlit ALL A→D).** Built + committed, each QA-green:
+> **✅ A1** audit ledger + out-of-band kill switch · **✅ A2** T0–T3 scorer · **✅ A3** simulation
+> failure-drills (ship gate, 6/6) · **✅ A4** abuse screen + per-customer freeze · **✅ B1** per-customer
+> unit economics (B2 Stripe = already-built model, verify 🔒) · **✅ C3/C4** verification separation +
+> precedent store · **✅ D** vault client / multi-provider / prompts-as-code / anti-Goodhart / GDPR ·
+> **✅ Phase 0** map+registry+human-todo · **✅ DoD scorecard** (lib/core/readiness.ts + /review control
+> room). **Honest gate result: 6 pass / 2 partial / 0 todo → NOT customer-ready** (partials #6 CI-on-
+> prompt-change + #7 no-KPI-in-prompts = connect-phase enforcement). **⬜ C1 (only remainder):** the
+> destructive 65→56 org reconcile — mapped + de-risked here, executed as a dedicated careful pass (task #88).
+
 ---
 
 ## The headline (why these are the valuable ones)
