@@ -36,6 +36,11 @@ import { runFailureDrills, type DrillReport, type DrillResult } from "@/lib/sim/
 import { rollupCosts, marginFor, spendAnomaly, type CostRollup, type Margin, type SpendAnomaly } from "./economics";
 import { precedents, PrecedentStore, normalizeQuestion, type Precedent, type ConsultResult } from "./precedent";
 import { canVerify, assignReviewer, sharesLineage, requiresRegression, type ChangeKind } from "./separation";
+import { vault, EnvVault, NullVault, type VaultClient } from "./vault";
+import { providerStatus, selectProvider, failoverChain, hasFailover, DEFAULT_ORDER, PROVIDER_ENV, type Provider, type ProviderStatus } from "./providers";
+import { prompts, PromptRegistry, type PromptVersion } from "./prompts";
+import { pairedMetric, reportKpi, suspectGaming, COUNTER_METRIC, type KpiReport } from "./kpi";
+import { exportData, planDeletion, type ExportBundle, type DeletionPlan } from "./dsr";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -132,6 +137,11 @@ export { runFailureDrills };
 // its own lineage; prompt/model changes force a regression run.
 export { precedents, canVerify, assignReviewer, requiresRegression };
 
+// ── TIER D (resilience + governance hooks): vault client (secrets never in prompts/logs — §2/§4) ·
+// multi-provider failover (no single-API dependency — §9) · prompts-as-code (versioned, rollback — §7) ·
+// anti-Goodhart KPIs (external, counter-metric-paired — §13) · GDPR export/delete (deletion = T3, human — §8).
+export { vault, providerStatus, selectProvider, hasFailover, prompts, reportKpi, pairedMetric, suspectGaming, exportData, planDeletion };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
@@ -147,6 +157,11 @@ export const core = {
   economics: { rollup: rollupCosts, margin: marginFor, anomaly: spendAnomaly },
   precedent: { store: precedents, consult: (q: string, scope?: string) => precedents.consult(q, scope), record: (i: { question: string; ruling: string; scope?: string; setBy?: string }) => precedents.record(i) },
   separation: { canVerify, assignReviewer, sharesLineage, requiresRegression },
+  vault,
+  providers: { status: providerStatus, select: selectProvider, failoverChain, hasFailover },
+  prompts,
+  kpi: { paired: pairedMetric, report: reportKpi, suspectGaming, counters: COUNTER_METRIC },
+  dsr: { exportData, planDeletion },
 };
 
 export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, Tier, TierScore, GovernedDecision, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn, AuditEntry, AuditInput, AuditSink, IntegrityResult, KillSwitchState, GovernResult, GovernOptions };
