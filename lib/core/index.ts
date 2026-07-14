@@ -41,6 +41,7 @@ import { providerStatus, selectProvider, failoverChain, hasFailover, DEFAULT_ORD
 import { prompts, PromptRegistry, type PromptVersion } from "./prompts";
 import { pairedMetric, reportKpi, suspectGaming, COUNTER_METRIC, type KpiReport } from "./kpi";
 import { exportData, planDeletion, type ExportBundle, type DeletionPlan } from "./dsr";
+import { readiness, type Readiness, type DoDCheck } from "./readiness";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -142,6 +143,11 @@ export { precedents, canVerify, assignReviewer, requiresRegression };
 // anti-Goodhart KPIs (external, counter-metric-paired — §13) · GDPR export/delete (deletion = T3, human — §8).
 export { vault, providerStatus, selectProvider, hasFailover, prompts, reportKpi, pairedMetric, suspectGaming, exportData, planDeletion };
 
+// ── READINESS (the Definition-of-Done gate): runs the REQUIREMENTS 8-check scorecard against the real
+// modules. `ready` only when the safety-critical checks pass and nothing is todo. The honest go/no-go for
+// lifting maintenance to a real customer.
+export { readiness };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
@@ -162,10 +168,12 @@ export const core = {
   prompts,
   kpi: { paired: pairedMetric, report: reportKpi, suspectGaming, counters: COUNTER_METRIC },
   dsr: { exportData, planDeletion },
+  readiness,
 };
 
 export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, Tier, TierScore, GovernedDecision, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn, AuditEntry, AuditInput, AuditSink, IntegrityResult, KillSwitchState, GovernResult, GovernOptions };
 export { AuditLog, MemoryAuditSink };
 export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment, FreezeOutcome, Risk, DrillReport, DrillResult, CostRollup, Margin, SpendAnomaly, Precedent, ConsultResult, ChangeKind };
 export { PrecedentStore, normalizeQuestion };
+export type { VaultClient, Provider, ProviderStatus, PromptVersion, KpiReport, ExportBundle, DeletionPlan, Readiness, DoDCheck };
 export default core;

@@ -106,6 +106,18 @@ async function cmdDrills() {
   if (!r.ok) process.exitCode = 1;
 }
 
+async function cmdReadiness() {
+  const r = await core.readiness();
+  line(`competitor — Definition of Done  ${r.ready ? "READY ✓" : `NOT READY (${r.passed} pass · ${r.partial} partial · ${r.todo} todo)`}`);
+  line(``);
+  for (const c of r.checks) {
+    const mark = c.status === "pass" ? "✓" : c.status === "partial" ? "◐" : "✗";
+    line(`  ${mark} ${c.n}. ${c.question}`);
+    line(`      ${c.evidence}`);
+  }
+  if (!r.ready) line(`\n  not ready = the partials (connect-phase enforcement) + any todo must close first.`);
+}
+
 async function cmdDoctor() {
   const h = await core.checkHealth();
   line(`competitor — doctor  (${h.ok ? "ALL SYSTEMS GO" : "ATTENTION NEEDED"})`);
@@ -323,6 +335,7 @@ async function main() {
     case "operate": cmdOperate(rest); break;
     case "doctor": await cmdDoctor(); break;
     case "drills": await cmdDrills(); break;
+    case "readiness": await cmdReadiness(); break;
     case "help": case undefined: cmdHelp(); break;
     default:
       line(`unknown command: ${cmd}`);
