@@ -18,8 +18,17 @@ const STATUS: Record<Service["status"], { label: string; cls: string }> = {
   planned: { label: "Planned", cls: "border border-border text-muted-2" },
 };
 
-function ServiceTile({ s }: { s: Service }) {
+const BUY: Record<Service["status"], { label: string; note: string }> = {
+  ready: { label: "Hire this", note: "Ready now — connect once, then it runs. Billed on the plan you pick at checkout." },
+  partial: { label: "Get early access", note: "In progress — get on the early-access list; you'll be billed only when it's live." },
+  planned: { label: "Notify me", note: "Planned — leave your email and we'll tell you the day it ships." },
+};
+
+function ServiceTile({ s, checkoutUrl }: { s: Service; checkoutUrl: string }) {
   const status = STATUS[s.status];
+  const buy = BUY[s.status];
+  // Ready services go to real checkout when it's connected; otherwise (and for not-yet-ready ones) to signup.
+  const href = s.status === "ready" && checkoutUrl ? checkoutUrl : "/signup";
   return (
     <details
       open={s.flagship}
@@ -58,6 +67,17 @@ function ServiceTile({ s }: { s: Service }) {
         <p className="mt-3.5 text-xs text-muted-2">
           Run by <span className="font-medium text-muted">{s.agents.join(", ")}</span>
         </p>
+
+        {/* how to buy + the checkout CTA */}
+        <div className="mt-4 flex flex-col gap-2 border-t border-border pt-3.5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-md text-[11px] leading-snug text-muted-2">{buy.note}</p>
+          <a
+            href={href}
+            className="shrink-0 rounded-xl bg-coral px-4 py-2 text-center text-xs font-semibold text-white transition hover:brightness-110"
+          >
+            {buy.label} →
+          </a>
+        </div>
       </div>
     </details>
   );
@@ -65,6 +85,8 @@ function ServiceTile({ s }: { s: Service }) {
 
 export default function ServicesPage() {
   const services = listServices();
+  // Real checkout when the founder has connected it (NEXT_PUBLIC, so it inlines at build); else signup.
+  const checkoutUrl = process.env.NEXT_PUBLIC_CHECKOUT_URL_BUILDER ?? process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "";
   return (
     <main className="flex h-[100dvh] flex-col overflow-hidden bg-bg text-text">
       <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
@@ -85,7 +107,7 @@ export default function ServicesPage() {
 
         <div className="mt-5 flex flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
           {services.map((s) => (
-            <ServiceTile key={s.id} s={s} />
+            <ServiceTile key={s.id} s={s} checkoutUrl={checkoutUrl} />
           ))}
         </div>
       </section>

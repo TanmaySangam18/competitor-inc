@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import LandingInput from "@/components/LandingInput";
+import ProductMarquee from "@/components/ProductMarquee";
 
 // THE LANDING (/) — ONE screen, no scroll. Stripped to the essence: what it is + the single action
 // (describe your software). TEAL design (2026-07-12, matches the cockpit; MACHINA retired). The depth
@@ -27,7 +28,7 @@ export default function Landing() {
         <p className="mb-6 inline-flex items-center gap-2 rounded-full bg-mint/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-mint">
           <span className="h-1.5 w-1.5 rounded-full bg-mint" /> System online
         </p>
-        <h1 className="text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+        <h1 className="display text-5xl leading-[0.92] sm:text-7xl">
           Describe it.<br />It gets built.<br />It runs.
         </h1>
         <p className="mt-6 max-w-xl text-base leading-relaxed text-muted">
@@ -39,10 +40,18 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* proof strip — real, live surfaces the company runs on itself */}
+      <div className="shrink-0">
+        <ProductMarquee />
+      </div>
+
       {/* footer — one line, the depth is behind a single link */}
       <footer className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-border px-6 py-3 text-[11px] text-muted-2">
         <span>Built + run by AI · you own the 2% that stays human</span>
-        <a href="/how-it-works" className="font-medium transition hover:text-coral">How it works →</a>
+        <span className="flex items-center gap-4">
+          <a href="/founder" className="font-medium transition hover:text-coral">Founder</a>
+          <a href="/how-it-works" className="font-medium transition hover:text-coral">How it works →</a>
+        </span>
       </footer>
     </main>
   );
