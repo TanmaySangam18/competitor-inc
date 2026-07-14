@@ -26,8 +26,14 @@ export class PromptRegistry {
     return v;
   }
 
-  // Activate a version (the "deploy"). Deactivates whatever was live.
-  activate(id: string, version: number): PromptVersion | null {
+  // Activate a version (the "deploy"). ENFORCEMENT (REQUIREMENTS §5/§7): a prompt cannot go live unless the
+  // regression suite passed — a prompt edit changes the whole workforce's behavior, so it's gated like a
+  // production deploy. The caller must run the regression and pass the result; there is no way to activate
+  // without it. Deactivates whatever was live.
+  activate(id: string, version: number, gate: { regressionPassed: boolean }): PromptVersion | null {
+    if (!gate || gate.regressionPassed !== true) {
+      throw new Error("prompt activation blocked: the regression suite must pass before a prompt goes live (REQUIREMENTS §5/§7)");
+    }
     const list = this.byId.get(id);
     const target = list?.find((v) => v.version === version);
     if (!list || !target) return null;

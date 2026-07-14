@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EnvVault, NullVault } from "./vault";
 import { providerStatus, selectProvider, hasFailover, failoverChain } from "./providers";
 import { PromptRegistry } from "./prompts";
-import { pairedMetric, reportKpi, suspectGaming } from "./kpi";
+import { pairedMetric, reportKpi, suspectGaming, assertNoKpiTargets } from "./kpi";
 import { exportData, planDeletion } from "./dsr";
 import { AuditLog, MemoryAuditSink } from "./audit";
 
@@ -44,17 +44,24 @@ describe("D · multi-provider resilience", () => {
 });
 
 describe("D · prompts-as-code", () => {
-  it("registers staged, activates (deploy), and rolls back", () => {
+  it("registers staged, activates (deploy) only with a passed regression, and rolls back", () => {
     const r = new PromptRegistry();
     r.register("ceo", "v1 text");
     expect(r.active("ceo")).toBeNull(); // staged, not live
-    r.activate("ceo", 1);
+    r.activate("ceo", 1, { regressionPassed: true });
     expect(r.active("ceo")?.version).toBe(1);
     r.register("ceo", "v2 text");
-    r.activate("ceo", 2);
+    r.activate("ceo", 2, { regressionPassed: true });
     expect(r.active("ceo")?.version).toBe(2);
     r.rollback("ceo");
     expect(r.active("ceo")?.version).toBe(1); // reverted like a deploy
+  });
+
+  it("BLOCKS activation when the regression suite did not pass (§5/§7 gate)", () => {
+    const r = new PromptRegistry();
+    r.register("ceo", "v1");
+    expect(() => r.activate("ceo", 1, { regressionPassed: false })).toThrow(/regression/i);
+    expect(r.active("ceo")).toBeNull(); // stayed staged
   });
 });
 
@@ -70,6 +77,12 @@ describe("D · anti-Goodhart KPIs", () => {
   it("suspects gaming when the KPI improves while its counter worsens", () => {
     expect(suspectGaming(+0.1, +0.1)).toBe(true);
     expect(suspectGaming(+0.1, -0.02)).toBe(false);
+  });
+
+  it("lints prompts for KPI-target leakage (§13) but leaves ordinary prose alone", () => {
+    expect(assertNoKpiTargets("hit a resolution rate of 95% this quarter").clean).toBe(false);
+    expect(assertNoKpiTargets("your KPI is close rate").clean).toBe(false);
+    expect(assertNoKpiTargets("Own the daily digest; escalate at ~10 minutes/day per REQUIREMENTS §1.").clean).toBe(true);
   });
 });
 

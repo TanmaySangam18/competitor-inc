@@ -30,7 +30,7 @@ export default async function ReviewPage() {
       <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
         <a href="/" className="text-lg font-semibold tracking-tight">competitor<span className="text-coral">.inc</span></a>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${r.ready ? "bg-mint/15 text-mint" : "bg-amber/15 text-amber"}`}>
-          {r.ready ? "Ready for a real customer" : "Not customer-ready yet"}
+          {r.ready ? "Safety gate: READY (architecture)" : "Safety gate: incomplete"}
         </span>
       </header>
 
@@ -72,8 +72,9 @@ export default async function ReviewPage() {
         </div>
 
         <p className="mt-3 shrink-0 border-t border-border pt-3 text-[11px] leading-relaxed text-muted-2">
-          Partials are connect-phase enforcement or standing human disciplines, not missing code. The two
-          safety-critical partials must close before maintenance lifts for a paying customer.
+          {r.ready
+            ? "The safety architecture passes all 8 checks. Going live for a paying customer still needs the founder-only items in HUMAN_TODO — the vault, entity/bank/insurance, domain lock, Stripe verification, and the lawyer-signed use policy — then maintenance lifts."
+            : "Every check must pass before maintenance lifts for a paying customer."}
         </p>
       </section>
     </main>

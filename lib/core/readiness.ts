@@ -11,8 +11,11 @@ import { governedDecision, withinCaps, scoreTier } from "@/lib/engine/policy";
 import { killSwitch } from "./killswitch";
 import { auditLog, AuditLog, MemoryAuditSink } from "./audit";
 import { requiresRegression } from "./separation";
-import { pairedMetric, reportKpi } from "./kpi";
+import { pairedMetric, reportKpi, assertNoKpiTargets } from "./kpi";
+import { PromptRegistry } from "./prompts";
 import { runFailureDrills } from "@/lib/sim/failure-drills";
+import { orgSoul } from "@/lib/org/org-soul";
+import { getRole } from "@/lib/org/organization";
 
 export type CheckStatus = "pass" | "partial" | "todo";
 export interface DoDCheck { n: number; question: string; status: CheckStatus; evidence: string; }
@@ -65,18 +68,27 @@ export async function readiness(): Promise<Readiness> {
       evidence: "prompt-injection failure drill: hostile input still BLOCKed by the floor/tier" });
   }
 
-  // 6 — do prompt/model updates trigger the regression suite?
+  // 6 — do prompt/model updates trigger the regression suite? ENFORCED: a prompt cannot be activated
+  // unless the regression suite passed (gated in PromptRegistry.activate).
   {
     const mech = requiresRegression("prompt") && requiresRegression("model");
-    checks.push({ n: 6, question: "Do prompt/model updates trigger the regression suite?", status: mech ? "partial" : "todo",
-      evidence: "requiresRegression() gates prompt/model/code/config; wiring it into CI-on-prompt-change lands at connect" });
+    const reg = new PromptRegistry();
+    reg.register("readiness-probe", "v1");
+    let enforced = false;
+    try { reg.activate("readiness-probe", 1, { regressionPassed: false }); } catch { enforced = true; }
+    checks.push({ n: 6, question: "Do prompt/model updates trigger the regression suite?", status: mech && enforced ? "pass" : "todo",
+      evidence: "prompt activation is BLOCKED unless the regression suite passed (prompts-as-code deploy gate); requiresRegression gates prompt/model/code/config" });
   }
 
-  // 7 — KPIs external, counter-metrics paired?
+  // 7 — KPIs external, counter-metrics paired, and NOT leaked into any agent prompt? ENFORCED: the agent
+  // soul is built from mission/mandate only (no KPIs), and assertNoKpiTargets lints against target leakage.
   {
     const paired = pairedMetric("resolution rate") === "reopen rate" && reportKpi("resolution rate", 0.9, 0.05).bothReported;
-    checks.push({ n: 7, question: "Are all KPIs computed outside agent prompts, with counter-metrics paired? (§13)", status: paired ? "partial" : "todo",
-      evidence: "kpi.ts computes KPIs externally + always pairs a counter-metric; 'no KPI target in any prompt' stays a standing review discipline" });
+    const catchesLeak = !assertNoKpiTargets("your KPI: hit resolution rate 95% target this quarter").clean;
+    const soul = orgSoul(getRole("chief-of-staff")!, { name: "Probe", idea: "a probe app" });
+    const soulClean = assertNoKpiTargets(soul).clean;
+    checks.push({ n: 7, question: "Are all KPIs computed outside agent prompts, with counter-metrics paired? (§13)", status: paired && catchesLeak && soulClean ? "pass" : "todo",
+      evidence: "kpi.ts computes KPIs externally + pairs a counter-metric; the agent soul carries NO KPIs (mission-only) and assertNoKpiTargets lints prompts for target leakage" });
   }
 
   // 8 — simulation harness passed (per customer-facing milestone)?

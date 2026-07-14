@@ -39,7 +39,7 @@ import { canVerify, assignReviewer, sharesLineage, requiresRegression, type Chan
 import { vault, EnvVault, NullVault, type VaultClient } from "./vault";
 import { providerStatus, selectProvider, failoverChain, hasFailover, DEFAULT_ORDER, PROVIDER_ENV, type Provider, type ProviderStatus } from "./providers";
 import { prompts, PromptRegistry, type PromptVersion } from "./prompts";
-import { pairedMetric, reportKpi, suspectGaming, COUNTER_METRIC, type KpiReport } from "./kpi";
+import { pairedMetric, reportKpi, suspectGaming, assertNoKpiTargets, COUNTER_METRIC, type KpiReport } from "./kpi";
 import { exportData, planDeletion, type ExportBundle, type DeletionPlan } from "./dsr";
 import { readiness, type Readiness, type DoDCheck } from "./readiness";
 
@@ -166,7 +166,7 @@ export const core = {
   vault,
   providers: { status: providerStatus, select: selectProvider, failoverChain, hasFailover },
   prompts,
-  kpi: { paired: pairedMetric, report: reportKpi, suspectGaming, counters: COUNTER_METRIC },
+  kpi: { paired: pairedMetric, report: reportKpi, suspectGaming, assertNoKpiTargets, counters: COUNTER_METRIC },
   dsr: { exportData, planDeletion },
   readiness,
 };

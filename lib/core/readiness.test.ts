@@ -10,15 +10,15 @@ describe("Definition-of-Done scorecard", () => {
     expect(failingCritical, failingCritical.join(" | ")).toEqual([]);
   });
 
-  it("has no 'todo' checks (mechanisms all built; some partial pending connect)", async () => {
+  it("has no 'todo' checks and no partials — all 8 are enforced in code", async () => {
     const r = await readiness();
-    const todos = r.checks.filter((c) => c.status === "todo").map((c) => c.n);
-    expect(todos, `todo checks: ${todos.join(",")}`).toEqual([]);
+    expect(r.checks.filter((c) => c.status === "todo").map((c) => c.n)).toEqual([]);
+    expect(r.checks.filter((c) => c.status === "partial").map((c) => c.n)).toEqual([]);
   });
 
-  it("reports honestly — partials are the connect-phase/enforcement items (#6, #7)", async () => {
+  it("the safety architecture gate is READY (all 8 pass) — go-live still needs the 🔒 founder items", async () => {
     const r = await readiness();
-    expect(r.partial).toBeGreaterThanOrEqual(1);
-    expect(r.checks.filter((c) => c.status === "partial").map((c) => c.n).sort()).toEqual([6, 7]);
+    expect(r.passed).toBe(8);
+    expect(r.ready).toBe(true);
   });
 });
