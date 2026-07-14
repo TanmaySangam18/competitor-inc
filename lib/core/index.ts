@@ -32,6 +32,7 @@ import { auditLog, AuditLog, MemoryAuditSink, type AuditEntry, type AuditInput, 
 import { killSwitch, type KillSwitchState } from "./killswitch";
 import { governAction, type GovernResult, type GovernOptions } from "./govern";
 import { screenIntake, classifyActivity, enforceFreeze, type IntakeResult, type IntakeDecision, type ActivitySignals, type ActivityAssessment, type FreezeOutcome, type Risk } from "./abuse";
+import { runFailureDrills, type DrillReport, type DrillResult } from "@/lib/sim/failure-drills";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -115,6 +116,10 @@ export { auditLog, killSwitch, governAction };
 // while preserving data. The classifier flags; a human + the lawyer's AUP adjudicate.
 export { screenIntake, classifyActivity, enforceFreeze };
 
+// ── SHIP GATE (Tier A3 · REQUIREMENTS §15): the six injected failure drills the whole company must survive
+// before a real customer. Exercises the real control-plane modules; passing all six is a hard gate.
+export { runFailureDrills };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
@@ -126,9 +131,10 @@ export const core = {
   audit: auditLog,
   killSwitch,
   abuse: { screenIntake, classifyActivity, enforceFreeze },
+  drills: runFailureDrills,
 };
 
 export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, Tier, TierScore, GovernedDecision, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn, AuditEntry, AuditInput, AuditSink, IntegrityResult, KillSwitchState, GovernResult, GovernOptions };
 export { AuditLog, MemoryAuditSink };
-export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment, FreezeOutcome, Risk };
+export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment, FreezeOutcome, Risk, DrillReport, DrillResult };
 export default core;

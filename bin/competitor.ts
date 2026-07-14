@@ -98,6 +98,14 @@ async function cmdRun(args: string[]) {
   });
 }
 
+async function cmdDrills() {
+  const r = await core.drills();
+  line(`competitor — failure drills (ship gate)  ${r.ok ? "ALL PASS ✓" : `${r.passed}/${r.total} — NOT READY`}`);
+  line(``);
+  for (const d of r.drills) line(`  ${d.passed ? "✓" : "✗"}  ${d.name.padEnd(22)} ${d.detail}`);
+  if (!r.ok) process.exitCode = 1;
+}
+
 async function cmdDoctor() {
   const h = await core.checkHealth();
   line(`competitor — doctor  (${h.ok ? "ALL SYSTEMS GO" : "ATTENTION NEEDED"})`);
@@ -301,6 +309,7 @@ async function main() {
     case "outreach": cmdOutreach(rest); break;
     case "operate": cmdOperate(rest); break;
     case "doctor": await cmdDoctor(); break;
+    case "drills": await cmdDrills(); break;
     case "help": case undefined: cmdHelp(); break;
     default:
       line(`unknown command: ${cmd}`);
