@@ -13,6 +13,7 @@ import {
   type OrgRole, type Department,
 } from "@/lib/org/organization";
 import { ROLE_TITLE, ROLE_DEPARTMENT, ROLE_INITIALS, titleFor } from "@/lib/org/role-titles";
+import { getSop, rolesWithSop, type SOP } from "@/lib/org/sops";
 import {
   decide, withinCaps, executionRefusal, scoreTier, tierToVerdict, governedDecision, POLICY,
   type ActionContext, type PolicyDecision, type Verdict, type ExecAction, type Tier, type TierScore, type GovernedDecision,
@@ -53,6 +54,8 @@ export const org = {
   reports: directReports,
   chain: reportingChain,
   validate: validateOrg,
+  sop: getSop, // a role's standard operating procedure (claim-free workflow), if it has one
+  rolesWithSop,
 };
 
 // ── AGENTS: the governed roster — the 9 execution functions with real software-company titles (codenames
@@ -175,5 +178,5 @@ export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecA
 export { AuditLog, MemoryAuditSink };
 export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment, FreezeOutcome, Risk, DrillReport, DrillResult, CostRollup, Margin, SpendAnomaly, Precedent, ConsultResult, ChangeKind };
 export { PrecedentStore, normalizeQuestion };
-export type { VaultClient, Provider, ProviderStatus, PromptVersion, KpiReport, ExportBundle, DeletionPlan, Readiness, DoDCheck };
+export type { VaultClient, Provider, ProviderStatus, PromptVersion, KpiReport, ExportBundle, DeletionPlan, Readiness, DoDCheck, SOP };
 export default core;

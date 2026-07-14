@@ -1,4 +1,5 @@
 import { org } from "@/lib/core";
+import { getSop } from "@/lib/org/sops";
 
 export const runtime = "nodejs";
 
@@ -11,6 +12,7 @@ export async function GET() {
     reportsTo: r.reportsTo, reportsToTitle: r.reportsTo ? org.getRole(r.reportsTo)?.title ?? null : null,
     mandate: r.mandate, jobDescription: r.jobDescription, responsibilities: r.responsibilities,
     kpis: r.kpis, escalatesWhen: r.escalatesWhen, humanApprovalFor: r.humanApprovalFor,
+    sop: getSop(r.id) ?? null,
   }));
   return Response.json({
     ok: true,

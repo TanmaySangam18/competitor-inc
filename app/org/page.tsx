@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { org, type OrgRole } from "@/lib/core";
+import { getSop } from "@/lib/org/sops";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,7 @@ const LEVEL_PILL: Record<string, string> = {
 
 function RoleCard({ r }: { r: OrgRole }) {
   const manager = r.reportsTo ? org.getRole(r.reportsTo) : null;
+  const sop = getSop(r.id);
   return (
     <div className="rounded-xl border border-border bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
@@ -43,6 +45,14 @@ function RoleCard({ r }: { r: OrgRole }) {
           </li>
         ))}
       </ul>
+      {sop && (
+        <details className="mt-2 rounded-lg bg-surface-2/60 px-3 py-2">
+          <summary className="cursor-pointer list-none text-[11px] font-semibold text-muted">{sop.name} — the standard operating procedure</summary>
+          <ol className="mt-1.5 list-decimal space-y-1 pl-4 text-[11px] leading-snug text-muted">
+            {sop.steps.map((s) => <li key={s}>{s}</li>)}
+          </ol>
+        </details>
+      )}
       <p className="mt-2 text-[11px] leading-snug text-muted-2"><span className="font-medium text-muted">Escalates:</span> {r.escalatesWhen}</p>
       {r.humanApprovalFor.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">

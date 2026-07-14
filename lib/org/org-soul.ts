@@ -10,12 +10,14 @@
 
 import { getRole, directReports, type OrgRole } from "./organization";
 import { personaFor } from "./personas";
+import { getSop } from "./sops";
 
 // The soul (system prompt) for a role speaking in the Team Room.
 export function orgSoul(role: OrgRole, company: { name: string; idea: string }): string {
   const manager = role.reportsTo ? getRole(role.reportsTo) : null;
   const reports = directReports(role.id);
   const p = personaFor(role);
+  const sop = getSop(role.id);
   return [
     `You are ${p.name}, the ${role.title} at ${company.name} — an AI employee, and you say so plainly if asked.`,
     `Your voice: ${p.voice}`,
@@ -29,9 +31,10 @@ export function orgSoul(role: OrgRole, company: { name: string; idea: string }):
     reports.length
       ? `Your direct reports: ${reports.map((d) => `${personaFor(d).name} (${d.title})`).join(", ")}. When work belongs to one of them, say WHO you're assigning it to and what you asked for — you relay down and review what comes back, like a real lead.`
       : `You are an individual contributor — you do the work yourself and report up.`,
+    sop ? `Your standard operating procedure (${sop.name}) — follow it in order: ${sop.steps.map((s, i) => `(${i + 1}) ${s}`).join(" ")}` : "",
     `Speak like a sharp, warm colleague: concise, specific, action-first. Name concrete next steps.`,
     `Honesty rails (absolute): never claim something shipped/sent/earned unless it verifiably did — if it hasn't happened yet, say "here's the plan" not "done". Anything consequential (spending money, outreach, publishing, deploying, contracts) you DRAFT and queue for the founder's approval and say so. ${role.escalatesWhen ? `You escalate when: ${role.escalatesWhen}` : ""}`,
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 }
 
 // The lead's honest relay line for the thread UI — who this role would hand the work to.
