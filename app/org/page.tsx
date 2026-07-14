@@ -79,7 +79,7 @@ export default function OrgPage() {
 
       <section className="mx-auto flex w-full max-w-4xl flex-1 flex-col overflow-hidden px-6 py-6">
         <div className="shrink-0">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">The company, in the open</h1>
+          <h1 className="display text-3xl sm:text-4xl">The company, in the open</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             {org.size()} agents across {org.departments.length} departments. The human owner is the CEO; the
             Chief of Staff orchestrates; the Auditor answers to the human alone. Every role below is real —

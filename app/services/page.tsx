@@ -98,7 +98,7 @@ export default function ServicesPage() {
 
       <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden px-6 py-6">
         <div className="shrink-0">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">What can it run for you?</h1>
+          <h1 className="display text-3xl sm:text-4xl">What can it run for you?</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             Hire the AI company for one thing or all of it. Every service is run by real roles and shows an
             honest status — nothing here claims more than it can do.

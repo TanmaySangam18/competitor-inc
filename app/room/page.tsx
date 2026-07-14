@@ -24,7 +24,7 @@ export default function RoomPage() {
 
       <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden px-6 py-6">
         <div className="shrink-0">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">The team room</h1>
+          <h1 className="display text-3xl sm:text-4xl">The team room</h1>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             Put a decision to your AI team and watch them work it out — the chair opens, the right roles weigh
             in, and the call is made under governance. Anything high-consequence goes to you.

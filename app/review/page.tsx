@@ -36,7 +36,7 @@ export default async function ReviewPage() {
 
       <section className="mx-auto flex w-full max-w-3xl flex-1 flex-col overflow-hidden px-6 py-6">
         <div className="shrink-0">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Control room</h1>
+          <h1 className="display text-3xl sm:text-4xl">Control room</h1>
           <p className="mt-2 text-sm text-muted">
             The safety gate, computed live against the real control plane. {r.passed} pass · {r.partial} partial · {r.todo} to&nbsp;do.
           </p>

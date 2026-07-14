@@ -17,21 +17,25 @@
      mint canvas + white rounded cards + ONE deep-teal brand hue doing all the accent work. ONE remap
      re-skins every token-based surface — names stay (bg-coral/text-mint/… all keep working), values
      become the teal palette. Reversible. */
-  --color-bg: #eef4f1; /* soft mint canvas (cards sit on it) */
-  --color-surface: #ffffff; /* white rounded cards */
-  --color-surface-2: #e6efeb; /* faint teal-grey wells/chips */
-  --color-border: rgba(15, 110, 86, 0.14); /* teal-tinted hairlines */
+  /* PORTFOLIO MONOCHROME (2026-07-14, founder: "copy exactly" tanmaysangam.vercel.app): the brand adopts
+     the founder's own site — a stark black-on-white brutalist identity. ONE remap re-skins every token-based
+     surface (names stay: bg-coral/text-mint/… all keep working, their VALUES go monochrome). Fully
+     reversible — the teal values are preserved in git history if we ever flip back. */
+  --color-bg: #ffffff; /* white canvas */
+  --color-surface: #ffffff; /* white — cards are defined by hairlines, not fills (brutalist) */
+  --color-surface-2: #f3f3f1; /* faint grey wells/chips */
+  --color-border: rgba(0, 0, 0, 0.14); /* black hairlines */
 
-  /* One accent, systematized (names stay so every text-coral/bg-mint/… class works): teal is primary
-     action; the deeper pine reads success/verified/live; ochre = warnings. */
-  --color-coral: #0f6e56; /* teal — primary action */
-  --color-amber: #9a6a1f; /* warm ochre (warnings) */
-  --color-mint: #0f6e56; /* teal (success, verified, live) */
-  --color-violet: #4a5a54; /* neutral slate-teal */
+  /* Monochrome: black is the primary action (the site's "GET IN TOUCH" button); one restrained ink-green
+     kept for the load-bearing honesty signal (verified/live) so proof still reads at a glance. */
+  --color-coral: #111111; /* near-black — primary action */
+  --color-amber: #8a6a1f; /* ochre kept for functional warnings only (rarely used) */
+  --color-mint: #14532d; /* deep ink-green — verified/live (the one honesty accent) */
+  --color-violet: #444444; /* neutral grey */
 
-  --color-text: #10201b; /* near-black ink, faint teal */
-  --color-muted: #51625b;
-  --color-muted-2: #8aa39a;
+  --color-text: #0a0a0a; /* near-black ink */
+  --color-muted: #565656;
+  --color-muted-2: #8f8f8f;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
