@@ -31,6 +31,7 @@ import { conversation, conversationFrom, conversationSlackText, initialsOf, type
 import { auditLog, AuditLog, MemoryAuditSink, type AuditEntry, type AuditInput, type AuditSink, type IntegrityResult } from "./audit";
 import { killSwitch, type KillSwitchState } from "./killswitch";
 import { governAction, type GovernResult, type GovernOptions } from "./govern";
+import { screenIntake, classifyActivity, enforceFreeze, type IntakeResult, type IntakeDecision, type ActivitySignals, type ActivityAssessment, type FreezeOutcome, type Risk } from "./abuse";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -109,6 +110,11 @@ export { conversation, conversationFrom, conversationSlackText };
 // single governed entry point: kill switch → decide() → audit-record, in that order, every time.
 export { auditLog, killSwitch, governAction };
 
+// ── ABUSE CONTAINMENT (Tier A4 · REQUIREMENTS §14): screen customer intake against the prohibited-use list;
+// classify a running customer's behavior; auto-freeze a bad customer's namespace (via the A1 kill switch)
+// while preserving data. The classifier flags; a human + the lawyer's AUP adjudicate.
+export { screenIntake, classifyActivity, enforceFreeze };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
@@ -119,8 +125,10 @@ export const core = {
   govern: governAction,
   audit: auditLog,
   killSwitch,
+  abuse: { screenIntake, classifyActivity, enforceFreeze },
 };
 
 export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, Tier, TierScore, GovernedDecision, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn, AuditEntry, AuditInput, AuditSink, IntegrityResult, KillSwitchState, GovernResult, GovernOptions };
 export { AuditLog, MemoryAuditSink };
+export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment, FreezeOutcome, Risk };
 export default core;
