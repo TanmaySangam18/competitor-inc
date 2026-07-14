@@ -251,6 +251,17 @@ function cmdServices() {
   }
 }
 
+function cmdEconomics() {
+  const r = core.economics.rollup(core.audit.all());
+  line(`competitor — unit economics (from the audit ledger)`);
+  line(`  total cost:   $${r.totalUsd.toFixed(4)}`);
+  const custs = Object.entries(r.perCustomer);
+  line(`  per customer: ${custs.length ? custs.map(([c, v]) => `${c} $${v.toFixed(4)}`).join(" · ") : "(none recorded yet)"}`);
+  const agents = Object.entries(r.perAgent);
+  line(`  per agent:    ${agents.length ? agents.map(([a, v]) => `${a} $${v.toFixed(4)}`).join(" · ") : "(none)"}`);
+  line(`  note: cost is attributed per governed action; margin needs revenue (Stripe Connect events).`);
+}
+
 function cmdPayments() {
   const configured = core.payments.configured();
   line(`competitor — payments  (${configured ? "LIVE — Stripe connected" : "not configured"})`);
@@ -281,6 +292,7 @@ function cmdHelp() {
   line(`  screen "<use>"          screen a customer's use-case against the prohibited-use list`);
   line(`  services                 the catalog a customer can hire (build-run-sell, growth, support, ...)`);
   line(`  payments                 the money layer's status (Stripe Connect)`);
+  line(`  economics                per-customer unit economics (cost per customer/agent from the ledger)`);
   line(`  outreach --company "<x>"  qualify a lead → no-spam gate → honest first-touch draft`);
   line(`  operate --type .. --body "<ticket>"  triage an end-user ticket → the governed improvement loop`);
   line(`  help                     this`);
@@ -305,6 +317,7 @@ async function main() {
     case "audit": cmdAudit(rest); break;
     case "screen": cmdScreen(rest); break;
     case "payments": cmdPayments(); break;
+    case "economics": cmdEconomics(); break;
     case "services": cmdServices(); break;
     case "outreach": cmdOutreach(rest); break;
     case "operate": cmdOperate(rest); break;

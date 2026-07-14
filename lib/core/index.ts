@@ -33,6 +33,7 @@ import { killSwitch, type KillSwitchState } from "./killswitch";
 import { governAction, type GovernResult, type GovernOptions } from "./govern";
 import { screenIntake, classifyActivity, enforceFreeze, type IntakeResult, type IntakeDecision, type ActivitySignals, type ActivityAssessment, type FreezeOutcome, type Risk } from "./abuse";
 import { runFailureDrills, type DrillReport, type DrillResult } from "@/lib/sim/failure-drills";
+import { rollupCosts, marginFor, spendAnomaly, type CostRollup, type Margin, type SpendAnomaly } from "./economics";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -88,6 +89,10 @@ export { checkHealth };
 // we orchestrate, never hold the money. Fail-soft (configured:false) until a key is connected.
 export { paymentsConfigured, connectProduct, checkoutUrl };
 
+// ── ECONOMICS (Tier B1 · REQUIREMENTS §2): per-customer unit economics rolled up from the A1 audit ledger's
+// costUsd — cost per customer/agent/action, per-customer margin with an alarm, and a spend-spike detector.
+export { rollupCosts, marginFor, spendAnomaly };
+
 // ── OUTREACH (Phase 4): the reach rail — qualify a lead against the ICP, run the no-spam gate, draft an
 // honest named-AI first-touch. Keyless; sending (Gmail) + sourcing (Explee) light up with their keys.
 export { outreachFor };
@@ -132,9 +137,10 @@ export const core = {
   killSwitch,
   abuse: { screenIntake, classifyActivity, enforceFreeze },
   drills: runFailureDrills,
+  economics: { rollup: rollupCosts, margin: marginFor, anomaly: spendAnomaly },
 };
 
 export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, Tier, TierScore, GovernedDecision, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn, AuditEntry, AuditInput, AuditSink, IntegrityResult, KillSwitchState, GovernResult, GovernOptions };
 export { AuditLog, MemoryAuditSink };
-export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment, FreezeOutcome, Risk, DrillReport, DrillResult };
+export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment, FreezeOutcome, Risk, DrillReport, DrillResult, CostRollup, Margin, SpendAnomaly };
 export default core;
