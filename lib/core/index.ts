@@ -14,8 +14,8 @@ import {
 } from "@/lib/org/organization";
 import { ROLE_TITLE, ROLE_DEPARTMENT, ROLE_INITIALS, titleFor } from "@/lib/org/role-titles";
 import {
-  decide, withinCaps, executionRefusal, POLICY,
-  type ActionContext, type PolicyDecision, type Verdict, type ExecAction,
+  decide, withinCaps, executionRefusal, scoreTier, tierToVerdict, governedDecision, POLICY,
+  type ActionContext, type PolicyDecision, type Verdict, type ExecAction, type Tier, type TierScore, type GovernedDecision,
 } from "@/lib/engine/policy";
 import { AGENTS, type AgentRole } from "@/lib/engine/types";
 import { deliberate, type DecisionRecord, type Position, type Reasoner } from "./deliberate";
@@ -63,6 +63,9 @@ export const governance = {
   decide,
   withinCaps,
   refusal: executionRefusal,
+  scoreTier,       // the T0–T3 risk scorer (REQUIREMENTS §1)
+  tierToVerdict,
+  governedDecision, // decide() ∧ scoreTier, reconciled to the stricter verdict
   policy: POLICY,
 };
 
@@ -118,6 +121,6 @@ export const core = {
   killSwitch,
 };
 
-export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn, AuditEntry, AuditInput, AuditSink, IntegrityResult, KillSwitchState, GovernResult, GovernOptions };
+export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, Tier, TierScore, GovernedDecision, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn, AuditEntry, AuditInput, AuditSink, IntegrityResult, KillSwitchState, GovernResult, GovernOptions };
 export { AuditLog, MemoryAuditSink };
 export default core;

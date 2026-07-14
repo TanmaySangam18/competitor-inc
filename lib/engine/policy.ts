@@ -17,6 +17,10 @@ export type ExecAction = "build" | "deploy" | "outreach" | "spend" | "payments" 
 export type Bucket = "AUTO" | "APPROVE" | "NEVER"; // a cell in the per-agent matrix
 export type Verdict = "AUTO" | "QUEUE" | "BLOCK"; // decide()'s output
 
+// The risk tier every action is scored into (REQUIREMENTS §1). T0 cheap+reversible → auto · T1 moderate →
+// auto+log · T2 significant → async human approval · T3 irreversible → hard block until a human signs off.
+export type Tier = "T0" | "T1" | "T2" | "T3";
+
 // The events the Glass Box reacts to in real time (not just logs) — see lib/engine/alerts.ts.
 export type AlertEvent = "cap_breach" | "failure" | "forbidden_attempt";
 
@@ -73,6 +77,11 @@ export interface Policy {
   };
   // Promote-on-evidence: an APPROVE action earns AUTO only after running clean for this many nights.
   rollout: { promoteAfterCleanNights: number };
+  // The tier rubric (REQUIREMENTS §1). Owned by the Risk Scoring Officer role; every change is Tier 3.
+  tiers: {
+    t3SpendUsd: number; // spend at/above this is ALWAYS T3 (human sign-off), regardless of caps
+    alwaysT3: ReadonlySet<string>; // action classes that are always irreversible/high-consequence
+  };
 }
 
 // ── The policy config — the knobs you'll actually argue about (and that's the point) ──────────────
@@ -139,6 +148,15 @@ export const POLICY: Policy = {
     realTimeAlertsOn: ["cap_breach", "failure", "forbidden_attempt"],
   },
   rollout: { promoteAfterCleanNights: 14 },
+  tiers: {
+    t3SpendUsd: 500,
+    // Always Tier 3 (REQUIREMENTS §1): production deploys to paying customers, data deletion, money
+    // movement, contract/ToS acceptance, disabling a security control, and any PUBLIC statement.
+    alwaysT3: new Set<string>([
+      "deploy", "delete", "payments", "move_funds_out", "sign_contract", "sign_tos",
+      "disable_security_control", "bluesky", "mastodon", "publish_public", "legal_statement",
+    ]),
+  },
 };
 
 // What we know about a proposed action at decision time. Optional gate inputs default to the safe value
@@ -205,6 +223,72 @@ export function decide(ctx: ActionContext, policy: Policy = POLICY): PolicyDecis
   if (policy.gates.requireReversible && ctx.reversible === false) return queue("can't be undone");
 
   return { verdict: "AUTO", reason: "safe to run unattended" };
+}
+
+// ── THE RISK SCORER (REQUIREMENTS §1) ─────────────────────────────────────────
+// Every action is scored into a tier by cost × reversibility × legal-exposure × blast-radius. Pure +
+// deterministic, like decide(). Default-DENY: an unknown/novel action never scores below T2 (it escalates
+// to a human by construction). The `alwaysT3` set forces the irreversible/high-consequence classes to T3
+// no matter how cheap they look. Nothing may bypass this — govern() runs it on every action.
+const TIER_RANK: Record<Tier, number> = { T0: 0, T1: 1, T2: 2, T3: 3 };
+export function rankOfTier(t: Tier): number { return TIER_RANK[t]; }
+const higher = (a: Tier, b: Tier): Tier => (TIER_RANK[a] >= TIER_RANK[b] ? a : b);
+
+// Known action → its baseline tier before modifiers. Unknown → T2 (default-deny).
+const BASE_TIER: Record<string, Tier> = {
+  build: "T1",       // sandbox/staging engineering — reversible
+  outreach: "T2",    // contacting a real person — significant
+  spend: "T0",       // the dollar thresholds below drive spend's tier
+  deploy: "T3", delete: "T3", payments: "T3", bluesky: "T3", mastodon: "T3",
+};
+
+export interface TierScore {
+  tier: Tier;
+  reason: string;
+  factors: { cost: Tier; reversibility: Tier; class: Tier };
+}
+
+export function scoreTier(ctx: ActionContext, policy: Policy = POLICY): TierScore {
+  // class factor — the action's inherent consequence.
+  const known = ctx.type in BASE_TIER;
+  const classTier: Tier = policy.tiers.alwaysT3.has(ctx.type) ? "T3" : (known ? BASE_TIER[ctx.type] : "T2");
+
+  // cost factor — spend thresholds. At/above the T3 spend line it's a human sign-off regardless of caps.
+  let costTier: Tier = "T0";
+  if (ctx.type === "spend") {
+    const amt = ctx.amountUsd ?? 0;
+    costTier = amt >= policy.tiers.t3SpendUsd ? "T3" : amt > policy.spend.perTransactionCapUsd ? "T2" : amt > 0 ? "T1" : "T0";
+  }
+
+  // reversibility factor — anything that can't be undone is at least T2 (significant, needs a human).
+  const reversibilityTier: Tier = ctx.reversible === false ? "T2" : "T0";
+
+  const tier = [classTier, costTier, reversibilityTier].reduce(higher, "T0");
+  const bits: string[] = [];
+  if (policy.tiers.alwaysT3.has(ctx.type)) bits.push("irreversible/high-consequence class");
+  if (!known && !policy.tiers.alwaysT3.has(ctx.type)) bits.push("novel action → default-deny to T2");
+  if (ctx.type === "spend" && costTier === "T3") bits.push(`spend ≥ $${policy.tiers.t3SpendUsd}`);
+  if (ctx.reversible === false) bits.push("not reversible");
+  return { tier, reason: bits.length ? bits.join("; ") : `${ctx.type} baseline`, factors: { cost: costTier, reversibility: reversibilityTier, class: classTier } };
+}
+
+// Tier → the operating verdict. T0/T1 may run unattended; T2 queues for async approval; T3 hard-blocks
+// until a synchronous human sign-off (surfaced as BLOCK — the execute path treats it as human-reserved).
+export function tierToVerdict(tier: Tier): Verdict {
+  return tier === "T3" ? "BLOCK" : tier === "T2" ? "QUEUE" : "AUTO";
+}
+
+// The reconciled governed verdict: the STRICTER of the per-agent policy (decide) and the risk tier. This is
+// what govern() enforces — the scorer can only tighten, never loosen, what the matrix/gates already allow.
+export interface GovernedDecision extends PolicyDecision { tier: Tier; tierReason: string; }
+export function governedDecision(ctx: ActionContext, policy: Policy = POLICY): GovernedDecision {
+  const d = decide(ctx, policy);
+  const score = scoreTier(ctx, policy);
+  const tierVerdict = tierToVerdict(score.tier);
+  const order: Record<Verdict, number> = { AUTO: 0, QUEUE: 1, BLOCK: 2 };
+  const verdict = order[d.verdict] >= order[tierVerdict] ? d.verdict : tierVerdict;
+  const reason = verdict === d.verdict ? d.reason : `risk ${score.tier}: ${score.reason}`;
+  return { verdict, reason, tier: score.tier, tierReason: score.reason };
 }
 
 export interface Refusal {

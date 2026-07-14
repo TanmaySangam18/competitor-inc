@@ -9,7 +9,7 @@
 // decide() stays pure (no I/O) — this wrapper adds the stateful guards around it, so the policy engine
 // remains unit-testable and this layer owns the side effects (audit write, switch read).
 
-import { decide, type ActionContext, type PolicyDecision, type Policy, POLICY } from "@/lib/engine/policy";
+import { governedDecision, type ActionContext, type PolicyDecision, type Policy, type Tier, POLICY } from "@/lib/engine/policy";
 import { auditLog, type AuditLog, type AuditEntry } from "./audit";
 import { killSwitch, type KillSwitch } from "./killswitch";
 
@@ -25,6 +25,7 @@ export interface GovernOptions {
 
 export interface GovernResult {
   decision: PolicyDecision;
+  tier: Tier; // the risk tier the scorer assigned (T0–T3)
   halted: boolean; // true if a kill switch (not the policy) refused it
   entry: AuditEntry; // the sealed audit record for this action
 }
@@ -40,21 +41,21 @@ export function governAction(ctx: ActionContext, opts: GovernOptions = {}): Gove
     const decision: PolicyDecision = { verdict: "BLOCK", reason: halt };
     const entry = log.record({
       actor: ctx.agent, action: String(ctx.type), customer: opts.customer,
-      verdict: "BLOCK", input: opts.input, output: opts.output, costUsd: opts.costUsd,
+      tier: "T3", verdict: "BLOCK", input: opts.input, output: opts.output, costUsd: opts.costUsd,
       rationale: `kill switch: ${halt}`, reversible: ctx.reversible,
     });
-    return { decision, halted: true, entry };
+    return { decision, tier: "T3", halted: true, entry };
   }
 
-  // (2) The deterministic policy engine.
-  const decision = decide(ctx, policy);
+  // (2) The risk scorer + the per-agent policy, reconciled to the stricter verdict (scorer never loosens).
+  const g = governedDecision(ctx, policy);
 
-  // (3) Record — every decision, every verdict, into the append-only ledger.
+  // (3) Record — every decision, its tier, every verdict — into the append-only ledger.
   const entry = log.record({
     actor: ctx.agent, action: String(ctx.type), customer: opts.customer,
-    verdict: decision.verdict, input: opts.input, output: opts.output, costUsd: opts.costUsd,
-    rationale: decision.reason, reversible: ctx.reversible,
+    tier: g.tier, verdict: g.verdict, input: opts.input, output: opts.output, costUsd: opts.costUsd,
+    rationale: g.reason, reversible: ctx.reversible,
   });
 
-  return { decision, halted: false, entry };
+  return { decision: { verdict: g.verdict, reason: g.reason }, tier: g.tier, halted: false, entry };
 }

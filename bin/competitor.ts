@@ -51,9 +51,10 @@ function cmdDecide(args: string[]) {
     observable: f.observable === undefined ? undefined : Boolean(f.observable),
     reversible: f.reversible === undefined ? undefined : Boolean(f.reversible),
   };
-  const d = core.governance.decide(ctx);
+  const d = core.governance.governedDecision(ctx);
   line(`competitor — decide`);
   line(`  action:  ${ctx.type} by ${ctx.agent}${ctx.amountUsd !== undefined ? ` ($${ctx.amountUsd})` : ""}`);
+  line(`  tier:    ${d.tier}  (${d.tierReason})`);
   line(`  verdict: ${d.verdict}`);
   line(`  reason:  ${d.reason}`);
 }
