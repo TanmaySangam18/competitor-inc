@@ -13,9 +13,11 @@ const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 function inMaintenance(): boolean {
-  if (process.env.MAINTENANCE === "0") return false;
-  if (process.env.MAINTENANCE === "1") return true;
-  return process.env.VERCEL_ENV === "production";
+  // LIVE by default (2026-07-15 go-live, founder-approved): the safety gate is 8/8 and the simulation
+  // drills pass, so public pages are viewable. The site is a keyless demo (no real build/send/charge fires
+  // without connected keys) and the authed product stays campus-gated, so view-public is low-risk.
+  // Re-hide switch: set MAINTENANCE=1 in Vercel to force the whole site back to /maintenance instantly.
+  return process.env.MAINTENANCE === "1";
 }
 
 const AUTHED_API = new Set(["/api/execute", "/api/enrich", "/api/proof"]);
