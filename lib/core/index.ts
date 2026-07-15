@@ -43,6 +43,10 @@ import { prompts, PromptRegistry, type PromptVersion } from "./prompts";
 import { pairedMetric, reportKpi, suspectGaming, assertNoKpiTargets, COUNTER_METRIC, type KpiReport } from "./kpi";
 import { exportData, planDeletion, type ExportBundle, type DeletionPlan } from "./dsr";
 import { readiness, type Readiness, type DoDCheck } from "./readiness";
+import { classifyLicense, screenDependency, attributionList, type LicenseVerdict, type LicenseClass, type DepScreen } from "./licenses";
+import { badgeSnippet, badgeUrl, badgeRequired, type Tier as BadgeTier } from "./badge";
+import { connectionStatus, goLiveReadiness, CONNECTIONS, type Connection, type ConnectionStatus, type Owner } from "./connections";
+import { suggestNames, provisionPlan, slugify, type DomainPlan, type DomainRail } from "./domains";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
 // of the 9 governed execution functions. Salvaged from lib/org/organization.ts; this is now the entry point.
@@ -151,6 +155,11 @@ export { vault, providerStatus, selectProvider, hasFailover, prompts, reportKpi,
 // lifting maintenance to a real customer.
 export { readiness };
 
+// ── LICENSE SHIELD (ORG #29/#42): classify SPDX, screen deps, require NOTICE — comply, never strip. CI
+// blocks anything not allowed; unknown = default-deny. BADGE: "Built with competitor.inc" (free growth).
+// CONNECTIONS: the founder's go-live switch + the customer's BYOK set. DOMAINS: legal name provisioning.
+export { classifyLicense, screenDependency, attributionList, badgeSnippet, badgeUrl, badgeRequired, connectionStatus, goLiveReadiness, suggestNames, provisionPlan };
+
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
   payments: { configured: paymentsConfigured, connectProduct, checkoutUrl },
@@ -172,11 +181,15 @@ export const core = {
   kpi: { paired: pairedMetric, report: reportKpi, suspectGaming, assertNoKpiTargets, counters: COUNTER_METRIC },
   dsr: { exportData, planDeletion },
   readiness,
+  licenses: { classify: classifyLicense, screen: screenDependency, attribution: attributionList },
+  badge: { snippet: badgeSnippet, url: badgeUrl, required: badgeRequired },
+  connections: { status: connectionStatus, goLive: goLiveReadiness, all: CONNECTIONS },
+  domains: { suggest: suggestNames, plan: provisionPlan },
 };
 
 export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecAction, Tier, TierScore, GovernedDecision, AgentRole, DecisionRecord, Position, Reasoner, Plan, Coordination, Health, HealthCheck, Onboarding, OutreachPlan, Lead, ICP, Signal, Ticket, TicketTriage, OperateCycle, SendResult, Service, ServiceStatus, Conversation, Turn, AuditEntry, AuditInput, AuditSink, IntegrityResult, KillSwitchState, GovernResult, GovernOptions };
 export { AuditLog, MemoryAuditSink };
 export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment, FreezeOutcome, Risk, DrillReport, DrillResult, CostRollup, Margin, SpendAnomaly, Precedent, ConsultResult, ChangeKind };
 export { PrecedentStore, normalizeQuestion };
-export type { VaultClient, Provider, ProviderStatus, PromptVersion, KpiReport, ExportBundle, DeletionPlan, Readiness, DoDCheck, SOP };
+export type { VaultClient, Provider, ProviderStatus, PromptVersion, KpiReport, ExportBundle, DeletionPlan, Readiness, DoDCheck, SOP, LicenseVerdict, LicenseClass, DepScreen, BadgeTier, Connection, ConnectionStatus, Owner, DomainPlan, DomainRail };
 export default core;

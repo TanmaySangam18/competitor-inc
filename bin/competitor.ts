@@ -249,6 +249,42 @@ function cmdScreen(args: string[]) {
   line(`  why:      ${r.reason}${r.matched.length ? ` (matched: ${r.matched.join(", ")})` : ""}`);
 }
 
+function cmdLicense(args: string[]) {
+  const spdx = args.filter((a) => !a.startsWith("--")).join(" ").trim();
+  if (!spdx) { line(`usage: npm run competitor -- license "<SPDX id>"  (e.g. MIT, AGPL-3.0, "GPL-3.0 OR MIT")`); process.exitCode = 1; return; }
+  const v = core.licenses.classify(spdx);
+  line(`competitor — license`);
+  line(`  ${v.spdx}  →  ${v.allowed ? "✓ allowed" : "⛔ blocked"}  [${v.class}]${v.requiresAttribution ? " · attribution required" : ""}`);
+  line(`  ${v.action}`);
+}
+
+function cmdConnect() {
+  const r = core.connections.goLive();
+  line(`competitor — connections`);
+  line(`  go-live (founder): ${r.configured}/${r.required} connected${r.pending.length ? ` · pending: ${r.pending.join(", ")}` : " — READY"}`);
+  line(``);
+  for (const owner of ["founder", "customer"] as const) {
+    line(`  ${owner === "founder" ? "YOUR SWITCH" : "CUSTOMER (BYOK — they add their own keys)"}:`);
+    for (const c of core.connections.status(owner)) {
+      const mark = c.env.length === 0 ? "○ manual" : c.configured ? "✓ set" : "· pending";
+      line(`    ${mark.padEnd(9)} ${c.name}${c.required ? "" : " (optional)"} — ${c.purpose}`);
+    }
+    line(``);
+  }
+}
+
+function cmdDomain(args: string[]) {
+  const product = args.filter((a) => !a.startsWith("--")).join(" ").trim();
+  if (!product) { line(`usage: npm run competitor -- domain "<product name>"`); process.exitCode = 1; return; }
+  const names = core.domains.suggest(product);
+  const plan = core.domains.plan(names[0]);
+  line(`competitor — domain`);
+  line(`  suggestions: ${names.join(" · ")}`);
+  line(`  plan (${plan.rail}): ${plan.address}`);
+  for (const s of plan.steps) line(`    • ${s}`);
+  line(`  legal: ${plan.legalNote}`);
+}
+
 function cmdServices() {
   const services = core.listServices();
   const badge = (s: string) => (s === "ready" ? "ready" : s === "partial" ? "partial" : "planned");
@@ -302,6 +338,9 @@ function cmdHelp() {
   line(`  resume --global | --agent <id> | --customer <id>    clear a kill switch`);
   line(`  audit [--n N]            the append-only black-box ledger (last N + integrity check)`);
   line(`  screen "<use>"          screen a customer's use-case against the prohibited-use list`);
+  line(`  license "<SPDX>"        classify an OSS license (allow/block + obligation) — the anti-lawsuit gate`);
+  line(`  connect                  the connections checklist: your go-live switch + the customer BYOK set`);
+  line(`  domain "<product>"      suggest names + the legal provisioning plan (subdomain / registrar)`);
   line(`  services                 the catalog a customer can hire (build-run-sell, growth, support, ...)`);
   line(`  payments                 the money layer's status (Stripe Connect)`);
   line(`  economics                per-customer unit economics (cost per customer/agent from the ledger)`);
@@ -328,6 +367,9 @@ async function main() {
     case "resume": cmdStop(rest, false); break;
     case "audit": cmdAudit(rest); break;
     case "screen": cmdScreen(rest); break;
+    case "license": cmdLicense(rest); break;
+    case "connect": cmdConnect(); break;
+    case "domain": cmdDomain(rest); break;
     case "payments": cmdPayments(); break;
     case "economics": cmdEconomics(); break;
     case "services": cmdServices(); break;
