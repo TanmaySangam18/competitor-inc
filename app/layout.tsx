@@ -44,9 +44,9 @@ const fraunces = Fraunces({
 
 // Canonical site URL (single source of truth in @/lib/site) — absolute OG image URLs need it, and
 // canonical/share URLs must point at the founder's live domain, not the stale account.
-const TITLE = "competitor.inc — Prove it before you build it";
+const TITLE = "competitor.inc — an AI software company that runs itself";
 const DESCRIPTION =
-  "competitor.inc is the AI co-founder that validates your idea — honestly — before it builds the winner. Real demand tests, proof-of-work, and human-in-control. You stay the founder.";
+  "Connect your accounts once. A governed AI organization validates, builds, deploys, runs, and sells — you oversee the work and sign the rare decision that needs a human. Every claim is verifiable.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: TITLE,
     description:
-      "Validates your idea before it builds it — real demand tests, proof-of-work, human-in-control. Prove it before you build it.",
+      "An autonomous AI software company, governed by one human. Validate, build, deploy, run, sell — every action on a tamper-evident ledger.",
     type: "website",
     siteName: "competitor.inc",
     url: SITE_URL,
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: TITLE,
-    description: "The AI co-founder that proves demand before it builds. Prove it before you build it.",
+    description: "An autonomous AI software company, governed by one human. Every claim is verifiable.",
   },
 };
 
