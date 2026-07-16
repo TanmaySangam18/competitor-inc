@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-16T17:43:40.240Z",
+ "generated": "2026-07-16T17:50:26.738Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -2033,7 +2033,7 @@
    "file": "scripts/audit-inventory.mjs",
    "cls": "entry",
    "importers": 0,
-   "last": "?"
+   "last": "2026-07-16"
   },
   {
    "file": "scripts/check-untracked-imports.mjs",

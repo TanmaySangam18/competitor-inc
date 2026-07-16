@@ -10,7 +10,7 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 
 const ROOT = process.cwd();
-// coworker/ is a VENDORED companion app (own workspace, own aliases) — audited as one unit, not per-file.
+// (coworker/ moved to ~/tools/coworker — ADR-0003; it talks to us over HTTP/MCP, no code dependency.)
 const SRC_DIRS = ["app", "bin", "components", "launch", "lib", "p", "scripts", "test"];
 const EXTS = [".ts", ".tsx", ".mjs", ".js", ".jsx"];
 // NOTE: never put "build"/"dist" here — app/build/ is a real route (this exact bug shipped once);

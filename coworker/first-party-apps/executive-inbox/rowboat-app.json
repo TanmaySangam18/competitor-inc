@@ -1,8 +1,0 @@
-{
-  "schemaVersion": 1,
-  "name": "executive-inbox",
-  "version": "0.1.0",
-  "description": "Decisions awaiting you — the org prepares; you approve, reject, or send back. The only surface a principal needs.",
-  "entry": "index.html",
-  "capabilities": []
-}
