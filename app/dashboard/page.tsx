@@ -50,8 +50,6 @@ import DemandRadarPanel from "@/components/DemandRadarPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import MomTestKit from "@/components/MomTestKit";
 import SpecialistCrew from "@/components/dashboard/SpecialistCrew";
-import StatsPie from "@/components/dashboard/StatsPie";
-import TeamRoster from "@/components/dashboard/TeamRoster";
 import BringYourKeysNudge from "@/components/dashboard/BringYourKeysNudge";
 import CampaignPanel from "@/components/CampaignPanel";
 import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
@@ -68,7 +66,6 @@ import { OperateTab } from "@/components/dashboard/OperateTab";
 import { ActivityRow } from "@/components/dashboard/ActivityRow";
 import { ApprovalCard } from "@/components/dashboard/ApprovalCard";
 import { BarChart } from "@/components/dashboard/BarChart";
-import { Stat } from "@/components/dashboard/Stat";
 import { CrewBox } from "@/components/CrewBox";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
@@ -77,7 +74,6 @@ import { continueLocked, previewedCount, waitlistGateOn, premiumUnlocked, trialA
 import { getTrialStart } from "@/lib/engine/trial";
 import { repoFromUrl } from "@/lib/engine/hosting";
 import FoundingMember from "@/components/dashboard/FoundingMember";
-import { GlassCard } from "@/components/GlassCard";
 
 const verdictStyle = {
   strong: { ring: "border-black/30 bg-black/[0.06]", text: "text-text", label: "strong signal" },
@@ -239,7 +235,10 @@ function TopBar({ r, premium, gateOn }: { r: ReturnType<typeof useEngine>; premi
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
             <LogoMark size={32} />
-            <span className="hidden sm:inline">competitor.inc</span>
+            <span className="hidden sm:inline">
+              competitor.inc
+              <span aria-hidden className="blink-block ml-0.5 inline-block h-[0.9em] w-[7px] translate-y-[2px] bg-text" />
+            </span>
           </Link>
           {r.companies.length > 0 && <CompanySwitcher r={r} />}
         </div>
@@ -608,25 +607,17 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
     setBlitzDone(true);
     setTimeout(() => setBlitzDone(false), 2200);
   }
-  const stats = [
-    { label: "Nights run", val: c.night },
-    { label: "Tasks done", val: c.ledger.tasksDone },
-    // No real money moves in this build. Instead of a fabricated dollar total, the trial gives play-money
-    // CREDITS: approving a spend deducts credits (not $). They become real dollars only when payments open.
-    { label: "Trial credits left", val: `${creditsLeft(c.ledger.creditsSpent)}` },
-    { label: "Credits used", val: `${Math.round(c.ledger.creditsSpent ?? 0)} / ${TRIAL_CREDITS}` },
-  ];
+  const [tab, setTab] = useState<SecTab>("activity");
   const { config } = useConfig();
   const roles = (Object.keys(AGENTS) as AgentRole[]).filter((role) => config.agents[role]?.enabled ?? true);
   const lockedUrl = !entitled && c.product?.status === "live" ? c.product?.url : undefined;
   // Standing-authorization ledger: activities the autopilot resolved itself (tagged by resolveApproval).
   const autoRanCount = r.activities.filter((a) => a.meta?.startsWith("autopilot")).length;
 
-  // COCKPIT V2 (founder work-order 2026-07-10: "lots of things are not visible — redesign, your call").
-  // The locked no-scroll viewport was the root cause: fixed grid fractions forced internal scrollbars
-  // that clipped stats, approval text, and buried the drawer. V2 = a FLOWING LEDGER DOCUMENT — the page
-  // scrolls (a ledger is a scrolling document), panels never do, nothing is ever clipped. Zone order =
-  // the founder's questions in priority: What needs me? → The numbers → What's happening? → Everything else.
+  // COCKPIT V3 — "Metric hero" (founder-approved design, 2026-07-15). One enormous, honest number
+  // (settled revenue — $0 until a verified receipt exists) over a live audit-ledger masthead, two flat
+  // working bands (approvals · work split), then the tabbed workspace. The tab bar is STICKY at the
+  // viewport bottom, so the recurring "can't reach the tabs" fault is dead structurally, not patched.
   return (
     <div className="flex flex-col gap-3">
       {/* Company strip + primary actions (fixed) */}
@@ -673,130 +664,246 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
         </div>
       )}
 
-      {/* ZONE 1 — the desk: what needs YOU. Full-width, auto-height, never clipped. When the inbox is
-          clear it collapses to a slim status band instead of an empty panel. */}
-      {r.pendingApprovals.length === 0 ? (
-        <div id="approval-inbox" className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-border bg-surface px-4 py-2.5 text-sm">
-          <span className="font-mono text-[11px] text-muted-2">⚡ {autoRanCount} ran autonomously</span>
-          <span className="text-muted-2">·</span>
-          <span className="text-muted">{r.killSwitch ? "Paused — the team proposes, nothing runs; anything consequential will queue here." : "Inbox clear — only money over caps, contracts, pricing, deletion, and launches land here."}</span>
-          <button
-            onClick={() => r.setKillSwitch(!r.killSwitch)}
-            title={r.killSwitch ? "Resume the autonomous loop." : "Hard-stop the autonomous loop instantly — everything queues for you."}
-            className={`ml-auto rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold transition ${r.killSwitch ? "border-coral bg-coral/10 text-coral" : "border-border text-muted hover:border-coral/50 hover:text-coral"}`}
-          >
-            {r.killSwitch ? "halted — resume" : "kill switch"}
-          </button>
+      {/* THE FRAME — audit-ledger masthead, the one number, and the two working bands. */}
+      <div className="reveal overflow-hidden rounded-2xl border border-text/80 bg-bg">
+        <AuditTicker activities={r.activities} killSwitch={r.killSwitch} />
+        <MetricHero c={c} autoRan={autoRanCount} />
+        <div className="grid border-t border-text/80 lg:grid-cols-[1.25fr_1fr]">
+          <ApprovalsBand r={r} autoRan={autoRanCount} />
+          <WorkBars activities={r.activities} />
         </div>
-      ) : (
-        <GlassCard
-          id="approval-inbox"
-            title="Needs your OK"
-            subtitle={r.killSwitch ? "kill switch — everything waits" : "exceptions only"}
-            icon={Sparkles}
-            badge={r.pendingApprovals.length > 0 ? <span className="grid h-4 min-w-4 place-items-center rounded-full bg-coral px-1 text-[10px] font-bold text-bg">{r.pendingApprovals.length}</span> : null}
-            action={
-              <button
-                onClick={() => r.setKillSwitch(!r.killSwitch)}
-                title={r.killSwitch ? "Autonomy halted — every action queues for you. Tap to resume." : "Hard-stop the autonomous loop instantly — everything queues for you."}
-                className={`rounded-lg border px-2.5 py-1 font-mono text-[11px] font-semibold transition ${
-                  r.killSwitch ? "border-coral bg-coral/10 text-coral" : "border-border text-muted hover:border-coral/50 hover:text-coral"
-                }`}
-              >
-                {r.killSwitch ? "halted — resume" : "kill switch"}
-              </button>
-            }
-          >
-            {/* The autonomy ledger line — what ran on standing authorization vs what waits on you. */}
-            <div className="mb-3 flex flex-wrap items-center gap-x-2 border-b border-border pb-2 font-mono text-[11px] text-muted-2">
-              <span className="text-text">⚡ {autoRanCount} ran autonomously</span>
-              <span>·</span>
-              <span>{r.pendingApprovals.length} need{r.pendingApprovals.length === 1 ? "s" : ""} you</span>
-            </div>
-            {r.pendingApprovals.length === 0 ? (
-              <div className="text-sm text-muted-2">
-                Kill switch engaged — the crew still proposes, but nothing executes; every action will queue here for your yes.
-              </div>
-            ) : (
-              <div className="grid gap-3 lg:grid-cols-2">
-                {r.pendingApprovals.map((ap) => (
-                  <ApprovalCard key={ap.id} title={ap.title} detail={ap.detail} agent={ap.agent} kind={ap.kind} onApprove={() => r.resolveApproval(ap.id, true)} onReject={() => r.resolveApproval(ap.id, false)} />
-                ))}
-              </div>
-            )}
-        </GlassCard>
-      )}
+      </div>
 
-      {/* FIXED-VIEWPORT WORKSPACE (2026-07-12, founder: "one page, no scroll"): the page never scrolls —
-          a left rail (at-a-glance stats) + the main workspace panel, each scrolling INTERNALLY only. */}
-      <div className="grid gap-3 lg:grid-cols-[minmax(290px,340px)_1fr]">
-        {/* Left rail — at-a-glance: the stats pie, the team, the scoreboard, the live-URL state. */}
-        <div className="flex flex-col gap-3 pr-1">
-          <StatsPie activities={r.activities} nights={c.night} tasksDone={c.ledger.tasksDone} />
-          <TeamRoster activities={r.activities} roles={roles} />
-          <div className="grid grid-cols-2 gap-2">
-            {stats.map((s) => <Stat key={s.label} label={s.label} val={s.val} />)}
+      {/* The money moment — the built product's live / locked / shipping state. */}
+      {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
+        entitled ? (
+          <>
+            <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] px-4 py-3">
+              <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-mint" /><div className="min-w-0"><div className="text-sm font-medium">Your product is live</div><div className="truncate text-xs text-mint">{c.product.url}</div></div></div>
+              <span className="ml-2 shrink-0 rounded-lg border border-border px-2 py-1 text-xs text-muted transition group-hover:text-text">View ↗</span>
+            </a>
+            {!checkoutLiveFor("operator") && <FoundingMember tier="operator" email={userEmail} />}
+          </>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-coral/30 bg-coral/[0.05] px-4 py-3">
+            <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-coral" /><div className="text-sm font-medium">Built &amp; live</div><Lock size={15} className="shrink-0 text-coral" /></div>
+            <a href={userEmail ? checkoutUrlFor(userEmail) : "/login"} className="flex items-center gap-2 rounded-xl bg-coral px-3 py-2 text-sm font-semibold text-bg transition hover:opacity-90">Unlock — Operator $199/mo <ArrowRight size={14} /></a>
           </div>
-          {c.product && c.product.status === "live" && /^https?:\/\//.test(c.product.url) ? (
-            entitled ? (
-              <>
-                <a href={c.product.url} target="_blank" rel="noreferrer" className="group flex items-center justify-between rounded-2xl border border-mint/25 bg-mint/[0.05] px-4 py-3">
-                  <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-mint" /><div className="min-w-0"><div className="text-sm font-medium">Your product is live</div><div className="truncate text-xs text-mint">{c.product.url}</div></div></div>
-                  <span className="ml-2 shrink-0 rounded-lg border border-border px-2 py-1 text-xs text-muted transition group-hover:text-text">View ↗</span>
-                </a>
-                {!checkoutLiveFor("operator") && <FoundingMember tier="operator" email={userEmail} />}
-              </>
-            ) : (
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-coral/30 bg-coral/[0.05] px-4 py-3">
-                <div className="flex min-w-0 items-center gap-2"><Rocket size={16} className="shrink-0 text-coral" /><div className="text-sm font-medium">Built &amp; live</div><Lock size={15} className="shrink-0 text-coral" /></div>
-                <a href={userEmail ? checkoutUrlFor(userEmail) : "/login"} className="flex items-center gap-2 rounded-xl bg-coral px-3 py-2 text-sm font-semibold text-bg transition hover:opacity-90">Unlock — Operator $199/mo <ArrowRight size={14} /></a>
-              </div>
-            )
-          ) : c.product ? (
-            <div className="flex items-center gap-2 rounded-2xl border border-amber/25 bg-amber/[0.05] px-4 py-3 text-sm"><Rocket size={16} className="shrink-0 text-amber" /><span>Shipping your site… <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect keys →</Link></span></div>
-          ) : null}
-        </div>
+        )
+      ) : c.product ? (
+        <div className="flex items-center gap-2 rounded-2xl border border-amber/25 bg-amber/[0.05] px-4 py-3 text-sm"><Rocket size={16} className="shrink-0 text-amber" /><span>Shipping your site… <Link href="/dashboard/settings#connect-accounts" className="font-medium text-amber underline-offset-2 hover:underline">Connect keys →</Link></span></div>
+      ) : null}
 
-        {/* Main workspace — Activity is the default surface; the rest is depth. Scrolls internally. */}
-        <SecondaryPanel r={r} c={c} roles={roles} entitled={entitled} lockedUrl={lockedUrl} />
+      {/* Workspace — one surface at a time; the sticky bar below is the frame's permanent bottom edge. */}
+      <WorkspacePanel r={r} c={c} roles={roles} entitled={entitled} lockedUrl={lockedUrl} tab={tab} onTab={setTab} />
+      <CockpitTabBar tab={tab} onTab={setTab} />
+    </div>
+  );
+}
+
+/* ── Metric-hero cockpit pieces (founder-approved design, 2026-07-15) ─────────────── */
+
+// Count a stat up from 0 with a cubic ease-out — real values only, instant under reduced motion.
+function useCountUp(end: number, ms = 900): number {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    if (end <= 0 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setV(Math.max(end, 0));
+      return;
+    }
+    let raf = 0;
+    const t0 = performance.now();
+    const step = (t: number) => {
+      const p = Math.min((t - t0) / ms, 1);
+      setV(Math.round(end * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [end, ms]);
+  return v;
+}
+
+// The masthead ticker IS the audit ledger — the latest real activity entries scrolling by. Real rows
+// only: when the ledger is empty it says so instead of inventing motion.
+function AuditTicker({ activities, killSwitch }: { activities: Activity[]; killSwitch: boolean }) {
+  const lines = activities
+    .slice(0, 14)
+    .map((a) => `S${a.night} · ${AGENTS[a.agent].name.toUpperCase()} · ${a.action}${a.status === "done" ? " ✓" : a.status === "pending-approval" ? " — WAITING ON YOU" : " — CREDITED BACK"}`);
+  const track = lines.join("   ···   ") + "   ···   ";
+  return (
+    <div className="flex items-stretch border-b border-border bg-surface/50">
+      <span className="flex shrink-0 items-center gap-1.5 border-r border-border px-3 font-mono text-[10px] font-medium tracking-[0.14em] text-text">
+        <span className={`live-dot inline-block h-1.5 w-1.5 rounded-full ${killSwitch ? "border border-text bg-transparent" : "bg-text"}`} />
+        {killSwitch ? "HALTED" : "LEDGER"}
+      </span>
+      {lines.length === 0 ? (
+        <span className="truncate px-3 py-2 font-mono text-[10px] tracking-wide text-muted-2">EMPTY — RUN A SHIFT AND EVERY ACTION LANDS HERE, IN ORDER</span>
+      ) : (
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="marquee-track flex w-max">
+            <span className="whitespace-pre px-3 py-2 font-mono text-[10px] tracking-wide text-muted">{track}</span>
+            <span aria-hidden className="whitespace-pre px-3 py-2 font-mono text-[10px] tracking-wide text-muted">{track}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// The one enormous number. Settled revenue is the only number allowed this big — and it stays $0
+// until real money settles. No payment rail is wired into this client engine yet, so $0 is the hard
+// truth, not a placeholder: this number never moves without a verified receipt (honesty floor).
+function MetricHero({ c, autoRan }: { c: Company; autoRan: number }) {
+  const settled = 0;
+  const goal = c.growthGoal;
+  const revenueGoal = goal?.northStar === "revenue" && goal.target > 0 ? goal.target : undefined;
+  const pct = revenueGoal ? Math.min((settled / revenueGoal) * 100, 100) : 0;
+  const tasks = useCountUp(c.ledger.tasksDone);
+  const shifts = useCountUp(c.night);
+  const auto = useCountUp(autoRan);
+  const heroStats = [
+    { label: "Tasks done", val: String(tasks) },
+    { label: "Shifts run", val: String(shifts) },
+    { label: "Ran autonomously", val: String(auto) },
+    // Play-money trial credits, never dollars: approving a spend deducts credits; they map to real
+    // dollars only when the payment gates open.
+    { label: "Trial credits left", val: `${creditsLeft(c.ledger.creditsSpent)} / ${TRIAL_CREDITS}` },
+  ];
+  return (
+    <div className="px-5 pb-6 pt-7 sm:px-7">
+      <div className="reveal font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Settled revenue · trailing 30 days</div>
+      <div className="reveal mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 [animation-delay:80ms]">
+        <span className="font-display text-6xl font-bold leading-none tracking-tighter sm:text-7xl">${settled.toLocaleString()}</span>
+        <span className="font-mono text-xs text-muted">{revenueGoal ? `of $${revenueGoal.toLocaleString()} · ` : ""}verified receipts only — this number never moves without one</span>
+      </div>
+      <div className="reveal mt-6 h-0.5 w-full bg-border [animation-delay:160ms]">
+        <div className="sweep h-full bg-text" style={{ width: `${Math.max(pct, 0.5)}%` }} />
+      </div>
+      <div className="reveal mt-5 grid grid-cols-2 gap-x-3 gap-y-4 [animation-delay:240ms] sm:grid-cols-4">
+        {heroStats.map((s) => (
+          <div key={s.label} className="border-l border-text/80 pl-3">
+            <div className="font-display text-2xl font-bold leading-none">{s.val}</div>
+            <div className="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted">{s.label}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-/* ── Main workspace panel — one surface at a time (Activity is the default; the rest is depth) ── */
-type SecTab = "activity" | "brief" | "team" | "agents" | "growth" | "marketing" | "chat" | "knowledge" | "operate" | "history";
-
-function SecondaryPanel({ r, c, roles, entitled, lockedUrl }: { r: ReturnType<typeof useEngine>; c: Company; roles: AgentRole[]; entitled: boolean; lockedUrl?: string }) {
-  const tabs: { key: SecTab; label: string }[] = [
-    { key: "activity", label: "Activity" },
-    { key: "brief", label: "Brief" },
-    { key: "team", label: "Team" },
-    { key: "agents", label: "Agents" },
-    { key: "growth", label: "Growth" },
-    { key: "marketing", label: "Marketing" },
-    { key: "chat", label: "Chat" },
-    { key: "knowledge", label: "Knowledge" },
-    ...(OPERATE_ENABLED ? [{ key: "operate" as SecTab, label: "Operate" }] : []),
-    { key: "history", label: "History" },
-  ];
-  const [tab, setTab] = useState<SecTab>("activity");
+// Needs your OK — the left working band. Same queue + kill switch as before, flat brutalist chrome.
+function ApprovalsBand({ r, autoRan }: { r: ReturnType<typeof useEngine>; autoRan: number }) {
+  const n = r.pendingApprovals.length;
   return (
-    <section className="flex flex-col rounded-3xl glass-panel p-4 lg:min-h-[480px]">
-      <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-border pb-3">
-        {tabs.map((t) => (
+    <div id="approval-inbox" className="border-b border-border p-4 sm:p-5 lg:border-b-0 lg:border-r">
+      <div className="flex items-center justify-between gap-2">
+        <div className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-text">Needs your OK{n > 0 ? ` — ${n}` : ""}</div>
+        <button
+          onClick={() => r.setKillSwitch(!r.killSwitch)}
+          title={r.killSwitch ? "Autonomy halted — every action queues for you. Tap to resume." : "Hard-stop the autonomous loop instantly — everything queues for you."}
+          className={`border px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide transition ${r.killSwitch ? "border-text bg-text text-bg" : "border-border text-muted hover:border-text hover:bg-text hover:text-bg"}`}
+        >
+          {r.killSwitch ? "Halted — resume" : "Kill switch"}
+        </button>
+      </div>
+      <div className="mt-2.5 border-b border-border pb-2 font-mono text-[10px] text-muted-2">
+        <span className="text-text">⚡ {autoRan} ran autonomously</span> · {n} need{n === 1 ? "s" : ""} you
+      </div>
+      {n === 0 ? (
+        <p className="mt-3 text-xs leading-relaxed text-muted-2">
+          {r.killSwitch
+            ? "Kill switch engaged — the crew still proposes, but nothing executes; every action queues here for your yes."
+            : "Clear — only money over caps, contracts, pricing, deletion, and launches land here."}
+        </p>
+      ) : (
+        <div className="mt-3 grid gap-3 xl:grid-cols-2">
+          {r.pendingApprovals.map((ap) => (
+            <ApprovalCard key={ap.id} title={ap.title} detail={ap.detail} agent={ap.agent} kind={ap.kind} onApprove={() => r.resolveApproval(ap.id, true)} onReject={() => r.resolveApproval(ap.id, false)} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Where the work went — share of completed actions per role. Monochrome: value encoded in tone.
+const BAR_TONES = ["bg-text", "bg-text/70", "bg-text/45", "bg-text/25"];
+function WorkBars({ activities }: { activities: Activity[] }) {
+  const done = activities.filter((a) => a.status === "done" && !a.undone);
+  const counts = new Map<AgentRole, number>();
+  for (const a of done) counts.set(a.agent, (counts.get(a.agent) ?? 0) + 1);
+  const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, BAR_TONES.length);
+  return (
+    <div className="p-4 sm:p-5">
+      <div className="font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-text">Where the work went</div>
+      {rows.length === 0 ? (
+        <p className="mt-3 text-xs leading-relaxed text-muted-2">No completed work yet — the split appears after the first shift.</p>
+      ) : (
+        <div className="mt-3.5 space-y-3">
+          {rows.map(([role, count], i) => {
+            const pct = Math.round((count / done.length) * 100);
+            return (
+              <div key={role}>
+                <div className="flex items-baseline justify-between font-mono text-[10px] text-muted">
+                  <span className="uppercase tracking-[0.1em]">{AGENTS[role].name}</span>
+                  <span>{pct}%</span>
+                </div>
+                <div className="mt-1 h-2 w-full bg-border/50">
+                  <div className={`sweep h-full ${BAR_TONES[i]}`} style={{ width: `${pct}%`, animationDelay: `${350 + i * 130}ms` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// The permanent bottom edge: sticky inside the scroll viewport, so the workspace index can never be
+// scrolled out of reach again (the recurring "can't reach the tabs" fault, killed structurally).
+function CockpitTabBar({ tab, onTab }: { tab: SecTab; onTab: (t: SecTab) => void }) {
+  return (
+    <nav aria-label="Workspace sections" className="sticky bottom-0 z-30">
+      <div className="flex flex-wrap overflow-hidden rounded-xl border border-text/80 bg-bg shadow-[0_-8px_24px_rgba(0,0,0,0.07)]">
+        {SEC_TABS.map((t) => (
           <button
             key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
-              tab === t.key ? "bg-text text-bg" : "border border-border text-muted hover:text-text"
+            onClick={() => onTab(t.key)}
+            aria-current={t.key === tab ? "true" : undefined}
+            className={`min-w-fit flex-1 border-t-2 px-2.5 py-2.5 text-center font-mono text-[10px] font-medium uppercase tracking-[0.08em] transition ${
+              t.key === tab ? "border-text bg-text text-bg" : "border-transparent text-muted hover:border-text hover:text-text"
             }`}
           >
             {t.label}
           </button>
         ))}
       </div>
-      <div className="flex-1 pr-1 pt-4">
+    </nav>
+  );
+}
+
+/* ── Main workspace panel — one surface at a time (Activity is the default; the rest is depth) ── */
+type SecTab = "activity" | "brief" | "team" | "agents" | "growth" | "marketing" | "chat" | "knowledge" | "operate" | "history";
+
+const SEC_TABS: { key: SecTab; label: string }[] = [
+  { key: "activity", label: "Activity" },
+  { key: "brief", label: "Brief" },
+  { key: "team", label: "Team" },
+  { key: "agents", label: "Agents" },
+  { key: "growth", label: "Growth" },
+  { key: "marketing", label: "Marketing" },
+  { key: "chat", label: "Chat" },
+  { key: "knowledge", label: "Knowledge" },
+  ...(OPERATE_ENABLED ? [{ key: "operate" as SecTab, label: "Operate" }] : []),
+  { key: "history", label: "History" },
+];
+
+function WorkspacePanel({ r, c, roles, entitled, lockedUrl, tab, onTab }: { r: ReturnType<typeof useEngine>; c: Company; roles: AgentRole[]; entitled: boolean; lockedUrl?: string; tab: SecTab; onTab: (t: SecTab) => void }) {
+  return (
+    <section className="rounded-3xl glass-panel p-4 lg:min-h-[420px]">
+      <div className="pr-1">
         {tab === "activity" && (
           <div className="space-y-4">
             <LiveGlassBox company={c} />
@@ -823,7 +930,7 @@ function SecondaryPanel({ r, c, roles, entitled, lockedUrl }: { r: ReturnType<ty
               pendingApprovals={r.pendingApprovals}
               experiments={r.experiments}
               onReviewDecisions={() => document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth" })}
-              onSeeFunnel={() => setTab("growth")}
+              onSeeFunnel={() => onTab("growth")}
             />
           </div>
         )}
