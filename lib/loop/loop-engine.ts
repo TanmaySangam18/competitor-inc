@@ -53,6 +53,7 @@ export interface LoopState {
   objectives: Objective[];
   learnings: Learning[]; // append-only + compounding — NEVER cleared between iterations (that's the point)
   status: LoopStatus;
+  currentRunId?: string; // the org-run executing the active objective's current iteration (driver-managed)
 }
 
 // A criterion counts as met ONLY with a proof attached and passed=true. Absent evidence is treated as

@@ -25,6 +25,7 @@ import { postToBluesky, postToMastodon } from "@/lib/engine/execution";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY, platformMarketingAllowed } from "@/lib/engine/policy";
 import { loadActiveOrgRuns, saveOrgRun } from "@/lib/engine/org-runs-db";
+import { tickLoop, loadAllTenants, defaultDeps as defaultLoopDeps } from "@/lib/loop/loop-driver";
 import { applyRecordedDecisions } from "@/lib/engine/apply-decisions-db";
 import { advanceOrgRun } from "@/lib/engine/org-run-step";
 import { isComplete } from "@/lib/engine/org-run";
@@ -408,13 +409,14 @@ export async function GET(req: Request) {
     const orgExecutor = serverRealExecutor({ token: process.env.GITHUB_TOKEN });
     let orgRunSteps = 0;
     for (const { run, companyId } of activeRuns) {
-      if (!companyId) continue; // company-scoped runs only (activity attribution)
+      // Company runs attribute activities to that company's Glass Box; LOOP-spawned runs (tenant loops,
+      // no company) still advance — their outcomes surface via the loop digest instead of a Glass Box.
       let cur = run;
       for (let i = 0; i < 3 && !isComplete(cur); i++) {
         const { run: next, ranTaskId } = await advanceOrgRun(cur, {
           executor: orgExecutor,
           saveRun: (r) => saveOrgRun(sb, r),
-          recordActivity: (a) => insertActivities(sb, companyId, [a]),
+          recordActivity: (a) => (companyId ? insertActivities(sb, companyId, [a]) : Promise.resolve()),
           makeId: () => crypto.randomUUID(),
         });
         cur = next;
@@ -425,6 +427,24 @@ export async function GET(req: Request) {
     if (orgRunSteps > 0) console.log(`[/api/cron] org-run driver: advanced ${orgRunSteps} step(s) across ${activeRuns.length} run(s)`);
   } catch (e) {
     console.error("[/api/cron] org-run driver:", e instanceof Error ? e.message : "unknown");
+  }
+
+  // ── 3.2c: THE LOOP ENGINE heartbeat (Loop Engineering, 2026-07-15) — one outer-loop tick per registered
+  // tenant: promote objectives, spin org-run iterations, harvest finished runs into evidence + learnings,
+  // auto-advance the roadmap, escalate via the digest when a human is genuinely needed. Fail-soft per tenant.
+  try {
+    const tenants = await loadAllTenants(sb, 5);
+    for (const tenant of tenants) {
+      try {
+        const r = await tickLoop(tenant, defaultLoopDeps(sb, process.env.SLACK_LOOP_CHANNEL));
+        console.log(`[/api/cron] loop ${tenant}: ${r.acted} — ${r.detail}`);
+      } catch (e) {
+        console.error(`[/api/cron] loop ${tenant}:`, e instanceof Error ? e.message : "unknown");
+      }
+    }
+  } catch (e) {
+    // missing table = migration 0032 not applied yet — log + skip, never break the heartbeat
+    console.error("[/api/cron] loop engine:", e instanceof Error ? e.message : "unknown");
   }
 
   // 3.3: a failure spike pages the founder in real time (observability that REACTS, not just logs).
