@@ -12,7 +12,7 @@
 import type { AgentRole, ApprovalItem } from "./types";
 
 // Real-world executor actions the system can actually dispatch (see lib/engine/execution.ts runAction).
-export type ExecAction = "build" | "deploy" | "outreach" | "spend" | "payments" | "bluesky" | "mastodon" | "delete" | "mcp_read";
+export type ExecAction = "build" | "deploy" | "outreach" | "spend" | "payments" | "bluesky" | "mastodon" | "delete" | "mcp_read" | "design_draft";
 
 export type Bucket = "AUTO" | "APPROVE" | "NEVER"; // a cell in the per-agent matrix
 export type Verdict = "AUTO" | "QUEUE" | "BLOCK"; // decide()'s output
@@ -115,7 +115,7 @@ export const POLICY: Policy = {
     // CEO — watches the money. May set up payments + approve ad budget; never ships or posts.
     ceo: { spend: "APPROVE", payments: "APPROVE", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Engineer — ships. May build + deploy (with sign-off); never touches money or public channels.
-    engineering: { build: "APPROVE", deploy: "APPROVE", mcp_read: "AUTO", spend: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    engineering: { build: "APPROVE", deploy: "APPROVE", mcp_read: "AUTO", design_draft: "AUTO", spend: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Marketer — finds customers. Owns outreach, ad spend, and social; never ships or moves money out.
     marketing: { outreach: "APPROVE", spend: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", build: "NEVER", deploy: "NEVER", payments: "NEVER", delete: "NEVER" },
     // Support — helps users. May send approved replies; never spends, ships, or posts publicly.
@@ -240,6 +240,7 @@ const BASE_TIER: Record<string, Tier> = {
   outreach: "T2",    // contacting a real person — significant
   spend: "T0",       // the dollar thresholds below drive spend's tier
   mcp_read: "T1",    // read-only pull from a CONNECTED external service (their own account) — reversible
+  design_draft: "T1", // a LOCAL design artifact (Open Design engine) — discardable; SHIPPING it stays gated
   deploy: "T3", delete: "T3", payments: "T3", bluesky: "T3", mastodon: "T3",
   // NOTE: mcp writes ride as "mcp_call" — intentionally NOT here, so they land on the unknown→T2 QUEUE
   // path until a per-tool allowlist earns promotion (default-deny, promote-on-evidence).
