@@ -12,6 +12,8 @@
 // injected clock/ids, no I/O.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type { ProductMemory } from "./product-memory";
+
 export type CheckKind = "route" | "api" | "feature" | "regression";
 
 export interface Check {
@@ -109,4 +111,56 @@ export function assessWall(suite: VerificationSuite, results: CheckResult[]): Wa
     : `Wall does NOT hold — ${passed}/${total} passed, ${failed.length} failed, ${unrun.length} unverified. ${failed.length ? "A prior guarantee broke." : "Not everything was checked — unknown is not a pass."}`;
 
   return { total, passed, failed, unrun, wallHolds, summary };
+}
+
+// ── The wall as DERIVED state (no persistence gap) ───────────────────────────
+// The wall can always be RECONSTRUCTED from product memory: the founding goal lays the baseline, and every
+// ADR on record contributes the guarantee it introduced. Deriving (instead of persisting a second table)
+// means the wall can never drift out of sync with the decision log — one source of truth, zero migrations.
+
+// The founding goal lives in the architecture doc's body, first line under "## What this product is".
+function foundingGoal(body: string): string {
+  const lines = body.split("\n");
+  const i = lines.findIndex((l) => l.trim().toLowerCase() === "## what this product is");
+  if (i < 0) return "";
+  for (let j = i + 1; j < lines.length; j++) {
+    const t = lines[j].trim();
+    if (t && !t.startsWith("#")) return t;
+  }
+  return "";
+}
+
+/** Rebuild a product's regression wall from its memory. Deterministic: same memory ⇒ same wall. */
+export function wallFromMemory(memory: ProductMemory, now = 0): VerificationSuite {
+  const arch = memory.docs.find((d) => d.kind === "architecture");
+  const goal = (arch && foundingGoal(arch.body)) || memory.product;
+  let suite = addChecks(emptySuite(memory.product), baselineChecks(goal), { now });
+  const adrs = memory.docs.filter((d) => d.kind === "adr").sort((a, b) => a.seq - b.seq);
+  for (const adr of adrs) {
+    suite = addCheck(
+      suite,
+      {
+        kind: "regression",
+        description: `the guarantee from ADR-${adr.seq} still holds: ${adr.title.replace(/^ADR-\d+:\s*/i, "")}`,
+        addedBy: `ADR-${adr.seq}`,
+      },
+      { now }
+    );
+  }
+  return suite;
+}
+
+/**
+ * The wall rendered as a build-brief section — injected into every CHANGE alongside the recall, so the
+ * agent is told exactly which prior guarantees it must not break. Empty string when the wall is empty.
+ */
+export function wallBrief(suite: VerificationSuite): string {
+  if (suite.checks.length === 0) return "";
+  const lines = suite.checks.map((c, i) => `${i + 1}. [${c.kind}] ${c.description} (from: ${c.addedBy})`);
+  return [
+    `THE REGRESSION WALL — ${suite.checks.length} guarantees already on record for this product. Your change`,
+    `must EXTEND the product without breaking a single one of them; the build gate and runtime smoke will`,
+    `re-verify. A change that would regress any guarantee must be reworked, not shipped:`,
+    ...lines,
+  ].join("\n");
 }

@@ -36,9 +36,10 @@ function repoName(goal: string): string {
 }
 
 // What Aider implements (committed as PROMPT.md). Full-stack: a Next.js page + a real API route + persistence.
-export function fullstackPromptFile(goal: string, opts: { recall?: string; suiteRecall?: string } = {}): string {
+export function fullstackPromptFile(goal: string, opts: { recall?: string; suiteRecall?: string; wall?: string } = {}): string {
   const recall = opts.recall?.trim();
   const suiteRecall = opts.suiteRecall?.trim();
+  const wall = opts.wall?.trim();
   return [
     // S4: when the customer already runs a suite, the agent is told to REUSE the shared substrate (one
     // sign-on, shared data, conventions) FIRST of all — so a new product joins the suite, not stands alone.
@@ -46,6 +47,9 @@ export function fullstackPromptFile(goal: string, opts: { recall?: string; suite
     // P1: when this product has memory, the agent is told it is CONTINUING it (architecture + prior ADRs)
     // BEFORE anything else — so it extends the product instead of rebuilding it. Empty on a first build.
     ...(recall ? [recall, ""] : []),
+    // P3: on a CHANGE, the regression wall rides with the recall — the guarantees already on record that
+    // this change must not break (derived from the same memory, so it can never drift out of sync).
+    ...(wall ? [wall, ""] : []),
     architectKnowledge(), // P0: every build starts on the public frontier — grounding, isolation, verify, adopt.
     ``,
     `Implement a small but REAL, working full-stack web app in this Next.js (App Router, TypeScript, Tailwind CSS) project for:`,
@@ -125,8 +129,10 @@ export function saasBrief(): string {
     `- AUTH: sign up + log in. Use Supabase Auth when SUPABASE_URL + SUPABASE_ANON_KEY exist (email+password`,
     `  is fine); otherwise a minimal signed session cookie so it still runs zero-config. NEVER store plaintext`,
     `  passwords and NEVER roll custom crypto — use the platform/library primitives.`,
-    `- MULTIPLE REAL ROUTES: a public landing (app/page.tsx), an auth page (app/login/page.tsx), and a`,
-    `  PROTECTED area (app/dashboard/page.tsx) that redirects to login when signed out.`,
+    `- MULTIPLE REAL ROUTES: a public landing (app/page.tsx), a DEDICATED sign-up page (app/signup/page.tsx —`,
+    `  a stranger must be able to create an account there; link it from the landing and from login), a log-in`,
+    `  page (app/login/page.tsx), and a PROTECTED area (app/dashboard/page.tsx) that redirects to login when`,
+    `  signed out.`,
     `- PER-USER DATA (graded isolation): every row carries an owner; every query filters to the CURRENT user`,
     `  so one account can never read another's rows (Supabase RLS on auth.uid when configured; an explicit`,
     `  owner check otherwise).`,
@@ -172,7 +178,7 @@ export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV
   // The files Aider is allowed to edit. The base (page + items) is byte-identical to before; a grounded AI
   // feature (R10) adds the chat route; a real SaaS (S3) adds the auth route + the login/dashboard pages.
   const fileSet = ["app/page.tsx", "app/api/items/route.ts"];
-  if (opts.withSaas) fileSet.push("app/login/page.tsx", "app/dashboard/page.tsx", "app/api/auth/route.ts");
+  if (opts.withSaas) fileSet.push("app/signup/page.tsx", "app/login/page.tsx", "app/dashboard/page.tsx", "app/api/auth/route.ts");
   if (opts.withPlatform) fileSet.push("app/api/v1/items/route.ts", "app/api/keys/route.ts", "app/openapi.json");
   if (opts.withChat) fileSet.push("app/api/chat/route.ts");
   const files = fileSet.join(" ");
@@ -200,6 +206,24 @@ export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV
             git reset --hard "$SNAPA" > /dev/null 2>&1
             git clean -fd app > /dev/null 2>&1
             npm run build > ../build.log 2>&1 || { echo "revert failed to build — impossible state, failing honestly"; exit 1; }
+          fi`
+    : "";
+  // S3's live floor (the regression wall's runtime half, only on SaaS builds): the deployed app must let a
+  // stranger reach signup + login, and the data API must FAIL CLOSED signed out. A deploy that misses the
+  // floor is not surfaced as a URL — same honesty rule as the scaffold gate (no half-SaaS links).
+  const saasSmoke = opts.withSaas
+    ? `
+          FINAL_URL=$(cat ../deploy-url.txt 2>/dev/null)
+          if [ -n "$FINAL_URL" ]; then
+            SU=$(curl -s -o /dev/null -w "%{http_code}" "$FINAL_URL/signup" 2>/dev/null || echo "000")
+            LI=$(curl -s -o /dev/null -w "%{http_code}" "$FINAL_URL/login" 2>/dev/null || echo "000")
+            IT=$(curl -s -o /dev/null -w "%{http_code}" "$FINAL_URL/api/items" 2>/dev/null || echo "000")
+            echo "saas floor smoke: /signup=$SU /login=$LI /api/items(signed-out)=$IT"
+            SAAS_OK=1
+            [ "$SU" = "200" ] || { echo "SAAS FLOOR FAIL: /signup must serve — a stranger signs up there"; SAAS_OK=0; }
+            [ "$LI" = "200" ] || { echo "SAAS FLOOR FAIL: /login must serve"; SAAS_OK=0; }
+            case "$IT" in 401|403|302|307) : ;; *) echo "SAAS FLOOR FAIL: /api/items must fail closed signed-out (got $IT)"; SAAS_OK=0 ;; esac
+            [ "$SAAS_OK" = "1" ] && echo "saas floor holds" || { echo "SaaS floor NOT met — withholding the URL (honest: no half-SaaS link)"; : > ../deploy-url.txt; }
           fi`
     : "";
   return `name: build-fullstack
@@ -327,7 +351,7 @@ jobs:
           # Only publish a deploy-url the app actually SERVES as a REAL page — else blank it so we never surface a
           # dead OR blank-scaffold link (the honesty floor: no proof we can't stand behind).
           echo "$SMOKE_CODE" > ../smoke-code.txt
-          SERVES_REAL "$(cat ../deploy-url.txt 2>/dev/null)" || { echo "runtime not a real page — withholding the URL (honest: no dead/blank link)"; : > ../deploy-url.txt; }
+          SERVES_REAL "$(cat ../deploy-url.txt 2>/dev/null)" || { echo "runtime not a real page — withholding the URL (honest: no dead/blank link)"; : > ../deploy-url.txt; }${saasSmoke}
       - name: Commit source + deploy URL
         if: always()
         run: |
@@ -348,6 +372,7 @@ export async function dispatchFullstackBuild(opts: {
   model?: string;
   recall?: string; // P1: product-memory recall brief (present on a CHANGE to an existing product)
   suiteRecall?: string; // S4: suite recall (present when the owner already runs other products — reuse the substrate)
+  wall?: string; // P3: the regression wall brief (present on a CHANGE — prior guarantees the change must keep)
 }): Promise<{ url: string; repo: string } | { error: string }> {
   const fetchImpl = opts.fetchImpl ?? (globalThis.fetch as unknown as FetchLike);
   const headers = {
@@ -405,7 +430,7 @@ export async function dispatchFullstackBuild(opts: {
     );
     if (!wf.ok) return { error: `commit workflow → HTTP ${wf.status}${wf.status === 403 ? " — the token needs the 'workflow' scope" : ""}` };
     if (!opts.fetchImpl) await new Promise((r) => setTimeout(r, 3000));
-    const pr = await commitFile("PROMPT.md", fullstackPromptFile(opts.goal, { recall: opts.recall, suiteRecall: opts.suiteRecall }));
+    const pr = await commitFile("PROMPT.md", fullstackPromptFile(opts.goal, { recall: opts.recall, suiteRecall: opts.suiteRecall, wall: opts.wall }));
     if (!pr.ok) return { error: `commit PROMPT.md → HTTP ${pr.status}` };
 
     // The PROMPT.md push triggered the `on: push` build. Return the repo (always resolves) as the honest

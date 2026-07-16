@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { adrDoc, architectureDoc, nextAdrSeq, recallBrief, type ProductDoc, type ProductMemory } from "@/lib/org/product-memory";
+import { wallFromMemory, wallBrief } from "@/lib/org/verification";
 import { loadProductMemory, saveProductDoc } from "./product-memory-db";
 import { dispatchFullstackBuild } from "./fullstack-build";
 
@@ -19,13 +20,15 @@ import { dispatchFullstackBuild } from "./fullstack-build";
 
 export interface ChangePlan {
   recall: string; // the product-memory recall brief (empty on a product with no memory yet)
+  wall: string; // the regression wall (P3), derived from the same memory — prior guarantees the change must keep
   changeGoal: string; // the request, framed as a continuation not a rebuild
 }
 
-/** Pure: frame a change request against the product's accumulated memory. */
+/** Pure: frame a change request against the product's accumulated memory (recall + the regression wall). */
 export function planChange(memory: ProductMemory, request: string): ChangePlan {
   return {
     recall: recallBrief(memory),
+    wall: wallBrief(wallFromMemory(memory)),
     changeGoal: `Apply this change to the EXISTING product (extend it, do NOT rebuild from scratch): ${request.trim()}`,
   };
 }
@@ -49,7 +52,7 @@ export function changeAdr(memory: ProductMemory, request: string, now: number): 
 // Injectable seam — real defaults are the DB + the build dispatcher; tests pass fakes.
 export interface ChangeDeps {
   loadMemory: (client: SupabaseClient, userId: string, product: string) => Promise<ProductMemory>;
-  dispatch: (opts: { goal: string; token: string; model?: string; recall?: string }) => Promise<{ url: string; repo: string } | { error: string }>;
+  dispatch: (opts: { goal: string; token: string; model?: string; recall?: string; wall?: string }) => Promise<{ url: string; repo: string } | { error: string }>;
   saveDoc: (client: SupabaseClient, userId: string, companyId: string, product: string, doc: ProductDoc) => Promise<void>;
   now: () => number;
 }
@@ -102,9 +105,9 @@ export async function runChange(input: ChangeInput, deps: ChangeDeps = defaultDe
     }
   }
 
-  const { recall, changeGoal } = planChange(memory, request);
+  const { recall, wall, changeGoal } = planChange(memory, request);
 
-  const built = await deps.dispatch({ goal: changeGoal, token: input.token, model: input.model, recall });
+  const built = await deps.dispatch({ goal: changeGoal, token: input.token, model: input.model, recall, wall });
   if ("error" in built) return { ok: false, error: built.error };
 
   const adr = changeAdr(memory, request, deps.now());

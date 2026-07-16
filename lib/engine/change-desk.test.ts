@@ -23,6 +23,13 @@ describe("Change Desk (R9) — changes compound, they don't rebuild", () => {
     expect(plan.recall).toContain("ADR-1"); // prior decision is recalled
   });
 
+  it("planChange carries the REGRESSION WALL derived from the same memory (P3 rides every change)", () => {
+    const plan = planChange(memoryWith("notes-app"), "add tags to notes");
+    expect(plan.wall).toContain("THE REGRESSION WALL");
+    expect(plan.wall).toContain("ADR-1"); // the prior decision's guarantee is on the wall
+    expect(plan.wall).toContain("must EXTEND the product without breaking");
+  });
+
   it("changeAdr records the next ordinal with the request in its context", () => {
     const adr = changeAdr(memoryWith("notes-app"), "add tags to notes", NOW);
     expect(adr.seq).toBe(2); // memory already has ADR-1
@@ -30,9 +37,10 @@ describe("Change Desk (R9) — changes compound, they don't rebuild", () => {
     expect(adr.title).toContain("Change: add tags to notes");
   });
 
-  it("runChange: dispatches the build WITH recall, then records the ADR", async () => {
-    const dispatch = vi.fn(async (o: { goal: string; recall?: string }) => {
+  it("runChange: dispatches the build WITH recall + the wall, then records the ADR", async () => {
+    const dispatch = vi.fn(async (o: { goal: string; recall?: string; wall?: string }) => {
       expect(o.recall).toContain("CONTINUING an existing product"); // recall reached the builder
+      expect(o.wall).toContain("THE REGRESSION WALL"); // the wall reached the builder too
       expect(o.goal).toContain("add tags");
       return { url: "https://github.com/x/notes-app", repo: "x/notes-app" };
     });

@@ -360,3 +360,32 @@ describe("fullstack-build (free full-stack builds via Actions + Aider + Vercel)"
     });
   });
 });
+
+describe("S3 hardening — signup guarantee, wall threading, live SaaS floor", () => {
+  it("a SaaS build's editable file set includes the dedicated signup page (the /signup 404 gap, closed)", () => {
+    const saasYaml = buildFullstackWorkflowYaml(undefined, undefined, { withSaas: true });
+    expect(saasYaml).toMatch(/app\/signup\/page\.tsx/);
+    expect(buildFullstackWorkflowYaml()).not.toMatch(/app\/signup\/page\.tsx/); // non-SaaS unchanged
+  });
+
+  it("saasBrief demands the dedicated signup route a stranger can use", () => {
+    expect(saasBrief()).toContain("app/signup/page.tsx");
+    expect(saasBrief()).toContain("stranger");
+  });
+
+  it("a SaaS build smokes the live floor and withholds a URL that misses it", () => {
+    const saasYaml = buildFullstackWorkflowYaml(undefined, undefined, { withSaas: true });
+    expect(saasYaml).toContain("saas floor smoke");
+    expect(saasYaml).toContain('"$FINAL_URL/signup"');
+    expect(saasYaml).toContain("fail closed signed-out");
+    expect(saasYaml).toContain("no half-SaaS link");
+    expect(buildFullstackWorkflowYaml()).not.toContain("saas floor smoke"); // non-SaaS builds untaxed
+  });
+
+  it("fullstackPromptFile threads the regression wall after the recall (P3 rides every change)", () => {
+    const p = fullstackPromptFile("a notes saas", { recall: "You are CONTINUING an existing product", wall: "THE REGRESSION WALL — 3 guarantees" });
+    expect(p).toContain("THE REGRESSION WALL");
+    expect(p.indexOf("THE REGRESSION WALL")).toBeGreaterThan(p.indexOf("CONTINUING an existing product"));
+    expect(fullstackPromptFile("a notes saas")).not.toContain("REGRESSION WALL"); // first builds carry no wall
+  });
+});

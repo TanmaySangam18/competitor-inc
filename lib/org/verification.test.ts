@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { emptySuite, addCheck, addChecks, baselineChecks, assessWall, nextCheckId, type VerificationSuite, type CheckResult } from "./verification";
+import { emptySuite, addCheck, addChecks, baselineChecks, assessWall, nextCheckId, wallFromMemory, wallBrief, type VerificationSuite, type CheckResult } from "./verification";
+import { architectureDoc, adrDoc } from "./product-memory";
 
 const T = 1_800_000_000_000;
 const pass = (id: string): CheckResult => ({ id, ran: true, passed: true });
@@ -64,5 +65,42 @@ describe("verification empire (P3) — the regression wall that compounds", () =
     const a = addChecks(emptySuite("p"), baselineChecks("a thing"), { now: T });
     const b = addChecks(emptySuite("p"), baselineChecks("a thing"), { now: T });
     expect(JSON.stringify(a)).toEqual(JSON.stringify(b));
+  });
+});
+
+describe("wallFromMemory — the wall as derived state (no persistence gap)", () => {
+  const T2 = 1_800_000_000_000;
+  const memory = () => ({
+    product: "notes-app",
+    docs: [
+      architectureDoc("notes-app", "a notes app with accounts and a dashboard", T2),
+      adrDoc(1, "Ground answers on stored notes", { context: "c", decision: "Retrieve then answer", consequences: "k" }, T2),
+      adrDoc(2, "Add tags to notes", { context: "c", decision: "Tags as a first-class field", consequences: "k" }, T2),
+    ],
+  });
+
+  it("rebuilds the wall from memory: baseline from the founding goal + one regression check per ADR", () => {
+    const wall = wallFromMemory(memory());
+    // the goal mentions accounts/dashboard → the auth baseline check joins the floor (4 baseline) + 2 ADRs
+    expect(wall.checks.length).toBe(6);
+    expect(wall.checks.filter((c) => c.kind === "regression").length).toBe(2);
+    expect(wall.checks.some((c) => c.addedBy === "ADR-1")).toBe(true);
+    expect(wall.checks.some((c) => c.description.includes("Add tags to notes"))).toBe(true);
+  });
+
+  it("is deterministic and in lock-step with memory — an ADR added grows the wall by exactly one", () => {
+    const m = memory();
+    const before = wallFromMemory(m).checks.length;
+    m.docs.push(adrDoc(3, "Export notes", { context: "c", decision: "CSV export", consequences: "k" }, T2));
+    expect(wallFromMemory(m).checks.length).toBe(before + 1);
+    expect(JSON.stringify(wallFromMemory(m))).toEqual(JSON.stringify(wallFromMemory(m)));
+  });
+
+  it("wallBrief renders every guarantee for the change prompt (and is empty on an empty wall)", () => {
+    const brief = wallBrief(wallFromMemory(memory()));
+    expect(brief).toContain("THE REGRESSION WALL — 6 guarantees");
+    expect(brief).toContain("ADR-2");
+    expect(brief).toContain("must EXTEND the product without breaking");
+    expect(wallBrief(emptySuite("p"))).toBe("");
   });
 });
