@@ -52,15 +52,25 @@ degradation line shown when absent).
 1. **/connect — the onboarding and the "settings."** A single page: the connection map as a checklist
    with live status (green = connected, grey = not yet + "what unlocks"). Connecting T0 starts the company.
    Nothing else to configure. (Exists as a status page; becomes THE front door.)
-2. **The Feed — the only operating surface.** One reverse-chron stream per company: decisions awaiting
-   signature (the ONLY interrupts), completed-work notices ("bug fixed, tested, deployed — here's the
-   diff + the receipt"), and delivered artifacts (the finance PDF, the weekly report). Filter: All ·
-   Needs me · Done. The settled-revenue number sits at top (the one metric). Everything the 6 tabs
-   showed becomes either a Slack conversation (process) or a feed item (outcome).
+2. **The Stream — one conversation, the only operating surface (Bloome learning, 2026-07-15).** Not a
+   dashboard, not even a feed-of-cards: ONE conversational thread per company where the named agents talk
+   to EACH OTHER, hand off with @-mentions, and drop their work INLINE as artifacts (the shipped diff +
+   receipt, the finance PDF, a report). The one thing that needs the human is a decision block pinned at
+   top (Approve/Hold). Settled-revenue number in the header. A reply box exists — the human CAN ask the
+   team anything — but it's optional, because the company already ran. This UNIFIES what were two surfaces
+   (a Feed + a separate Slack office) into one model.
+   - **The Bloome distinction (load-bearing, do not blur):** Bloome = "you're amplified" — the human is a
+     PARTICIPANT working *with* agents in the thread. competitor.inc = the human is an OVERSEER reading the
+     thread like a board member reading minutes, signing only the rare thing that needs them. Same
+     conversational surface; opposite center of gravity. Our header pill says "You're overseeing," never
+     "You're driving."
+   - **The Stream mirrors to the customer's real Slack** (T1 connection): same conversation, two windows —
+     our web surface for oversight, their Slack because that's where they already live. One model, mirrored;
+     not two products.
 3. **The website — explains, simply.** What happens after you connect, in plain terms + the live
    /benchmark proof. No feature tour of pages that no longer exist.
 
-The human's day: read the feed (or just Slack) · sign what's queued · everything else already happened.
+The human's day: skim the Stream (here or in Slack) · sign what's pinned · everything else already happened.
 
 ## 3 · WHERE THE WORK LIVES — Slack is the office
 
