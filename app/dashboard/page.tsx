@@ -43,12 +43,10 @@ import ActionBell from "@/components/ActionBell";
 import EntitlementNotice from "@/components/EntitlementNotice";
 import GuestSavePrompt from "@/components/GuestSavePrompt";
 import GTMPanel from "@/components/GTMPanel";
-import GaugePanel from "@/components/GaugePanel";
 import GrowthPanel from "@/components/GrowthPanel";
 import DemandRadarPanel from "@/components/DemandRadarPanel";
 import DemandTestPanel from "@/components/DemandTestPanel";
 import MomTestKit from "@/components/MomTestKit";
-import SpecialistCrew from "@/components/dashboard/SpecialistCrew";
 import BringYourKeysNudge from "@/components/dashboard/BringYourKeysNudge";
 import CampaignPanel from "@/components/CampaignPanel";
 import { SelfEnrichPanel } from "@/components/SelfEnrichPanel";
@@ -56,7 +54,6 @@ import { rationaleFor } from "@/lib/engine/rationale";
 import { CoachCard } from "@/components/CoachCard";
 import MorningBrief from "@/components/MorningBrief";
 import { Onboarding } from "@/components/dashboard/Onboarding";
-import { ChatTab } from "@/components/dashboard/ChatTab";
 import { TeamRoomTab } from "@/components/dashboard/TeamRoomTab";
 import { CrewBoard } from "@/components/dashboard/CrewBoard";
 import { DashSidebar } from "@/components/dashboard/DashSidebar";
@@ -65,7 +62,6 @@ import { OperateTab } from "@/components/dashboard/OperateTab";
 import { ActivityRow } from "@/components/dashboard/ActivityRow";
 import { ApprovalCard } from "@/components/dashboard/ApprovalCard";
 import { BarChart } from "@/components/dashboard/BarChart";
-import { CrewBox } from "@/components/CrewBox";
 import { useAuth } from "@/lib/engine/useAuth";
 import { billingLive, checkEntitled, checkoutUrlFor, checkoutLiveFor } from "@/lib/engine/billing";
 import { isFounderEmail } from "@/lib/engine/founders";
@@ -883,20 +879,19 @@ function CockpitTabBar({ tab, onTab }: { tab: SecTab; onTab: (t: SecTab) => void
   );
 }
 
-/* ── Main workspace panel — one surface at a time (Activity is the default; the rest is depth) ── */
-type SecTab = "activity" | "brief" | "team" | "agents" | "growth" | "marketing" | "chat" | "knowledge" | "operate" | "history";
+/* ── Main workspace panel — one surface at a time, ONE surface per question (2026-07-15 founder
+   consolidation: "if two things solve the same problem, there should only be one"). 10 tabs → 6:
+   Activity(+History) · Brief(+Operate) · Team(absorbed Agents) · Sell(Growth+Marketing) ·
+   Chat(=the team room) · Knowledge. Each answers exactly one founder question. ── */
+type SecTab = "activity" | "brief" | "team" | "sell" | "chat" | "knowledge";
 
 const SEC_TABS: { key: SecTab; label: string }[] = [
-  { key: "activity", label: "Activity" },
-  { key: "brief", label: "Brief" },
-  { key: "team", label: "Team" },
-  { key: "agents", label: "Agents" },
-  { key: "growth", label: "Growth" },
-  { key: "marketing", label: "Marketing" },
-  { key: "chat", label: "Chat" },
-  { key: "knowledge", label: "Knowledge" },
-  ...(OPERATE_ENABLED ? [{ key: "operate" as SecTab, label: "Operate" }] : []),
-  { key: "history", label: "History" },
+  { key: "activity", label: "Activity" }, // what happened — the ledger + per-shift trends
+  { key: "brief", label: "Brief" }, // what should I do — today (brief/coach) + the quarter (rocks/issues)
+  { key: "team", label: "Team" }, // who's working on what — the live work board
+  { key: "sell", label: "Sell" }, // make money — plan → campaigns → funnel/attribution
+  { key: "chat", label: "Chat" }, // talk to the company — direct any leader, sign mandates
+  { key: "knowledge", label: "Knowledge" }, // why it decided — the company brain
 ];
 
 function WorkspacePanel({ r, c, roles, entitled, lockedUrl, tab, onTab }: { r: ReturnType<typeof useEngine>; c: Company; roles: AgentRole[]; entitled: boolean; lockedUrl?: string; tab: SecTab; onTab: (t: SecTab) => void }) {
@@ -913,10 +908,11 @@ function WorkspacePanel({ r, c, roles, entitled, lockedUrl, tab, onTab }: { r: R
                   {r.activities.slice(0, 30).map((a) => <ActivityRow key={a.id} a={a} onUndo={() => r.undoActivity(a.id)} lockedUrl={lockedUrl} />)}
                 </AnimatePresence>
                 {r.activities.length > 30 && (
-                  <p className="pt-1 text-center text-xs text-muted-2">Showing the latest 30 — the full log lives in History.</p>
+                  <p className="pt-1 text-center text-xs text-muted-2">Showing the latest 30 — the trends below cover every shift.</p>
                 )}
               </div>
             )}
+            <NightTrends activities={r.activities} company={c} />
           </div>
         )}
         {tab === "brief" && (
@@ -928,20 +924,16 @@ function WorkspacePanel({ r, c, roles, entitled, lockedUrl, tab, onTab }: { r: R
               pendingApprovals={r.pendingApprovals}
               experiments={r.experiments}
               onReviewDecisions={() => document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth" })}
-              onSeeFunnel={() => onTab("growth")}
+              onSeeFunnel={() => onTab("sell")}
             />
+            {OPERATE_ENABLED && <OperateTab r={r} c={c} />}
           </div>
         )}
-        {tab === "agents" && (
-          <div className="space-y-4">
-            <CrewBoard r={r} />
-            <CrewBox />
-            <SpecialistCrew idea={c.idea} roles={roles} />
-          </div>
-        )}
-        {tab === "growth" && <GrowthPanel company={c} experiments={r.experiments} />}
-        {tab === "marketing" && (
+        {tab === "team" && <CrewBoard r={r} />}
+        {tab === "sell" && (
           <div className="space-y-3">
+            <GrowthPanel company={c} experiments={r.experiments} />
+            <GTMPanel company={c} activities={r.activities} />
             <div className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-bg/40 p-3">
               <div className="min-w-0">
                 <div className="text-sm font-medium text-text">Build in public</div>
@@ -952,37 +944,27 @@ function WorkspacePanel({ r, c, roles, entitled, lockedUrl, tab, onTab }: { r: R
               </button>
             </div>
             <CampaignPanel company={c} locked={!entitled} />
-            <GTMPanel company={c} activities={r.activities} />
           </div>
         )}
-        {tab === "team" && <TeamRoomTab company={c} r={r} />}
-        {tab === "chat" && <ChatTab company={c} r={r} />}
+        {tab === "chat" && <TeamRoomTab company={c} r={r} />}
         {tab === "knowledge" && <BrainTab r={r} />}
-        {OPERATE_ENABLED && tab === "operate" && <OperateTab r={r} c={c} />}
-        {tab === "history" && <HistoryTab activities={r.activities} company={c} />}
       </div>
     </section>
   );
 }
 
-/* ── History / analytics ─────────────────────────────────────── */
-function HistoryTab({ activities, company }: { activities: Activity[]; company: Company }) {
-  if (company.night === 0) {
-    return <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-muted-2">No nights run yet.</div>;
-  }
+/* ── Per-shift trends — lives INSIDE Activity (one ledger, raw feed + rollup; the History tab is gone) ── */
+function NightTrends({ activities, company }: { activities: Activity[]; company: Company }) {
+  if (company.night === 0) return null;
   const nights = Array.from({ length: company.night }, (_, i) => i + 1);
   const tasksByNight = nights.map((n) => activities.filter((a) => a.night === n && a.status === "done").length);
   const spendByNight = nights.map((n) =>
     Math.round(activities.filter((a) => a.night === n && a.status === "done").reduce((t, a) => t + a.cost, 0) * 100) / 100
   );
-
   return (
-    <div className="space-y-6">
-      <GaugePanel company={company} activities={activities} />
-      <div className="grid gap-6 md:grid-cols-2">
-        <BarChart title="Tasks completed / night" values={tasksByNight} nights={nights} color="var(--color-mint)" fmt={(v) => String(v)} />
-        <BarChart title="Spend / night" values={spendByNight} nights={nights} color="var(--color-coral)" fmt={(v) => "$" + v.toFixed(2)} />
-      </div>
+    <div className="grid gap-6 border-t border-border pt-4 md:grid-cols-2">
+      <BarChart title="Tasks completed / shift" values={tasksByNight} nights={nights} color="var(--color-mint)" fmt={(v) => String(v)} />
+      <BarChart title="Spend / shift" values={spendByNight} nights={nights} color="var(--color-coral)" fmt={(v) => "$" + v.toFixed(2)} />
     </div>
   );
 }

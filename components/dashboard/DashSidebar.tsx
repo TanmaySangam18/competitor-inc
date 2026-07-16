@@ -1,13 +1,12 @@
 "use client";
 
-// LEFT SIDEBAR (2026-07-12, playbook §4 IA): the app's persistent navigation rail — Bookary-style, teal.
-// Top-level destinations orbit the Project (the aggregate root); the per-project surfaces (Activity, Team,
-// Agents…) live as tabs inside the workspace. Hidden on mobile so the single-column cockpit still works.
-// Honest: Home/Projects resolve to the dashboard; Inbox scrolls to the live approvals band; Billing/Settings
-// route to the real settings page. Nothing here is a dead link.
+// LEFT SIDEBAR — exactly three destinations, one purpose each (2026-07-15 consolidation: "Projects" and
+// "Billing" were literal duplicate links of Home and Settings and are gone; company switching lives in
+// the TopBar switcher). Home = the cockpit · Inbox = jump to what needs you · Settings = keys/billing/account.
+// Hidden on mobile so the single-column cockpit still works.
 
 import Link from "next/link";
-import { Home, FolderKanban, Inbox, CreditCard, Settings } from "lucide-react";
+import { Home, Inbox, Settings } from "lucide-react";
 
 function scrollToInbox() {
   document.getElementById("approval-inbox")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -27,17 +26,9 @@ export function DashSidebar() {
         <Link href="/dashboard" className={`${itemBase} bg-coral text-white`} aria-current="page">
           <Home size={16} /> Home
         </Link>
-        <Link href="/dashboard" className={`${itemBase} text-muted hover:bg-surface-2 hover:text-text`}>
-          <FolderKanban size={16} /> Projects
-        </Link>
         <button onClick={scrollToInbox} className={`${itemBase} w-full text-left text-muted hover:bg-surface-2 hover:text-text`}>
           <Inbox size={16} /> Inbox
         </button>
-
-        <p className="px-3 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-2">Account</p>
-        <Link href="/dashboard/settings" className={`${itemBase} text-muted hover:bg-surface-2 hover:text-text`}>
-          <CreditCard size={16} /> Billing
-        </Link>
         <Link href="/dashboard/settings" className={`${itemBase} text-muted hover:bg-surface-2 hover:text-text`}>
           <Settings size={16} /> Settings
         </Link>

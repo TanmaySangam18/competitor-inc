@@ -14,10 +14,10 @@ export interface ShowcaseItem {
 
 // Platform surfaces — every one is a real route built in this repo (the company, running on itself).
 export const SHOWCASE: ShowcaseItem[] = [
-  { name: "The Team Room", blurb: "Watch the AI company deliberate a decision, live", href: "/room", kind: "platform" },
   { name: "Services", blurb: "Hire the company — build, support, sales & more", href: "/services", kind: "platform" },
   { name: "The Org", blurb: "All 56 agents, their jobs, and who they report to", href: "/org", kind: "platform" },
-  { name: "Control Room", blurb: "The safety gate, kill switch, and audit ledger", href: "/review", kind: "platform" },
+  { name: "The Benchmark", blurb: "The machine stress-tested, live — proven in simulation", href: "/benchmark", kind: "platform" },
+  { name: "Decision Queue", blurb: "What the org prepared for the human to sign, today", href: "/decisions", kind: "platform" },
 ];
 
 export function listShowcase(): ShowcaseItem[] {

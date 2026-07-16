@@ -40,7 +40,7 @@ export default async function BenchmarkPage() {
     <main className="flex min-h-[100dvh] flex-col bg-bg text-text">
       <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
         <a href="/" className="text-lg font-semibold tracking-tight">competitor<span className="text-coral">.inc</span></a>
-        <a href="/review" className="rounded-xl border border-border px-4 py-2 text-xs font-medium text-muted transition hover:border-coral/50 hover:text-coral">Control room</a>
+        <a href="/decisions" className="rounded-xl border border-border px-4 py-2 text-xs font-medium text-muted transition hover:border-coral/50 hover:text-coral">Decision queue</a>
       </header>
 
       <section className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
