@@ -40,7 +40,14 @@ superficial refactor — a systematic audit-and-kill, with every decision record
 **Phase 5 · Benchmarks (study, never copy)**
 - postiz-app (AGPL-3.0): architecture IDEAS only — monorepo layout, worker/queue split, provider
   abstraction. LEGAL LINE: no code, no derived expression (our gate blocks AGPL; recorded here).
-- Omniroute AI: product-experience benchmark — BLOCKED on a reachable URL from the founder.
+- OmniRoute (diegosouzapw, MIT — green): product-experience benchmark, ANALYZED 2026-07-15. Adopt:
+  (a) 3-step time-to-first-value framing on /connect ("connect 4 accounts → the company runs");
+  (b) named degradation tiers shown as a cascade (what runs NOW vs what each connection unlocks);
+  (c) every public claim quantified WITH a methodology link (their ~1.6B-tokens + FREE_TIERS.md
+      pattern = our /benchmark discipline, extended to every number on the site);
+  (d) a live health surface (their Health page = our /connect status + loop digest, one view);
+  (e) explicit competitor comparison matrix (we have the intel; they show positioning beats vacuum);
+  (f) later: /.well-known/agent.json A2A endpoint — the org itself as a drivable agent (fits MCP lane).
 
 ## Order of execution
 0 (inventory) → 1 (kills, biggest first) → 2 (consolidations, one per PR-sized commit) → 3 (CI
