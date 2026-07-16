@@ -52,6 +52,8 @@ async function run() {
   if (home) { const t = await home.text(); t.includes("competitor.inc") ? ok("/ contains brand") : fail("/ missing 'competitor.inc'"); }
   await get("/dashboard"); await get("/login"); await get("/live"); await get("/dashboard/settings"); await get("/join"); await get("/how-it-works"); await get("/nu"); await get("/house"); await get("/house/board"); await get("/house/ledger"); await get("/house/cohort");
   await get("/proof");
+  await get("/notices"); // third-party attribution (license-shield honesty) — linked from the landing footer
+  await get("/services"); await get("/org"); await get("/benchmark"); // landing-footer targets — the landing must never link to a dead route
   await get("/decisions"); // the Executive Inbox (Day One) — renders signed-out empty state
   await get("/connect"); // the MACHINA onboarding surface — connect-and-go, reads live readiness
   await get("/build"); // the "prove it" demo (moved off /); / is now the MACHINA landing
