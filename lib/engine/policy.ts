@@ -12,7 +12,7 @@
 import type { AgentRole, ApprovalItem } from "./types";
 
 // Real-world executor actions the system can actually dispatch (see lib/engine/execution.ts runAction).
-export type ExecAction = "build" | "deploy" | "outreach" | "spend" | "payments" | "bluesky" | "mastodon" | "delete";
+export type ExecAction = "build" | "deploy" | "outreach" | "spend" | "payments" | "bluesky" | "mastodon" | "delete" | "mcp_read";
 
 export type Bucket = "AUTO" | "APPROVE" | "NEVER"; // a cell in the per-agent matrix
 export type Verdict = "AUTO" | "QUEUE" | "BLOCK"; // decide()'s output
@@ -115,13 +115,13 @@ export const POLICY: Policy = {
     // CEO — watches the money. May set up payments + approve ad budget; never ships or posts.
     ceo: { spend: "APPROVE", payments: "APPROVE", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Engineer — ships. May build + deploy (with sign-off); never touches money or public channels.
-    engineering: { build: "APPROVE", deploy: "APPROVE", spend: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    engineering: { build: "APPROVE", deploy: "APPROVE", mcp_read: "AUTO", spend: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Marketer — finds customers. Owns outreach, ad spend, and social; never ships or moves money out.
     marketing: { outreach: "APPROVE", spend: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", build: "NEVER", deploy: "NEVER", payments: "NEVER", delete: "NEVER" },
     // Support — helps users. May send approved replies; never spends, ships, or posts publicly.
     support: { outreach: "APPROVE", build: "NEVER", deploy: "NEVER", spend: "NEVER", payments: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Growth — spots opportunities. May run experiments (spend/social/payments) with sign-off; never ships.
-    growth: { spend: "APPROVE", payments: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", build: "NEVER", deploy: "NEVER", outreach: "NEVER", delete: "NEVER" },
+    growth: { spend: "APPROVE", payments: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", mcp_read: "AUTO", build: "NEVER", deploy: "NEVER", outreach: "NEVER", delete: "NEVER" },
     // Manufacturing (dynamic-crew role) — runs ops & supply. May propose spend with sign-off; never ships code or posts.
     manufacturing: { spend: "APPROVE", build: "NEVER", deploy: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Finance — prepares the money act; the HUMAN moves money. May propose spend for sign-off; never touches payment rails.
@@ -129,7 +129,7 @@ export const POLICY: Policy = {
     // Legal — drafts + prepares only. Nothing legal auto-fires; every act routes to the human spine.
     legal: { spend: "NEVER", payments: "NEVER", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Ops — runs internal process & vendors. May propose spend/vendor commitments with sign-off; never ships or posts.
-    ops: { spend: "APPROVE", payments: "NEVER", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    ops: { spend: "APPROVE", mcp_read: "AUTO", payments: "NEVER", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
   },
   channels: {
     email: { allowed: "opted_in_only", compliance: ["unsubscribe_link", "sender_identity", "consent_basis"], autoSend: false },
@@ -239,7 +239,10 @@ const BASE_TIER: Record<string, Tier> = {
   build: "T1",       // sandbox/staging engineering — reversible
   outreach: "T2",    // contacting a real person — significant
   spend: "T0",       // the dollar thresholds below drive spend's tier
+  mcp_read: "T1",    // read-only pull from a CONNECTED external service (their own account) — reversible
   deploy: "T3", delete: "T3", payments: "T3", bluesky: "T3", mastodon: "T3",
+  // NOTE: mcp writes ride as "mcp_call" — intentionally NOT here, so they land on the unknown→T2 QUEUE
+  // path until a per-tool allowlist earns promotion (default-deny, promote-on-evidence).
 };
 
 export interface TierScore {
