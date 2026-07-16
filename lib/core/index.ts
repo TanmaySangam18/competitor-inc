@@ -45,7 +45,7 @@ import { exportData, planDeletion, type ExportBundle, type DeletionPlan } from "
 import { readiness, type Readiness, type DoDCheck } from "./readiness";
 import { classifyLicense, screenDependency, attributionList, type LicenseVerdict, type LicenseClass, type DepScreen } from "./licenses";
 import { badgeSnippet, badgeUrl, badgeRequired, type Tier as BadgeTier } from "./badge";
-import { connectionStatus, goLiveReadiness, CONNECTIONS, type Connection, type ConnectionStatus, type Owner } from "./connections";
+import { connectionStatus, connectionMapStatus, goLiveReadiness, CONNECTIONS, CONNECTION_MAP, FOUNDER_GO_LIVE, TIER_LABELS, TIER_ORDER, type Connection, type ConnectionStatus, type ConnectionTier, type Owner } from "./connections";
 import { suggestNames, provisionPlan, slugify, type DomainPlan, type DomainRail } from "./domains";
 
 // ── ORG: the one canonical org model — 66 positions across departments, each routing (via execFn) to one
@@ -157,8 +157,9 @@ export { readiness };
 
 // ── LICENSE SHIELD (ORG #29/#42): classify SPDX, screen deps, require NOTICE — comply, never strip. CI
 // blocks anything not allowed; unknown = default-deny. BADGE: "Built with competitor.inc" (free growth).
-// CONNECTIONS: the founder's go-live switch + the customer's BYOK set. DOMAINS: legal name provisioning.
-export { classifyLicense, screenDependency, attributionList, badgeSnippet, badgeUrl, badgeRequired, connectionStatus, goLiveReadiness, suggestNames, provisionPlan };
+// CONNECTIONS: the 17-service connection map (CONNECT-FIRST-RESET §1, tiered T0–T3, BYOK) + the founder's
+// go-live switch. DOMAINS: legal name provisioning.
+export { classifyLicense, screenDependency, attributionList, badgeSnippet, badgeUrl, badgeRequired, connectionStatus, connectionMapStatus, goLiveReadiness, CONNECTION_MAP, FOUNDER_GO_LIVE, TIER_LABELS, TIER_ORDER, suggestNames, provisionPlan };
 
 export const core = {
   org, agents, governance, deliberate, plan, coordinate, checkHealth,
@@ -183,7 +184,7 @@ export const core = {
   readiness,
   licenses: { classify: classifyLicense, screen: screenDependency, attribution: attributionList },
   badge: { snippet: badgeSnippet, url: badgeUrl, required: badgeRequired },
-  connections: { status: connectionStatus, goLive: goLiveReadiness, all: CONNECTIONS },
+  connections: { status: connectionStatus, map: CONNECTION_MAP, mapStatus: connectionMapStatus, founder: FOUNDER_GO_LIVE, tiers: TIER_LABELS, tierOrder: TIER_ORDER, goLive: goLiveReadiness, all: CONNECTIONS },
   domains: { suggest: suggestNames, plan: provisionPlan },
 };
 
@@ -191,5 +192,5 @@ export type { OrgRole, Department, ActionContext, PolicyDecision, Verdict, ExecA
 export { AuditLog, MemoryAuditSink };
 export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment, FreezeOutcome, Risk, DrillReport, DrillResult, CostRollup, Margin, SpendAnomaly, Precedent, ConsultResult, ChangeKind };
 export { PrecedentStore, normalizeQuestion };
-export type { VaultClient, Provider, ProviderStatus, PromptVersion, KpiReport, ExportBundle, DeletionPlan, Readiness, DoDCheck, SOP, LicenseVerdict, LicenseClass, DepScreen, BadgeTier, Connection, ConnectionStatus, Owner, DomainPlan, DomainRail };
+export type { VaultClient, Provider, ProviderStatus, PromptVersion, KpiReport, ExportBundle, DeletionPlan, Readiness, DoDCheck, SOP, LicenseVerdict, LicenseClass, DepScreen, BadgeTier, Connection, ConnectionStatus, ConnectionTier, Owner, DomainPlan, DomainRail };
 export default core;

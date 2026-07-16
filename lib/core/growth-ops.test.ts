@@ -22,7 +22,9 @@ describe("BYOK connections registry", () => {
   it("splits founder vs customer connections", () => {
     expect(connectionStatus("founder").length).toBeGreaterThan(0);
     expect(connectionStatus("customer").every((c) => c.owner === "customer")).toBe(true);
-    expect(CONNECTIONS.find((c) => c.id === "c-model")?.purpose).toMatch(/THEIR AI spend/i);
+    // the old c-* stubs are superseded by the 17-service CONNECTION_MAP (ADR-0004); the model key is BYOK
+    expect(CONNECTIONS.find((c) => c.id === "ai-model")?.owner).toBe("customer");
+    expect(CONNECTIONS.find((c) => c.id === "ai-model")?.purpose).toMatch(/cognition/i);
   });
   it("detects an env-backed connection when set; manual items stay pending", () => {
     delete process.env.CONTROL_SECRET;
