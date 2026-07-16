@@ -12,11 +12,11 @@ import type { ValidationResult } from "@/lib/engine/types";
 
 const VERDICT: Record<ValidationResult["verdict"], { label: string; cls: string; ring: string }> = {
   strong: { label: "Strong signal", cls: "text-mint", ring: "var(--mint, #34d399)" },
-  mixed: { label: "Mixed signal", cls: "text-[#d9a441]", ring: "#d9a441" },
-  weak: { label: "Weak signal", cls: "text-coral", ring: "var(--coral, #f97362)" },
+  mixed: { label: "Mixed signal", cls: "text-muted", ring: "#8f8f8f" },
+  weak: { label: "Weak signal", cls: "text-coral", ring: "var(--color-coral, #111111)" },
 };
 
-const SIGNAL_DOT: Record<string, string> = { positive: "bg-mint", weak: "bg-[#d9a441]", negative: "bg-coral" };
+const SIGNAL_DOT: Record<string, string> = { positive: "bg-mint", weak: "bg-muted", negative: "bg-coral" };
 
 export default function Scorecard() {
   const [idea, setIdea] = useState("");

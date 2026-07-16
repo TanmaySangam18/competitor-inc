@@ -223,7 +223,7 @@ export function BrainTab({ r }: { r: ReturnType<typeof useEngine> }) {
                     {isSel && <circle cx={n.x} cy={n.y} r="14" fill="none" stroke="currentColor" strokeWidth="1.5" />}
                     {n.auditIssues && n.auditIssues.length > 0 && (
                       <g aria-label="Office audit flag">
-                        <circle cx={n.x + 11} cy={n.y - 11} r="7" fill="var(--color-bg, #f7f0da)" stroke="currentColor" strokeWidth="1.5" />
+                        <circle cx={n.x + 11} cy={n.y - 11} r="7" fill="var(--color-bg, #ffffff)" stroke="currentColor" strokeWidth="1.5" />
                         <text x={n.x + 11} y={n.y - 7.5} textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor">!</text>
                       </g>
                     )}

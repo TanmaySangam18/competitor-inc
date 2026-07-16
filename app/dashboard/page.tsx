@@ -42,7 +42,6 @@ import { CompanyLogo } from "@/components/CompanyLogo";
 import ActionBell from "@/components/ActionBell";
 import EntitlementNotice from "@/components/EntitlementNotice";
 import GuestSavePrompt from "@/components/GuestSavePrompt";
-import { LiveGlassBox } from "@/components/LiveGlassBox";
 import GTMPanel from "@/components/GTMPanel";
 import GaugePanel from "@/components/GaugePanel";
 import GrowthPanel from "@/components/GrowthPanel";
@@ -906,7 +905,6 @@ function WorkspacePanel({ r, c, roles, entitled, lockedUrl, tab, onTab }: { r: R
       <div className="pr-1">
         {tab === "activity" && (
           <div className="space-y-4">
-            <LiveGlassBox company={c} />
             {r.activities.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border px-6 py-8 text-center text-sm text-muted-2">Nothing yet. Hit <span className="text-muted">Run</span> and watch it work.</div>
             ) : (

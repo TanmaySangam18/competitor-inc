@@ -83,23 +83,23 @@ export default function DecisionsPage() {
           each item prepared, drafted, and briefed. Approve, reject, or send it back with a note.
         </p>
 
-        {error && <p className="mt-6 rounded border border-[#D9C1B8] bg-[#FBF1EC] px-4 py-3 text-sm text-[#8C3A22]">{error}</p>}
+        {error && <p className="mt-6 rounded border border-[#00000033] bg-[#f3f3f1] px-4 py-3 text-sm text-[#0a0a0a]">{error}</p>}
 
         {signedIn === false && (
-          <div className="mt-10 rounded border border-[#D9D0BE] bg-[#FDFBF6] px-6 py-8 text-sm opacity-80">
+          <div className="mt-10 rounded border border-[#00000024] bg-[#ffffff] px-6 py-8 text-sm opacity-80">
             Sign in to see your queue. Decisions are scoped to their principal — no one else can read or act on yours.
           </div>
         )}
 
         {signedIn && decisions.length === 0 && (
-          <div className="mt-10 rounded border border-[#D9D0BE] bg-[#FDFBF6] px-6 py-8 text-sm opacity-80">
+          <div className="mt-10 rounded border border-[#00000024] bg-[#ffffff] px-6 py-8 text-sm opacity-80">
             Nothing awaits you. The organization is working; you will see the next prepared decision here.
           </div>
         )}
 
         <ul className="mt-8 space-y-6">
           {decisions.map((d) => (
-            <li key={d.id} className="rounded border border-[#D9D0BE] bg-[#FDFBF6] p-5">
+            <li key={d.id} className="rounded border border-[#00000024] bg-[#ffffff] p-5">
               <div className="flex items-baseline justify-between gap-4">
                 <span className="text-[11px] uppercase tracking-widest opacity-60">{d.kind}{d.revision > 0 ? ` · revision ${d.revision}` : ""}</span>
                 <span className="text-[11px] opacity-50">{new Date(d.createdAt).toLocaleString()}</span>
@@ -115,21 +115,21 @@ export default function DecisionsPage() {
                 {openArtifact === d.id ? "Hide the full draft" : "Read the full draft"}
               </button>
               {openArtifact === d.id && (
-                <pre className="mt-3 overflow-x-auto rounded bg-[#F5EFE3] p-4 font-mono text-xs leading-5">{d.artifact}</pre>
+                <pre className="mt-3 overflow-x-auto rounded bg-[#f3f3f1] p-4 font-mono text-xs leading-5">{d.artifact}</pre>
               )}
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <button
                   disabled={busy === d.id}
                   onClick={() => verdict(d.id, "approve")}
-                  className="rounded bg-[#1F5130] px-4 py-1.5 text-sm text-white hover:opacity-90 disabled:opacity-50"
+                  className="rounded bg-[#0a0a0a] px-4 py-1.5 text-sm text-white hover:opacity-90 disabled:opacity-50"
                 >
                   Approve
                 </button>
                 <button
                   disabled={busy === d.id}
                   onClick={() => verdict(d.id, "reject")}
-                  className="rounded border border-[#8C3A22] px-4 py-1.5 text-sm text-[#8C3A22] hover:bg-[#FBF1EC] disabled:opacity-50"
+                  className="rounded border border-[#0a0a0a] px-4 py-1.5 text-sm text-[#0a0a0a] hover:bg-[#f3f3f1] disabled:opacity-50"
                 >
                   Reject
                 </button>
@@ -137,12 +137,12 @@ export default function DecisionsPage() {
                   value={note[d.id] ?? ""}
                   onChange={(e) => setNote({ ...note, [d.id]: e.target.value })}
                   placeholder="What should change?"
-                  className="min-w-0 flex-1 rounded border border-[#D9D0BE] bg-white px-3 py-1.5 text-sm"
+                  className="min-w-0 flex-1 rounded border border-[#00000024] bg-white px-3 py-1.5 text-sm"
                 />
                 <button
                   disabled={busy === d.id || !(note[d.id] ?? "").trim()}
                   onClick={() => verdict(d.id, "modify")}
-                  className="rounded border border-[#1A1712] px-4 py-1.5 text-sm hover:bg-[#F5EFE3] disabled:opacity-40"
+                  className="rounded border border-[#0a0a0a] px-4 py-1.5 text-sm hover:bg-[#f3f3f1] disabled:opacity-40"
                 >
                   Send back
                 </button>

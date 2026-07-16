@@ -31,7 +31,7 @@ export function CompanyLogo({
         textAnchor="middle"
         fontSize={fontSize}
         fontWeight={700}
-        fill="#f7f0da"
+        fill="#fafafa"
         fontFamily="var(--font-display, ui-sans-serif), sans-serif"
       >
         {m.initials}

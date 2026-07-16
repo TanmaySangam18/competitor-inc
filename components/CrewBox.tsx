@@ -23,7 +23,7 @@ function PixelBot({ color, size = 30 }: { color: string; size?: number }) {
     for (let x = 0; x < row.length; x++) {
       const ch = row[x];
       if (ch === ".") continue;
-      const fill = ch === "E" || ch === "M" ? "var(--color-bg, #f3eee2)" : color;
+      const fill = ch === "E" || ch === "M" ? "var(--color-bg, #ffffff)" : color;
       rects.push(<rect key={`${x}-${y}`} x={x * u} y={y * u} width={u + 0.5} height={u + 0.5} fill={fill} />);
     }
   });
