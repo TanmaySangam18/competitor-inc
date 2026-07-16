@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-16T22:56:56.554Z",
+ "generated": "2026-07-16T22:57:57.595Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -120,6 +120,12 @@
    "cls": "entry",
    "importers": 1,
    "last": "2026-07-12"
+  },
+  {
+   "file": "app/api/hooks/incident/route.ts",
+   "cls": "entry",
+   "importers": 1,
+   "last": "2026-07-16"
   },
   {
    "file": "app/api/import/route.ts",
@@ -341,7 +347,7 @@
    "file": "app/connect/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-11"
+   "last": "2026-07-16"
   },
   {
    "file": "app/dashboard/loading.tsx",
@@ -425,7 +431,7 @@
    "file": "app/how-it-works/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-10"
+   "last": "2026-07-16"
   },
   {
    "file": "app/integrations/GateProbe.tsx",
@@ -449,7 +455,7 @@
    "file": "app/layout.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-12"
+   "last": "2026-07-16"
   },
   {
    "file": "app/live/loading.tsx",
@@ -482,6 +488,12 @@
    "last": "2026-06-17"
   },
   {
+   "file": "app/notices/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-16"
+  },
+  {
    "file": "app/nu/page.tsx",
    "cls": "entry",
    "importers": 0,
@@ -503,7 +515,7 @@
    "file": "app/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-14"
+   "last": "2026-07-16"
   },
   {
    "file": "app/playbooks/[slug]/page.tsx",
@@ -672,12 +684,6 @@
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-08"
-  },
-  {
-   "file": "components/LandingInput.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-12"
   },
   {
    "file": "components/Logo.tsx",
@@ -862,7 +868,7 @@
   {
    "file": "lib/core/audit.ts",
    "cls": "reachable",
-   "importers": 11,
+   "importers": 15,
    "last": "2026-07-14"
   },
   {
@@ -874,8 +880,8 @@
   {
    "file": "lib/core/connections.ts",
    "cls": "reachable",
-   "importers": 2,
-   "last": "2026-07-14"
+   "importers": 4,
+   "last": "2026-07-16"
   },
   {
    "file": "lib/core/conversation.ts",
@@ -922,7 +928,7 @@
   {
    "file": "lib/core/govern.ts",
    "cls": "reachable",
-   "importers": 6,
+   "importers": 7,
    "last": "2026-07-14"
   },
   {
@@ -935,12 +941,12 @@
    "file": "lib/core/index.ts",
    "cls": "reachable",
    "importers": 16,
-   "last": "2026-07-14"
+   "last": "2026-07-16"
   },
   {
    "file": "lib/core/killswitch.ts",
    "cls": "reachable",
-   "importers": 9,
+   "importers": 13,
    "last": "2026-07-14"
   },
   {
@@ -957,8 +963,8 @@
   },
   {
    "file": "lib/core/mcp-connect.ts",
-   "cls": "TEST-ONLY",
-   "importers": 1,
+   "cls": "reachable",
+   "importers": 2,
    "last": "2026-07-16"
   },
   {
@@ -1450,13 +1456,13 @@
   {
    "file": "lib/engine/org-run.ts",
    "cls": "reachable",
-   "importers": 9,
+   "importers": 10,
    "last": "2026-07-09"
   },
   {
    "file": "lib/engine/org-runs-db.ts",
    "cls": "reachable",
-   "importers": 4,
+   "importers": 5,
    "last": "2026-07-09"
   },
   {
@@ -1504,7 +1510,7 @@
   {
    "file": "lib/engine/policy.ts",
    "cls": "reachable",
-   "importers": 18,
+   "importers": 21,
    "last": "2026-07-16"
   },
   {
@@ -1606,7 +1612,7 @@
   {
    "file": "lib/engine/service.ts",
    "cls": "reachable",
-   "importers": 27,
+   "importers": 28,
    "last": "2026-07-02"
   },
   {
@@ -1624,7 +1630,7 @@
   {
    "file": "lib/engine/slack.ts",
    "cls": "reachable",
-   "importers": 2,
+   "importers": 3,
    "last": "2026-07-11"
   },
   {
@@ -1690,7 +1696,7 @@
   {
    "file": "lib/engine/types.ts",
    "cls": "reachable",
-   "importers": 96,
+   "importers": 98,
    "last": "2026-07-12"
   },
   {
@@ -1742,6 +1748,18 @@
    "last": "2026-07-14"
   },
   {
+   "file": "lib/loop/finance-report.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "lib/loop/incident.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-16"
+  },
+  {
    "file": "lib/loop/loop-driver.ts",
    "cls": "reachable",
    "importers": 2,
@@ -1751,6 +1769,18 @@
    "file": "lib/loop/loop-engine.ts",
    "cls": "reachable",
    "importers": 3,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "lib/loop/office.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "lib/loop/support-escalation.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
    "last": "2026-07-16"
   },
   {
@@ -1991,7 +2021,7 @@
    "file": "scripts/smoke.mjs",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-15"
+   "last": "2026-07-16"
   },
   {
    "file": "instrumentation-client.ts",
@@ -2042,5 +2072,7 @@
    "last": "2026-06-17"
   }
  ],
- "unresolved": []
+ "unresolved": [
+  "next-env.d.ts → ./.next/types/routes.d.ts"
+ ]
 }
