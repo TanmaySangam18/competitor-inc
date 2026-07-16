@@ -1,0 +1,2126 @@
+{
+ "generated": "2026-07-16T17:43:40.240Z",
+ "rows": [
+  {
+   "file": "app/api/app/[ns]/[entity]/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/attribution/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/billing/polar/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "app/api/build-status/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/change/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "app/api/chatops/messages/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "app/api/control/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "app/api/coordinate/route.ts",
+   "cls": "entry",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/api/cron/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "app/api/cycles/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-05"
+  },
+  {
+   "file": "app/api/decisions/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "app/api/deliberate/route.ts",
+   "cls": "entry",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/api/demand/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/engine/route.ts",
+   "cls": "entry",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "app/api/enrich/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "app/api/execute/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/feedback/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/funding/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "app/api/growth/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/health/route.ts",
+   "cls": "entry",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/api/import/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/import/verify/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/intake/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "app/api/interest/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/kickoff/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "app/api/mandate/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/mcp/route.ts",
+   "cls": "entry",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/api/metrics/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "app/api/notify/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/org/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "app/api/org-run/advance/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/org-run/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/payments/stripe/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/api/plan/route.ts",
+   "cls": "entry",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/api/proof/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "app/api/radar/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/readiness/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "app/api/receipt-card/route.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/room/route.ts",
+   "cls": "entry",
+   "importers": 1,
+   "last": "2026-07-13"
+  },
+  {
+   "file": "app/api/sales/booking/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/api/sales/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/services/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-13"
+  },
+  {
+   "file": "app/api/site-preview/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/slack/webhook/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "app/api/telegram/decisions/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/telegram/webhook/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "app/api/track/route.ts",
+   "cls": "entry",
+   "importers": 1,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/version/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "app/api/waitlist/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/auth/callback/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "app/benchmark/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "app/blog/[slug]/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/blog/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/blog/posts.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-06-24"
+  },
+  {
+   "file": "app/build/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "app/compare/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/connect/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "app/dashboard/loading.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "app/dashboard/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "app/dashboard/settings/loading.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "app/dashboard/settings/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/decisions/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "app/error.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "app/founder/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "app/house/board/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "app/house/cohort/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "app/house/funding/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "app/house/ledger/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "app/house/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "app/house/proof/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "app/how-it-works/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/integrations/GateProbe.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/integrations/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/join/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/layout.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/live/loading.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "app/live/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "app/login/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-20"
+  },
+  {
+   "file": "app/maintenance/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "app/not-found.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "app/nu/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/opengraph-image.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "app/org/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "app/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "app/playbooks/[slug]/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/playbooks/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/privacy/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/proof/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "app/radar/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-01"
+  },
+  {
+   "file": "app/robots.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "app/score/opengraph-image.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "app/score/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "app/sell/opengraph-image.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "app/sell/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "app/services/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "app/signup/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-20"
+  },
+  {
+   "file": "app/sitemap.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "app/t/[slug]/DemandCapture.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "app/t/[slug]/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "app/terms/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "bin/competitor.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "components/ActionBell.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-06-27"
+  },
+  {
+   "file": "components/AttributionPanel.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "components/AuthPanel.tsx",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "components/CampaignPanel.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "components/CoachCard.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "components/CompanyLogo.tsx",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "components/DemandRadarPanel.tsx",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-01"
+  },
+  {
+   "file": "components/DemandTestPanel.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "components/EntitlementNotice.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "components/FeedbackWidget.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "components/FounderSection.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "components/GTMPanel.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "components/GrowthPanel.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "components/GuestSavePrompt.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-06-27"
+  },
+  {
+   "file": "components/ImportPanel.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-01"
+  },
+  {
+   "file": "components/JourneyExplorer.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "components/LandingInput.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "components/Logo.tsx",
+   "cls": "reachable",
+   "importers": 16,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "components/MomTestKit.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "components/MorningBrief.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "components/NuCapture.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "components/PixelSnippet.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "components/ProductMarquee.tsx",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "components/RouteLoading.tsx",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "components/Scorecard.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "components/ScrollProgress.tsx",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "components/SecretHouseDoor.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-06-23"
+  },
+  {
+   "file": "components/SelfEnrichPanel.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "components/SellThis.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "components/SignupAttribution.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "components/TrackBeacon.tsx",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "components/dashboard/ActivityRow.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "components/dashboard/ApprovalCard.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "components/dashboard/BarChart.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "components/dashboard/BrainTab.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "components/dashboard/BringYourKeysNudge.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "components/dashboard/CrewBoard.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "components/dashboard/DashSidebar.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "components/dashboard/FoundingMember.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "components/dashboard/MandateCard.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "components/dashboard/Onboarding.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "components/dashboard/OperateTab.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "components/dashboard/Stat.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "components/dashboard/TeamRoomTab.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "components/dashboard/WalletCard.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "components/dashboard/agentStyle.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-05"
+  },
+  {
+   "file": "components/house/LandingFunnel.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "components/house/SignupsWidget.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "components/ledger/LedgerNav.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "components/ledger/LedgerShell.tsx",
+   "cls": "reachable",
+   "importers": 12,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "components/useCopy.ts",
+   "cls": "reachable",
+   "importers": 7,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/core/abuse.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/audit.ts",
+   "cls": "reachable",
+   "importers": 11,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/badge.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/connections.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/conversation.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-13"
+  },
+  {
+   "file": "lib/core/coordinate.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/deliberate.ts",
+   "cls": "reachable",
+   "importers": 9,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/design-studio.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "lib/core/domains.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/dsr.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/economics.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/govern.ts",
+   "cls": "reachable",
+   "importers": 6,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/health.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/index.ts",
+   "cls": "reachable",
+   "importers": 16,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/killswitch.ts",
+   "cls": "reachable",
+   "importers": 9,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/kpi.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/licenses.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/mcp-connect.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "lib/core/model-reasoner.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/operate.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/outreach-send.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/outreach.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/payments.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/plan.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/precedent.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/prompts.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/providers.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/readiness.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/separation.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/services.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-13"
+  },
+  {
+   "file": "lib/core/showcase.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "lib/core/vault.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/engine/EngineContext.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "lib/engine/access-gate.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "lib/engine/access-server.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "lib/engine/accountability-spine.ts",
+   "cls": "reachable",
+   "importers": 7,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "lib/engine/agent-lifecycle.ts",
+   "cls": "reachable",
+   "importers": 7,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "lib/engine/agent-performance.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/aider-build.ts",
+   "cls": "reachable",
+   "importers": 6,
+   "last": "2026-07-05"
+  },
+  {
+   "file": "lib/engine/alerts.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/analyst.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/apply-decisions-db.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "lib/engine/apply-decisions.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "lib/engine/architect-knowledge.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/attribution.ts",
+   "cls": "reachable",
+   "importers": 6,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "lib/engine/authoritative.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/autosetup.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/backend-provider.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/backend.ts",
+   "cls": "TEST-ONLY",
+   "importers": 3,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "lib/engine/billing.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/bkg.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/blitz.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/build-executor.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "lib/engine/build-github.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-05"
+  },
+  {
+   "file": "lib/engine/buildinpublic.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/engine/campaign.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "lib/engine/change-desk.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "lib/engine/chatops.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "lib/engine/coach.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/config.ts",
+   "cls": "reachable",
+   "importers": 8,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/connectors.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "lib/engine/context-compression.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-05"
+  },
+  {
+   "file": "lib/engine/crew.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/engine/cycle-store.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-05"
+  },
+  {
+   "file": "lib/engine/db.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "lib/engine/decisions-db.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/distribution.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/dynamic-crew.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "lib/engine/enrich.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/entitlement.ts",
+   "cls": "reachable",
+   "importers": 6,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "lib/engine/execution.ts",
+   "cls": "reachable",
+   "importers": 12,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/flags.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "lib/engine/founders.ts",
+   "cls": "reachable",
+   "importers": 9,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/fullstack-build.ts",
+   "cls": "reachable",
+   "importers": 9,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "lib/engine/funnel.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/github-secrets.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "lib/engine/grounding.ts",
+   "cls": "TEST-ONLY",
+   "importers": 3,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/growth.ts",
+   "cls": "reachable",
+   "importers": 14,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/gtm.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/hosting.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/house-trial.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "lib/engine/html.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/importer.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/job-parser.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "lib/engine/ledger.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/lifecycle-email.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "lib/engine/logo.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-27"
+  },
+  {
+   "file": "lib/engine/mandates-db.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/engine/memory.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/model-providers.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/momtest.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/net.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/notify-founder.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/notify.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/observability.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-06-26"
+  },
+  {
+   "file": "lib/engine/office-budget.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-05"
+  },
+  {
+   "file": "lib/engine/office-house-architecture.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/openhands.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "lib/engine/operating-loop.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-05"
+  },
+  {
+   "file": "lib/engine/orchestrator.ts",
+   "cls": "reachable",
+   "importers": 8,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/engine/org-plan.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/engine/org-run-step.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/engine/org-run.ts",
+   "cls": "reachable",
+   "importers": 9,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/engine/org-runs-db.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/engine/organic-growth.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "lib/engine/organic-shift.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "lib/engine/outreach.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/ownership.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/per-agent-model-routing.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/playbooks.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "lib/engine/polar.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/policy.ts",
+   "cls": "reachable",
+   "importers": 18,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "lib/engine/product-memory-db.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/products-db.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/proof.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/provider.ts",
+   "cls": "reachable",
+   "importers": 6,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "lib/engine/radar.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-01"
+  },
+  {
+   "file": "lib/engine/ratelimit.ts",
+   "cls": "reachable",
+   "importers": 25,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "lib/engine/rationale.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-05"
+  },
+  {
+   "file": "lib/engine/real-executor.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/engine/receipt-sign.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "lib/engine/redact.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/refcode.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-06-26"
+  },
+  {
+   "file": "lib/engine/reversibility.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "lib/engine/sales-desk.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "lib/engine/sales-playbooks.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "lib/engine/scorecard-persistence.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/server.ts",
+   "cls": "reachable",
+   "importers": 11,
+   "last": "2026-07-08"
+  },
+  {
+   "file": "lib/engine/service.ts",
+   "cls": "reachable",
+   "importers": 27,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/shift-with-subagents.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "lib/engine/site-review.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "lib/engine/slack.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/slug.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-02"
+  },
+  {
+   "file": "lib/engine/specialists.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "lib/engine/spend-cap.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "lib/engine/spendguard.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-06-30"
+  },
+  {
+   "file": "lib/engine/sub-agent-executor.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/supervisor.ts",
+   "cls": "reachable",
+   "importers": 14,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/engine/support-desk.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/engine/sync.ts",
+   "cls": "reachable",
+   "importers": 6,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "lib/engine/task-queue.ts",
+   "cls": "reachable",
+   "importers": 12,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/engine/trial.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "lib/engine/types.ts",
+   "cls": "reachable",
+   "importers": 106,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/engine/usage.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/useAuth.ts",
+   "cls": "reachable",
+   "importers": 11,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/engine/useEngine.ts",
+   "cls": "reachable",
+   "importers": 6,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/user-limits.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-06"
+  },
+  {
+   "file": "lib/engine/wallet-db.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/engine/wallet.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-04"
+  },
+  {
+   "file": "lib/engine/weekly-review-digest.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "lib/founder.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/loop/loop-driver.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "lib/loop/loop-engine.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "lib/mcp/tools.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/org/autopilot.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/org/campus-access.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/org/customer-mandate.ts",
+   "cls": "reachable",
+   "importers": 9,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/org/decision-queue.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/org/executive-desks.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/org/funding-pack.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/org/kickoff.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/org/ops-desk.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/org/org-soul.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/org/org-stages.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/org/organization.ts",
+   "cls": "reachable",
+   "importers": 25,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/org/outreach.ts",
+   "cls": "reachable",
+   "importers": 8,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/org/parallel.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/org/personas.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/org/product-memory.ts",
+   "cls": "reachable",
+   "importers": 8,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/org/role-titles.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/org/slack-org.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/org/sops.ts",
+   "cls": "reachable",
+   "importers": 5,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/org/substrate.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/org/suite.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/org/twilio-notify.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "lib/org/verification.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "lib/payments/stripe-connect.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/sales/calcom.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-12"
+  },
+  {
+   "file": "lib/sim/compounding.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/sim/failure-drills.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-14"
+  },
+  {
+   "file": "lib/sim/proving-ground.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/sim/saas-drill.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "lib/sim/synthetic-enterprise.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "lib/site.ts",
+   "cls": "reachable",
+   "importers": 6,
+   "last": "2026-07-03"
+  },
+  {
+   "file": "lib/supabase/client.ts",
+   "cls": "reachable",
+   "importers": 6,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "lib/supabase/server.ts",
+   "cls": "reachable",
+   "importers": 16,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "scripts/audit-inventory.mjs",
+   "cls": "entry",
+   "importers": 0,
+   "last": "?"
+  },
+  {
+   "file": "scripts/check-untracked-imports.mjs",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-09"
+  },
+  {
+   "file": "scripts/env-guard.mjs",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-10"
+  },
+  {
+   "file": "scripts/qa-ui-audit.mjs",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "scripts/secret-patterns.mjs",
+   "cls": "entry",
+   "importers": 2,
+   "last": "LAUDE.md"
+  },
+  {
+   "file": "scripts/secret-scan.mjs",
+   "cls": "entry",
+   "importers": 0,
+   "last": "LAUDE.md"
+  },
+  {
+   "file": "scripts/smoke.mjs",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "instrumentation-client.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "instrumentation.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "next.config.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-11"
+  },
+  {
+   "file": "postcss.config.mjs",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-17"
+  },
+  {
+   "file": "proxy.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-15"
+  },
+  {
+   "file": "sentry.edge.config.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "sentry.server.config.ts",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-07"
+  },
+  {
+   "file": "vitest.config.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-06-17"
+  }
+ ],
+ "unresolved": [
+  "next-env.d.ts → ./.next/types/routes.d.ts"
+ ]
+}
