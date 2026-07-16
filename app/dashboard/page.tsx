@@ -191,7 +191,9 @@ function DashboardInner() {
       <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col overflow-hidden px-6 py-5">
         <EntitlementNotice email={user?.email} />
         {r.company?.status === "operating" ? (
-          <Operating r={r} entitled={entitled} userEmail={user?.email} trialStartedAt={trialStartedAt} />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <Operating r={r} entitled={entitled} userEmail={user?.email} trialStartedAt={trialStartedAt} />
+          </div>
         ) : (
           <div className="min-h-0 flex-1 overflow-y-auto">
             {!r.company && (
@@ -626,7 +628,7 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
   // scrolls (a ledger is a scrolling document), panels never do, nothing is ever clipped. Zone order =
   // the founder's questions in priority: What needs me? → The numbers → What's happening? → Everything else.
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div className="flex flex-col gap-3">
       {/* Company strip + primary actions (fixed) */}
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
@@ -727,9 +729,9 @@ function Operating({ r, entitled, userEmail, trialStartedAt }: { r: ReturnType<t
 
       {/* FIXED-VIEWPORT WORKSPACE (2026-07-12, founder: "one page, no scroll"): the page never scrolls —
           a left rail (at-a-glance stats) + the main workspace panel, each scrolling INTERNALLY only. */}
-      <div className="grid min-h-0 flex-1 gap-3 lg:grid-cols-[minmax(290px,340px)_1fr]">
+      <div className="grid gap-3 lg:grid-cols-[minmax(290px,340px)_1fr]">
         {/* Left rail — at-a-glance: the stats pie, the team, the scoreboard, the live-URL state. */}
-        <div className="flex min-h-0 flex-col gap-3 overflow-y-auto pr-1">
+        <div className="flex flex-col gap-3 pr-1">
           <StatsPie activities={r.activities} nights={c.night} tasksDone={c.ledger.tasksDone} />
           <TeamRoster activities={r.activities} roles={roles} />
           <div className="grid grid-cols-2 gap-2">
@@ -780,7 +782,7 @@ function SecondaryPanel({ r, c, roles, entitled, lockedUrl }: { r: ReturnType<ty
   ];
   const [tab, setTab] = useState<SecTab>("activity");
   return (
-    <section className="flex min-h-0 flex-col overflow-hidden rounded-3xl glass-panel p-4 lg:h-full">
+    <section className="flex flex-col rounded-3xl glass-panel p-4 lg:min-h-[480px]">
       <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-border pb-3">
         {tabs.map((t) => (
           <button
@@ -794,7 +796,7 @@ function SecondaryPanel({ r, c, roles, entitled, lockedUrl }: { r: ReturnType<ty
           </button>
         ))}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto pr-1 pt-4">
+      <div className="flex-1 pr-1 pt-4">
         {tab === "activity" && (
           <div className="space-y-4">
             <LiveGlassBox company={c} />
