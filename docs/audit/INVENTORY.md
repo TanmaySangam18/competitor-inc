@@ -1,6 +1,6 @@
 # Repo inventory — Debt-Zero Phase 0 (generated 2026-07-16 by scripts/audit-inventory.mjs)
 
-Totals: **508** source files · **111** entry points · **228** reachable · **14** test-only · **0** UNREACHABLE.
+Totals: **492** source files · **111** entry points · **215** reachable · **14** test-only · **0** UNREACHABLE.
 
 ## UNREACHABLE from any entry point — kill candidates (Phase 1)
 | file | importers | last commit |
@@ -25,4 +25,4 @@ Totals: **508** source files · **111** entry points · **228** reachable · **1
 | lib/sim/compounding.ts | 1 | 2026-07-11 |
 
 ## Unresolved imports (specifier didn't resolve to a repo file — usually a stale path)
-- next-env.d.ts → ./.next/types/routes.d.ts
+- none

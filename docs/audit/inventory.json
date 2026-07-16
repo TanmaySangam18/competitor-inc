@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-16T17:50:26.738Z",
+ "generated": "2026-07-16T22:56:56.554Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -353,7 +353,7 @@
    "file": "app/dashboard/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-15"
+   "last": "2026-07-16"
   },
   {
    "file": "app/dashboard/settings/loading.tsx",
@@ -614,33 +614,15 @@
    "last": "2026-06-27"
   },
   {
-   "file": "components/AttributionPanel.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-03"
-  },
-  {
    "file": "components/AuthPanel.tsx",
    "cls": "reachable",
    "importers": 2,
    "last": "2026-07-12"
   },
   {
-   "file": "components/CampaignPanel.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-06-30"
-  },
-  {
-   "file": "components/CoachCard.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-06-30"
-  },
-  {
    "file": "components/CompanyLogo.tsx",
    "cls": "reachable",
-   "importers": 2,
+   "importers": 3,
    "last": "2026-07-15"
   },
   {
@@ -674,18 +656,6 @@
    "last": "2026-07-14"
   },
   {
-   "file": "components/GTMPanel.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-06-30"
-  },
-  {
-   "file": "components/GrowthPanel.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-02"
-  },
-  {
    "file": "components/GuestSavePrompt.tsx",
    "cls": "reachable",
    "importers": 1,
@@ -712,7 +682,7 @@
   {
    "file": "components/Logo.tsx",
    "cls": "reachable",
-   "importers": 16,
+   "importers": 15,
    "last": "2026-06-17"
   },
   {
@@ -722,19 +692,7 @@
    "last": "2026-07-02"
   },
   {
-   "file": "components/MorningBrief.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-02"
-  },
-  {
    "file": "components/NuCapture.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-02"
-  },
-  {
-   "file": "components/PixelSnippet.tsx",
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-02"
@@ -794,40 +752,10 @@
    "last": "2026-07-11"
   },
   {
-   "file": "components/dashboard/ActivityRow.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-12"
-  },
-  {
-   "file": "components/dashboard/ApprovalCard.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-12"
-  },
-  {
-   "file": "components/dashboard/BarChart.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-02"
-  },
-  {
-   "file": "components/dashboard/BrainTab.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-15"
-  },
-  {
    "file": "components/dashboard/BringYourKeysNudge.tsx",
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-07"
-  },
-  {
-   "file": "components/dashboard/CrewBoard.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-12"
   },
   {
    "file": "components/dashboard/DashSidebar.tsx",
@@ -842,46 +770,16 @@
    "last": "2026-07-04"
   },
   {
-   "file": "components/dashboard/MandateCard.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-09"
-  },
-  {
    "file": "components/dashboard/Onboarding.tsx",
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-09"
   },
   {
-   "file": "components/dashboard/OperateTab.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-12"
-  },
-  {
-   "file": "components/dashboard/Stat.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-09"
-  },
-  {
-   "file": "components/dashboard/TeamRoomTab.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-14"
-  },
-  {
    "file": "components/dashboard/WalletCard.tsx",
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-04"
-  },
-  {
-   "file": "components/dashboard/agentStyle.ts",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-05"
   },
   {
    "file": "components/house/LandingFunnel.tsx",
@@ -908,9 +806,51 @@
    "last": "2026-07-11"
   },
   {
+   "file": "components/stream/AskBar.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "components/stream/DecisionBlock.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "components/stream/GoalChip.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "components/stream/ProductCard.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "components/stream/RenameTitle.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "components/stream/Stream.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
+   "file": "components/stream/StreamTurn.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-16"
+  },
+  {
    "file": "components/useCopy.ts",
    "cls": "reachable",
-   "importers": 7,
+   "importers": 6,
    "last": "2026-07-02"
   },
   {
@@ -1114,7 +1054,7 @@
   {
    "file": "lib/engine/access-gate.ts",
    "cls": "reachable",
-   "importers": 3,
+   "importers": 4,
    "last": "2026-07-06"
   },
   {
@@ -1180,7 +1120,7 @@
   {
    "file": "lib/engine/attribution.ts",
    "cls": "reachable",
-   "importers": 6,
+   "importers": 5,
    "last": "2026-07-03"
   },
   {
@@ -1210,7 +1150,7 @@
   {
    "file": "lib/engine/billing.ts",
    "cls": "reachable",
-   "importers": 5,
+   "importers": 7,
    "last": "2026-07-11"
   },
   {
@@ -1244,12 +1184,6 @@
    "last": "2026-07-14"
   },
   {
-   "file": "lib/engine/campaign.ts",
-   "cls": "reachable",
-   "importers": 2,
-   "last": "2026-07-03"
-  },
-  {
    "file": "lib/engine/change-desk.ts",
    "cls": "reachable",
    "importers": 2,
@@ -1262,15 +1196,9 @@
    "last": "2026-07-06"
   },
   {
-   "file": "lib/engine/coach.ts",
-   "cls": "reachable",
-   "importers": 2,
-   "last": "2026-06-30"
-  },
-  {
    "file": "lib/engine/config.ts",
    "cls": "reachable",
-   "importers": 8,
+   "importers": 7,
    "last": "2026-07-11"
   },
   {
@@ -1318,7 +1246,7 @@
   {
    "file": "lib/engine/dynamic-crew.ts",
    "cls": "reachable",
-   "importers": 5,
+   "importers": 4,
    "last": "2026-07-07"
   },
   {
@@ -1348,7 +1276,7 @@
   {
    "file": "lib/engine/founders.ts",
    "cls": "reachable",
-   "importers": 9,
+   "importers": 10,
    "last": "2026-06-30"
   },
   {
@@ -1378,19 +1306,19 @@
   {
    "file": "lib/engine/growth.ts",
    "cls": "reachable",
-   "importers": 14,
+   "importers": 12,
    "last": "2026-07-02"
   },
   {
    "file": "lib/engine/gtm.ts",
    "cls": "reachable",
-   "importers": 4,
+   "importers": 3,
    "last": "2026-07-02"
   },
   {
    "file": "lib/engine/hosting.ts",
    "cls": "reachable",
-   "importers": 5,
+   "importers": 4,
    "last": "2026-07-11"
   },
   {
@@ -1416,12 +1344,6 @@
    "cls": "reachable",
    "importers": 2,
    "last": "2026-07-03"
-  },
-  {
-   "file": "lib/engine/ledger.ts",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-02"
   },
   {
    "file": "lib/engine/lifecycle-email.ts",
@@ -1492,7 +1414,7 @@
   {
    "file": "lib/engine/office-house-architecture.ts",
    "cls": "reachable",
-   "importers": 3,
+   "importers": 2,
    "last": "2026-07-11"
   },
   {
@@ -1624,7 +1546,7 @@
   {
    "file": "lib/engine/rationale.ts",
    "cls": "reachable",
-   "importers": 4,
+   "importers": 3,
    "last": "2026-07-05"
   },
   {
@@ -1768,7 +1690,7 @@
   {
    "file": "lib/engine/types.ts",
    "cls": "reachable",
-   "importers": 106,
+   "importers": 96,
    "last": "2026-07-12"
   },
   {
@@ -1786,7 +1708,7 @@
   {
    "file": "lib/engine/useEngine.ts",
    "cls": "reachable",
-   "importers": 6,
+   "importers": 3,
    "last": "2026-07-11"
   },
   {
@@ -1852,7 +1774,7 @@
   {
    "file": "lib/org/customer-mandate.ts",
    "cls": "reachable",
-   "importers": 9,
+   "importers": 8,
    "last": "2026-07-09"
   },
   {
@@ -1930,7 +1852,7 @@
   {
    "file": "lib/org/role-titles.ts",
    "cls": "reachable",
-   "importers": 4,
+   "importers": 1,
    "last": "2026-07-12"
   },
   {
@@ -2120,7 +2042,5 @@
    "last": "2026-06-17"
   }
  ],
- "unresolved": [
-  "next-env.d.ts → ./.next/types/routes.d.ts"
- ]
+ "unresolved": []
 }
