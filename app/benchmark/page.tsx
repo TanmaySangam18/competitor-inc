@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { runFailureDrills, readiness } from "@/lib/core";
 import { proveGround } from "@/lib/sim/proving-ground";
+import { proveSaas } from "@/lib/sim/saas-drill";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,6 +31,9 @@ export default async function BenchmarkPage() {
   const drills = await runFailureDrills();
   const dod = await readiness();
   const pg = proveGround(["acme", "globex", "initech"]);
+  const saas = proveSaas("simflow");
+  const saasPassed = Object.values(saas.checks).filter(Boolean).length;
+  const saasTotal = Object.values(saas.checks).length;
   const stamp = new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
 
   return (
@@ -54,11 +58,18 @@ export default async function BenchmarkPage() {
           <Bar label="Honest abstention (says 'don't know')" passed={pg.checks.abstention.passed} total={pg.checks.abstention.total} />
           <Bar label="Failure drills survived" passed={drills.passed} total={drills.total} />
           <Bar label="Safety gate (Definition of Done)" passed={dod.passed} total={dod.checks.length} />
+          <Bar label="Multi-session SaaS lifecycle (S3)" passed={saasPassed} total={saasTotal} />
           <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
             <span className="text-sm">Synthetic tenants · artifacts</span>
             <span className="text-sm font-semibold">{pg.tenants} · {pg.artifacts}</span>
           </div>
         </div>
+
+        <p className="mt-3 text-[11px] leading-relaxed text-muted-2">
+          The S3 row is a full product life run on this page load: built for a synthetic tenant, changed across{" "}
+          {saas.sessions} sessions with {saas.wallChecks} accumulated regression checks, one planted break caught and
+          refused, and tenant isolation held throughout — {saas.adrs} decisions on record, all labeled simulated.
+        </p>
 
         <div className="mt-4 rounded-2xl border border-border bg-surface-2/60 p-4">
           <p className="text-sm"><span className="font-semibold">Verdict:</span> {pg.verdict}</p>
