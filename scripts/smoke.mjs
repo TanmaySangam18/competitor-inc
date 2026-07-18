@@ -54,6 +54,8 @@ async function run() {
   await get("/proof");
   await get("/notices"); // third-party attribution (license-shield honesty) — linked from the landing footer
   await get("/services"); await get("/org"); await get("/benchmark"); // landing-footer targets — the landing must never link to a dead route
+  await get("/org/chief-of-staff"); // the agent detail pages (ADR-0008) — one per role, statically generated
+  await get("/org/data-steward"); // a leaf role with an SOP — exercises the SOP + collaborators sections
   await get("/decisions"); // the Executive Inbox (Day One) — renders signed-out empty state
   await get("/connect"); // the MACHINA onboarding surface — connect-and-go, reads live readiness
   await get("/build"); // the "prove it" demo (moved off /); / is now the MACHINA landing

@@ -1,180 +1,121 @@
-"use client";
+import type { Metadata } from "next";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
+import SlackThreadMock from "@/components/SlackThreadMock";
+import { liveCta } from "@/lib/core/slack-invite";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowLeft, Building2, Moon, CheckCircle2, Wallet, ShieldCheck } from "lucide-react";
-import { LogoMark } from "@/components/Logo";
-import type { Activity, ApprovalItem, Company } from "@/lib/engine/types";
-import { AGENTS, type AgentRole } from "@/lib/engine/types";
+// /live — COMPETITOR LIVE NOW LIVES IN SLACK (ADR-0008, displaces the old localStorage "glass box").
+//
+// The old page rendered the visitor's own local demo data as a "live board" — retired: the operational
+// experience moved to the Slack office (ADR-0005), and the website is the showcase. This page explains
+// exactly what you see inside the workspace and routes every CTA through liveCta() — the honest switch
+// that never renders a dead invite link.
 
-interface Store {
-  companies: Company[];
-  activities: Record<string, Activity[]>;
-  approvals: Record<string, ApprovalItem[]>;
-}
+export const metadata: Metadata = {
+  title: "competitor.inc — Competitor Live, in Slack",
+  description:
+    "The company runs 24/7 in Slack: agents deliberate in #engineering, decisions queue in #decisions, and every claim carries a receipt. Watch it work, live.",
+};
 
-export default function Live() {
-  const [store, setStore] = useState<Store | null>(null);
+const CHANNELS = [
+  {
+    name: "#engineering",
+    what:
+      "Agents build in the open: PRs proposed, second reviews demanded, QA certifying or blocking. The thread below is the format.",
+  },
+  {
+    name: "#decisions",
+    what:
+      "The human's queue. Everything Tier 3 — money, contracts, launches, deletions — lands here as a prepared decision with evidence attached, waiting for one signature.",
+  },
+  {
+    name: "#exec · #ops · #growth",
+    what:
+      "Each department reports into its own channel: incidents commanded end-to-end, spend tracked against caps, campaigns fact-checked before a word ships.",
+  },
+];
 
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem("cofounder:v2");
-      setStore(raw ? (JSON.parse(raw) as Store) : { companies: [], activities: {}, approvals: {} });
-    } catch {
-      setStore({ companies: [], activities: {}, approvals: {} });
-    }
-  }, []);
-
-  const companies = store?.companies ?? [];
-  const allActivities = Object.values(store?.activities ?? {}).flat();
-  const allApprovals = Object.values(store?.approvals ?? {}).flat();
-  const totals = {
-    companies: companies.length,
-    nights: companies.reduce((t, c) => t + c.night, 0),
-    tasks: companies.reduce((t, c) => t + c.ledger.tasksDone, 0),
-    spend: companies.reduce((t, c) => t + (c.ledger.spent - (c.ledger.credited ?? 0)), 0),
-    approvals: allApprovals.filter((a) => a.resolved).length,
-  };
-
-  const recent = allActivities.filter((a) => !a.undone).slice(0, 12);
-
-  const stats = [
-    { label: "Companies", val: String(totals.companies), icon: Building2, color: "text-coral" },
-    { label: "Nights run", val: String(totals.nights), icon: Moon, color: "text-violet" },
-    { label: "Tasks shipped", val: String(totals.tasks), icon: CheckCircle2, color: "text-mint" },
-    { label: "Net spend", val: "$" + totals.spend.toFixed(2), icon: Wallet, color: "text-amber" },
-    { label: "Approvals handled", val: String(totals.approvals), icon: ShieldCheck, color: "text-mint" },
-  ];
+export default function LivePage() {
+  const cta = liveCta();
 
   return (
-    <div id="main" className="min-h-screen">
-      <header className="glass-nav sticky top-0 z-40">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
-            <LogoMark size={34} />
-            competitor.inc
-          </Link>
-          <div className="flex items-center gap-4 text-sm text-muted">
-            <Link href="/dashboard" className="transition hover:text-text">Your crew</Link>
-            <Link href="/" className="inline-flex items-center gap-2 transition hover:text-text">
-              <ArrowLeft size={15} /> Home
-            </Link>
+    <main id="main" className="min-h-[100dvh] bg-bg text-text">
+      <SiteHeader />
+
+      <section className="mx-auto w-full max-w-5xl px-6 py-16">
+        <p className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-muted-2">
+          Competitor Live
+        </p>
+        <h1 className="display mt-6 text-3xl leading-[1.05] sm:text-5xl">
+          Competitor Live now lives in Slack.
+        </h1>
+        <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted">
+          The website shows you what the company is; the office is where it works. Agents deliberate in
+          channels 24/7 — while you sleep — and @-mention the human exactly when a real decision needs a
+          signature. No new app. No dashboard to babysit.
+        </p>
+        <div className="mt-9 flex flex-wrap items-center gap-6">
+          <a
+            href={cta.href}
+            className="inline-block border border-text bg-text px-7 py-3.5 text-sm font-semibold text-bg transition hover:bg-bg hover:text-text"
+            {...(cta.live ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          >
+            {cta.label}
+          </a>
+          {!cta.live && (
+            <p className="font-mono text-[11px] leading-relaxed text-muted-2">
+              The workspace opens soon — the waitlist gets the first invites.
+            </p>
+          )}
+        </div>
+      </section>
+
+      <section className="border-t border-border">
+        <div className="mx-auto grid w-full max-w-5xl gap-10 px-6 py-16 lg:grid-cols-2 lg:gap-14">
+          <div>
+            <p className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-muted-2">
+              What you&apos;ll see inside
+            </p>
+            <div className="mt-6 divide-y divide-border border-y border-border">
+              {CHANNELS.map((c) => (
+                <div key={c.name} className="py-5">
+                  <h2 className="font-mono text-sm font-semibold">{c.name}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{c.what}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-6 text-xs leading-relaxed text-muted-2">
+              Every action in every channel also lands on the tamper-evident, hash-chained ledger — what
+              you watch in Slack is the same work the receipts verify. Simulated results stay labeled
+              simulation, in Slack and everywhere else.
+            </p>
+          </div>
+          <SlackThreadMock />
+        </div>
+      </section>
+
+      <section className="border-t border-border">
+        <div className="mx-auto w-full max-w-5xl px-6 py-14 text-center">
+          <h2 className="display text-2xl sm:text-4xl">Watch it work, live.</h2>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6">
+            <a
+              href={cta.href}
+              className="inline-block border border-text bg-text px-7 py-3.5 text-sm font-semibold text-bg transition hover:bg-bg hover:text-text"
+              {...(cta.live ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            >
+              {cta.label}
+            </a>
+            <a
+              href="/org"
+              className="text-sm font-medium text-muted underline underline-offset-4 transition hover:text-text"
+            >
+              Meet the workforce first
+            </a>
           </div>
         </div>
-      </header>
+      </section>
 
-      <div className="mx-auto max-w-6xl px-6 py-16">
-        <div className="flex items-center gap-2 text-sm text-muted-2">
-          <span className="inline-block h-2 w-2 rounded-full bg-muted-2" /> THE GLASS BOX · YOUR WORKSPACE
-        </div>
-        <h1 className="mt-3 text-4xl font-bold md:text-5xl">See the work, in the open</h1>
-        <p className="mt-3 max-w-xl text-muted">
-          A live view of the companies in <span className="text-text">your</span> workspace — every action,
-          dollar, and decision, logged. Public, receipted proof of competitor.inc&apos;s own companies
-          arrives at launch on the proof board.
-        </p>
-
-        <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-5">
-          {stats.map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
-              className="rounded-2xl glass-panel p-5"
-            >
-              <s.icon size={18} className={s.color} />
-              <div className="mt-3 font-display text-3xl font-bold">{s.val}</div>
-              <div className="mt-1 text-xs text-muted-2">{s.label}</div>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_320px]">
-          <section>
-            <h2 className="text-sm font-semibold text-muted">Live activity</h2>
-            <div className="mt-4 space-y-2.5">
-              {recent.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center text-sm text-muted-2">
-                  No activity yet. <Link href="/dashboard" className="text-coral">Start a company</Link> and the board lights up.
-                </div>
-              ) : (
-                recent.map((a) => {
-                  const A = AGENTS[a.agent as AgentRole];
-                  // "Don't trust us. Click it." — when an action's proof is a real, resolvable URL, the whole
-                  // row links straight to it. Metric/build proofs stay honest text (we never fake a link).
-                  const proofUrl =
-                    a.proof && (a.proof.kind === "url" || a.proof.kind === "build") && /^https?:\/\//.test(a.proof.value)
-                      ? a.proof.value
-                      : null;
-                  const inner = (
-                    <>
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-2 text-[10px] font-bold">{A.name.charAt(0)}</span>
-                      <div className="min-w-0 flex-1 text-sm">
-                        <span className="text-text">{a.action}</span>
-                        <span className="ml-2 text-xs text-muted-2">{A.name} · night {a.night}</span>
-                      </div>
-                      {a.proof && (
-                        <span className={`hidden text-[11px] sm:inline ${proofUrl ? "text-coral underline-offset-2 group-hover:underline" : "text-mint"}`}>
-                          {proofUrl ? "Open proof ↗" : a.proof.value}
-                        </span>
-                      )}
-                    </>
-                  );
-                  return proofUrl ? (
-                    <a key={a.id} href={proofUrl} target="_blank" rel="noopener noreferrer"
-                      className="group flex items-center gap-3 rounded-xl glass-panel px-4 py-3 transition hover:border-coral/40">
-                      {inner}
-                    </a>
-                  ) : (
-                    <div key={a.id} className="flex items-center gap-3 rounded-xl glass-panel px-4 py-3">
-                      {inner}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </section>
-
-          <aside>
-            <h2 className="text-sm font-semibold text-muted">Companies</h2>
-            <div className="mt-4 space-y-2.5">
-              {companies.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-xs text-muted-2">None yet.</div>
-              ) : (
-                companies.map((c) => (
-                  <div key={c.id} className="rounded-xl glass-panel p-4">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{c.name}</span>
-                      <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-2">{c.status}</span>
-                    </div>
-                    <div className="mt-1.5 truncate text-xs text-muted-2">{c.idea}</div>
-                    {c.validation && (
-                      <span
-                        className={`mt-2.5 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                          c.validation.verdict === "strong"
-                            ? "border-black/30 bg-black/10 text-text"
-                            : c.validation.verdict === "mixed"
-                            ? "border-black/15 bg-black/[0.05] text-muted"
-                            : "border-black/10 text-muted-2"
-                        }`}
-                      >
-                        <ShieldCheck size={10} /> Validated · {c.validation.confidence}%
-                      </span>
-                    )}
-                    <div className="mt-3 flex gap-4 text-xs text-muted">
-                      <span>{c.night} nights</span>
-                      <span>{c.ledger.tasksDone} tasks</span>
-                      <span>${(c.ledger.spent - (c.ledger.credited ?? 0)).toFixed(2)}</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </aside>
-        </div>
-      </div>
-    </div>
+      <SiteFooter />
+    </main>
   );
 }
