@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-18T04:51:08.836Z",
+ "generated": "2026-07-18T04:59:22.508Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -311,13 +311,13 @@
    "file": "app/benchmark/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-15"
+   "last": "2026-07-18"
   },
   {
    "file": "app/connect/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-16"
+   "last": "2026-07-18"
   },
   {
    "file": "app/dashboard/loading.tsx",
@@ -395,13 +395,13 @@
    "file": "app/join/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-10"
+   "last": "2026-07-18"
   },
   {
    "file": "app/layout.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-16"
+   "last": "2026-07-18"
   },
   {
    "file": "app/live/loading.tsx",
@@ -437,7 +437,7 @@
    "file": "app/notices/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-16"
+   "last": "2026-07-18"
   },
   {
    "file": "app/opengraph-image.tsx",
@@ -467,7 +467,7 @@
    "file": "app/privacy/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-10"
+   "last": "2026-07-18"
   },
   {
    "file": "app/robots.ts",
@@ -485,13 +485,13 @@
    "file": "app/score/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-08"
+   "last": "2026-07-18"
   },
   {
    "file": "app/services/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-14"
+   "last": "2026-07-18"
   },
   {
    "file": "app/signup/page.tsx",
@@ -503,7 +503,7 @@
    "file": "app/sitemap.ts",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-09"
+   "last": "2026-07-18"
   },
   {
    "file": "app/t/[slug]/DemandCapture.tsx",
@@ -521,7 +521,7 @@
    "file": "app/terms/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-10"
+   "last": "2026-07-18"
   },
   {
    "file": "bin/competitor.ts",
@@ -587,7 +587,7 @@
    "file": "components/InkRipple.tsx",
    "cls": "reachable",
    "importers": 1,
-   "last": "?"
+   "last": "2026-07-18"
   },
   {
    "file": "components/Logo.tsx",
@@ -623,7 +623,7 @@
    "file": "components/Scorecard.tsx",
    "cls": "reachable",
    "importers": 1,
-   "last": "2026-07-15"
+   "last": "2026-07-18"
   },
   {
    "file": "components/SelfEnrichPanel.tsx",
@@ -713,7 +713,7 @@
    "file": "components/ledger/LedgerShell.tsx",
    "cls": "reachable",
    "importers": 1,
-   "last": "2026-07-11"
+   "last": "2026-07-18"
   },
   {
    "file": "components/stream/AskBar.tsx",
@@ -1937,7 +1937,7 @@
    "file": "next.config.ts",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-11"
+   "last": "2026-07-18"
   },
   {
    "file": "postcss.config.mjs",
@@ -1970,5 +1970,7 @@
    "last": "2026-06-17"
   }
  ],
- "unresolved": []
+ "unresolved": [
+  "next-env.d.ts → ./.next/types/routes.d.ts"
+ ]
 }
