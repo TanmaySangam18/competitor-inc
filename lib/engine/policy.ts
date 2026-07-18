@@ -152,11 +152,14 @@ export const POLICY: Policy = {
   rollout: { promoteAfterCleanNights: 14 },
   tiers: {
     t3SpendUsd: 500,
-    // Always Tier 3 (REQUIREMENTS §1): production deploys to paying customers, data deletion, money
-    // movement, contract/ToS acceptance, disabling a security control, and any PUBLIC statement.
+    // Always Tier 3 (REQUIREMENTS §1, AMENDED by the founder 2026-07-18 / ADR-0012): production deploys
+    // to paying customers, data deletion, money movement, contracts, security controls, and LEGAL
+    // statements stay founder-only. Routine public posts (bluesky/mastodon/…) moved OUT of this set —
+    // they now clear via the Department Publishing Mandate (lib/org/publishing-mandate.ts): lead-approved,
+    // honesty-gated, disclosed, capped, own-audience-only. Unmandated posts still queue.
     alwaysT3: new Set<string>([
       "deploy", "delete", "payments", "move_funds_out", "sign_contract", "sign_tos",
-      "disable_security_control", "bluesky", "mastodon", "publish_public", "legal_statement",
+      "disable_security_control", "publish_public", "legal_statement",
     ]),
   },
 };
