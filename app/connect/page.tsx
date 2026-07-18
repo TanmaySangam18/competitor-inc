@@ -3,6 +3,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { connectionMapStatus, TIER_LABELS, TIER_ORDER, type ConnectionStatus, type ConnectionTier } from "@/lib/core/connections";
 import { mcpStatus } from "@/lib/core/mcp-connect";
+import { oauthProviderFor, getProvider } from "@/lib/core/oauth";
 
 // /connect — THE FRONT DOOR (Block B, CONNECT-FIRST-RESET §2.1, ADR-0004).
 // The 17-service connection map as a checklist with LIVE status. Connect T0 and the company starts;
@@ -12,7 +13,8 @@ import { mcpStatus } from "@/lib/core/mcp-connect";
 // HONESTY RULES (load-bearing):
 //  - A service shows connected ONLY when its env var is actually present in this deployment — never assumed.
 //  - Entries with no env detection say so ("tracked, not detected") instead of pretending.
-//  - No OAuth buttons because there are no OAuth flows yet (later block). BYOK = set env vars, that's real.
+//  - OAuth buttons render ONLY for ARMED providers (founder registered the app + client env vars set,
+//    ADR-0010) — an unarmed provider shows the env-var path instead. No dead buttons, ever.
 //  - Server component reading process.env at REQUEST time (force-dynamic): this page reflects the FOUNDER
 //    deployment's state (company #0). Per-customer key vaults come later.
 
@@ -58,6 +60,21 @@ function Row({ c }: { c: ConnectionStatus }) {
             </span>
             {c.configured ? c.unlocks : c.degraded}
           </p>
+          {/* OAuth: the "2 minutes" path — button renders ONLY when the founder armed the provider
+              (client env vars present), so it can never dead-end. Env keys remain the always-works path. */}
+          {!c.configured && oauthProviderFor(c.id) && (
+            <p className="mt-3">
+              <a
+                href={`/api/oauth/${oauthProviderFor(c.id)!.id}/start`}
+                className="inline-block border border-[#0a0a0a] px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] transition-colors hover:bg-[#0a0a0a] hover:text-white"
+              >
+                Connect {oauthProviderFor(c.id)!.name} →
+              </a>
+              <span className="ml-3 font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
+                ~2 minutes · token stored encrypted, yours to revoke
+              </span>
+            </p>
+          )}
           {c.env.length > 0 ? (
             <p className="mt-2 flex flex-wrap items-center gap-1.5">
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
@@ -78,7 +95,10 @@ function Row({ c }: { c: ConnectionStatus }) {
   );
 }
 
-export default function ConnectPage() {
+export default async function ConnectPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
+  const sp = await searchParams;
+  const justConnected = sp.connected ? getProvider(sp.connected)?.name ?? null : null;
+  const oauthError = typeof sp.error === "string" ? sp.error.slice(0, 200) : null;
   const map = connectionMapStatus();
   const connected = map.filter((c) => c.configured).length;
   const total = map.length;
@@ -91,6 +111,16 @@ export default function ConnectPage() {
     <div className={`min-h-screen bg-white ${INK}`}>
       {/* ADR-0009: the shared site chrome replaces the bespoke header/footer — one nav everywhere. */}
       <SiteHeader />
+      {justConnected && (
+        <div className={`border-b ${HAIR} bg-[#0a0a0a] px-6 py-3 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-white`}>
+          {justConnected} connected — token stored encrypted, yours to revoke any time
+        </div>
+      )}
+      {oauthError && (
+        <div className={`border-b border-[#0a0a0a] px-6 py-3 text-center font-mono text-[11px] uppercase tracking-[0.2em]`}>
+          Connection failed — {oauthError.replace(/_/g, " ")} · nothing was stored
+        </div>
+      )}
 
       {/* Hero */}
       <section className={`border-b ${HAIR} px-6 py-14`}>
