@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-16T22:57:57.595Z",
+ "generated": "2026-07-18T04:22:03.911Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -506,6 +506,12 @@
    "last": "2026-06-17"
   },
   {
+   "file": "app/org/[id]/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "?"
+  },
+  {
    "file": "app/org/page.tsx",
    "cls": "entry",
    "importers": 0,
@@ -688,7 +694,7 @@
   {
    "file": "components/Logo.tsx",
    "cls": "reachable",
-   "importers": 15,
+   "importers": 14,
    "last": "2026-06-17"
   },
   {
@@ -702,6 +708,12 @@
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-02"
+  },
+  {
+   "file": "components/OrgChart.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "?"
   },
   {
    "file": "components/ProductMarquee.tsx",
@@ -750,6 +762,24 @@
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-10"
+  },
+  {
+   "file": "components/SiteFooter.tsx",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "?"
+  },
+  {
+   "file": "components/SiteHeader.tsx",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "?"
+  },
+  {
+   "file": "components/SlackThreadMock.tsx",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "?"
   },
   {
    "file": "components/TrackBeacon.tsx",
@@ -880,7 +910,7 @@
   {
    "file": "lib/core/connections.ts",
    "cls": "reachable",
-   "importers": 4,
+   "importers": 5,
    "last": "2026-07-16"
   },
   {
@@ -1044,6 +1074,12 @@
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-15"
+  },
+  {
+   "file": "lib/core/slack-invite.ts",
+   "cls": "reachable",
+   "importers": 3,
+   "last": "?"
   },
   {
    "file": "lib/core/vault.ts",
@@ -1696,7 +1732,7 @@
   {
    "file": "lib/engine/types.ts",
    "cls": "reachable",
-   "importers": 98,
+   "importers": 97,
    "last": "2026-07-12"
   },
   {
@@ -1852,7 +1888,7 @@
   {
    "file": "lib/org/organization.ts",
    "cls": "reachable",
-   "importers": 25,
+   "importers": 28,
    "last": "2026-07-14"
   },
   {
