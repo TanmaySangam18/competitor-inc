@@ -3,6 +3,7 @@ import { Space_Grotesk, Inter, JetBrains_Mono, Archivo_Black, Fraunces } from "n
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
+import InkRipple from "@/components/InkRipple";
 import { SignupAttribution } from "@/components/SignupAttribution";
 import { SITE_URL } from "@/lib/site";
 
@@ -99,6 +100,8 @@ export default function RootLayout({
         </a>
         {children}
         <FeedbackWidget />
+        {/* The interaction splash (ADR-0009): every surface, one consistent press feedback. */}
+        <InkRipple />
       </body>
     </html>
   );

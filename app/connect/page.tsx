@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import { connectionMapStatus, TIER_LABELS, TIER_ORDER, type ConnectionStatus, type ConnectionTier } from "@/lib/core/connections";
 import { mcpStatus } from "@/lib/core/mcp-connect";
 
@@ -87,17 +89,14 @@ export default function ConnectPage() {
 
   return (
     <div className={`min-h-screen bg-white ${INK}`}>
-      {/* Header */}
-      <header className={`flex items-center justify-between border-b ${HAIR} px-6 py-4`}>
-        <a href="/" className="font-mono text-sm font-bold tracking-tight">competitor.inc</a>
-        <span className="font-mono text-[11px] uppercase tracking-[0.2em]">
-          {connected} of {total} connected
-        </span>
-      </header>
+      {/* ADR-0009: the shared site chrome replaces the bespoke header/footer — one nav everywhere. */}
+      <SiteHeader />
 
       {/* Hero */}
       <section className={`border-b ${HAIR} px-6 py-14`}>
-        <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#0a0a0a]/50">the connection map</p>
+        <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#0a0a0a]/50">
+          the connection map · {connected} of {total} connected
+        </p>
         <h1 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
           Connect your accounts.<br />The company runs itself.
         </h1>
@@ -184,13 +183,15 @@ export default function ConnectPage() {
         </ul>
       </section>
 
-      {/* Footer */}
-      <footer className="px-6 py-8">
+      {/* The BYOK honesty note stays with the content; the site footer is shared (ADR-0009). */}
+      <section className="px-6 py-8">
         <p className="max-w-2xl font-mono text-[10px] uppercase leading-relaxed tracking-[0.15em] text-[#0a0a0a]/50">
           BYOK — set env vars in your deployment; there are no OAuth flows yet (later block), so this page never
           shows one. Nothing here is claimed connected unless its env var is present.
         </p>
-      </footer>
+      </section>
+
+      <SiteFooter />
     </div>
   );
 }

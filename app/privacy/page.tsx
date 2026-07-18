@@ -1,14 +1,17 @@
 import Link from "next/link";
-import { LedgerShell, Eyebrow, serifStyle } from "@/components/ledger/LedgerShell";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 export const metadata = { title: "Privacy — competitor.inc" };
 
 export default function Privacy() {
   return (
-    <LedgerShell>
+    // ADR-0009: the shared site chrome replaces the LedgerShell — one header + one footer everywhere.
+    <main id="main" className="min-h-[100dvh] bg-bg text-text">
+      <SiteHeader />
       <div className="mx-auto max-w-2xl px-5 py-14">
-      <Eyebrow>YOUR DATA · IN PLAIN ENGLISH</Eyebrow>
-      <h1 className="mt-4 text-[34px] font-medium" style={serifStyle}>Privacy</h1>
+      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-muted-2">Your data · in plain English</p>
+      <h1 className="display mt-4 text-3xl">Privacy</h1>
       <p className="mt-2 text-sm text-ink-faint">Beta · last updated June 2026. Plain-English, because trust is the product.</p>
 
       <div className="mt-8 space-y-6 text-sm leading-relaxed text-ink-muted">
@@ -73,7 +76,8 @@ export default function Privacy() {
       <p className="mt-10 text-xs text-muted-2">
         See also <Link href="/terms" className="text-pine underline decoration-dotted underline-offset-4 hover:decoration-solid">Terms</Link>.
       </p>
-    </div>
-    </LedgerShell>
+      </div>
+      <SiteFooter />
+    </main>
   );
 }

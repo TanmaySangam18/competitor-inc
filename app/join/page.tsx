@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LedgerShell, serifStyle } from "@/components/ledger/LedgerShell";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import { useCopy } from "@/components/useCopy";
 import { codeFrom } from "@/lib/engine/refcode";
 import { CHECKOUT_URLS, checkoutLiveFor, TIERS } from "@/lib/engine/billing";
@@ -105,7 +106,9 @@ export default function Join() {
   const copyLink = () => copyText(refLink);
 
   return (
-    <LedgerShell>
+    // ADR-0009: the shared site chrome replaces the LedgerShell — one header + one footer everywhere.
+    <main id="main" className="min-h-[100dvh] bg-bg text-text">
+      <SiteHeader />
       <div className="mx-auto max-w-5xl px-5 py-12">
         {referredBy && (
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-pine/40 bg-cream-2 px-3 py-1 text-xs text-pine">
@@ -114,9 +117,9 @@ export default function Join() {
         )}
 
         <div className="text-center">
-          <div className="font-mono text-[11px] font-semibold tracking-[0.14em] text-sienna">PICK YOUR TIER</div>
-          <h1 className="mt-3 text-3xl font-medium md:text-4xl" style={serifStyle}>
-            Start free. <em>Upgrade when it earns.</em>
+          <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-2">Pick your tier</div>
+          <h1 className="display mt-3 text-3xl md:text-4xl">
+            Start free. <span className="text-muted">Upgrade when it earns.</span>
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-ink-muted">
             Validate and build for free — you only pay when you want the crew to keep running your company.
@@ -252,6 +255,7 @@ export default function Join() {
           )}
         </div>
       </div>
-    </LedgerShell>
+      <SiteFooter />
+    </main>
   );
 }
