@@ -30,10 +30,26 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // The "prove it" demo moved off / (now the MACHINA landing) to /build on 2026-07-11. Keep the old
-  // entry point working: /demo → /build (permanent).
+  // Site simplification (ADR-0009, 2026-07-18): the legacy marketing layer around the ADR-0008 keepers
+  // was removed. Every killed page redirects permanently to the keeper that answers its question —
+  // never a 404 left behind. /demo (the pre-0008 alias for the killed /build demo) folds to / too.
   async redirects() {
-    return [{ source: "/demo", destination: "/build", permanent: true }];
+    return [
+      { source: "/demo", destination: "/", permanent: true },
+      { source: "/build", destination: "/", permanent: true },
+      { source: "/blog", destination: "/", permanent: true },
+      { source: "/blog/:slug", destination: "/", permanent: true },
+      { source: "/compare", destination: "/", permanent: true },
+      { source: "/founder", destination: "/", permanent: true },
+      { source: "/how-it-works", destination: "/#how", permanent: true },
+      { source: "/integrations", destination: "/connect", permanent: true },
+      { source: "/nu", destination: "/", permanent: true },
+      { source: "/playbooks", destination: "/", permanent: true },
+      { source: "/playbooks/:slug", destination: "/", permanent: true },
+      { source: "/proof", destination: "/benchmark", permanent: true },
+      { source: "/radar", destination: "/score", permanent: true },
+      { source: "/sell", destination: "/", permanent: true },
+    ];
   },
   // Clean URLs for the standalone static apps we launch (served from public/<app>/index.html).
   async rewrites() {

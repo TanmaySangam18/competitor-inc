@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LogoMark } from "@/components/Logo";
 import { useCopy } from "@/components/useCopy";
 import { generateCrew, type CrewSpec } from "@/lib/engine/crew";
 import type { ValidationResult } from "@/lib/engine/types";
@@ -71,17 +70,8 @@ export default function Scorecard() {
   const reset = () => { setResult(null); setCrew(null); setErr(""); };
 
   return (
-    <div id="main" className="min-h-screen">
-      <header className="glass-nav sticky top-0 z-40">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
-          <Link href="/" className="flex items-center gap-2.5 font-mono text-lg font-bold tracking-tight">
-            <LogoMark size={32} /> competitor.inc
-          </Link>
-          <Link href="/" className="font-mono text-sm text-muted transition hover:text-text">← home</Link>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-3xl px-6 py-12">
+    // ADR-0009: the bespoke sticky header was removed — app/score/page.tsx provides the shared site chrome.
+    <div className="mx-auto max-w-3xl px-6 py-12">
         {!result && (
           <div className="text-center">
             <div className="font-mono text-xs font-semibold uppercase tracking-wider text-coral">Free · no signup</div>
@@ -118,7 +108,6 @@ export default function Scorecard() {
         {result && (
           <ScoreResult result={result} crew={crew} idea={scoredIdea} copied={copied} onCopy={() => copy(shareLink)} onReset={reset} />
         )}
-      </div>
     </div>
   );
 }

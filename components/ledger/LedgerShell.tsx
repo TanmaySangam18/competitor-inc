@@ -1,6 +1,7 @@
-// The Company Ledger shell — one wrapper for every PUBLIC page so the whole marketing surface reads
-// as one printed charter (cream stock, ink rules, serif headlines). Server-safe: pages keep their
-// metadata exports; only the nav is a client island. The landing has its own bespoke copy of this.
+// The Company Ledger shell. After the ADR-0009 simplification only /decisions (the Executive Inbox —
+// an app surface embedded by the coworker desktop app) still wears it; the public marketing layer
+// uses SiteHeader/SiteFooter. Server-safe: pages keep their metadata exports; only the nav is a
+// client island.
 
 import Link from "next/link";
 import { LedgerNav } from "./LedgerNav";
@@ -19,13 +20,11 @@ function LedgerFooter() {
         <p className="text-[11.5px] italic text-ink-faint" style={serifStyle}>
           Operated by AI employees under human governance — every claim is verifiable.
         </p>
+        {/* ADR-0009: pruned to live routes only — the legacy content pages this footer pointed at were
+            killed + redirected in the simplification pass. */}
         <nav className="flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-ink-faint">
-          <Link href="/how-it-works" className="transition hover:text-ink">How it works</Link>
+          <Link href="/" className="transition hover:text-ink">Home</Link>
           <Link href="/dashboard" className="transition hover:text-ink">Dashboard</Link>
-          <Link href="/playbooks" className="transition hover:text-ink">Playbooks</Link>
-          <Link href="/compare" className="transition hover:text-ink">Compare</Link>
-          <Link href="/integrations" className="transition hover:text-ink">Integrations</Link>
-          <Link href="/blog" className="transition hover:text-ink">Blog</Link>
           <Link href="/terms" className="transition hover:text-ink">Terms</Link>
           <Link href="/privacy" className="transition hover:text-ink">Privacy</Link>
         </nav>

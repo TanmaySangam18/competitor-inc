@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-18T04:22:03.911Z",
+ "generated": "2026-07-18T04:51:08.836Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -314,36 +314,6 @@
    "last": "2026-07-15"
   },
   {
-   "file": "app/blog/[slug]/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-10"
-  },
-  {
-   "file": "app/blog/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-10"
-  },
-  {
-   "file": "app/blog/posts.ts",
-   "cls": "reachable",
-   "importers": 3,
-   "last": "2026-06-24"
-  },
-  {
-   "file": "app/build/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-11"
-  },
-  {
-   "file": "app/compare/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-10"
-  },
-  {
    "file": "app/connect/page.tsx",
    "cls": "entry",
    "importers": 0,
@@ -386,12 +356,6 @@
    "last": "2026-06-17"
   },
   {
-   "file": "app/founder/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-14"
-  },
-  {
    "file": "app/house/board/page.tsx",
    "cls": "entry",
    "importers": 0,
@@ -428,24 +392,6 @@
    "last": "2026-06-30"
   },
   {
-   "file": "app/how-it-works/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-16"
-  },
-  {
-   "file": "app/integrations/GateProbe.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-10"
-  },
-  {
-   "file": "app/integrations/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-10"
-  },
-  {
    "file": "app/join/page.tsx",
    "cls": "entry",
    "importers": 0,
@@ -467,7 +413,7 @@
    "file": "app/live/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-08"
+   "last": "2026-07-18"
   },
   {
    "file": "app/login/page.tsx",
@@ -494,12 +440,6 @@
    "last": "2026-07-16"
   },
   {
-   "file": "app/nu/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-10"
-  },
-  {
    "file": "app/opengraph-image.tsx",
    "cls": "entry",
    "importers": 0,
@@ -509,49 +449,25 @@
    "file": "app/org/[id]/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "?"
+   "last": "2026-07-18"
   },
   {
    "file": "app/org/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-15"
+   "last": "2026-07-18"
   },
   {
    "file": "app/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-16"
-  },
-  {
-   "file": "app/playbooks/[slug]/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-10"
-  },
-  {
-   "file": "app/playbooks/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-10"
+   "last": "2026-07-18"
   },
   {
    "file": "app/privacy/page.tsx",
    "cls": "entry",
    "importers": 0,
    "last": "2026-07-10"
-  },
-  {
-   "file": "app/proof/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-10"
-  },
-  {
-   "file": "app/radar/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-01"
   },
   {
    "file": "app/robots.ts",
@@ -567,18 +483,6 @@
   },
   {
    "file": "app/score/page.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-08"
-  },
-  {
-   "file": "app/sell/opengraph-image.tsx",
-   "cls": "entry",
-   "importers": 0,
-   "last": "2026-07-08"
-  },
-  {
-   "file": "app/sell/page.tsx",
    "cls": "entry",
    "importers": 0,
    "last": "2026-07-08"
@@ -668,12 +572,6 @@
    "last": "2026-07-09"
   },
   {
-   "file": "components/FounderSection.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-14"
-  },
-  {
    "file": "components/GuestSavePrompt.tsx",
    "cls": "reachable",
    "importers": 1,
@@ -686,15 +584,15 @@
    "last": "2026-07-01"
   },
   {
-   "file": "components/JourneyExplorer.tsx",
+   "file": "components/InkRipple.tsx",
    "cls": "reachable",
    "importers": 1,
-   "last": "2026-07-08"
+   "last": "?"
   },
   {
    "file": "components/Logo.tsx",
    "cls": "reachable",
-   "importers": 14,
+   "importers": 11,
    "last": "2026-06-17"
   },
   {
@@ -704,21 +602,15 @@
    "last": "2026-07-02"
   },
   {
-   "file": "components/NuCapture.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-02"
-  },
-  {
    "file": "components/OrgChart.tsx",
    "cls": "reachable",
    "importers": 1,
-   "last": "?"
+   "last": "2026-07-18"
   },
   {
    "file": "components/ProductMarquee.tsx",
    "cls": "reachable",
-   "importers": 2,
+   "importers": 1,
    "last": "2026-07-14"
   },
   {
@@ -734,28 +626,10 @@
    "last": "2026-07-15"
   },
   {
-   "file": "components/ScrollProgress.tsx",
-   "cls": "reachable",
-   "importers": 2,
-   "last": "2026-07-03"
-  },
-  {
-   "file": "components/SecretHouseDoor.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-06-23"
-  },
-  {
    "file": "components/SelfEnrichPanel.tsx",
    "cls": "reachable",
    "importers": 1,
    "last": "2026-06-30"
-  },
-  {
-   "file": "components/SellThis.tsx",
-   "cls": "reachable",
-   "importers": 1,
-   "last": "2026-07-08"
   },
   {
    "file": "components/SignupAttribution.tsx",
@@ -766,25 +640,25 @@
   {
    "file": "components/SiteFooter.tsx",
    "cls": "reachable",
-   "importers": 4,
-   "last": "?"
+   "importers": 12,
+   "last": "2026-07-18"
   },
   {
    "file": "components/SiteHeader.tsx",
    "cls": "reachable",
-   "importers": 4,
-   "last": "?"
+   "importers": 12,
+   "last": "2026-07-18"
   },
   {
    "file": "components/SlackThreadMock.tsx",
    "cls": "reachable",
    "importers": 2,
-   "last": "?"
+   "last": "2026-07-18"
   },
   {
    "file": "components/TrackBeacon.tsx",
    "cls": "reachable",
-   "importers": 3,
+   "importers": 1,
    "last": "2026-07-11"
   },
   {
@@ -838,7 +712,7 @@
   {
    "file": "components/ledger/LedgerShell.tsx",
    "cls": "reachable",
-   "importers": 12,
+   "importers": 1,
    "last": "2026-07-11"
   },
   {
@@ -886,7 +760,7 @@
   {
    "file": "components/useCopy.ts",
    "cls": "reachable",
-   "importers": 6,
+   "importers": 5,
    "last": "2026-07-02"
   },
   {
@@ -1079,7 +953,7 @@
    "file": "lib/core/slack-invite.ts",
    "cls": "reachable",
    "importers": 3,
-   "last": "?"
+   "last": "2026-07-18"
   },
   {
    "file": "lib/core/vault.ts",
@@ -1532,12 +1406,6 @@
    "last": "2026-07-11"
   },
   {
-   "file": "lib/engine/playbooks.ts",
-   "cls": "reachable",
-   "importers": 3,
-   "last": "2026-07-04"
-  },
-  {
    "file": "lib/engine/polar.ts",
    "cls": "reachable",
    "importers": 2,
@@ -1570,7 +1438,7 @@
   {
    "file": "lib/engine/provider.ts",
    "cls": "reachable",
-   "importers": 6,
+   "importers": 5,
    "last": "2026-07-10"
   },
   {
@@ -1630,7 +1498,7 @@
   {
    "file": "lib/engine/sales-playbooks.ts",
    "cls": "reachable",
-   "importers": 3,
+   "importers": 2,
    "last": "2026-07-08"
   },
   {
@@ -1732,7 +1600,7 @@
   {
    "file": "lib/engine/types.ts",
    "cls": "reachable",
-   "importers": 97,
+   "importers": 93,
    "last": "2026-07-12"
   },
   {
@@ -1744,7 +1612,7 @@
   {
    "file": "lib/engine/useAuth.ts",
    "cls": "reachable",
-   "importers": 11,
+   "importers": 10,
    "last": "2026-07-09"
   },
   {
@@ -1776,12 +1644,6 @@
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-03"
-  },
-  {
-   "file": "lib/founder.ts",
-   "cls": "reachable",
-   "importers": 2,
-   "last": "2026-07-14"
   },
   {
    "file": "lib/loop/finance-report.ts",
@@ -1888,7 +1750,7 @@
   {
    "file": "lib/org/organization.ts",
    "cls": "reachable",
-   "importers": 28,
+   "importers": 29,
    "last": "2026-07-14"
   },
   {
@@ -2002,7 +1864,7 @@
   {
    "file": "lib/site.ts",
    "cls": "reachable",
-   "importers": 6,
+   "importers": 5,
    "last": "2026-07-03"
   },
   {
@@ -2057,7 +1919,7 @@
    "file": "scripts/smoke.mjs",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-16"
+   "last": "2026-07-18"
   },
   {
    "file": "instrumentation-client.ts",
@@ -2108,7 +1970,5 @@
    "last": "2026-06-17"
   }
  ],
- "unresolved": [
-  "next-env.d.ts → ./.next/types/routes.d.ts"
- ]
+ "unresolved": []
 }

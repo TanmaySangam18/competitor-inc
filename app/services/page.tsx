@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import { listServices, type Service } from "@/lib/core";
 
-// THE SERVICE CATALOG (/services) — what a customer can hire the AI company to run. ONE screen: each service
-// is a collapsible tile (native <details>, no JS), the flagship open by default, the rest folded so all six
-// fit without scrolling. TEAL design system (matches landing + cockpit). Status is HONEST, straight from
+// THE SERVICE CATALOG (/services) — what a customer can hire the AI company to run. Each service is a
+// collapsible tile (native <details>, no JS), the flagship open by default. Shared site chrome
+// (SiteHeader/SiteFooter, ADR-0009), monochrome tokens. Status is HONEST, straight from
 // lib/core/services.ts — no service claims more than it can do.
 
 export const metadata: Metadata = {
@@ -88,29 +90,26 @@ export default function ServicesPage() {
   // Real checkout when the founder has connected it (NEXT_PUBLIC, so it inlines at build); else signup.
   const checkoutUrl = process.env.NEXT_PUBLIC_CHECKOUT_URL_BUILDER ?? process.env.NEXT_PUBLIC_CHECKOUT_URL ?? "";
   return (
-    <main className="flex h-[100dvh] flex-col overflow-hidden bg-bg text-text">
-      <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
-        <a href="/" className="text-lg font-semibold tracking-tight">competitor<span className="text-coral">.inc</span></a>
-        <a href="/dashboard" className="rounded-xl border border-border px-4 py-2 text-xs font-medium text-muted transition hover:border-coral/50 hover:text-coral">
-          Open the cockpit
-        </a>
-      </header>
+    <main className="flex min-h-[100dvh] flex-col bg-bg text-text">
+      {/* ADR-0009: the shared site chrome replaces the bespoke header — one nav everywhere. The page
+          flows normally now (the collapsed tiles keep it short); the list no longer scrolls internally. */}
+      <SiteHeader />
 
-      <section className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden px-6 py-6">
-        <div className="shrink-0">
-          <h1 className="display text-3xl sm:text-4xl">What can it run for you?</h1>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
-            Hire the AI company for one thing or all of it. Every service is run by real roles and shows an
-            honest status — nothing here claims more than it can do.
-          </p>
-        </div>
+      <section className="mx-auto w-full max-w-2xl flex-1 px-6 py-10">
+        <h1 className="display text-3xl sm:text-4xl">What can it run for you?</h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted">
+          Hire the AI company for one thing or all of it. Every service is run by real roles and shows an
+          honest status — nothing here claims more than it can do.
+        </p>
 
-        <div className="mt-5 flex flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
+        <div className="mt-5 flex flex-col gap-2.5">
           {services.map((s) => (
             <ServiceTile key={s.id} s={s} checkoutUrl={checkoutUrl} />
           ))}
         </div>
       </section>
+
+      <SiteFooter />
     </main>
   );
 }

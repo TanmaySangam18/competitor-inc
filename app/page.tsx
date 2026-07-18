@@ -168,8 +168,9 @@ export default async function Landing() {
         </div>
       </section>
 
-      {/* 3 · how it works — exactly three steps, plain words */}
-      <section className="border-t border-border">
+      {/* 3 · how it works — exactly three steps, plain words. id="how" is a REDIRECT TARGET:
+          the killed /how-it-works page 308s to /#how (ADR-0009) — keep the anchor. */}
+      <section id="how" className="border-t border-border">
         <div className="mx-auto w-full max-w-5xl px-6 py-16">
           <Label>How it works</Label>
           <div className="mt-8 grid gap-10 sm:grid-cols-3 sm:gap-8">
@@ -275,11 +276,12 @@ export default async function Landing() {
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted">
             No customer case studies exist yet, so we don&apos;t invent any. These are the cases we can
             prove: {drills.total} failure drills run against the governed company — each one a disaster
-            scenario it must survive. Results below are computed at render, from the same code the test
-            suite enforces.
+            scenario it must survive. Three of them below, computed at render from the same code the
+            test suite enforces; the full set runs live on the benchmark page.
           </p>
+          {/* ADR-0009: a TEASER, not the full set — /benchmark is the proof surface; this section links there. */}
           <div className="mt-8 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-            {drills.drills.map((d) => (
+            {drills.drills.slice(0, 3).map((d) => (
               <div key={d.name} className="bg-bg p-5">
                 <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-2">
                   {d.passed ? "survived" : "failed"} · simulation

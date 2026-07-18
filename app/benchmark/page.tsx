@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import { runFailureDrills, readiness } from "@/lib/core";
 import { proveGround } from "@/lib/sim/proving-ground";
 import { proveSaas } from "@/lib/sim/saas-drill";
@@ -38,10 +40,8 @@ export default async function BenchmarkPage() {
 
   return (
     <main className="flex min-h-[100dvh] flex-col bg-bg text-text">
-      <header className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
-        <a href="/" className="text-lg font-semibold tracking-tight">competitor<span className="text-coral">.inc</span></a>
-        <a href="/decisions" className="rounded-xl border border-border px-4 py-2 text-xs font-medium text-muted transition hover:border-coral/50 hover:text-coral">Decision queue</a>
-      </header>
+      {/* ADR-0009: the shared site chrome replaces the bespoke header/footer — one nav everywhere. */}
+      <SiteHeader />
 
       <section className="mx-auto w-full max-w-3xl flex-1 px-6 py-8">
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-2">Proven in simulation · {stamp}</p>
@@ -85,6 +85,8 @@ export default async function BenchmarkPage() {
           governance + verification a platform-class product needs, proven to hold under simulated pressure.
         </p>
       </section>
+
+      <SiteFooter />
     </main>
   );
 }

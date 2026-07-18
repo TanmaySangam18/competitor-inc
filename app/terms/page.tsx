@@ -1,14 +1,17 @@
 import Link from "next/link";
-import { LedgerShell, Eyebrow, serifStyle } from "@/components/ledger/LedgerShell";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 export const metadata = { title: "Terms — competitor.inc" };
 
 export default function Terms() {
   return (
-    <LedgerShell>
+    // ADR-0009: the shared site chrome replaces the LedgerShell — one header + one footer everywhere.
+    <main id="main" className="min-h-[100dvh] bg-bg text-text">
+      <SiteHeader />
       <div className="mx-auto max-w-2xl px-5 py-14">
-      <Eyebrow>THE FINE PRINT · IN PLAIN ENGLISH</Eyebrow>
-      <h1 className="mt-4 text-[34px] font-medium" style={serifStyle}>Terms</h1>
+      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-muted-2">The fine print · in plain English</p>
+      <h1 className="display mt-4 text-3xl">Terms</h1>
       <p className="mt-2 text-sm text-ink-faint">Beta · last updated June 2026.</p>
 
       <div className="mt-8 space-y-6 text-sm leading-relaxed text-ink-muted">
@@ -71,6 +74,7 @@ export default function Terms() {
         See also <Link href="/privacy" className="text-pine underline decoration-dotted underline-offset-4 hover:decoration-solid">Privacy</Link>.
       </p>
       </div>
-    </LedgerShell>
+      <SiteFooter />
+    </main>
   );
 }

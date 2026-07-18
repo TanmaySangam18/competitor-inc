@@ -20,6 +20,18 @@ async function get(path, want = 200) {
   } catch (e) { fail(`GET ${path} threw: ${e}`); }
 }
 
+// ADR-0009: killed pages must 308 to their keeper — asserted WITHOUT following the redirect, so a
+// redirect can never silently rot into a 404 or an accidental 200 from somewhere else.
+async function redirect(path, dest) {
+  try {
+    const r = await fetch(BASE + path, { redirect: "manual", signal: AbortSignal.timeout(10000) });
+    const loc = new URL(r.headers.get("location") || "/__missing__", BASE);
+    const want = new URL(dest, BASE);
+    if (r.status === 308 && loc.pathname === want.pathname && loc.hash === want.hash) ok(`GET ${path} → 308 ${dest}`);
+    else fail(`GET ${path} → ${r.status} ${loc.pathname}${loc.hash} (want 308 ${dest})`);
+  } catch (e) { fail(`GET ${path} threw: ${e}`); }
+}
+
 async function post(path, body, want) {
   try {
     const r = await fetch(BASE + path, {
@@ -50,28 +62,28 @@ async function run() {
   console.log("• routes");
   const home = await get("/");
   if (home) { const t = await home.text(); t.includes("competitor.inc") ? ok("/ contains brand") : fail("/ missing 'competitor.inc'"); }
-  await get("/dashboard"); await get("/login"); await get("/live"); await get("/dashboard/settings"); await get("/join"); await get("/how-it-works"); await get("/nu"); await get("/house"); await get("/house/board"); await get("/house/ledger"); await get("/house/cohort");
-  await get("/proof");
+  await get("/dashboard"); await get("/login"); await get("/live"); await get("/dashboard/settings"); await get("/join"); await get("/house"); await get("/house/board"); await get("/house/ledger"); await get("/house/cohort");
   await get("/notices"); // third-party attribution (license-shield honesty) — linked from the landing footer
   await get("/services"); await get("/org"); await get("/benchmark"); // landing-footer targets — the landing must never link to a dead route
   await get("/org/chief-of-staff"); // the agent detail pages (ADR-0008) — one per role, statically generated
   await get("/org/data-steward"); // a leaf role with an SOP — exercises the SOP + collaborators sections
   await get("/decisions"); // the Executive Inbox (Day One) — renders signed-out empty state
-  await get("/connect"); // the MACHINA onboarding surface — connect-and-go, reads live readiness
-  await get("/build"); // the "prove it" demo (moved off /); / is now the MACHINA landing
-  await get("/demo"); // legacy alias → 308 to /build, followed to 200
+  await get("/connect"); // the front door — connect-and-go, reads live readiness
+  await get("/score"); // the no-signup lead magnet (+ the folded-in demand radar, ADR-0009)
+  await get("/privacy"); await get("/terms"); // the legal pages — linked from signup consent copy
   await get("/watch", 404); await get("/orchestrator", 404); // deleted in the 2026-07-15 consolidation — must stay gone
+  // ADR-0009 simplification: every killed page 308s to the keeper that answers its question. Never a 404.
+  await redirect("/build", "/"); await redirect("/demo", "/");
+  await redirect("/blog", "/"); await redirect("/blog/some-old-post", "/");
+  await redirect("/compare", "/"); await redirect("/founder", "/"); await redirect("/sell", "/");
+  await redirect("/how-it-works", "/#how"); await redirect("/nu", "/");
+  await redirect("/integrations", "/connect");
+  await redirect("/proof", "/benchmark");
+  await redirect("/radar", "/score");
+  await redirect("/playbooks", "/"); await redirect("/playbooks/validate-before-you-build", "/");
   // ChatOps reflection endpoint: founder-gated. A guest must get 200 + an EMPTY list — never someone's messages.
   { const r = await get("/api/chatops/messages"); if (r) { const d = await r.json().catch(() => ({})); (Array.isArray(d.messages) && d.messages.length === 0) ? ok("chatops empty for guest (no leak)") : fail("chatops must be empty for a guest"); } }
-  await get("/radar");
-  await get("/compare");
   await get("/lockin");
-  await get("/playbooks"); await get("/playbooks/validate-before-you-build");
-  await get("/playbooks/how-people-decide"); await get("/playbooks/tell-a-story-that-sells");
-  await get("/playbooks/cold-outreach-that-isnt-spam");
-  await get("/playbooks/run-a-discovery-call"); await get("/playbooks/close-without-being-pushy");
-  await get("/playbooks/keep-them-then-grow-them"); await get("/playbooks/price-without-leaving-money");
-  await get("/playbooks/not-a-real-playbook", 404);
   await get("/definitely-not-a-real-route", 404);
   await get("/sitemap.xml"); await get("/robots.txt");
 

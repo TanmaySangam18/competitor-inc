@@ -340,6 +340,35 @@ h1, h2, h3, h4 {
   .glassbox-stage:focus-within .glassbox-3d { transform: none; transition: none; }
 }
 
+/* ── Ink ripple — the site-wide interaction splash (components/InkRipple.tsx, ADR-0009) ──────────
+   A monochrome press echo at the exact pointer point: scales 0 → 180px while fading 0.18 → 0 over
+   450ms. transform/opacity ONLY (compositor-friendly — no layout properties, no reflow, no scroll
+   jank); the layer + spans are pointer-events:none and aria-hidden. Re-skin every ripple with ONE
+   variable: --ripple-ink (defaults to the monochrome ink). The component also refuses to spawn spans
+   under prefers-reduced-motion; the global reduced-motion rule below is the second line of defense. */
+.ink-ripple-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+.ink-ripple {
+  position: fixed;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: var(--ripple-ink, rgba(10, 10, 10, 0.14));
+  pointer-events: none;
+  will-change: transform, opacity;
+  transform: scale(0);
+  opacity: 0;
+  animation: ink-ripple 450ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+@keyframes ink-ripple {
+  from { transform: scale(0); opacity: 0.18; }
+  to { transform: scale(1); opacity: 0; }
+}
+
 /* ── Accessibility ───────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid #262626;
