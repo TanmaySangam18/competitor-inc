@@ -26,7 +26,8 @@ const DEVPOST_URL = "https://devpost.com/api/hackathons?status[]=open&status[]=u
 
 function parsePrize(html: unknown): number {
   if (typeof html !== "string") return 0;
-  const m = html.replace(/,/g, "").match(/\$\s*(\d+)/);
+  // Real Devpost shape: `$<span data-currency-value>100,000</span>` — strip tags BEFORE matching.
+  const m = html.replace(/<[^>]*>/g, "").replace(/,/g, "").match(/\$\s*(\d+)/);
   return m ? parseInt(m[1], 10) : 0;
 }
 

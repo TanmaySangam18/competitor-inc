@@ -3,7 +3,7 @@ import { scanHackathons, winPlan } from "./hackathon-radar";
 
 const listing = {
   hackathons: [
-    { title: "AI Agents Challenge", url: "https://x.devpost.com", prize_amount: "<span>$10,000</span>", displayed_location: { location: "Online" }, open_state: "open", submission_period_dates: "Jul 20 - Aug 15, 2026" },
+    { title: "AI Agents Challenge", url: "https://x.devpost.com", prize_amount: "$<span data-currency-value>10,000</span>", displayed_location: { location: "Online" }, open_state: "open", submission_period_dates: "Jul 20 - Aug 15, 2026" },
     { title: "Campus Only", url: "https://y.devpost.com", prize_amount: "$5,000", displayed_location: { location: "Boston, MA" }, open_state: "open", submission_period_dates: "" },
     { title: "No Prize Jam", url: "https://z.devpost.com", prize_amount: "", displayed_location: { location: "Online" }, open_state: "upcoming", submission_period_dates: "" },
   ],
