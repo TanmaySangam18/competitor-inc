@@ -67,11 +67,11 @@ describe("onboarding co-pilot — the hands (ADR-0018)", () => {
   });
 
   it("reports each performed step to Slack", async () => {
-    const report = vi.fn(async () => {});
+    const report = vi.fn(async (_text: string) => {});
     const solo: SetupRecipe = { connectionId: "x", name: "X", oauth: false,
       steps: [{ actor: "agent", label: "Open page", url: "https://x", prefill: ["name: y"] }] };
     await runService(solo, { driver: fakeDriver(), consent: true, report });
     expect(report).toHaveBeenCalled();
-    expect((report.mock.calls[0][0] as string)).toContain("Open page");
+    expect(report.mock.calls[0][0]).toContain("Open page");
   });
 });
