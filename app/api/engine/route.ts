@@ -13,7 +13,8 @@ import { githubBuildExecutor } from "@/lib/engine/build-github";
 import { openhandsBuildExecutor } from "@/lib/engine/openhands";
 import { aiderBuildExecutor } from "@/lib/engine/aider-build";
 import { fullstackBuildExecutor } from "@/lib/engine/fullstack-build";
-import { checkUserLimit } from "@/lib/engine/user-limits";
+import { checkUserLimit, USER_DAILY_LIMITS } from "@/lib/engine/user-limits";
+import { houseTrialVerdict } from "@/lib/engine/house-trial";
 import type { ExecuteFn } from "@/lib/engine/supervisor";
 import { capabilities } from "@/lib/engine/execution";
 import { connectorStatus } from "@/lib/engine/connectors";
@@ -95,8 +96,23 @@ export async function GET(req: Request) {
   if (url.searchParams.get("probe") === "fullstack") {
     const ses = await getServerSupabase();
     const { data } = (await ses?.auth.getUser()) ?? { data: null };
-    if (!data?.user || !isFounderEmail(data.user.email)) {
-      return Response.json({ error: "founder-gated — sign in as the founder first" }, { status: 403 });
+    if (!data?.user) {
+      return Response.json({ error: "sign in first" }, { status: 403 });
+    }
+    // HOUSE-KEYS TRIAL (ADR-0015): builds are founder-only until HOUSE_TRIAL_BUILDS_PER_DAY opens them —
+    // then any signed-in user gets N real builds/day on the house keys, counted atomically per user.
+    // Fail-CLOSED for non-founders: a build creates a real repo, so an unverifiable allowance is a no.
+    if (!isFounderEmail(data.user.email)) {
+      if (USER_DAILY_LIMITS.build === 0) {
+        return Response.json({ error: "founder-gated — the house-keys trial is not open on this deployment" }, { status: 403 });
+      }
+      const lim = await checkUserLimit("build");
+      if (!lim.enforced) {
+        return Response.json({ error: "couldn't verify your trial allowance right now — try again shortly" }, { status: 503 });
+      }
+      if (!lim.allowed) {
+        return Response.json({ error: houseTrialVerdict(lim.used, Date.now()).reason }, { status: 429 });
+      }
     }
     if (!FULLSTACK_BUILDS) {
       return Response.json({ ok: false, reason: "FULLSTACK_BUILDS is not set — add FULLSTACK_BUILDS=1 + FULLSTACK_GH_ORG=<org> on Vercel (Production) and redeploy first." });

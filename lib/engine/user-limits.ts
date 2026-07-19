@@ -11,7 +11,7 @@ import "server-only";
 
 import { getServerSupabase } from "@/lib/supabase/server";
 
-export type LimitKind = "validate" | "shift" | "goal";
+export type LimitKind = "validate" | "shift" | "goal" | "build";
 
 const num = (v: string | undefined, d: number): number => {
   const x = Number(v);
@@ -19,10 +19,13 @@ const num = (v: string | undefined, d: number): number => {
 };
 
 // Per-user, per-day caps (operator-key usage). Env-overridable so you can tune without a deploy of code.
+// `build` is the HOUSE-KEYS TRIAL valve (lib/engine/house-trial.ts): 0 = trial OFF (builds stay
+// founder-only); setting HOUSE_TRIAL_BUILDS_PER_DAY opens real builds to signed-in users, hard-capped.
 export const USER_DAILY_LIMITS: Record<LimitKind, number> = {
   validate: num(process.env.USER_DAILY_VALIDATE, 15),
   shift: num(process.env.USER_DAILY_SHIFT, 30),
   goal: num(process.env.USER_DAILY_GOAL, 20),
+  build: num(process.env.HOUSE_TRIAL_BUILDS_PER_DAY, 0),
 };
 
 export interface LimitResult {
