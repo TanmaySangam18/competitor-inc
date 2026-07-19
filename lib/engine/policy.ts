@@ -12,7 +12,7 @@
 import type { AgentRole, ApprovalItem } from "./types";
 
 // Real-world executor actions the system can actually dispatch (see lib/engine/execution.ts runAction).
-export type ExecAction = "build" | "deploy" | "outreach" | "spend" | "payments" | "bluesky" | "mastodon" | "delete" | "mcp_read" | "design_draft" | "slack_post";
+export type ExecAction = "build" | "deploy" | "outreach" | "spend" | "payments" | "bluesky" | "mastodon" | "delete" | "mcp_read" | "design_draft" | "slack_post" | "browser_setup";
 
 export type Bucket = "AUTO" | "APPROVE" | "NEVER"; // a cell in the per-agent matrix
 export type Verdict = "AUTO" | "QUEUE" | "BLOCK"; // decide()'s output
@@ -116,7 +116,7 @@ export const POLICY: Policy = {
     ceo: { spend: "APPROVE", payments: "APPROVE", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Engineer — ships. May build + deploy (with sign-off); never touches money or public channels.
     // slack_post AUTO = deliberating in the workspace's own #eng channel (the office), NOT a public channel.
-    engineering: { build: "APPROVE", deploy: "APPROVE", mcp_read: "AUTO", design_draft: "AUTO", slack_post: "AUTO", spend: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    engineering: { build: "APPROVE", deploy: "APPROVE", mcp_read: "AUTO", design_draft: "AUTO", slack_post: "AUTO", browser_setup: "AUTO", spend: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Marketer — finds customers. Owns outreach, ad spend, and social; never ships or moves money out.
     marketing: { outreach: "APPROVE", spend: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", slack_post: "AUTO", build: "NEVER", deploy: "NEVER", payments: "NEVER", delete: "NEVER" },
     // Support — helps users. May send approved replies; never spends, ships, or posts publicly.
@@ -251,6 +251,8 @@ const BASE_TIER: Record<string, Tier> = {
   // surface), zero public blast radius. T1 = auto+log. The human-mention path for T2+/queued decisions lives
   // in lib/loop/office.ts mirrorDecision — the tier here governs the POST, not what the post asks of a human.
   slack_post: "T1",
+  browser_setup: "T1", // onboarding co-pilot navigating/pre-filling NON-SECRET fields on the user's own
+  //                     machine, with consent — reversible + observable. Hard-stops never reach the driver.
   deploy: "T3", delete: "T3", payments: "T3", bluesky: "T3", mastodon: "T3",
   // NOTE: mcp writes ride as "mcp_call" — intentionally NOT here, so they land on the unknown→T2 QUEUE
   // path until a per-tool allowlist earns promotion (default-deny, promote-on-evidence).
