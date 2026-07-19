@@ -75,7 +75,7 @@ function ServiceTile({ s, checkoutUrl }: { s: Service; checkoutUrl: string }) {
           <p className="max-w-md text-[11px] leading-snug text-muted-2">{buy.note}</p>
           <a
             href={href}
-            className="shrink-0 rounded-xl bg-coral px-4 py-2 text-center text-xs font-semibold text-white transition hover:brightness-110"
+            className="shrink-0 rounded-xl bg-coral px-4 py-2 text-center text-xs font-semibold text-bg transition hover:brightness-110"
           >
             {buy.label} →
           </a>

@@ -19,13 +19,13 @@ export default async function CliPairPage() {
   const armed = vaultReady() && Boolean(process.env.CONNECTIONS_SECRET);
 
   return (
-    <div className="min-h-screen bg-white text-[#0a0a0a]">
+    <div className="min-h-screen bg-bg text-text">
       <SiteHeader />
       <main className="mx-auto max-w-2xl px-6 py-20">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">One-line activation</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">One-line activation</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight">Pair your terminal</h1>
         {!armed ? (
-          <p className="mt-6 border border-[#0a0a0a]/15 p-4 text-sm">
+          <p className="mt-6 border border-border p-4 text-sm">
             Pairing is not armed on this deployment (CONNECTIONS_SECRET missing). Keys can still be set as env vars — see <Link href="/connect" className="underline underline-offset-2">/connect</Link>.
           </p>
         ) : !user ? (
@@ -35,14 +35,14 @@ export default async function CliPairPage() {
           </p>
         ) : (
           <>
-            <p className="mt-6 text-sm leading-relaxed text-[#0a0a0a]/70">
+            <p className="mt-6 text-sm leading-relaxed text-muted">
               Paste this code into the terminal running the activation script. It expires in 10 minutes,
               works only for your account, and stores nothing by itself.
             </p>
-            <code className="mt-4 block break-all border border-[#0a0a0a] p-4 font-mono text-[12px] leading-relaxed">
+            <code className="mt-4 block break-all border border-text p-4 font-mono text-[12px] leading-relaxed">
               {signState({ provider: "cli", userId: user.id }, process.env.CONNECTIONS_SECRET!)}
             </code>
-            <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
+            <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
               Didn&apos;t run the script yet? One line: curl -fsSL {process.env.NEXT_PUBLIC_SITE_URL ?? "https://competitor-inc-zeta.vercel.app"}/api/cli | node
             </p>
           </>

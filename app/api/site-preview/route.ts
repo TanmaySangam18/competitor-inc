@@ -40,9 +40,9 @@ function unavailable(msg: string, sub = ""): Response {
   // A graceful, on-brand in-frame message so the preview never shows a broken/blank box.
   return page(
     `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>` +
-      `<body style="margin:0;font:14px system-ui,-apple-system,sans-serif;color:#57534e;background:#f3eee2;height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:1.5rem">` +
+      `<body style="margin:0;font:14px system-ui,-apple-system,sans-serif;color:#b4b4b4;background:#212121;height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:1.5rem">` +
       `<div style="max-width:22rem">` +
-      `<div style="font-size:15px;font-weight:600;color:#14130e;margin-bottom:.4rem">${escapeAttr(msg)}</div>` +
+      `<div style="font-size:15px;font-weight:600;color:#ececec;margin-bottom:.4rem">${escapeAttr(msg)}</div>` +
       (sub ? `<div style="line-height:1.55">${escapeAttr(sub)}</div>` : "") +
       `</div></body></html>`,
   );

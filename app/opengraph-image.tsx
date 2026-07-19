@@ -15,19 +15,19 @@ export default function Image() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          background: "#0a0a0a",
+          background: "#212121",
           padding: "80px",
-          color: "#fafafa",
+          color: "#ececec",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <div style={{ width: "64px", height: "64px", borderRadius: "18px", background: "#fafafa" }} />
+          <div style={{ width: "64px", height: "64px", borderRadius: "18px", background: "#ececec" }} />
           <div style={{ fontSize: "40px", fontWeight: 700, fontFamily: "monospace", letterSpacing: "-1px" }}>competitor.inc</div>
         </div>
         <div style={{ fontSize: "78px", fontWeight: 700, marginTop: "44px", lineHeight: 1.05 }}>
           Prove it before you build it.
         </div>
-        <div style={{ fontSize: "30px", color: "#a1a1aa", marginTop: "28px", maxWidth: "900px" }}>
+        <div style={{ fontSize: "30px", color: "#b4b4b4", marginTop: "28px", maxWidth: "900px" }}>
           The AI co-founder that validates your idea — honestly — before it builds the winner.
         </div>
       </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import FlowDiagram from "@/components/FlowDiagram";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import SlackThreadMock from "@/components/SlackThreadMock";
@@ -91,6 +92,19 @@ export default function LivePage() {
             </p>
           </div>
           <SlackThreadMock />
+        </div>
+      </section>
+
+      {/* the flow, drawn (ADR-0016) — the office thread above shows one moment; this shows the whole
+          circuit those moments run on. Same verified labels as the landing. */}
+      <section className="border-t border-border">
+        <div className="mx-auto w-full max-w-5xl px-6 py-16">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-muted-2">
+            The flow, drawn
+          </p>
+          <div className="mt-8">
+            <FlowDiagram />
+          </div>
         </div>
       </section>
 

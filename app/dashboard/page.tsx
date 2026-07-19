@@ -39,9 +39,9 @@ import { waitlistGateOn, premiumUnlocked, companyCreateLocked } from "@/lib/engi
 import { getTrialStart } from "@/lib/engine/trial";
 
 const verdictStyle = {
-  strong: { ring: "border-black/30 bg-black/[0.06]", text: "text-text", label: "strong signal" },
-  mixed: { ring: "border-black/15 bg-black/[0.03]", text: "text-muted", label: "mixed signal" },
-  weak: { ring: "border-black/10 bg-transparent", text: "text-muted-2", label: "weak signal" },
+  strong: { ring: "border-text/30 bg-text/[0.06]", text: "text-text", label: "strong signal" },
+  mixed: { ring: "border-text/15 bg-text/[0.03]", text: "text-muted", label: "mixed signal" },
+  weak: { ring: "border-text/10 bg-transparent", text: "text-muted-2", label: "weak signal" },
 } as const;
 
 // Monochrome signals: meaning via brightness/fill — solid white (good) → gray → hollow (bad).

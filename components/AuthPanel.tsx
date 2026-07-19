@@ -125,7 +125,7 @@ export default function AuthPanel({ mode }: { mode: "signin" | "signup" }) {
             </label>
             {emailErr && <p className="text-xs font-medium text-coral" role="alert">{emailErr}</p>}
             <button onClick={emailLink} disabled={!!busy}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-coral py-3 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-40">
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-coral py-3 text-sm font-semibold text-bg transition hover:brightness-110 disabled:opacity-40">
               {busy === "email" ? <Loader2 size={16} className="animate-spin" /> : null} Email me a magic link
             </button>
           </div>

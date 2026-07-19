@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import FlowDiagram from "@/components/FlowDiagram";
 import ProductMarquee from "@/components/ProductMarquee";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
@@ -9,9 +10,10 @@ import { DEPARTMENTS, ROLES, orgSize, getRole } from "@/lib/org/organization";
 
 // THE LANDING (/) — the Viktor-structure marketing layer (ADR-0008, restructures ADR-0006's five
 // sections; the honesty floor carries over UNCHANGED). One promise per section, one CTA repeated,
-// counted proof: hero → proof strip → three steps → the workforce → Competitor Live in Slack →
-// receipts → the honest comparison → FAQ → final CTA → footer. Monochrome brutalist (white / #0a0a0a /
-// hairlines / mono labels / heavy display / square inversion buttons). No invented numbers, users,
+// counted proof: hero → proof strip → three steps → the flow drawn → the workforce → Competitor Live
+// in Slack → receipts → the honest comparison → FAQ → final CTA → footer. Monochrome dark canvas
+// (ADR-0016: charcoal / light ink / hairlines / mono labels / heavy display / square inversion
+// buttons — token classes only). No invented numbers, users,
 // logos, or testimonials ([[crack-audit-and-no-fake-proof]]): every count on this page is either
 // COMPUTED at render from the same code the tests enforce (drills, safety gate, org size) or is the
 // radical-honesty figure ($0 settled revenue). Simulation results are always labeled as simulation.
@@ -181,6 +183,17 @@ export default async function Landing() {
                 <p className="mt-3 text-sm leading-relaxed text-muted">{s.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 3.5 · the flow, drawn — the same three steps as a sequence diagram (ADR-0016). Every label
+          verified against the codebase; the role count is computed, never typed. */}
+      <section className="border-t border-border">
+        <div className="mx-auto w-full max-w-5xl px-6 py-16">
+          <Label>The flow, drawn</Label>
+          <div className="mt-8">
+            <FlowDiagram />
           </div>
         </div>
       </section>
