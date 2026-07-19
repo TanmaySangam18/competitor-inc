@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-19T04:24:22.234Z",
+ "generated": "2026-07-19T04:26:57.093Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -311,7 +311,7 @@
    "file": "app/api/site-preview/route.ts",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-10"
+   "last": "2026-07-19"
   },
   {
    "file": "app/api/slack/webhook/route.ts",
@@ -365,13 +365,13 @@
    "file": "app/cli/pair/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-18"
+   "last": "2026-07-19"
   },
   {
    "file": "app/connect/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-18"
+   "last": "2026-07-19"
   },
   {
    "file": "app/dashboard/loading.tsx",
@@ -383,7 +383,7 @@
    "file": "app/dashboard/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-16"
+   "last": "2026-07-19"
   },
   {
    "file": "app/dashboard/settings/loading.tsx",
@@ -401,7 +401,7 @@
    "file": "app/decisions/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-15"
+   "last": "2026-07-19"
   },
   {
    "file": "app/error.tsx",
@@ -467,7 +467,7 @@
    "file": "app/live/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-18"
+   "last": "2026-07-19"
   },
   {
    "file": "app/login/page.tsx",
@@ -497,7 +497,7 @@
    "file": "app/opengraph-image.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-06-17"
+   "last": "2026-07-19"
   },
   {
    "file": "app/org/[id]/page.tsx",
@@ -515,7 +515,7 @@
    "file": "app/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-18"
+   "last": "2026-07-19"
   },
   {
    "file": "app/privacy/page.tsx",
@@ -533,7 +533,7 @@
    "file": "app/score/opengraph-image.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-08"
+   "last": "2026-07-19"
   },
   {
    "file": "app/score/page.tsx",
@@ -545,7 +545,7 @@
    "file": "app/services/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-18"
+   "last": "2026-07-19"
   },
   {
    "file": "app/signup/page.tsx",
@@ -593,13 +593,13 @@
    "file": "components/AuthPanel.tsx",
    "cls": "reachable",
    "importers": 2,
-   "last": "2026-07-12"
+   "last": "2026-07-19"
   },
   {
    "file": "components/CompanyLogo.tsx",
    "cls": "reachable",
    "importers": 3,
-   "last": "2026-07-15"
+   "last": "2026-07-19"
   },
   {
    "file": "components/DemandRadarPanel.tsx",
@@ -629,7 +629,7 @@
    "file": "components/FlowDiagram.tsx",
    "cls": "reachable",
    "importers": 2,
-   "last": "?"
+   "last": "2026-07-19"
   },
   {
    "file": "components/GuestSavePrompt.tsx",
@@ -653,7 +653,7 @@
    "file": "components/Logo.tsx",
    "cls": "reachable",
    "importers": 11,
-   "last": "2026-06-17"
+   "last": "2026-07-19"
   },
   {
    "file": "components/MomTestKit.tsx",
@@ -683,7 +683,7 @@
    "file": "components/Scorecard.tsx",
    "cls": "reachable",
    "importers": 1,
-   "last": "2026-07-18"
+   "last": "2026-07-19"
   },
   {
    "file": "components/SelfEnrichPanel.tsx",
@@ -701,7 +701,7 @@
    "file": "components/SiteFooter.tsx",
    "cls": "reachable",
    "importers": 12,
-   "last": "2026-07-18"
+   "last": "2026-07-19"
   },
   {
    "file": "components/SiteHeader.tsx",
@@ -731,7 +731,7 @@
    "file": "components/dashboard/DashSidebar.tsx",
    "cls": "reachable",
    "importers": 1,
-   "last": "2026-07-15"
+   "last": "2026-07-19"
   },
   {
    "file": "components/dashboard/FoundingMember.tsx",
