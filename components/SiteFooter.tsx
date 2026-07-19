@@ -19,7 +19,7 @@ export default function SiteFooter() {
       <div className="mx-auto w-full max-w-5xl px-6 py-12">
         <div className="flex flex-wrap items-center gap-4">
           {/* the same pill lib/core/badge.ts injects into every product the company ships */}
-          <span className="inline-flex items-center bg-coral px-3.5 py-2 font-mono text-xs font-semibold text-white">
+          <span className="inline-flex items-center bg-coral px-3.5 py-2 font-mono text-xs font-semibold text-bg">
             Built with competitor<span className="opacity-70">.inc</span>
           </span>
           <p className="text-xs leading-relaxed text-muted-2">

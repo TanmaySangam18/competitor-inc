@@ -7,8 +7,8 @@ import { oauthProviderFor, getProvider } from "@/lib/core/oauth";
 
 // /connect — THE FRONT DOOR (Block B, CONNECT-FIRST-RESET §2.1, ADR-0004).
 // The 17-service connection map as a checklist with LIVE status. Connect T0 and the company starts;
-// everything else the org ASKS for when a task truly needs it. Monochrome brutalist: white, #0a0a0a,
-// hairlines, mono uppercase labels.
+// everything else the org ASKS for when a task truly needs it. Monochrome dark canvas (ADR-0016):
+// charcoal, light ink, hairlines, mono uppercase labels — token classes only.
 //
 // HONESTY RULES (load-bearing):
 //  - A service shows connected ONLY when its env var is actually present in this deployment — never assumed.
@@ -25,14 +25,14 @@ export const metadata: Metadata = {
   description: "Connect your accounts. The company runs itself. The 17-service connection map, with live status.",
 };
 
-const INK = "text-[#0a0a0a]";
-const HAIR = "border-[#0a0a0a]/15";
+const INK = "text-text";
+const HAIR = "border-border";
 
 function Dot({ on }: { on: boolean }) {
   return (
     <span
       aria-hidden
-      className={`mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-full ${on ? "bg-[#0a0a0a]" : "border border-[#0a0a0a] bg-transparent"}`}
+      className={`mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-full ${on ? "bg-text" : "border border-text bg-transparent"}`}
     />
   );
 }
@@ -46,16 +46,16 @@ function Row({ c }: { c: ConnectionStatus }) {
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <span className="text-[15px] font-semibold tracking-tight">{c.name}</span>
             {c.required && (
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">required</span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">required</span>
             )}
             <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.2em]">
               {c.configured ? "connected" : "not connected"}
               <span className="sr-only">{c.configured ? " — env var present" : " — env var absent"}</span>
             </span>
           </div>
-          <p className="mt-1 text-[13px] leading-relaxed text-[#0a0a0a]/70">{c.purpose}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted">{c.purpose}</p>
           <p className="mt-2 text-[13px] leading-relaxed">
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
               {c.configured ? "unlocked — " : "without it — "}
             </span>
             {c.configured ? c.unlocks : c.degraded}
@@ -66,18 +66,18 @@ function Row({ c }: { c: ConnectionStatus }) {
             <p className="mt-3">
               <a
                 href={`/api/oauth/${oauthProviderFor(c.id)!.id}/start`}
-                className="inline-block border border-[#0a0a0a] px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] transition-colors hover:bg-[#0a0a0a] hover:text-white"
+                className="inline-block border border-text px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.15em] transition-colors hover:bg-text hover:text-bg"
               >
                 Connect {oauthProviderFor(c.id)!.name} →
               </a>
-              <span className="ml-3 font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
+              <span className="ml-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
                 ~2 minutes · token stored encrypted, yours to revoke
               </span>
             </p>
           )}
           {c.env.length > 0 ? (
             <p className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
                 {c.env.length > 1 ? "set any of" : "set"}
               </span>
               {c.env.map((e) => (
@@ -85,7 +85,7 @@ function Row({ c }: { c: ConnectionStatus }) {
               ))}
             </p>
           ) : (
-            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
+            <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
               no env detection — tracked, not detected
             </p>
           )}
@@ -108,29 +108,29 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
   const byTier = (t: ConnectionTier) => map.filter((c) => c.tier === t);
 
   return (
-    <div className={`min-h-screen bg-white ${INK}`}>
+    <div className={`min-h-screen bg-bg ${INK}`}>
       {/* ADR-0009: the shared site chrome replaces the bespoke header/footer — one nav everywhere. */}
       <SiteHeader />
       {justConnected && (
-        <div className={`border-b ${HAIR} bg-[#0a0a0a] px-6 py-3 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-white`}>
+        <div className={`border-b ${HAIR} bg-text px-6 py-3 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-bg`}>
           {justConnected} connected — token stored encrypted, yours to revoke any time
         </div>
       )}
       {oauthError && (
-        <div className={`border-b border-[#0a0a0a] px-6 py-3 text-center font-mono text-[11px] uppercase tracking-[0.2em]`}>
+        <div className={`border-b border-text px-6 py-3 text-center font-mono text-[11px] uppercase tracking-[0.2em]`}>
           Connection failed — {oauthError.replace(/_/g, " ")} · nothing was stored
         </div>
       )}
 
       {/* Hero */}
       <section className={`border-b ${HAIR} px-6 py-14`}>
-        <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#0a0a0a]/50">
+        <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-2">
           the connection map · {connected} of {total} connected
         </p>
         <h1 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
           Connect your accounts.<br />The company runs itself.
         </h1>
-        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-[#0a0a0a]/70">
+        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted">
           Everything a software company runs on, in four tiers. Connect T0 and the company starts; the org runs
           degraded-but-honest with any subset and asks for the next connection only when a task truly needs it.
           BYOK — your accounts, your keys, your ownership.
@@ -138,15 +138,15 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
 
         {/* Progress rule */}
         <div className="mt-10">
-          <div className="h-[3px] w-full bg-[#0a0a0a]/10">
-            <div className="h-[3px] bg-[#0a0a0a]" style={{ width: `${pct}%` }} />
+          <div className="h-[3px] w-full bg-text/10">
+            <div className="h-[3px] bg-text" style={{ width: `${pct}%` }} />
           </div>
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
             {connected} of {total} · {pct}% of the map connected
           </p>
         </div>
 
-        <p className="mt-8 max-w-2xl font-mono text-[10px] uppercase leading-relaxed tracking-[0.15em] text-[#0a0a0a]/50">
+        <p className="mt-8 max-w-2xl font-mono text-[10px] uppercase leading-relaxed tracking-[0.15em] text-muted-2">
           Live status of this deployment&apos;s environment (company #0). A service shows connected only when its
           env var is actually present — never assumed. Per-customer key vaults come in a later block.
         </p>
@@ -159,7 +159,7 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
             <h2 className="font-mono text-[11px] uppercase tracking-[0.25em]">
               {t} · {TIER_LABELS[t].title}
             </h2>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
               {TIER_LABELS[t].when}
             </span>
           </div>
@@ -175,11 +175,11 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
       <section className={`border-b ${HAIR} px-6 py-10`}>
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-mono text-[11px] uppercase tracking-[0.25em]">the long tail · anything with an MCP server</h2>
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
             {mcpConnected} of {mcp.length} connected
           </span>
         </div>
-        <p className="mb-2 max-w-2xl text-[13px] leading-relaxed text-[#0a0a0a]/70">
+        <p className="mb-2 max-w-2xl text-[13px] leading-relaxed text-muted">
           Beyond the 17: any service with an MCP server plugs into one governed pipe. Every tool call passes the
           kill switch, the policy floor, and the audit ledger before any network I/O.
         </p>
@@ -195,13 +195,13 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
                       {m.configured ? "connected" : "not connected"}
                     </span>
                   </div>
-                  <p className="mt-1 text-[13px] leading-relaxed text-[#0a0a0a]/70">{m.purpose}</p>
+                  <p className="mt-1 text-[13px] leading-relaxed text-muted">{m.purpose}</p>
                   <p className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">set</span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">set</span>
                     <code className={`border ${HAIR} px-1.5 py-0.5 font-mono text-[11px]`}>{m.urlEnv}</code>
                     {m.tokenEnv && (
                       <>
-                        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0a0a0a]/50">+ optional</span>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">+ optional</span>
                         <code className={`border ${HAIR} px-1.5 py-0.5 font-mono text-[11px]`}>{m.tokenEnv}</code>
                       </>
                     )}
@@ -215,7 +215,7 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
 
       {/* The BYOK honesty note stays with the content; the site footer is shared (ADR-0009). */}
       <section className="px-6 py-8">
-        <p className="max-w-2xl font-mono text-[10px] uppercase leading-relaxed tracking-[0.15em] text-[#0a0a0a]/50">
+        <p className="max-w-2xl font-mono text-[10px] uppercase leading-relaxed tracking-[0.15em] text-muted-2">
           BYOK — set env vars in your deployment; there are no OAuth flows yet (later block), so this page never
           shows one. Nothing here is claimed connected unless its env var is present.
         </p>

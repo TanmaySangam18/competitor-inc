@@ -23,7 +23,7 @@ export function DashSidebar() {
 
       <nav className="flex-1 space-y-0.5 px-3">
         <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-2">Menu</p>
-        <Link href="/dashboard" className={`${itemBase} bg-coral text-white`} aria-current="page">
+        <Link href="/dashboard" className={`${itemBase} bg-coral text-bg`} aria-current="page">
           <Home size={16} /> Home
         </Link>
         <button onClick={scrollToInbox} className={`${itemBase} w-full text-left text-muted hover:bg-surface-2 hover:text-text`}>

@@ -12,8 +12,8 @@ export function CompanyLogo({
 }) {
   const m = monogram(name);
   const fontSize = m.initials.length > 1 ? 40 : 50;
-  // Ink monogram (monochrome pass): a black inverted card with cream initials — same emphasis
-  // language as the rest of the system, no auto-generated gradient.
+  // Ink monogram (monochrome pass, dark canvas ADR-0016): a light inverted card with charcoal
+  // initials — same emphasis language as the rest of the system, no auto-generated gradient.
   return (
     <svg
       width={size}
@@ -23,7 +23,7 @@ export function CompanyLogo({
       role="img"
       aria-label={`${name} logo`}
     >
-      <rect x="2" y="2" width="96" height="96" rx="26" fill="#14130e" />
+      <rect x="2" y="2" width="96" height="96" rx="26" fill="#ececec" />
       <text
         x="50"
         y="52"
@@ -31,7 +31,7 @@ export function CompanyLogo({
         textAnchor="middle"
         fontSize={fontSize}
         fontWeight={700}
-        fill="#fafafa"
+        fill="#212121"
         fontFamily="var(--font-display, ui-sans-serif), sans-serif"
       >
         {m.initials}

@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-18T04:59:22.508Z",
+ "generated": "2026-07-19T04:24:22.234Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -36,6 +36,30 @@
    "cls": "entry",
    "importers": 0,
    "last": "2026-07-06"
+  },
+  {
+   "file": "app/api/cli/map/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-18"
+  },
+  {
+   "file": "app/api/cli/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-18"
+  },
+  {
+   "file": "app/api/cli/status/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-18"
+  },
+  {
+   "file": "app/api/cli/store/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-18"
   },
   {
    "file": "app/api/control/route.ts",
@@ -83,7 +107,7 @@
    "file": "app/api/engine/route.ts",
    "cls": "entry",
    "importers": 1,
-   "last": "2026-07-11"
+   "last": "2026-07-18"
   },
   {
    "file": "app/api/enrich/route.ts",
@@ -114,6 +138,12 @@
    "cls": "entry",
    "importers": 0,
    "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/hackathons/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-18"
   },
   {
    "file": "app/api/health/route.ts",
@@ -180,6 +210,24 @@
    "cls": "entry",
    "importers": 0,
    "last": "2026-07-10"
+  },
+  {
+   "file": "app/api/oauth/[provider]/callback/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-18"
+  },
+  {
+   "file": "app/api/oauth/[provider]/disconnect/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-18"
+  },
+  {
+   "file": "app/api/oauth/[provider]/start/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-18"
   },
   {
    "file": "app/api/org/route.ts",
@@ -309,6 +357,12 @@
   },
   {
    "file": "app/benchmark/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-18"
+  },
+  {
+   "file": "app/cli/pair/page.tsx",
    "cls": "entry",
    "importers": 0,
    "last": "2026-07-18"
@@ -572,6 +626,12 @@
    "last": "2026-07-09"
   },
   {
+   "file": "components/FlowDiagram.tsx",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "?"
+  },
+  {
    "file": "components/GuestSavePrompt.tsx",
    "cls": "reachable",
    "importers": 1,
@@ -646,7 +706,7 @@
   {
    "file": "components/SiteHeader.tsx",
    "cls": "reachable",
-   "importers": 12,
+   "importers": 13,
    "last": "2026-07-18"
   },
   {
@@ -725,7 +785,7 @@
    "file": "components/stream/DecisionBlock.tsx",
    "cls": "reachable",
    "importers": 1,
-   "last": "2026-07-16"
+   "last": "2026-07-18"
   },
   {
    "file": "components/stream/GoalChip.tsx",
@@ -760,7 +820,7 @@
   {
    "file": "components/useCopy.ts",
    "cls": "reachable",
-   "importers": 5,
+   "importers": 4,
    "last": "2026-07-02"
   },
   {
@@ -782,9 +842,15 @@
    "last": "2026-07-14"
   },
   {
+   "file": "lib/core/cli-script.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-18"
+  },
+  {
    "file": "lib/core/connections.ts",
    "cls": "reachable",
-   "importers": 5,
+   "importers": 7,
    "last": "2026-07-16"
   },
   {
@@ -876,6 +942,12 @@
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-12"
+  },
+  {
+   "file": "lib/core/oauth.ts",
+   "cls": "reachable",
+   "importers": 9,
+   "last": "2026-07-18"
   },
   {
    "file": "lib/core/operate.ts",
@@ -1239,8 +1311,8 @@
   },
   {
    "file": "lib/engine/house-trial.ts",
-   "cls": "TEST-ONLY",
-   "importers": 1,
+   "cls": "reachable",
+   "importers": 2,
    "last": "2026-07-16"
   },
   {
@@ -1415,7 +1487,7 @@
    "file": "lib/engine/policy.ts",
    "cls": "reachable",
    "importers": 21,
-   "last": "2026-07-16"
+   "last": "2026-07-18"
   },
   {
    "file": "lib/engine/product-memory-db.ts",
@@ -1516,7 +1588,7 @@
   {
    "file": "lib/engine/service.ts",
    "cls": "reachable",
-   "importers": 28,
+   "importers": 32,
    "last": "2026-07-02"
   },
   {
@@ -1622,10 +1694,16 @@
    "last": "2026-07-11"
   },
   {
+   "file": "lib/engine/user-connections-db.ts",
+   "cls": "reachable",
+   "importers": 7,
+   "last": "2026-07-18"
+  },
+  {
    "file": "lib/engine/user-limits.ts",
    "cls": "reachable",
    "importers": 2,
-   "last": "2026-07-06"
+   "last": "2026-07-18"
   },
   {
    "file": "lib/engine/wallet-db.ts",
@@ -1650,6 +1728,12 @@
    "cls": "TEST-ONLY",
    "importers": 1,
    "last": "2026-07-16"
+  },
+  {
+   "file": "lib/loop/hackathon-radar.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "2026-07-18"
   },
   {
    "file": "lib/loop/incident.ts",
@@ -1750,7 +1834,7 @@
   {
    "file": "lib/org/organization.ts",
    "cls": "reachable",
-   "importers": 29,
+   "importers": 30,
    "last": "2026-07-14"
   },
   {
@@ -1776,6 +1860,12 @@
    "cls": "reachable",
    "importers": 8,
    "last": "2026-07-11"
+  },
+  {
+   "file": "lib/org/publishing-mandate.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-18"
   },
   {
    "file": "lib/org/role-titles.ts",
@@ -1876,7 +1966,7 @@
   {
    "file": "lib/supabase/server.ts",
    "cls": "reachable",
-   "importers": 16,
+   "importers": 20,
    "last": "2026-06-17"
   },
   {

@@ -10,9 +10,9 @@ import type { ValidationResult } from "@/lib/engine/types";
 // build it). Shareable /score?idea=… (auto-scores on load). Direction B: mono chrome, flat panels, NO icons.
 
 const VERDICT: Record<ValidationResult["verdict"], { label: string; cls: string; ring: string }> = {
-  strong: { label: "Strong signal", cls: "text-mint", ring: "var(--mint, #34d399)" },
-  mixed: { label: "Mixed signal", cls: "text-muted", ring: "#8f8f8f" },
-  weak: { label: "Weak signal", cls: "text-coral", ring: "var(--color-coral, #111111)" },
+  strong: { label: "Strong signal", cls: "text-mint", ring: "var(--color-mint, #ececec)" },
+  mixed: { label: "Mixed signal", cls: "text-muted", ring: "var(--color-muted-2, #8e8e8e)" },
+  weak: { label: "Weak signal", cls: "text-coral", ring: "var(--color-coral, #ececec)" },
 };
 
 const SIGNAL_DOT: Record<string, string> = { positive: "bg-mint", weak: "bg-muted", negative: "bg-coral" };
