@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import FlowDiagram from "@/components/FlowDiagram";
+import FounderSection from "@/components/FounderSection";
 import ProductMarquee from "@/components/ProductMarquee";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
@@ -394,6 +395,8 @@ export default async function Landing() {
           </p>
         </div>
       </section>
+
+      <FounderSection />
 
       <SiteFooter />
     </main>

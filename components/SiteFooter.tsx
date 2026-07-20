@@ -36,6 +36,11 @@ export default function SiteFooter() {
         <p className="mt-6 text-[11px] text-muted-2">
           competitor.inc — an autonomous AI software company, governed by a human.
         </p>
+        <p className="mt-2 font-mono text-[11px] text-muted-2">
+          Founder: Tanmay Sangam ·{" "}
+          <a href="https://www.linkedin.com/in/tanmaysangam/" target="_blank" rel="noopener noreferrer" className="transition hover:text-text">LinkedIn ↗</a>{" "}·{" "}
+          <a href="https://tanmaysangam.vercel.app/" target="_blank" rel="noopener noreferrer" className="transition hover:text-text">Portfolio ↗</a>
+        </p>
       </div>
     </footer>
   );
