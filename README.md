@@ -20,32 +20,30 @@ tell you *don't build this* — and it keeps working while your laptop is closed
 This README explains the whole thing — the plain‑English story **and** the technical guts — so anyone
 (technical or not) can understand what we built, why, and how to run it.
 
-> ### 🧭 Current direction (2026‑07): build → sell → collect
+> ### 🧭 Current direction (2026-07): prove it works → win the first receipts
 >
-> The north star: **collected, settled revenue — $10k in a trailing‑30‑day window** — earned by an AI org
-> that builds **and operates** real software for customers, under **one signed, capped, revocable mandate**.
-> The only things that reach the human are concise **prepared decisions** to approve / reject / modify
-> ([`lib/org/decision-queue.ts`](lib/org/decision-queue.ts), fed by
-> [`lib/org/executive-desks.ts`](lib/org/executive-desks.ts) and the governed tool gate in
-> [`lib/mcp/tools.ts`](lib/mcp/tools.ts)). The full product spec is the
-> [**Product Playbook**](docs/PRODUCT-PLAYBOOK.md); the path from here is
-> [**Roadmap → $10k**](docs/ROADMAP-TO-10K.md).
+> The $10k revenue goal is **paused by the founder** (2026-07-15) in favor of **platform proof**: turn every
+> major capability on (payments excepted) and show the AI workforce genuinely running the company. Two live
+> tracks share one engine — (1) **build + run competitor.inc itself** via the Loop Engine ([`lib/loop/`](lib/loop/)),
+> and (2) **win cash hackathons as a service** (the founder is customer #1;
+> [`lib/loop/hackathon-radar.ts`](lib/loop/hackathon-radar.ts)) to fund compute honestly, since there is no API budget.
 >
-> The cockpit is a **one‑page, no‑scroll dashboard** — soft‑teal, left‑sidebar IA, real software‑company
-> job titles (CEO / Software Engineer / DevOps / …), a live stats pie. Every action is logged with proof;
-> the irreducible acts (money, contracts, deletion) always come back to a human; and a product the org
-> builds ships **able to transact** — Stripe Connect rails where funds flow to the customer and we only
-> orchestrate ([`lib/payments/stripe-connect.ts`](lib/payments/stripe-connect.ts)).
+> The product is now **three surfaces, not a dashboard** ([`docs/CONNECT-FIRST-RESET.md`](docs/CONNECT-FIRST-RESET.md)):
+> **`/connect`** (a 17-service BYOK connection map + OAuth "2-minute" flow + a one-line `curl … | node` activation),
+> **the Stream** (one conversational thread that replaced the 6-tab cockpit — the org talks to itself; the human
+> oversees and signs only the rare decision), and a **simple site** that explains it. Approvals happen **in Slack**,
+> answered by department leads under five rails; only the irreducible floor (money, contracts, launches, deletion)
+> reaches the founder. The UI is **dark-canvas monochrome** with a drawn end-to-end **flow diagram**
+> ([`components/FlowDiagram.tsx`](components/FlowDiagram.tsx)).
 >
-> The product's face is **the coworker** — a local‑first desktop surface forked from
-> [Rowboat](https://github.com/rowboatlabs/rowboat) (Apache‑2.0) and vendored at a pinned SHA in
-> [`coworker/`](coworker/NOTICE.md), being rebranded and rebuilt around the governed org
-> (plan: [`docs/ROWBOAT-FORK-PLAN.md`](docs/ROWBOAT-FORK-PLAN.md)). Portions built on Rowboat by
-> Rowboat Labs — attribution and license in [`coworker/NOTICE.md`](coworker/NOTICE.md).
+> **Onboarding co-pilot** (ADRs [0017](docs/adr/)/[0018](docs/adr/)/[0019](docs/adr/)): a governed browser agent
+> sets the whole company up for the user — navigates, pre-fills non-secret config, connects via OAuth, detects
+> completion, reports each step to Slack — and **hard-stops** at the six human acts (create account · accept terms ·
+> authenticate · solve CAPTCHA · grant consent · pay). Consent-gated, secret-free at the driver boundary, governed
+> before every action.
 >
-> Honest state: the machine is largely built (capability ladder S1–S3, governance, verifiable‑revenue
-> rails scaffolded); the **goal is ~10–15%** — $0 collected, 0 paying customers. The arc now is
-> **Build (done) → Sell (now) → Collect**. No rung is claimed before its receipt.
+> Honest state: the machine is built and QA-green; **$0 settled, 0 paying customers** — shown proudly, never faked.
+> The arc is **Prove (now) → first receipt → revenue**. No rung is claimed before its receipt.
 
 ---
 
