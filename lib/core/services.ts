@@ -90,6 +90,19 @@ export const SERVICES: Service[] = [
     agents: ["Data and Intelligence"],
     status: "ready",
   },
+  {
+    id: "win-hackathon",
+    name: "Win a hackathon",
+    summary: "Point the company at a live hackathon and it finds it, checks the rules, picks the strongest compliant idea, and builds the submission — you enter and submit. No guarantee of a win; it maximizes the odds, honestly.",
+    does: [
+      "Find open online hackathons with cash prizes (live scan)",
+      "Read the rules first — skip any that ban AI tools, never hide it",
+      "Propose the strongest idea for the judging criteria, then build + deploy it",
+      "Disclose AI authorship per the rules; the founder registers and submits",
+    ],
+    agents: ["Growth Lead", "Software Engineer", "Design Lead"],
+    status: "ready",
+  },
 ];
 
 export function listServices(): Service[] {

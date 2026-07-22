@@ -3,7 +3,7 @@ import { SERVICES, listServices, getService } from "./services";
 import { core } from "./index";
 
 describe("service catalog", () => {
-  it("exposes the six hire-able services with stable ids", () => {
+  it("exposes the hire-able services with stable ids", () => {
     const ids = listServices().map((s) => s.id);
     expect(ids).toEqual([
       "build-run-sell",
@@ -12,6 +12,7 @@ describe("service catalog", () => {
       "sales",
       "market-watch",
       "data-copilot",
+      "win-hackathon",
     ]);
   });
 
