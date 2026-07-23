@@ -35,12 +35,15 @@ export const SERVICES: Service[] = [
     name: "Growth and marketing",
     summary: "Grow the brand without you writing a post — organic content plus honest read on which paid ads are working.",
     does: [
-      "Organic: content, SEO, social posts, referrals (no ad spend)",
-      "Paid: read which ad is performing and where to shift spend",
+      "Organic: content, social posts, referrals — plus the SEO factory (pillar + 15, honesty-gated)",
+      "Named playbooks: launch week, receipts campaign, SEO sprint — picked by you, run by the loop",
+      "Paid: read which ad is performing and where to shift spend (capped, treasury-governed)",
       "Everything on-brand, verified milestones only, clearly AI",
     ],
     agents: ["Marketing Manager", "Growth Lead"],
-    status: "partial",
+    // "partial" until 2026-07-23: the SEO pipeline was the missing piece. ADR-0022/0023 shipped it
+    // (playbooks + honesty-gated factory), tested — the ready bar (logic built + tested) is now met.
+    status: "ready",
   },
   {
     id: "support",
