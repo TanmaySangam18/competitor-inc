@@ -88,6 +88,26 @@ export const PLAYBOOKS: Playbook[] = [
     }),
   },
   {
+    // In per ADR-0024 — the market-watch machinery is real now (scan/diff/battlecard, tested).
+    id: "competitor-watch",
+    name: "Competitor watch",
+    summary: "Scan named rivals' public pages weekly, diff pricing/features/positioning, keep the sell-against battlecard current.",
+    department: "growth",
+    cadence: "weekly",
+    trigger: "the weekly heartbeat — or on demand before a sales call",
+    needs: ["ai-model"],
+    rails: ["public marketing pages only", "robots.txt honored — a no is a no", "disclosed user-agent, never a disguise", "their words quoted and dated; our counters labeled ours"],
+    goal: (c) => ({
+      goal:
+        `Competitor watch for ${c.name}: scan the named competitors' PUBLIC marketing pages (robots.txt honored, ` +
+        `disclosed user-agent), diff what changed since the last scan — pricing, features, positioning — and refresh ` +
+        `the sell-against battlecard. Quote their public words dated; label our counters as ours; never scrape ` +
+        `login-walled or personal data. Deltas worth acting on go to the sales desk with honest sourcing.`,
+      successCriteria: ["scan", "battlecard"],
+      maxIterations: 4,
+    }),
+  },
+  {
     id: "hackathon-win",
     name: "Hackathon win",
     summary: "Find a live cash-prize hackathon, pass the rules check, build the entry, package the submission — you press Submit.",

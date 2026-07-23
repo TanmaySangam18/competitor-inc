@@ -74,12 +74,14 @@ export const SERVICES: Service[] = [
     name: "Competitor and market watch",
     summary: "Keep an eye on rivals — weekly scans of their sites, what changed, and a battlecard to sell against them.",
     does: [
-      "Scan named competitor sites on a schedule",
-      "Diff what changed (pricing, features, positioning)",
-      "Keep a live sell-against battlecard current",
+      "Scan named competitor sites on a schedule — public pages only, robots.txt honored, disclosed user-agent",
+      "Diff what changed (pricing, features, positioning), scan over scan",
+      "Keep a live sell-against battlecard current: their words dated, our counters labeled ours",
     ],
     agents: ["Growth Lead", "Data and Intelligence"],
-    status: "planned",
+    // "planned" until 2026-07-23: ADR-0024 shipped the machinery (scan/diff/battlecard + API + weekly
+    // playbook), tested — the ready bar (logic built + tested; acts live per connection) is met.
+    status: "ready",
   },
   {
     id: "data-copilot",
