@@ -4,6 +4,8 @@ import { getServerSupabase, isSupabaseConfigured } from "@/lib/supabase/server";
 import { executionRefusal, type ActionContext, type Refusal } from "@/lib/engine/policy";
 import { raiseAlert } from "@/lib/engine/alerts";
 import { spendWouldExceed, recordSpend } from "@/lib/engine/spendguard";
+import { gateSpend } from "@/lib/engine/treasury-db";
+import { serviceClient } from "@/lib/engine/service";
 import { isPremiumAction, serverPremium } from "@/lib/engine/access-server";
 import { waitlistGateOn } from "@/lib/engine/access-gate";
 import type { AgentRole, Connections } from "@/lib/engine/types";
@@ -162,8 +164,26 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, disabled: true, error: "premium required" });
   }
 
+  // ── Treasury envelope gate (ADR-0020): for spend, the signed-in owner's department envelope is the
+  // standing authorization — the executor consults it BEFORE any charge (in-budget → silent; over →
+  // nothing runs, the reason surfaces). Needs a real user (whose envelope) + the service role (the debit
+  // record). Absent either, no gate is passed and the hard cap below stays the only ceiling — unchanged.
+  let treasuryGate: ((amountUsd: number) => Promise<{ allow: boolean; reason: string }>) | undefined;
+  if (action === "spend" && isSupabaseConfigured()) {
+    const sb = await getServerSupabase();
+    const { data: auth } = sb ? await sb.auth.getUser() : { data: { user: null } };
+    const svc = serviceClient();
+    const userId = auth?.user?.id;
+    if (userId && svc) {
+      treasuryGate = async (amountUsd: number) => {
+        const g = await gateSpend(svc, { userId, department: agent, amountUsd, memo: item?.title || "spend" });
+        return { allow: g.allow, reason: g.verdict.reason };
+      };
+    }
+  }
+
   try {
-    const result = await runAction(action, { company, companyId, item, ownerEmail, connections });
+    const result = await runAction(action, { company, companyId, item, ownerEmail, connections, treasuryGate });
     // Record real spend so the daily/monthly accumulator sees it (only when it actually executed).
     if (action === "spend" && companyId && item?.amount && result.ok && !result.disabled) {
       recordSpend(companyId, item.amount);

@@ -1,6 +1,6 @@
-# Repo inventory — Debt-Zero Phase 0 (generated 2026-07-19 by scripts/audit-inventory.mjs)
+# Repo inventory — Debt-Zero Phase 0 (generated 2026-07-23 by scripts/audit-inventory.mjs)
 
-Totals: **508** source files · **109** entry points · **219** reachable · **15** test-only · **0** UNREACHABLE.
+Totals: **529** source files · **110** entry points · **225** reachable · **20** test-only · **0** UNREACHABLE.
 
 ## UNREACHABLE from any entry point — kill candidates (Phase 1)
 | file | importers | last commit |
@@ -9,7 +9,12 @@ Totals: **508** source files · **109** entry points · **219** reachable · **1
 ## Reachable ONLY from tests — kill candidates (the test dies with the subject)
 | file | importers | last commit |
 |---|---|---|
+| lib/core/agentmail.ts | 1 | 2026-07-23 |
+| lib/core/browser-driver.ts | 1 | 2026-07-20 |
 | lib/core/design-studio.ts | 1 | 2026-07-16 |
+| lib/core/loc-ledger.ts | 1 | 2026-07-23 |
+| lib/core/onboarding-runner.ts | 2 | 2026-07-19 |
+| lib/core/onboarding.ts | 4 | 2026-07-19 |
 | lib/engine/analyst.ts | 1 | 2026-06-30 |
 | lib/engine/backend-provider.ts | 1 | 2026-07-11 |
 | lib/engine/backend.ts | 3 | 2026-07-03 |

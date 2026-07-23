@@ -25,8 +25,23 @@ This README explains the whole thing — the plain‑English story **and** the t
 > The $10k revenue goal is **paused by the founder** (2026-07-15) in favor of **platform proof**: turn every
 > major capability on (payments excepted) and show the AI workforce genuinely running the company. Two live
 > tracks share one engine — (1) **build + run competitor.inc itself** via the Loop Engine ([`lib/loop/`](lib/loop/)),
-> and (2) **win cash hackathons as a service** (the founder is customer #1;
-> [`lib/loop/hackathon-radar.ts`](lib/loop/hackathon-radar.ts)) to fund compute honestly, since there is no API budget.
+> and (2) **win cash hackathons as a service** (the founder is customer #1) to fund compute honestly, since
+> there is no API budget.
+>
+> **Ignition (ADR-0021):** connect the accounts and the company **starts itself** — the first heartbeat where
+> a model key exists, company #0's loop registers itself ([`lib/loop/ignition.ts`](lib/loop/ignition.ts)) with a
+> marketing-first roadmap and begins working: org-runs spin laptop-off, digests land in Slack, and governed
+> marketing posts from real receipts. No button. The **hackathon service is one call end-to-end**
+> ([`lib/loop/hackathon-run.ts`](lib/loop/hackathon-run.ts)): find the strongest open cash-prize event → rules
+> check first (abort if AI is banned) → build as a real durable org-run → draft the paste-ready submission
+> package. The account + the Submit click stay human — the same hard-stop floor as everywhere else.
+>
+> **The treasury (ADR-0020):** a bank for the 56 — per-department budget envelopes on [`/connect`](app/connect/page.tsx).
+> The human sets a monthly cap once (standing authorization); in-budget spend runs silently through the
+> executor's envelope gate ([`lib/engine/treasury-db.ts`](lib/engine/treasury-db.ts)); over-budget escalates
+> before a dollar moves; **withdrawals are never automated**. Agents also get **two-way email**
+> ([`lib/core/agentmail.ts`](lib/core/agentmail.ts)): reading is auto, sending queues through governance with
+> AI disclosure appended.
 >
 > The product is now **three surfaces, not a dashboard** ([`docs/CONNECT-FIRST-RESET.md`](docs/CONNECT-FIRST-RESET.md)):
 > **`/connect`** (a 17-service BYOK connection map + OAuth "2-minute" flow + a one-line `curl … | node` activation),

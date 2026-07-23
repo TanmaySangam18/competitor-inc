@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-19T04:26:57.093Z",
+ "generated": "2026-07-23T17:17:26.625Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -338,6 +338,12 @@
    "last": "2026-07-10"
   },
   {
+   "file": "app/api/treasury/route.ts",
+   "cls": "entry",
+   "importers": 0,
+   "last": "?"
+  },
+  {
    "file": "app/api/version/route.ts",
    "cls": "entry",
    "importers": 0,
@@ -515,7 +521,7 @@
    "file": "app/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "2026-07-19"
+   "last": "2026-07-20"
   },
   {
    "file": "app/privacy/page.tsx",
@@ -632,6 +638,12 @@
    "last": "2026-07-19"
   },
   {
+   "file": "components/FounderSection.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "2026-07-20"
+  },
+  {
    "file": "components/GuestSavePrompt.tsx",
    "cls": "reachable",
    "importers": 1,
@@ -701,7 +713,7 @@
    "file": "components/SiteFooter.tsx",
    "cls": "reachable",
    "importers": 12,
-   "last": "2026-07-19"
+   "last": "2026-07-20"
   },
   {
    "file": "components/SiteHeader.tsx",
@@ -720,6 +732,12 @@
    "cls": "reachable",
    "importers": 1,
    "last": "2026-07-11"
+  },
+  {
+   "file": "components/connect/TreasuryPanel.tsx",
+   "cls": "reachable",
+   "importers": 1,
+   "last": "?"
   },
   {
    "file": "components/dashboard/BringYourKeysNudge.tsx",
@@ -830,6 +848,12 @@
    "last": "2026-07-14"
   },
   {
+   "file": "lib/core/agentmail.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-23"
+  },
+  {
    "file": "lib/core/audit.ts",
    "cls": "reachable",
    "importers": 15,
@@ -842,6 +866,12 @@
    "last": "2026-07-14"
   },
   {
+   "file": "lib/core/browser-driver.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-20"
+  },
+  {
    "file": "lib/core/cli-script.ts",
    "cls": "reachable",
    "importers": 2,
@@ -850,8 +880,8 @@
   {
    "file": "lib/core/connections.ts",
    "cls": "reachable",
-   "importers": 7,
-   "last": "2026-07-16"
+   "importers": 10,
+   "last": "2026-07-23"
   },
   {
    "file": "lib/core/conversation.ts",
@@ -898,7 +928,7 @@
   {
    "file": "lib/core/govern.ts",
    "cls": "reachable",
-   "importers": 7,
+   "importers": 9,
    "last": "2026-07-14"
   },
   {
@@ -916,7 +946,7 @@
   {
    "file": "lib/core/killswitch.ts",
    "cls": "reachable",
-   "importers": 13,
+   "importers": 17,
    "last": "2026-07-14"
   },
   {
@@ -930,6 +960,12 @@
    "cls": "reachable",
    "importers": 2,
    "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/loc-ledger.ts",
+   "cls": "TEST-ONLY",
+   "importers": 1,
+   "last": "2026-07-23"
   },
   {
    "file": "lib/core/mcp-connect.ts",
@@ -946,8 +982,20 @@
   {
    "file": "lib/core/oauth.ts",
    "cls": "reachable",
-   "importers": 9,
+   "importers": 10,
    "last": "2026-07-18"
+  },
+  {
+   "file": "lib/core/onboarding-runner.ts",
+   "cls": "TEST-ONLY",
+   "importers": 2,
+   "last": "2026-07-19"
+  },
+  {
+   "file": "lib/core/onboarding.ts",
+   "cls": "TEST-ONLY",
+   "importers": 4,
+   "last": "2026-07-19"
   },
   {
    "file": "lib/core/operate.ts",
@@ -1013,7 +1061,7 @@
    "file": "lib/core/services.ts",
    "cls": "reachable",
    "importers": 2,
-   "last": "2026-07-13"
+   "last": "2026-07-22"
   },
   {
    "file": "lib/core/showcase.ts",
@@ -1026,6 +1074,12 @@
    "cls": "reachable",
    "importers": 3,
    "last": "2026-07-18"
+  },
+  {
+   "file": "lib/core/treasury.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-23"
   },
   {
    "file": "lib/core/vault.ts",
@@ -1253,7 +1307,7 @@
    "file": "lib/engine/execution.ts",
    "cls": "reachable",
    "importers": 12,
-   "last": "2026-07-11"
+   "last": "2026-07-23"
   },
   {
    "file": "lib/engine/flags.ts",
@@ -1264,7 +1318,7 @@
   {
    "file": "lib/engine/founders.ts",
    "cls": "reachable",
-   "importers": 10,
+   "importers": 11,
    "last": "2026-06-30"
   },
   {
@@ -1438,13 +1492,13 @@
   {
    "file": "lib/engine/org-run.ts",
    "cls": "reachable",
-   "importers": 10,
+   "importers": 11,
    "last": "2026-07-09"
   },
   {
    "file": "lib/engine/org-runs-db.ts",
    "cls": "reachable",
-   "importers": 5,
+   "importers": 6,
    "last": "2026-07-09"
   },
   {
@@ -1486,8 +1540,8 @@
   {
    "file": "lib/engine/policy.ts",
    "cls": "reachable",
-   "importers": 21,
-   "last": "2026-07-18"
+   "importers": 25,
+   "last": "2026-07-23"
   },
   {
    "file": "lib/engine/product-memory-db.ts",
@@ -1588,7 +1642,7 @@
   {
    "file": "lib/engine/service.ts",
    "cls": "reachable",
-   "importers": 32,
+   "importers": 33,
    "last": "2026-07-02"
   },
   {
@@ -1606,7 +1660,7 @@
   {
    "file": "lib/engine/slack.ts",
    "cls": "reachable",
-   "importers": 3,
+   "importers": 4,
    "last": "2026-07-11"
   },
   {
@@ -1664,6 +1718,12 @@
    "last": "2026-07-14"
   },
   {
+   "file": "lib/engine/treasury-db.ts",
+   "cls": "reachable",
+   "importers": 4,
+   "last": "2026-07-23"
+  },
+  {
    "file": "lib/engine/trial.ts",
    "cls": "reachable",
    "importers": 2,
@@ -1672,7 +1732,7 @@
   {
    "file": "lib/engine/types.ts",
    "cls": "reachable",
-   "importers": 93,
+   "importers": 95,
    "last": "2026-07-12"
   },
   {
@@ -1732,8 +1792,20 @@
   {
    "file": "lib/loop/hackathon-radar.ts",
    "cls": "reachable",
-   "importers": 2,
+   "importers": 6,
    "last": "2026-07-18"
+  },
+  {
+   "file": "lib/loop/hackathon-run.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "?"
+  },
+  {
+   "file": "lib/loop/ignition.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "?"
   },
   {
    "file": "lib/loop/incident.ts",
@@ -1744,13 +1816,13 @@
   {
    "file": "lib/loop/loop-driver.ts",
    "cls": "reachable",
-   "importers": 2,
+   "importers": 3,
    "last": "2026-07-16"
   },
   {
    "file": "lib/loop/loop-engine.ts",
    "cls": "reachable",
-   "importers": 3,
+   "importers": 4,
    "last": "2026-07-16"
   },
   {
@@ -1966,7 +2038,7 @@
   {
    "file": "lib/supabase/server.ts",
    "cls": "reachable",
-   "importers": 20,
+   "importers": 23,
    "last": "2026-06-17"
   },
   {

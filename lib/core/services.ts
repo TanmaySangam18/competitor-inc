@@ -93,12 +93,12 @@ export const SERVICES: Service[] = [
   {
     id: "win-hackathon",
     name: "Win a hackathon",
-    summary: "Point the company at a live hackathon and it finds it, checks the rules, picks the strongest compliant idea, and builds the submission — you enter and submit. No guarantee of a win; it maximizes the odds, honestly.",
+    summary: "One call: it finds a live hackathon, checks the rules, builds the entry through the standard pipeline, and drafts the complete submission package. Your only act is the account + the Submit click — the human floor. No guarantee of a win; it maximizes the odds, honestly.",
     does: [
-      "Find open online hackathons with cash prizes (live scan)",
-      "Read the rules first — skip any that ban AI tools, never hide it",
-      "Propose the strongest idea for the judging criteria, then build + deploy it",
-      "Disclose AI authorship per the rules; the founder registers and submits",
+      "Find open online hackathons with cash prizes (live scan) and auto-pick the strongest",
+      "Read the rules first — abort any that ban AI tools, never hide it",
+      "Build + deploy the entry as a real durable org-run (advances laptop-off, every tick)",
+      "Draft the paste-ready submission package with AI authorship disclosed; you register and press Submit",
     ],
     agents: ["Growth Lead", "Software Engineer", "Design Lead"],
     status: "ready",

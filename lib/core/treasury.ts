@@ -74,6 +74,12 @@ export function rollMonth(env: Envelope): Envelope {
   return { ...env, spentThisMonthUsd: 0 };
 }
 
+/** The departments that can spend at all (matrix cell ≠ NEVER) — the envelope panel offers exactly
+ *  these, so the bank UI can never invent a spender the policy forbids. */
+export function spendDepartments(policy: Policy = POLICY): string[] {
+  return (Object.keys(policy.matrix) as Array<keyof Policy["matrix"]>).filter((d) => policy.matrix[d]?.spend !== "NEVER");
+}
+
 /** A department's envelope health, for the Stream/Slack digest (never a surprise at month-end). */
 export function envelopeStatus(env: Envelope): { remainingUsd: number; pctUsed: number; low: boolean } {
   const spent = Math.max(0, env.spentThisMonthUsd);

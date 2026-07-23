@@ -4,6 +4,11 @@ import SiteFooter from "@/components/SiteFooter";
 import { connectionMapStatus, TIER_LABELS, TIER_ORDER, type ConnectionStatus, type ConnectionTier } from "@/lib/core/connections";
 import { mcpStatus } from "@/lib/core/mcp-connect";
 import { oauthProviderFor, getProvider } from "@/lib/core/oauth";
+import { envelopeStatus, spendDepartments } from "@/lib/core/treasury";
+import { listEnvelopes } from "@/lib/engine/treasury-db";
+import { getServerSupabase } from "@/lib/supabase/server";
+import { POLICY } from "@/lib/engine/policy";
+import TreasuryPanel, { type EnvelopeView } from "@/components/connect/TreasuryPanel";
 
 // /connect — THE FRONT DOOR (Block B, CONNECT-FIRST-RESET §2.1, ADR-0004).
 // The 17-service connection map as a checklist with LIVE status. Connect T0 and the company starts;
@@ -22,7 +27,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "competitor.inc — connect",
-  description: "Connect your accounts. The company runs itself. The 17-service connection map, with live status.",
+  description: "Connect your accounts. The company runs itself. The full connection map, with live status.",
 };
 
 const INK = "text-text";
@@ -107,6 +112,17 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
   const mcpConnected = mcp.filter((m) => m.configured).length;
   const byTier = (t: ConnectionTier) => map.filter((c) => c.tier === t);
 
+  // The bank (ADR-0020): the signed-in owner's department envelopes — the standing authorization that
+  // lets in-budget spend run silently. Signed out (or no Supabase) → honest $0 defaults, nothing invented.
+  const sb = await getServerSupabase();
+  const { data: auth } = sb ? await sb.auth.getUser() : { data: { user: null } };
+  const saved = sb && auth?.user ? await listEnvelopes(sb, auth.user.id).catch(() => []) : [];
+  const savedByDept = new Map(saved.map((e) => [e.department, e]));
+  const envelopes: EnvelopeView[] = spendDepartments().map((d) => {
+    const env = savedByDept.get(d) ?? { department: d, monthlyCapUsd: 0, spentThisMonthUsd: 0 };
+    return { ...env, ...envelopeStatus(env) };
+  });
+
   return (
     <div className={`min-h-screen bg-bg ${INK}`}>
       {/* ADR-0009: the shared site chrome replaces the bespoke header/footer — one nav everywhere. */}
@@ -131,9 +147,9 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
           Connect your accounts.<br />The company runs itself.
         </h1>
         <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted">
-          Everything a software company runs on, in four tiers. Connect T0 and the company starts; the org runs
-          degraded-but-honest with any subset and asks for the next connection only when a task truly needs it.
-          BYOK — your accounts, your keys, your ownership.
+          Everything a software company runs on, in four tiers. Connect T0 and the company starts ITSELF on the
+          next heartbeat — no button (ignition, ADR-0021). The org runs degraded-but-honest with any subset and
+          asks for the next connection only when a task truly needs it. BYOK — your accounts, your keys, your ownership.
         </p>
 
         {/* Progress rule */}
@@ -170,6 +186,21 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
           </ul>
         </section>
       ))}
+
+      {/* The treasury — the bank for the 56 (ADR-0020) */}
+      <section className={`border-b ${HAIR} px-6 py-10`}>
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.25em]">the treasury · the bank for the 56</h2>
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">standing authorization</span>
+        </div>
+        <p className="mb-2 max-w-2xl text-[13px] leading-relaxed text-muted">
+          Set each department&apos;s monthly budget once. In-budget spend runs silently — no Slack ping, no
+          per-item approval. Anything over the budget (or over ${POLICY.spend.perTransactionCapUsd} in a single
+          transaction) escalates to you before a dollar moves. Agents debit within your envelopes against your
+          OWN connected accounts — competitor.inc never holds or moves your funds.
+        </p>
+        <TreasuryPanel envelopes={envelopes} signedIn={Boolean(auth?.user)} perTxnCap={POLICY.spend.perTransactionCapUsd} />
+      </section>
 
       {/* The MCP long tail */}
       <section className={`border-b ${HAIR} px-6 py-10`}>

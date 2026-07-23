@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { gateSpend } from "./treasury-db";
+import { gateSpend, setCap } from "./treasury-db";
 import { killSwitch } from "@/lib/core/killswitch";
 
 // A tiny fake Supabase: envelope row is configurable; upsert is captured.
@@ -40,6 +40,20 @@ describe("treasury-db — the governed spend gate (ADR-0020)", () => {
     const { sb } = fakeSb({ monthly_cap_usd: 100, spent_this_month_usd: 99, month_key: "2026-06" });
     const r = await gateSpend(sb, { userId: "u1", department: "growth", amountUsd: 40, memo: "x" }, { now: NOW });
     expect(r.allow).toBe(true); // June spend doesn't count against July
+  });
+  it("setCap keeps the month's spend (a cap change never erases history) and floors at 0", async () => {
+    const { sb, upserts } = fakeSb({ monthly_cap_usd: 100, spent_this_month_usd: 40, month_key: "2026-07" });
+    await setCap(sb, "u1", "growth", 250, NOW);
+    expect(upserts[0].monthly_cap_usd).toBe(250);
+    expect(upserts[0].spent_this_month_usd).toBe(40); // preserved
+    await setCap(sb, "u1", "growth", -5, NOW);
+    expect(upserts[1].monthly_cap_usd).toBe(0); // negative caps can't exist
+  });
+  it("setCap on a stale month rolls spend to 0 with the new key", async () => {
+    const { sb, upserts } = fakeSb({ monthly_cap_usd: 100, spent_this_month_usd: 99, month_key: "2026-06" });
+    await setCap(sb, "u1", "growth", 100, NOW);
+    expect(upserts[0].spent_this_month_usd).toBe(0);
+    expect(upserts[0].month_key).toBe("2026-07");
   });
   it("kill switch → blocked before the envelope is even read", async () => {
     killSwitch.engageGlobal();

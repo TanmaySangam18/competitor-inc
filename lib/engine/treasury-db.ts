@@ -60,6 +60,18 @@ export async function gateSpend(
   return { allow: false, verdict };
 }
 
+/** The one human act: set (or change) a department's monthly cap — the standing authorization. Call
+ *  with the SESSION client so RLS enforces ownership. Preserves the month's spend (rolls it if stale):
+ *  changing a cap never erases what was already spent. */
+export async function setCap(sb: SupabaseClient, userId: string, department: string, capUsd: number, now = Date.now()): Promise<void> {
+  const env = await loadEnvelope(sb, userId, department, now);
+  const { error } = await sb.from("treasury_envelopes").upsert({
+    user_id: userId, department, monthly_cap_usd: Math.max(0, capUsd),
+    spent_this_month_usd: env.spentThisMonthUsd, month_key: monthKey(now), updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+}
+
 /** All envelopes for the founder digest / the /connect status. Read-only. */
 export async function listEnvelopes(sb: SupabaseClient, userId: string): Promise<Envelope[]> {
   const { data } = await sb.from("treasury_envelopes").select("department, monthly_cap_usd, spent_this_month_usd").eq("user_id", userId);

@@ -26,6 +26,7 @@ import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY, platformMarketingAllowed } from "@/lib/engine/policy";
 import { loadActiveOrgRuns, saveOrgRun } from "@/lib/engine/org-runs-db";
 import { tickLoop, loadAllTenants, defaultDeps as defaultLoopDeps } from "@/lib/loop/loop-driver";
+import { igniteCompanyZero } from "@/lib/loop/ignition";
 import { applyRecordedDecisions } from "@/lib/engine/apply-decisions-db";
 import { advanceOrgRun } from "@/lib/engine/org-run-step";
 import { isComplete } from "@/lib/engine/org-run";
@@ -432,6 +433,17 @@ export async function GET(req: Request) {
   // ── 3.2c: THE LOOP ENGINE heartbeat (Loop Engineering, 2026-07-15) — one outer-loop tick per registered
   // tenant: promote objectives, spin org-run iterations, harvest finished runs into evidence + learnings,
   // auto-advance the roadmap, escalate via the digest when a human is genuinely needed. Fail-soft per tenant.
+  // IGNITION first (ADR-0021): the tick where the switches are on and company #0's loop doesn't exist yet,
+  // it registers ITSELF — flip the env keys and the next heartbeat starts the company, no button.
+  let ignition = "";
+  try {
+    const ign = await igniteCompanyZero(sb);
+    ignition = ign.detail;
+    if (ign.ignited) console.log(`[/api/cron] ${ign.detail}`);
+  } catch (e) {
+    ignition = `ignition check failed: ${e instanceof Error ? e.message : "unknown"}`;
+    console.error(`[/api/cron] ${ignition}`);
+  }
   try {
     const tenants = await loadAllTenants(sb, 5);
     for (const tenant of tenants) {
@@ -521,5 +533,6 @@ export async function GET(req: Request) {
     failed: failed_companies,
     digests: isFriday ? fridayDigests.length : 0,
     lifecycleSent, // retention emails sent this run (0 unless LIFECYCLE_EMAILS=1 + RESEND configured)
+    ignition, // ADR-0021: what the ignition check saw this tick (started / already running / what's dark)
   });
 }
