@@ -99,6 +99,14 @@ export const CONNECTION_MAP: Connection[] = [
     required: false,
   },
   {
+    id: "agent-inbox", name: "Agent inboxes (AgentMail)", tier: "T1", department: "support", owner: "customer",
+    purpose: "Two-way email: each agent gets its own inbox (send AND receive) via API",
+    env: ["AGENTMAIL_API_KEY"],
+    unlocks: "Support, sales, and finance agents read inbound mail and reply in-thread — the company's voice becomes two-way, not send-only.",
+    degraded: "Send-only — the org can email out (via Email sending) but can't receive or reply; inbound goes unread until connected.",
+    required: false,
+  },
+  {
     id: "registrar", name: "Domain registrar", tier: "T1", department: "ops", owner: "customer",
     purpose: "Cloudflare / Namecheap / Vercel Domains — legal domains only (standing rule)",
     env: [], // no programmatic registrar consumption yet — tracked, not detected

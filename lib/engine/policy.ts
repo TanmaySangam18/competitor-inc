@@ -120,13 +120,13 @@ export const POLICY: Policy = {
     // Marketer — finds customers. Owns outreach, ad spend, and social; never ships or moves money out.
     marketing: { outreach: "APPROVE", spend: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", slack_post: "AUTO", build: "NEVER", deploy: "NEVER", payments: "NEVER", delete: "NEVER" },
     // Support — helps users. May send approved replies; never spends, ships, or posts publicly.
-    support: { outreach: "APPROVE", slack_post: "AUTO", build: "NEVER", deploy: "NEVER", spend: "NEVER", payments: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    support: { outreach: "APPROVE", slack_post: "AUTO", mcp_read: "AUTO", build: "NEVER", deploy: "NEVER", spend: "NEVER", payments: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Growth — spots opportunities. May run experiments (spend/social/payments) with sign-off; never ships.
     growth: { spend: "APPROVE", payments: "APPROVE", bluesky: "APPROVE", mastodon: "APPROVE", mcp_read: "AUTO", slack_post: "AUTO", build: "NEVER", deploy: "NEVER", outreach: "NEVER", delete: "NEVER" },
     // Manufacturing (dynamic-crew role) — runs ops & supply. May propose spend with sign-off; never ships code or posts.
     manufacturing: { spend: "APPROVE", build: "NEVER", deploy: "NEVER", payments: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Finance — prepares the money act; the HUMAN moves money. May propose spend for sign-off; never touches payment rails.
-    finance: { spend: "APPROVE", slack_post: "AUTO", payments: "NEVER", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
+    finance: { spend: "APPROVE", slack_post: "AUTO", mcp_read: "AUTO", payments: "NEVER", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Legal — drafts + prepares only. Nothing legal auto-fires; every act routes to the human spine.
     legal: { spend: "NEVER", payments: "NEVER", build: "NEVER", deploy: "NEVER", outreach: "NEVER", bluesky: "NEVER", mastodon: "NEVER", delete: "NEVER" },
     // Ops — runs internal process & vendors. May propose spend/vendor commitments with sign-off; never ships or posts

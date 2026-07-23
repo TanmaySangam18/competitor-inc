@@ -16,13 +16,13 @@ describe("the 17-service connection map (CONNECT-FIRST-RESET §1)", () => {
       // T0 · the brain + hands
       "ai-model", "github", "hosting", "database",
       // T1 · the voice
-      "slack", "email-sending", "registrar",
+      "slack", "email-sending", "agent-inbox", "registrar",
       // T2 · the money
       "payments", "banking",
       // T3 · the senses
       "analytics", "error-uptime", "support-inbox", "crm", "calendar", "social", "ads", "cloudflare",
     ]);
-    expect(CONNECTION_MAP).toHaveLength(17);
+    expect(CONNECTION_MAP).toHaveLength(18);
   });
 
   it("ids are unique across the whole registry (map + founder go-live)", () => {
@@ -90,7 +90,7 @@ describe("founder go-live switch (kept API)", () => {
     const founder = connectionStatus("founder", {});
     expect(founder).toHaveLength(FOUNDER_GO_LIVE.length);
     expect(founder.every((c) => c.owner === "founder" && c.required)).toBe(true);
-    expect(connectionStatus("customer", {})).toHaveLength(17);
+    expect(connectionStatus("customer", {})).toHaveLength(18);
   });
 
   it("goLiveReadiness still math-checks: required = configured + pending", () => {
