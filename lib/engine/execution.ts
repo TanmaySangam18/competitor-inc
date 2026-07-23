@@ -417,6 +417,11 @@ export interface ActionPayload {
   item?: { kind: ApprovalKind | string; title?: string; detail?: string; amount?: number };
   ownerEmail?: string;
   connections?: Connections; // per-user credentials; each falls back to the operator env key
+  // Treasury gate (ADR-0020): when present, the spend case consults it BEFORE charging. Returns
+  // allow:false (with a reason) when the debit would exceed the department's budget envelope or a cap —
+  // the spend then does NOT run and the reason surfaces. Absent ⇒ unchanged behavior (the hard cap still
+  // applies below). The route builds this closure from the signed-in user's envelope; the engine stays pure.
+  treasuryGate?: (amountUsd: number) => Promise<{ allow: boolean; reason: string }>;
 }
 export async function runAction(action: string, p: ActionPayload): Promise<ExecOutcome> {
   const c = p.connections;
@@ -480,6 +485,12 @@ export async function runAction(action: string, p: ActionPayload): Promise<ExecO
       const cents = Math.max(0, Math.round((p.item?.amount ?? 50) * 100));
       if (overHardCap(cents)) {
         return { ok: false, error: `blocked by the hard spend cap: $${(cents / 100).toFixed(2)} > $${(hardSpendCapCents() / 100).toFixed(2)}. This ceiling is enforced in the executor (below the prompt); raise HARD_SPEND_CAP_CENTS to change it.` };
+      }
+      // Treasury envelope gate (ADR-0020): in-budget debits run silently; over-budget/over-cap don't run
+      // here — they surface the reason so the caller escalates. Only consulted when a gate is supplied.
+      if (p.treasuryGate) {
+        const g = await p.treasuryGate(cents / 100);
+        if (!g.allow) return { ok: false, error: `treasury: ${g.reason}` };
       }
       return placeAd(
         { objective: p.item?.title || "demand test", budget: p.item?.amount ?? 50, copy: p.item?.detail || p.company.idea },
