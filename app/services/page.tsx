@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { listServices, type Service } from "@/lib/core";
+import { listPlaybooks } from "@/lib/core/playbooks";
+import { CONNECTION_MAP } from "@/lib/core/connections";
 
 // THE SERVICE CATALOG (/services) — what a customer can hire the AI company to run. Each service is a
 // collapsible tile (native <details>, no JS), the flagship open by default. Shared site chrome
@@ -106,6 +108,40 @@ export default function ServicesPage() {
           {services.map((s) => (
             <ServiceTile key={s.id} s={s} checkoutUrl={checkoutUrl} />
           ))}
+        </div>
+
+        {/* THE PLAYBOOK LIBRARY (ADR-0022) — named strategies the org runs on its own loop engine.
+            Requirements are stated honestly (which connections each needs to act live); this static page
+            never claims live-ness it can't know — /connect is where live status is truth. */}
+        <h2 className="display mt-12 text-2xl">Playbooks</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted">
+          Named strategies the org executes end to end — pick one, and it becomes an objective on your
+          company&apos;s loop. Every playbook carries its compliance rails inside the goal itself.
+        </p>
+        <div className="mt-5 flex flex-col gap-2.5">
+          {listPlaybooks().map((p) => {
+            const needs = p.needs
+              .map((id) => CONNECTION_MAP.find((c) => c.id === id)?.name ?? id)
+              .join(" · ");
+            return (
+              <div key={p.id} className="rounded-2xl border border-border bg-surface px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-semibold tracking-tight">{p.name}</span>
+                  <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-2">
+                    {p.cadence}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm leading-snug text-muted">{p.summary}</p>
+                <p className="mt-2.5 text-xs leading-snug text-muted-2">
+                  <span className="font-medium text-muted">Rails:</span> {p.rails.join(" · ")}
+                </p>
+                <p className="mt-1 text-xs leading-snug text-muted-2">
+                  <span className="font-medium text-muted">Runs live with:</span> {needs} — without them,
+                  work drafts and queues for you, honestly.
+                </p>
+              </div>
+            );
+          })}
         </div>
       </section>
 

@@ -194,3 +194,9 @@ export type { IntakeResult, IntakeDecision, ActivitySignals, ActivityAssessment,
 export { PrecedentStore, normalizeQuestion };
 export type { VaultClient, Provider, ProviderStatus, PromptVersion, KpiReport, ExportBundle, DeletionPlan, Readiness, DoDCheck, SOP, LicenseVerdict, LicenseClass, DepScreen, BadgeTier, Connection, ConnectionStatus, ConnectionTier, Owner, DomainPlan, DomainRail };
 export default core;
+
+// ADR-0022/0023 — the Ploy adoptions, done our way: named playbooks on the loop engine + the honesty-gated SEO factory.
+export { PLAYBOOKS, listPlaybooks, getPlaybook } from "./playbooks";
+export type { Playbook, PlaybookGoal } from "./playbooks";
+export { planCluster, honestyGate, draftBrief, AI_BYLINE } from "./seo-factory";
+export type { ClusterPlan, ClusterItem, GateResult } from "./seo-factory";
