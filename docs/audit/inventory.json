@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-24T18:34:40.093Z",
+ "generated": "2026-07-24T18:37:10.492Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -359,7 +359,7 @@
    "file": "app/api/verify/route.ts",
    "cls": "entry",
    "importers": 0,
-   "last": "?"
+   "last": "2026-07-24"
   },
   {
    "file": "app/api/version/route.ts",
@@ -602,10 +602,16 @@
    "last": "2026-07-18"
   },
   {
-   "file": "app/verify/page.tsx",
+   "file": "app/trust/page.tsx",
    "cls": "entry",
    "importers": 0,
    "last": "?"
+  },
+  {
+   "file": "app/verify/page.tsx",
+   "cls": "entry",
+   "importers": 0,
+   "last": "2026-07-24"
   },
   {
    "file": "bin/competitor.ts",
@@ -736,13 +742,13 @@
   {
    "file": "components/SiteFooter.tsx",
    "cls": "reachable",
-   "importers": 13,
+   "importers": 14,
    "last": "2026-07-20"
   },
   {
    "file": "components/SiteHeader.tsx",
    "cls": "reachable",
-   "importers": 14,
+   "importers": 15,
    "last": "2026-07-18"
   },
   {
@@ -911,7 +917,7 @@
    "file": "lib/core/content-gate.ts",
    "cls": "reachable",
    "importers": 2,
-   "last": "?"
+   "last": "2026-07-24"
   },
   {
    "file": "lib/core/conversation.ts",
@@ -971,7 +977,7 @@
    "file": "lib/core/index.ts",
    "cls": "reachable",
    "importers": 16,
-   "last": "2026-07-23"
+   "last": "2026-07-24"
   },
   {
    "file": "lib/core/killswitch.ts",
@@ -1997,7 +2003,7 @@
    "file": "lib/org/publishing-mandate.ts",
    "cls": "TEST-ONLY",
    "importers": 1,
-   "last": "2026-07-18"
+   "last": "2026-07-24"
   },
   {
    "file": "lib/org/role-titles.ts",

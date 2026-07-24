@@ -1,6 +1,6 @@
 # Repo inventory — Debt-Zero Phase 0 (generated 2026-07-24 by scripts/audit-inventory.mjs)
 
-Totals: **543** source files · **114** entry points · **231** reachable · **20** test-only · **0** UNREACHABLE.
+Totals: **544** source files · **115** entry points · **231** reachable · **20** test-only · **0** UNREACHABLE.
 
 ## UNREACHABLE from any entry point — kill candidates (Phase 1)
 | file | importers | last commit |
@@ -26,7 +26,7 @@ Totals: **543** source files · **114** entry points · **231** reachable · **2
 | lib/org/executive-desks.ts | 1 | 2026-07-14 |
 | lib/org/ops-desk.ts | 1 | 2026-07-11 |
 | lib/org/parallel.ts | 1 | 2026-07-11 |
-| lib/org/publishing-mandate.ts | 1 | 2026-07-18 |
+| lib/org/publishing-mandate.ts | 1 | 2026-07-24 |
 | lib/org/substrate.ts | 1 | 2026-07-11 |
 | lib/sim/compounding.ts | 1 | 2026-07-11 |
 

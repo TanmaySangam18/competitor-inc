@@ -10,6 +10,8 @@ const LINKS = [
   { href: "/benchmark", label: "Proof" },
   { href: "/connect", label: "Connect" },
   { href: "/services", label: "Services" },
+  { href: "/trust", label: "Trust center" },
+  { href: "/verify", label: "Verify a receipt" },
   { href: "/notices", label: "Third-party notices" },
 ];
 
