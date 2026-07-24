@@ -4,6 +4,7 @@ import { deptSelfApprove, CHANNEL_DAILY_CAP } from "./publishing-mandate";
 const ok = {
   kind: "bluesky", author: "growth-writer", approver: "growth-lead", approverIsLead: true,
   honestyVerified: true, disclosed: true, postsTodayOnChannel: 0, audience: "own" as const,
+  contentFlags: [] as string[],
 };
 
 describe("department publishing mandate (ADR-0012) — leads approve, rails hold", () => {
@@ -18,6 +19,12 @@ describe("department publishing mandate (ADR-0012) — leads approve, rails hold
     expect(deptSelfApprove({ ...ok, postsTodayOnChannel: CHANNEL_DAILY_CAP }).allow).toBe(false);
     expect(deptSelfApprove({ ...ok, audience: "scraped" }).reason).toContain("forbidden");
     expect(deptSelfApprove({ ...ok, audience: "unknown" }).allow).toBe(false);
+  });
+  it("rail 6: judgment flags queue for a human — the mandate cannot clear flagged content (ADR-0025)", () => {
+    const flagged = deptSelfApprove({ ...ok, contentFlags: ["tragedy-adjacent: references layoffs"] });
+    expect(flagged.allow).toBe(false);
+    expect(flagged.reason).toContain("judgment screen");
+    expect(flagged.reason).toContain("human");
   });
   it("non-publish kinds are out of this mandate's lane (money/contracts stay founder-only)", () => {
     expect(deptSelfApprove({ ...ok, kind: "payments" }).allow).toBe(false);

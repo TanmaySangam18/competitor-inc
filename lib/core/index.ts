@@ -202,3 +202,5 @@ export { planCluster, honestyGate, draftBrief, AI_BYLINE } from "./seo-factory";
 export type { ClusterPlan, ClusterItem, GateResult } from "./seo-factory";
 export { normalizeHtml, robotsAllows, diffSnapshots, scanTarget, battlecard, WATCH_USER_AGENT } from "./market-watch";
 export type { WatchDelta, ScanResult } from "./market-watch";
+export { screenContent } from "./content-gate";
+export type { ContentScreen } from "./content-gate";

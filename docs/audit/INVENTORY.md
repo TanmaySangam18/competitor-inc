@@ -1,6 +1,6 @@
-# Repo inventory — Debt-Zero Phase 0 (generated 2026-07-23 by scripts/audit-inventory.mjs)
+# Repo inventory — Debt-Zero Phase 0 (generated 2026-07-24 by scripts/audit-inventory.mjs)
 
-Totals: **539** source files · **112** entry points · **230** reachable · **20** test-only · **0** UNREACHABLE.
+Totals: **543** source files · **114** entry points · **231** reachable · **20** test-only · **0** UNREACHABLE.
 
 ## UNREACHABLE from any entry point — kill candidates (Phase 1)
 | file | importers | last commit |
