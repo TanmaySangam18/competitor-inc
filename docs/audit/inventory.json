@@ -1,5 +1,5 @@
 {
- "generated": "2026-07-24T18:37:10.492Z",
+ "generated": "2026-08-02T23:50:37.448Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -605,7 +605,7 @@
    "file": "app/trust/page.tsx",
    "cls": "entry",
    "importers": 0,
-   "last": "?"
+   "last": "2026-07-24"
   },
   {
    "file": "app/verify/page.tsx",
@@ -743,7 +743,7 @@
    "file": "components/SiteFooter.tsx",
    "cls": "reachable",
    "importers": 14,
-   "last": "2026-07-20"
+   "last": "2026-07-24"
   },
   {
    "file": "components/SiteHeader.tsx",
@@ -916,7 +916,7 @@
   {
    "file": "lib/core/content-gate.ts",
    "cls": "reachable",
-   "importers": 2,
+   "importers": 3,
    "last": "2026-07-24"
   },
   {
@@ -1140,6 +1140,12 @@
    "cls": "reachable",
    "importers": 2,
    "last": "2026-07-14"
+  },
+  {
+   "file": "lib/core/video-factory.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "?"
   },
   {
    "file": "lib/engine/EngineContext.tsx",

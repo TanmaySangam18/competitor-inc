@@ -204,3 +204,5 @@ export { normalizeHtml, robotsAllows, diffSnapshots, scanTarget, battlecard, WAT
 export type { WatchDelta, ScanResult } from "./market-watch";
 export { screenContent } from "./content-gate";
 export type { ContentScreen } from "./content-gate";
+export { FOOTAGE_ALLOWLIST, VIDEO_TEMPLATES, assertAllowedSource, provenanceRecord, gateCard, planStoryboard } from "./video-factory";
+export type { ClipProvenance, Shot, Storyboard, TemplateInput } from "./video-factory";
