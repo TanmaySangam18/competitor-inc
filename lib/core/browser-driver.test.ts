@@ -12,8 +12,10 @@ describe("browser backend — the physical hands (ADR-0019)", () => {
   });
 
   it("catches real credential shapes", () => {
-    for (const s of ["ghp_" + "a".repeat(40), "xoxb-123456789012-abcdefghijkl", "sk-" + "b".repeat(32),
-                      "sk_live_" + "c".repeat(24), "AKIAABCDEFGHIJKLMNOP", "-----BEGIN RSA PRIVATE KEY-----",
+    // Every fixture is assembled by concatenation so the deploy-time secret scan (which greps raw
+    // source) never sees a whole credential shape — the detector still receives the full string.
+    for (const s of ["ghp_" + "a".repeat(40), "xoxb-" + "123456789012-abcdefghijkl", "sk-" + "b".repeat(32),
+                      "sk_live_" + "c".repeat(24), "AKIA" + "ABCDEFGHIJKLMNOP", "-----BEGIN RSA " + "PRIVATE KEY-----",
                       "token=" + "Zk9x".repeat(12)])
       expect(looksSecret(s)).toBe(true);
   });
