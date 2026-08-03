@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-02T23:50:37.448Z",
+ "generated": "2026-08-03T01:18:33.023Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -908,9 +908,15 @@
    "last": "2026-07-18"
   },
   {
+   "file": "lib/core/connect-rail.ts",
+   "cls": "reachable",
+   "importers": 2,
+   "last": "?"
+  },
+  {
    "file": "lib/core/connections.ts",
    "cls": "reachable",
-   "importers": 12,
+   "importers": 14,
    "last": "2026-07-23"
   },
   {
@@ -977,7 +983,7 @@
    "file": "lib/core/index.ts",
    "cls": "reachable",
    "importers": 16,
-   "last": "2026-07-24"
+   "last": "2026-08-02"
   },
   {
    "file": "lib/core/killswitch.ts",
@@ -1145,7 +1151,7 @@
    "file": "lib/core/video-factory.ts",
    "cls": "reachable",
    "importers": 2,
-   "last": "?"
+   "last": "2026-08-02"
   },
   {
    "file": "lib/engine/EngineContext.tsx",

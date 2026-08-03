@@ -206,3 +206,5 @@ export { screenContent } from "./content-gate";
 export type { ContentScreen } from "./content-gate";
 export { FOOTAGE_ALLOWLIST, VIDEO_TEMPLATES, assertAllowedSource, provenanceRecord, gateCard, planStoryboard } from "./video-factory";
 export type { ClipProvenance, Shot, Storyboard, TemplateInput } from "./video-factory";
+export { CONNECT_RAIL, railPlan, slackAppManifest, slackManifestUrl } from "./connect-rail";
+export type { ConnectMethod, RailStep } from "./connect-rail";
