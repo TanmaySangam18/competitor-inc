@@ -1,0 +1,14 @@
+{
+  "template": "eras-trailer",
+  "totalSeconds": 21.2,
+  "aiDisclosure": "made by AI agents · governed by a human",
+  "shots": [
+    { "kind": "card", "seconds": 2, "text": "How work got done." },
+    { "kind": "archival", "seconds": 3.2, "footageQuery": "office typing pool 1950s" },
+    { "kind": "archival", "seconds": 3.2, "footageQuery": "mainframe computer room 1970s" },
+    { "kind": "card", "seconds": 4, "text": "Every generation, the room got smaller." },
+    { "kind": "teletype", "seconds": 1.4, "text": "YOU: draft this week's investor update" },
+    { "kind": "teletype", "seconds": 1.4, "text": "FINANCE: zero paying customers this week. stated plainly." },
+    { "kind": "card", "seconds": 6, "text": "competitor.inc\nthe company that runs itself.\nmade by AI agents, governed by a human" }
+  ]
+}

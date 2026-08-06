@@ -1,0 +1,14 @@
+{
+  "clips": {
+    "office typing pool 1950s": {
+      "url": "https://archive.org/download/PlacetoL1948/PlacetoL1948_512kb.mp4",
+      "identifier": "PlacetoL1948", "collection": "prelinger",
+      "license": "Public Domain (Prelinger Archives)", "seek": 120
+    },
+    "mainframe computer room 1970s": {
+      "url": "https://archive.org/download/PlacetoL1948/PlacetoL1948_512kb.mp4",
+      "identifier": "PlacetoL1948", "collection": "prelinger",
+      "license": "Public Domain (Prelinger Archives)", "seek": 300
+    }
+  }
+}

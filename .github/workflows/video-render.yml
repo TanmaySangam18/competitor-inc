@@ -1,0 +1,52 @@
+# Video Factory render farm (ADR-0026 slice 2). Same pattern as customer builds: the platform
+# plans + gates a storyboard (lib/core/video-factory), this workflow renders it, the artifact +
+# provenance come back. Ubuntu ffmpeg ships with drawtext, so no browser is needed here.
+name: video-render
+
+on:
+  workflow_dispatch:
+    inputs:
+      storyboard:
+        description: "Storyboard JSON (output of planStoryboard)"
+        required: true
+        type: string
+      manifest:
+        description: "Assets manifest JSON (allowlisted PD clips + provenance)"
+        required: true
+        type: string
+      resolution:
+        description: "WxH"
+        required: false
+        default: "1080x1920"
+        type: string
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - name: Write inputs
+        run: |
+          cat > /tmp/storyboard.json <<'STORYBOARD_EOF'
+          ${{ inputs.storyboard }}
+          STORYBOARD_EOF
+          cat > /tmp/manifest.json <<'MANIFEST_EOF'
+          ${{ inputs.manifest }}
+          MANIFEST_EOF
+      - name: Render
+        run: node scripts/video/render.mjs /tmp/storyboard.json /tmp/manifest.json /tmp/out --res=${{ inputs.resolution }}
+        env:
+          RENDER_FONT: /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+      - name: Upload artifact + provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-video
+          path: |
+            /tmp/out/final.mp4
+            /tmp/out/PROVENANCE.txt
+          retention-days: 14

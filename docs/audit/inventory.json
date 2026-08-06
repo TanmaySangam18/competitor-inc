@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-03T01:18:33.023Z",
+ "generated": "2026-08-06T05:19:35.227Z",
  "rows": [
   {
    "file": "app/api/app/[ns]/[entity]/route.ts",
@@ -911,7 +911,7 @@
    "file": "lib/core/connect-rail.ts",
    "cls": "reachable",
    "importers": 2,
-   "last": "?"
+   "last": "2026-08-02"
   },
   {
    "file": "lib/core/connections.ts",
@@ -2160,6 +2160,12 @@
    "cls": "entry",
    "importers": 0,
    "last": "2026-07-18"
+  },
+  {
+   "file": "scripts/video/render.mjs",
+   "cls": "entry",
+   "importers": 0,
+   "last": "?"
   },
   {
    "file": "instrumentation-client.ts",
