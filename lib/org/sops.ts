@@ -17,6 +17,15 @@ export interface SOP {
 }
 
 export const SOPS: Record<string, SOP> = {
+  "chief-of-staff": {
+    role: "chief-of-staff", name: "Agent Review SOP",
+    steps: [
+      "Each quarter, pull every agent's real performance record: success rate, activity volume, spend, escalations caught.",
+      "Score against the role's mandate, not against a vanity target; too little activity means insufficient data, said plainly.",
+      "Recommend keep, retune (including a cheaper or stronger model tier), or retire; every retune and retire is queued for the founder, never applied alone.",
+      "Publish the review cycle artifact to ground truth so the next quarter compounds on this one.",
+    ],
+  },
   "marketing-lead": {
     role: "marketing-lead", name: "Campaign SOP",
     steps: [
@@ -79,6 +88,7 @@ export const SOPS: Record<string, SOP> = {
       "Discount only within published bands; route security questionnaires to Security + Legal.",
       "Never promise roadmap or terms you can't back; capture real expectations to hand to Customer Success.",
       "The signature is Tier 3, always — prepare the contract and hand it to the human to sign.",
+      "After every decided deal, won or lost, run the structured win/loss review and file it; the reasons feed the quarterly report.",
     ],
   },
   "sales-ops-crm-administrator": {
@@ -95,6 +105,9 @@ export const SOPS: Record<string, SOP> = {
       "Onboard from the playbook; confirm the customer reaches first value.",
       "Watch health signals; flag churn risk early with the reason, not just a score.",
       "Route product feedback to the Head of Product; escalate commercial terms to the Account Executive.",
+      "Send each buyer their weekly receipt review: what the agents actually did for them, referenced by receipt; an empty week is said out loud.",
+      "Start the renewal motion a quarter before the contract ends; a red health band triggers the save play and escalates to the founder.",
+      "Close the loop on every detractor response personally routed to the founder; testimonial asks from promoters are human-approved.",
       "Never negotiate pricing or over-promise the roadmap.",
     ],
   },
@@ -116,6 +129,15 @@ export const SOPS: Record<string, SOP> = {
       "Never ship the fix yourself or touch customer data beyond the ticket's scope.",
     ],
   },
+  "finance-controller": {
+    role: "finance-controller", name: "Close & Forecast SOP",
+    steps: [
+      "Each week, refresh the cash forecast: committed inflows only count toward survival; likely and speculative are shown, never summed in.",
+      "Each week, report the pipeline as it stands, per stage, with the raw totals; no probability theater.",
+      "Each month, close the books: reconcile the payment processor, the recorded revenue events, and the treasury ledger three ways; every discrepancy is named or the close does not sign.",
+      "Publish the signed close receipt; a zero month is stated as a zero month.",
+    ],
+  },
   "procurement-agent": {
     role: "procurement-agent", name: "Procurement SOP",
     steps: [
@@ -123,6 +145,15 @@ export const SOPS: Record<string, SOP> = {
       "Attach cost, data-handling, and ToS flags for the Legal & Compliance Analyst.",
       "Never sign up, accept a ToS, or enter payment details — every purchase/signup is prepared for the human.",
       "Recommend, with the cheaper alternative named if there is one.",
+    ],
+  },
+  "ux-researcher": {
+    role: "ux-researcher", name: "Discovery SOP",
+    steps: [
+      "Recruit real users and prospects for interviews from opted-in, consenting sources only; disclose the AI where it participates.",
+      "Run the interview from the standing script: their words, their workflow, their last real attempt to solve the problem; never pitch during discovery.",
+      "Synthesize verbatim evidence into product memory with the source attached; an unsupported hunch is labeled a hunch.",
+      "Run the beta program at first pilot: enroll, watch first value, close the loop with every participant.",
     ],
   },
   "product-manager": {

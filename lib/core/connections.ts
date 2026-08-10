@@ -119,7 +119,9 @@ export const CONNECTION_MAP: Connection[] = [
   {
     id: "payments", name: "Stripe (or Polar as MoR)", tier: "T2", department: "finance", owner: "customer",
     purpose: "Charging customers",
-    env: ["STRIPE_SECRET_KEY", "POLAR_WEBHOOK_SECRET"],
+    // NEXT_PUBLIC_CHECKOUT_URL is the R1 arming switch: billing.ts only enforces the paywall once the
+    // operator checkout link exists, so /connect must show it as part of the true remaining setup.
+    env: ["STRIPE_SECRET_KEY", "POLAR_WEBHOOK_SECRET", "NEXT_PUBLIC_CHECKOUT_URL"],
     unlocks: "The company can take money — checkout, subscriptions, webhooks.",
     degraded: "Everything runs except revenue — no charge can be made.",
     required: false,

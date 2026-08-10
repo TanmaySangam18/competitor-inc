@@ -33,9 +33,15 @@ describe("per-role SOPs", () => {
   });
 
   it("a role without an SOP has no SOP line (no empty noise)", () => {
-    const cos = getRole("chief-of-staff")!; // no SOP assigned
-    expect(getSop("chief-of-staff")).toBeUndefined();
-    const soul = orgSoul(cos, { name: "Acme", idea: "x" });
+    const auditor = getRole("auditor")!; // no SOP assigned (audits everyone else's)
+    expect(getSop("auditor")).toBeUndefined();
+    const soul = orgSoul(auditor, { name: "Acme", idea: "x" });
     expect(soul).not.toContain("standard operating procedure");
+  });
+
+  it("the run-the-company SOPs exist (discovery, close+forecast, agent review)", () => {
+    expect(getSop("ux-researcher")?.name).toBe("Discovery SOP");
+    expect(getSop("finance-controller")?.name).toBe("Close & Forecast SOP");
+    expect(getSop("chief-of-staff")?.name).toBe("Agent Review SOP");
   });
 });

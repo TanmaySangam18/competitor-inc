@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Conservative dependency patching. Renovate only OPENS PRs; a human merges every one and the CI qa gate (.github/workflows/qa.yml) is the arbiter. Automerge stays false everywhere.",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests"],
+  "timezone": "America/New_York",
+  "schedule": ["before 6am on Monday"],
+  "automerge": false,
+  "prConcurrentLimit": 3,
+  "labels": ["dependencies"],
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+  "rangeStrategy": "replace",
+  "ignorePaths": ["**/node_modules/**", "public/**", "supabase/migrations/**"],
+  "packageRules": [
+    {
+      "description": "Group non-major devDependencies into one weekly PR. Still human-merged.",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dev dependencies (non-major)",
+      "automerge": false
+    },
+    {
+      "description": "Major updates always get their own PR and never automerge.",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    }
+  ]
+}
