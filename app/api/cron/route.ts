@@ -27,6 +27,8 @@ import { POLICY, platformMarketingAllowed } from "@/lib/engine/policy";
 import { loadActiveOrgRuns, saveOrgRun } from "@/lib/engine/org-runs-db";
 import { tickLoop, loadAllTenants, defaultDeps as defaultLoopDeps } from "@/lib/loop/loop-driver";
 import { igniteCompanyZero } from "@/lib/loop/ignition";
+import { runRituals } from "@/lib/loop/rituals";
+import { enqueueDecision } from "@/lib/engine/decisions-db";
 import { applyRecordedDecisions } from "@/lib/engine/apply-decisions-db";
 import { advanceOrgRun } from "@/lib/engine/org-run-step";
 import { isComplete } from "@/lib/engine/org-run";
@@ -516,6 +518,55 @@ export async function GET(req: Request) {
     }
   }
 
+  // ── ADR-0028: the run-the-company rituals, on cadence. Weekly forecast (Mon), monthly close +
+  // evidence log (1st), quarterly agent review (first Mon of the quarter), plus the daily drill nag.
+  // Fully fail-soft inside runRituals; honest about every leg that is not connected yet.
+  let rituals: string[] = [];
+  let ritualGaps: string[] = [];
+  let ritualEscalations = 0;
+  let out_ritualEscalationsUnrouted = 0; // queued nowhere durable because FOUNDER_USER_ID is unset
+  try {
+    const r = await runRituals(sb, { now: new Date() });
+    rituals = r.fired;
+    ritualGaps = r.gaps;
+    ritualEscalations = r.escalations.length;
+    if (r.sections.length > 0) {
+      const body = r.sections.join("\n\n");
+      console.log(`[/api/cron] rituals fired: ${r.fired.join(", ")}`);
+      if (to) {
+        await sendEmail({
+          to,
+          subject: `competitor.inc — ${r.fired.join(" + ")}`,
+          html: `<pre style="font:13px/1.5 ui-monospace,monospace;white-space:pre-wrap">${body.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</pre>`,
+        });
+      }
+      const ritualChannel = process.env.SLACK_DIGEST_CHANNEL;
+      if (ritualChannel) {
+        for (const section of r.sections) {
+          await postAsAgent(ritualChannel, { roleId: "chief-of-staff" }, section).catch(() => undefined);
+        }
+      }
+    }
+    // Escalations are RECOMMENDATIONS: retire/retune verdicts, churn saves, drill nags. They land in the
+    // founder's DECISION QUEUE (prepared_decisions), not the approvals table — approvals carry a closed
+    // kind union (spend/outreach/deploy/…) with no slot for "retire an agent" or "run a drill", and the
+    // decision queue is the surface built for exactly this. company_id is null: these are platform-level
+    // decisions about competitor.inc itself, not about a customer's company. Nothing auto-applies.
+    const ritualOwner = process.env.FOUNDER_USER_ID;
+    if (r.escalations.length > 0 && ritualOwner) {
+      for (const esc of r.escalations) {
+        await enqueueDecision(sb, ritualOwner, null, esc).catch((e) =>
+          console.error("[/api/cron] ritual escalation:", e instanceof Error ? e.message : "unknown"));
+      }
+    } else if (r.escalations.length > 0) {
+      // No owner configured ⇒ do not silently drop them: they are already in the digest text above.
+      console.log(`[/api/cron] ${r.escalations.length} ritual escalation(s) not persisted — set FOUNDER_USER_ID to route them to the decision queue`);
+      out_ritualEscalationsUnrouted = r.escalations.length;
+    }
+  } catch (e) {
+    console.error("[/api/cron] rituals:", e instanceof Error ? e.message : "unknown");
+  }
+
   // Lifecycle/retention emails — dormant unless enabled + configured; fail-soft (never breaks the shift).
   let lifecycleSent = 0;
   if (process.env.LIFECYCLE_EMAILS === "1" && process.env.RESEND_API_KEY && process.env.RESEND_FROM) {
@@ -534,5 +585,9 @@ export async function GET(req: Request) {
     digests: isFriday ? fridayDigests.length : 0,
     lifecycleSent, // retention emails sent this run (0 unless LIFECYCLE_EMAILS=1 + RESEND configured)
     ignition, // ADR-0021: what the ignition check saw this tick (started / already running / what's dark)
+    rituals, // ADR-0028: which run-the-company rituals fired on cadence this tick
+    ritualEscalations, // recommendations queued for the founder (retire/retune, churn saves, drill nags)
+    ritualEscalationsUnrouted: out_ritualEscalationsUnrouted, // >0 ⇒ set FOUNDER_USER_ID to persist them
+    ritualGaps, // connections that would make a ritual complete — named, never papered over
   });
 }
