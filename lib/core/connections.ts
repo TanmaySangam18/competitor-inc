@@ -37,7 +37,7 @@ export interface Connection {
 }
 
 export const TIER_LABELS: Record<ConnectionTier, { title: string; when: string }> = {
-  T0: { title: "The brain + hands", when: "day one — required" },
+  T0: { title: "The brain + hands", when: "day one, required" },
   T1: { title: "The voice", when: "first week" },
   T2: { title: "The money", when: "before the first sale" },
   T3: { title: "The senses", when: "as the business grows" },
@@ -50,26 +50,26 @@ export const CONNECTION_MAP: Connection[] = [
   // T0 · The brain + hands (day one, required)
   {
     id: "ai-model", name: "AI model key", tier: "T0", department: "ceo", owner: "customer",
-    purpose: "Cognition — Anthropic / OpenAI / Groq; the model the org thinks with",
+    purpose: "Cognition, Anthropic / OpenAI / Groq; the model the org thinks with",
     env: ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GROQ_API_KEY", "MODEL_API_KEY"],
     unlocks: "Agents can think: plan, write code, draft copy, answer customers.",
-    degraded: "No cognition — the org is inert. Nothing runs until a model key exists.",
+    degraded: "No cognition. The org is inert. Nothing runs until a model key exists.",
     required: true,
   },
   {
     id: "github", name: "GitHub", tier: "T0", department: "engineering", owner: "customer",
-    purpose: "Repos + Actions — where software gets built",
+    purpose: "Repos + Actions, where software gets built",
     env: ["GITHUB_TOKEN"],
     unlocks: "The org can create repos, commit code, open PRs, and run CI.",
-    degraded: "No hands on code — builds are planned but nothing is committed or shipped.",
+    degraded: "No hands on code. Builds are planned but nothing is committed or shipped.",
     required: true,
   },
   {
     id: "hosting", name: "Vercel (or Cloudflare Pages)", tier: "T0", department: "engineering", owner: "customer",
     purpose: "Where the software runs",
     env: ["FULLSTACK_VERCEL_TOKEN", "VERCEL_DEPLOY_HOOK_URL"],
-    unlocks: "Ship to a real URL — deploy, preview, verify, roll back.",
-    degraded: "Builds stop at the repo — nothing reaches a live URL.",
+    unlocks: "Ship to a real URL. Deploy, preview, verify, roll back.",
+    degraded: "Builds stop at the repo. Nothing reaches a live URL.",
     required: true,
   },
   {
@@ -77,7 +77,7 @@ export const CONNECTION_MAP: Connection[] = [
     purpose: "Per-product data, RLS isolation",
     env: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
     unlocks: "Products can persist data; every tenant isolated by RLS.",
-    degraded: "Stateless only — nothing that needs stored data can ship.",
+    degraded: "Stateless only. Nothing that needs stored data can ship.",
     required: true,
   },
 
@@ -87,31 +87,31 @@ export const CONNECTION_MAP: Connection[] = [
     purpose: "The OFFICE: agents deliberate in channels 24/7; you're @-tagged only on real decisions",
     env: ["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"],
     unlocks: "The org talks where you already live; decisions reach you as @-mentions.",
-    degraded: "No office in Slack — deliberation stays on the web surface only.",
+    degraded: "No office in Slack. Deliberation stays on the web surface only.",
     required: false,
   },
   {
     id: "email-sending", name: "Email sending", tier: "T1", department: "support", owner: "customer",
-    purpose: "Google Workspace or Resend/Postmark — support@, reports, receipts",
+    purpose: "Google Workspace or Resend/Postmark, support@, reports, receipts",
     env: ["RESEND_API_KEY", "RESEND_FROM"],
     unlocks: "The org can send: receipts, reports, and support replies from your domain.",
-    degraded: "Mute by mail — receipts and reports render but cannot be sent.",
+    degraded: "Mute by mail. Receipts and reports render but cannot be sent.",
     required: false,
   },
   {
     id: "agent-inbox", name: "Agent inboxes (AgentMail)", tier: "T1", department: "support", owner: "customer",
     purpose: "Two-way email: each agent gets its own inbox (send AND receive) via API",
     env: ["AGENTMAIL_API_KEY"],
-    unlocks: "Support, sales, and finance agents read inbound mail and reply in-thread — the company's voice becomes two-way, not send-only.",
-    degraded: "Send-only — the org can email out (via Email sending) but can't receive or reply; inbound goes unread until connected.",
+    unlocks: "Support, sales, and finance agents read inbound mail and reply in-thread. The company's voice becomes two-way, not send-only.",
+    degraded: "Send-only. The org can email out (via Email sending) but can't receive or reply; inbound goes unread until connected.",
     required: false,
   },
   {
     id: "registrar", name: "Domain registrar", tier: "T1", department: "ops", owner: "customer",
-    purpose: "Cloudflare / Namecheap / Vercel Domains — legal domains only (standing rule)",
+    purpose: "Cloudflare / Namecheap / Vercel Domains, legal domains only (standing rule)",
     env: [], // no programmatic registrar consumption yet — tracked, not detected
     unlocks: "Products get real custom domains, provisioned legally.",
-    degraded: "Products ship on subdomains only — no custom domains.",
+    degraded: "Products ship on subdomains only. No custom domains.",
     required: false,
   },
 
@@ -122,16 +122,16 @@ export const CONNECTION_MAP: Connection[] = [
     // NEXT_PUBLIC_CHECKOUT_URL is the R1 arming switch: billing.ts only enforces the paywall once the
     // operator checkout link exists, so /connect must show it as part of the true remaining setup.
     env: ["STRIPE_SECRET_KEY", "POLAR_WEBHOOK_SECRET", "NEXT_PUBLIC_CHECKOUT_URL"],
-    unlocks: "The company can take money — checkout, subscriptions, webhooks.",
-    degraded: "Everything runs except revenue — no charge can be made.",
+    unlocks: "The company can take money. Checkout, subscriptions, webhooks.",
+    degraded: "Everything runs except revenue. No charge can be made.",
     required: false,
   },
   {
     id: "banking", name: "Banking / accounting readout", tier: "T2", department: "finance", owner: "customer",
-    purpose: "Mercury / QuickBooks / Stripe Tax — finance agents' ground truth; READ + report, never move funds",
+    purpose: "Mercury / QuickBooks / Stripe Tax, finance agents' ground truth; READ + report, never move funds",
     env: [], // read-only readout not wired programmatically yet — tracked, not detected
     unlocks: "Finance reports reconcile against the real account (read-only; moving funds stays human-only).",
-    degraded: "Finance reports draw on Stripe data alone — no bank-level ground truth.",
+    degraded: "Finance reports draw on Stripe data alone. No bank-level ground truth.",
     required: false,
   },
 
@@ -146,26 +146,26 @@ export const CONNECTION_MAP: Connection[] = [
   },
   {
     id: "error-uptime", name: "Errors + uptime", tier: "T3", department: "engineering", owner: "customer",
-    purpose: "Sentry + a ping monitor — the incident loop's input",
+    purpose: "Sentry + a ping monitor, the incident loop's input",
     env: ["MCP_SENTRY_URL"],
     unlocks: "Incidents triage themselves: error in, root-cause, fix, receipt out.",
-    degraded: "Blind to production errors — incidents surface only when a human notices.",
+    degraded: "Blind to production errors. Incidents surface only when a human notices.",
     required: false,
   },
   {
     id: "support-inbox", name: "Customer support inbox", tier: "T3", department: "support", owner: "customer",
-    purpose: "Shared mailbox or Plain/Intercom — support agents answer; escalate on policy",
+    purpose: "Shared mailbox or Plain/Intercom, support agents answer; escalate on policy",
     env: [], // no inbound-mail consumption wired yet — tracked, not detected
-    unlocks: "Inbound customer mail gets grounded answers — cite-or-abstain, escalate on policy.",
-    degraded: "No inbound ear — support answers exist in-product only.",
+    unlocks: "Inbound customer mail gets grounded answers. Cite-or-abstain, escalate on policy.",
+    degraded: "No inbound ear. Support answers exist in-product only.",
     required: false,
   },
   {
     id: "crm", name: "CRM", tier: "T3", department: "growth", owner: "customer",
-    purpose: "Attio / HubSpot — or our own substrate table first (sales agents' pipeline)",
+    purpose: "Attio / HubSpot, or our own substrate table first (sales agents' pipeline)",
     env: ["MCP_CRM_URL"],
     unlocks: "Sales agents keep a durable pipeline: leads, stages, next steps.",
-    degraded: "No durable sales state — pipeline lives only inside a single run.",
+    degraded: "No durable sales state. Pipeline lives only inside a single run.",
     required: false,
   },
   {
@@ -173,23 +173,23 @@ export const CONNECTION_MAP: Connection[] = [
     purpose: "Sales agents book real meetings (the conversion sensor)",
     env: ["CAL_WEBHOOK_SECRET"],
     unlocks: "Prospects book straight into a real calendar; bookings feed the funnel.",
-    degraded: "No bookings — sales sequences end at a reply, never a meeting.",
+    degraded: "No bookings. Sales sequences end at a reply, never a meeting.",
     required: false,
   },
   {
     id: "social", name: "Social accounts", tier: "T3", department: "marketing", owner: "customer",
-    purpose: "Bluesky / Mastodon / X / LinkedIn — post to your OWN opted-in audience, never scraped graphs",
+    purpose: "Bluesky / Mastodon / X / LinkedIn, post to your OWN opted-in audience, never scraped graphs",
     env: ["BLUESKY_HANDLE", "BLUESKY_APP_PASSWORD", "MASTODON_BASE_URL", "MASTODON_ACCESS_TOKEN"],
     unlocks: "Marketing agents publish to your audience, clearly disclosed as AI.",
-    degraded: "Nothing is posted anywhere — drafts queue for a human to paste.",
+    degraded: "Nothing is posted anywhere. Drafts queue for a human to paste.",
     required: false,
   },
   {
     id: "ads", name: "Ads (optional, capped)", tier: "T3", department: "growth", owner: "customer",
-    purpose: "Google/Meta — spend caps + tier gates apply",
+    purpose: "Google/Meta, spend caps + tier gates apply",
     env: ["ADS_WEBHOOK_URL"],
     unlocks: "Capped experiments can buy reach; anything over cap queues for you.",
-    degraded: "Zero paid reach — growth is organic only.",
+    degraded: "Zero paid reach. Growth is organic only.",
     required: false,
   },
   {
@@ -209,7 +209,7 @@ export const FOUNDER_GO_LIVE: Connection[] = [
     purpose: "Legal person + a place revenue can settle",
     env: [],
     unlocks: "Revenue can legally settle; contracts have a counterparty.",
-    degraded: "No legal person — nothing can be sold or settled.",
+    degraded: "No legal person. Nothing can be sold or settled.",
     required: true,
   },
   {
@@ -217,31 +217,31 @@ export const FOUNDER_GO_LIVE: Connection[] = [
     purpose: "Hold every key; stand up BEFORE any API key",
     env: ["VAULT_URL", "DOPPLER_TOKEN", "INFISICAL_TOKEN"],
     unlocks: "Every key lives in one revocable place; rotation is one operation.",
-    degraded: "Keys live loose in env files — rotation and revocation are manual.",
+    degraded: "Keys live loose in env files. Rotation and revocation are manual.",
     required: true,
   },
   {
     id: "model", name: "Model provider key(s)", tier: "T0", department: "ceo", owner: "founder",
     purpose: "The company's cognition (2+ for failover)",
     env: ["ANTHROPIC_API_KEY", "OPENAI_API_KEY"],
-    unlocks: "Company #0 can think — with failover when a provider degrades.",
-    degraded: "Company #0 is inert — no agent can run.",
+    unlocks: "Company #0 can think. With failover when a provider degrades.",
+    degraded: "Company #0 is inert. No agent can run.",
     required: true,
   },
   {
     id: "domain-email", name: "Domain + email (SPF/DKIM/DMARC)", tier: "T1", department: "ops", owner: "founder",
     purpose: "The address + deliverable mail",
     env: ["NEXT_PUBLIC_SITE_URL"],
-    unlocks: "Mail that lands — receipts, reports, and replies deliver.",
-    degraded: "No deliverable address — outbound mail would bounce or spam-folder.",
+    unlocks: "Mail that lands. Receipts, reports, and replies deliver.",
+    degraded: "No deliverable address. Outbound mail would bounce or spam-folder.",
     required: true,
   },
   {
     id: "stripe", name: "Stripe (Connect) verified", tier: "T2", department: "finance", owner: "founder",
     purpose: "Take money to the right account, never pool",
     env: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
-    unlocks: "Money flows to the right account — never pooled, never held for customers.",
-    degraded: "No money can move — checkout stays dark.",
+    unlocks: "Money flows to the right account. Never pooled, never held for customers.",
+    degraded: "No money can move. Checkout stays dark.",
     required: true,
   },
   {
@@ -249,7 +249,7 @@ export const FOUNDER_GO_LIVE: Connection[] = [
     purpose: "Liability split + acceptable-use + cover",
     env: [],
     unlocks: "Customers can sign something real; liability is split on paper.",
-    degraded: "No signed terms — taking customers would be uninsured exposure.",
+    degraded: "No signed terms. Taking customers would be uninsured exposure.",
     required: true,
   },
   {
@@ -257,15 +257,15 @@ export const FOUNDER_GO_LIVE: Connection[] = [
     purpose: "Human-only control-plane auth",
     env: ["CONTROL_SECRET"],
     unlocks: "The human can stop everything from outside the system, instantly.",
-    degraded: "No out-of-band stop — autonomy without a hardware brake.",
+    degraded: "No out-of-band stop. Autonomy without a hardware brake.",
     required: true,
   },
   {
     id: "go-live", name: "Flip MAINTENANCE=0", tier: "T0", department: "ceo", owner: "founder",
-    purpose: "The last switch — after the gate + drills pass",
+    purpose: "The last switch, after the gate + drills pass",
     env: ["MAINTENANCE"],
     unlocks: "The site is live to the public.",
-    degraded: "Maintenance mode — the public sees the holding page.",
+    degraded: "Maintenance mode. The public sees the holding page.",
     required: true,
   },
 ];
@@ -278,7 +278,7 @@ export interface ConnectionStatus extends Connection {
   note?: string; // present on tracked-not-detected items — why configured is false by construction
 }
 
-const TRACKED_NOT_DETECTED = "No env detection — tracked manually; shown as not connected until a human verifies it.";
+const TRACKED_NOT_DETECTED = "No env detection; tracked manually, shown as not connected until a human verifies it.";
 
 export function connectionStatus(owner?: Owner, env: Record<string, string | undefined> = process.env): ConnectionStatus[] {
   return CONNECTIONS.filter((c) => !owner || c.owner === owner).map((c) => ({

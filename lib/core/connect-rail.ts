@@ -59,7 +59,7 @@ export const CONNECT_RAIL: RailStep[] = [
   {
     connectionId: "slack", method: "manifest-link", estMinutes: 6,
     inlineGuide: [
-      "Click the one-click link — Slack opens with the app fully pre-configured from our manifest (scopes, name, everything).",
+      "Click the one-click link. Slack opens with the app fully pre-configured from our manifest (scopes, name, everything).",
       "Click Create, then Install to Workspace, then Allow (that consent screen is Slack's own page, by design).",
       "Copy the Bot Token (xoxb-…) and the Signing Secret from the app page into the two fields here.",
     ],
@@ -79,7 +79,7 @@ export const CONNECT_RAIL: RailStep[] = [
     inlineGuide: [
       "Polar → Settings → create an access token; create your products if you haven't (we show the exact tier config to mirror).",
       "Paste the token + webhook secret here.",
-      "Money OUT stays human forever — this connection only lets the org see and reconcile, never move funds.",
+      "Money OUT stays human forever. This connection only lets the org see and reconcile, never move funds.",
     ],
     securityNote: VAULT_NOTE + " Funds custody never changes: your account, your money, our read-only reconciliation.",
   },
@@ -104,7 +104,7 @@ export function railPlan(owner: Owner = "customer", env: Record<string, string |
     steps,
     minutesRemaining,
     done: remaining.length === 0,
-    claim: `${minutesRemaining} minutes of guided setup remaining — measured estimate, not a promise; the page times the real number.`,
+    claim: `${minutesRemaining} minutes of guided setup remaining. This is a measured estimate, not a promise; the page times the real number.`,
   };
 }
 
