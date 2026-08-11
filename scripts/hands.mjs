@@ -44,6 +44,9 @@ const AUDIT = join(ROOT, "hands-audit.log");
 
 const argv = process.argv.slice(2);
 const HEADLESS = argv.includes("--headless");
+// --record=DIR captures the real session to video (Playwright's own recorder). Used to demo the hands
+// honestly: what you watch is a recording of an actual run, never a reconstruction.
+const RECORD_DIR = argv.find((a) => a.startsWith("--record="))?.slice(9) ?? "";
 const EXTRA_STOPS = (argv.find((a) => a.startsWith("--stops="))?.slice(8) ?? "")
   .split(",")
   .map((s) => s.trim())
@@ -91,9 +94,11 @@ async function ensurePage() {
   if (page) return page;
   const { chromium } = await import("playwright");
   browser = await chromium.launch({ headless: HEADLESS });
-  const context = await browser.newContext();
+  const context = await browser.newContext(
+    RECORD_DIR ? { recordVideo: { dir: RECORD_DIR, size: { width: 1280, height: 800 } }, viewport: { width: 1280, height: 800 } } : {},
+  );
   page = await context.newPage();
-  audit({ event: "browser-open", headless: HEADLESS });
+  audit({ event: "browser-open", headless: HEADLESS, recording: RECORD_DIR || null });
   return page;
 }
 
@@ -213,6 +218,13 @@ for await (const line of rl) {
     if (cmd.op === "navigate") reply(await opNavigate(cmd));
     else if (cmd.op === "fill") reply(await opFill(cmd));
     else if (cmd.op === "detect") reply(await opDetect(cmd));
+    else if (cmd.op === "wait") {
+      // Let a page settle before the next step. Capped so a bad plan cannot hang the runner.
+      const ms = Math.min(Math.max(Number(cmd.ms) || 1000, 0), 15000);
+      await new Promise((r) => setTimeout(r, ms));
+      audit({ event: "wait", ms });
+      reply({ ok: true });
+    }
     else if (cmd.op === "close") { reply({ ok: true }); break; }
     else reply({ ok: false, error: `unknown op ${cmd.op}` });
   } catch (e) {
@@ -222,5 +234,12 @@ for await (const line of rl) {
   }
 }
 
+// Closing the context is what finalises a recorded video, so this must run before we exit.
+if (page && RECORD_DIR) {
+  const v = page.video();
+  await page.context().close().catch(() => {});
+  const path = v ? await v.path().catch(() => null) : null;
+  if (path) { audit({ event: "video", path }); process.stderr.write(`video: ${path}\n`); }
+}
 if (browser) await browser.close().catch(() => {});
 audit({ event: "stop" });
