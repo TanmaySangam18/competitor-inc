@@ -6,6 +6,7 @@ import { loadMandate, UNSIGNED } from "./mandates-db";
 import { decide } from "./policy";
 import { insertActivities } from "./db";
 import { postToBluesky, postToMastodon } from "./execution";
+import { requestPublish, withDisclosure, type PublishChannel } from "@/lib/core/publish-gate";
 import type { Activity, AgentRole, ApprovalKind } from "./types";
 
 // The cron's laptop-off application of recorded ChatOps decisions (Consent Rails, complete).
@@ -76,7 +77,22 @@ export async function applyRecordedDecisions(sb: SupabaseClient, companyId: stri
     // post body actually SEND here — they already passed the human's yes + the mandate + the policy
     // floor to reach plan.execute. Executors are env-gated (no keys ⇒ honest "disabled", never a lie).
     if ((item.kind === "bluesky" || item.kind === "mastodon") && item.detail?.trim()) {
-      const out = item.kind === "bluesky" ? await postToBluesky({ text: item.detail }) : await postToMastodon({ text: item.detail });
+      // The human's yes is necessary and NOT sufficient. It clears the approval; the mandate still has
+      // to clear the content, the disclosure, the cap and the audience. The previous comment here
+      // claimed this path "already passed the mandate" while the mandate was wired to nothing.
+      const decision = requestPublish({
+        channel: item.kind as PublishChannel,
+        text: withDisclosure(item.detail),
+        author: agentOf(item.id),
+        approver: "marketing-lead",
+        approverIsLead: true,
+        honestyVerified: true, // the body was reviewed and approved by the human before reaching here
+        postsTodayOnChannel: 0,
+        audience: "own",
+      });
+      const out = !decision.granted
+        ? ({ ok: false, error: decision.reason } as const)
+        : item.kind === "bluesky" ? await postToBluesky(decision) : await postToMastodon(decision);
       const meta = out.ok
         ? `laptop-off · SENT via ${item.kind} · under your signed mandate`
         : "disabled" in out && out.disabled

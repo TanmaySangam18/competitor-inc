@@ -31,12 +31,35 @@ onto a house nobody can enter.
 |---|---|---|---|---|
 | A1 | **T0 onboarding: 4 keys → 1** | model + GitHub + hosting + database all required before anything runs | Our worst measured number in the category. Naive and Wix are at zero keys; Jules is at one. Nothing else on this list moves activation as much. | Large |
 | A2 | **Checkout live (R1)** | Polar wired, `TIERS` is the source of truth, but products are not created and `NEXT_PUBLIC_CHECKOUT_URL*` is unset | There is no cash register. Everything downstream of revenue is theatre until this is done. Mostly founder actions, not code. | Small (founder-gated) |
-| A3 | **Social publishing that actually publishes** | Drafts and the approval mandate exist; **zero real API calls to any platform** (verified: no `api.linkedin.com`, `api.x.com`, `graph.facebook.com` anywhere) | We claim an outbound loop and cannot complete it. Naive posts to 11 platforms. Ours should post to two or three, each behind the publishing mandate. | Medium |
+| A3 | ~~**Social publishing that actually publishes**~~ **DONE 2026-08-16** | Five publishers (Bluesky, Mastodon, Reddit, LinkedIn, X), every one behind `lib/core/publish-gate.ts` | See the correction below: the original diagnosis was wrong in a way that mattered. | Done |
 | A4 | **Object storage** | Not present (no `storage.from`, no uploads) | Every built product that touches a file needs it. Naive ships it as a primitive. | Small |
 | A5 | **Model routing breadth** | 6 providers (Anthropic, OpenAI, Gemini, Mistral, xAI, local Ollama) | Naive claims 300+ via a router. One OpenRouter adapter closes most of this gap in a day. | Small |
 | A6 | **Outbound phone/SMS** | Twilio exists but is **founder-notification only**; reaching anyone else needs A2P 10DLC registration | Half-built is worse than absent: it reads as a capability and is not one. Either finish it behind the AI-disclosure rail or say plainly it is internal-only. | Medium + registration |
 | A7 | **Invoicing for the customer's own customers** | Stripe Connect hooks exist (task #78), not finished | This is the money layer that makes a built product a business. Genuinely differentiating. | Large |
 | A8 | **Integration count 18 → ~40** | 18 registered in `lib/core/connections.ts` | Lowest priority on this list. Breadth is table stakes and nobody buys on it. Do it last, if at all. | Ongoing |
+
+
+### Correction to A3, recorded because the original entry was wrong
+
+This row first read "zero real API calls to any platform." That was checked only against LinkedIn, X and
+Facebook. **Three publishers already existed and made live HTTP calls: Bluesky, Mastodon and Reddit.**
+
+The real defect was worse than the one written down. `deptSelfApprove`, the entire five-rail publishing
+mandate, had exactly **one reference in the repository: its own definition.** It was written, tested, and
+wired to nothing, while three live publishers sent posts with no mandate check between draft and send.
+
+That is the same class of defect we cite against Naive, whose docs concede 222 of 271 tools assert no
+gate. A gate that exists and is not wired is worth what no gate is worth, and claiming governance over an
+ungated pipe is worse than claiming nothing, because someone believes it.
+
+Fixed by making the permit a **type**: publishers take a `PublishPermit`, which only the gate can mint,
+so an ungated publish is a compile error rather than something a reviewer has to catch. The compiler
+immediately found a fourth ungated call site nobody had noticed by reading.
+
+**Honest limit on LinkedIn and X:** both adapters are written to the documented request shape and neither
+has ever been called against the live API, because the tokens require an OAuth consent screen, which is
+two of the six hard-stops (authenticate, grant consent). Do not claim either channel works until one real
+send has succeeded. X additionally requires a paid API plan, which is a third hard-stop.
 
 ---
 

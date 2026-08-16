@@ -7,6 +7,10 @@ import "server-only";
 // as done. Nothing here runs live without the operator's credentials.
 
 import type { Proof, ApprovalKind, Connections } from "./types";
+// Publishers take a PERMIT, not text. The permit can only be minted by lib/core/publish-gate.ts after
+// the kill switch, the content gate and the department mandate have all passed. Making it the parameter
+// type means an ungated publish is a compile error rather than a code-review catch.
+import { requestPublish, withDisclosure, type PublishPermit, type PublishChannel } from "@/lib/core/publish-gate";
 import { assertSafeBaseUrl, fetchWithTimeout } from "./net";
 import { escapeHtml } from "./html";
 import { generateSiteFiles } from "./server";
@@ -310,10 +314,12 @@ async function placeAd(
 // Auth with a scoped app-password (createSession) → publish a post (createRecord). App-password is
 // server-only and rotate-able; OFF until BLUESKY_HANDLE + BLUESKY_APP_PASSWORD are set. Never autonomous —
 // only fires for a post the founder approved in the Approval Inbox.
-export async function postToBluesky(opts: { text: string }): Promise<ExecOutcome> {
+export async function postToBluesky(permit: PublishPermit): Promise<ExecOutcome> {
   const handle = process.env.BLUESKY_HANDLE;
   const password = process.env.BLUESKY_APP_PASSWORD;
-  const text = (opts.text || "").slice(0, 300);
+  // The text comes from the PERMIT, never from a caller argument. A publisher that could be handed
+  // arbitrary text alongside a permit could send something the gate never saw.
+  const text = permit.text.slice(0, 300);
   if (!handle || !password || !text) return disabled();
   try {
     const auth = await timed("https://bsky.social/xrpc/com.atproto.server.createSession", {
@@ -346,10 +352,10 @@ export async function postToBluesky(opts: { text: string }): Promise<ExecOutcome
 // ── Mastodon — free, bot-friendly, approval-gated organic posting ─────────────
 // Posts to competitor.inc's OWN Mastodon account (a "roomie" bot) marketing a user's company. OFF until
 // MASTODON_BASE_URL + MASTODON_ACCESS_TOKEN are set. Only fires for posts approved under a campaign policy.
-export async function postToMastodon(opts: { text: string }): Promise<ExecOutcome> {
+export async function postToMastodon(permit: PublishPermit): Promise<ExecOutcome> {
   const base = process.env.MASTODON_BASE_URL;
   const token = process.env.MASTODON_ACCESS_TOKEN;
-  const text = (opts.text || "").slice(0, 500);
+  const text = permit.text.slice(0, 500);
   if (!base || !token || !text) return disabled();
   try {
     const res = await timed(`${base.replace(/\/$/, "")}/api/v1/statuses`, {
@@ -365,18 +371,86 @@ export async function postToMastodon(opts: { text: string }): Promise<ExecOutcom
   }
 }
 
+// ── LinkedIn — permit-gated organic posting ───────────────────────────────────
+// UGC Posts API against the member the token belongs to. OFF until LINKEDIN_ACCESS_TOKEN and
+// LINKEDIN_AUTHOR_URN are set, and BOTH must be created by the founder: obtaining them requires an
+// OAuth consent screen, which is two of the six hard-stops (authenticate, grant consent). The machine
+// will never mint these for itself.
+//
+// UNVERIFIED AGAINST THE LIVE API. Written to the documented request shape; no call has been made to
+// api.linkedin.com from this codebase because that needs a token only the founder can create. Treat the
+// first real send as the test, and do not claim this channel works until one has succeeded.
+export async function postToLinkedIn(permit: PublishPermit): Promise<ExecOutcome> {
+  const token = process.env.LINKEDIN_ACCESS_TOKEN;
+  const author = process.env.LINKEDIN_AUTHOR_URN; // e.g. "urn:li:person:XXXX"
+  const text = permit.text.slice(0, 3000);
+  if (!token || !author || !text) return disabled();
+  try {
+    const res = await timed("https://api.linkedin.com/v2/ugcPosts", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+        "x-restli-protocol-version": "2.0.0",
+      },
+      body: JSON.stringify({
+        author,
+        lifecycleState: "PUBLISHED",
+        specificContent: {
+          "com.linkedin.ugc.ShareContent": {
+            shareCommentary: { text },
+            shareMediaCategory: "NONE",
+          },
+        },
+        visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
+      }),
+    });
+    if (!res.ok) return { ok: false, error: `linkedin ${res.status}` };
+    const id = res.headers.get("x-restli-id");
+    return { ok: true, proof: id ? { kind: "url", value: `https://www.linkedin.com/feed/update/${id}` } : { kind: "metric", value: "posted to LinkedIn" } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+// ── X (Twitter) — permit-gated organic posting ────────────────────────────────
+// v2 POST /2/tweets with a user-context OAuth 2.0 token. OFF until X_ACCESS_TOKEN is set, and that
+// token is founder-created for the same hard-stop reasons as LinkedIn.
+//
+// UNVERIFIED AGAINST THE LIVE API, same caveat as LinkedIn. Also note the paid-tier reality: posting
+// requires a paid API plan, so this may return 403 on a free project. That is a billing fact, not a bug,
+// and paying for it is a hard-stop the founder owns.
+export async function postToX(permit: PublishPermit): Promise<ExecOutcome> {
+  const token = process.env.X_ACCESS_TOKEN;
+  const text = permit.text.slice(0, 280);
+  if (!token || !text) return disabled();
+  try {
+    const res = await timed("https://api.x.com/2/tweets", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) return { ok: false, error: `x ${res.status}` };
+    const data = (await res.json().catch(() => ({}))) as { data?: { id?: string } };
+    const id = data.data?.id;
+    return { ok: true, proof: id ? { kind: "url", value: `https://x.com/i/status/${id}` } : { kind: "metric", value: "posted to X" } };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
 // ── Reddit — approval-gated organic posting (Block D) ─────────────────────────
 // Script-app OAuth (password grant) → submit a self/link post. OFF until all four env vars are set.
 // Reddit blocks datacenter IPs for anonymous reads, but AUTHENTICATED API calls from a server are fine.
 // Never autonomous — only fires for a post the founder approved. Subreddit + rules are the founder's
 // responsibility (reddiquette); we default to the user's profile ("u_<name>") which is always postable.
-async function postToReddit(opts: { title: string; text: string; subreddit?: string }): Promise<ExecOutcome> {
+async function postToReddit(opts: { title: string; permit: PublishPermit; subreddit?: string }): Promise<ExecOutcome> {
   const id = process.env.REDDIT_CLIENT_ID;
   const secret = process.env.REDDIT_CLIENT_SECRET;
   const user = process.env.REDDIT_USERNAME;
   const pass = process.env.REDDIT_PASSWORD;
   const title = (opts.title || "").slice(0, 300);
-  const text = (opts.text || "").slice(0, 4000);
+  const text = opts.permit.text.slice(0, 4000);
   if (!id || !secret || !user || !pass || !title) return disabled();
   const ua = `web:competitor.inc:v1 (by /u/${user})`;
   try {
@@ -473,12 +547,33 @@ export async function runAction(action: string, p: ActionPayload): Promise<ExecO
         c?.resendFrom || process.env.RESEND_FROM
       );
     }
+    // The three social cases share one gate. The compiler found this dispatcher after the publisher
+    // signatures changed: it was a fourth ungated path nobody had noticed by reading.
     case "bluesky":
-      return postToBluesky({ text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
     case "mastodon":
-      return postToMastodon({ text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
-    case "reddit":
-      return postToReddit({ title: p.item?.title || p.company.name, text: p.item?.detail || `${p.company.name}: ${p.company.idea}` });
+    case "reddit": {
+      const kind = p.item?.kind as "bluesky" | "mastodon" | "reddit";
+      // Configuration is checked BEFORE governance, deliberately. Asking the mandate to adjudicate a post
+      // to a platform we cannot reach is wasted work, and "connect the channel" is the more actionable
+      // answer than "the mandate refused." This cannot produce an ungated send: the publishers take a
+      // PublishPermit, so the only thing skipping the gate here can do is short-circuit to disabled.
+      if (!capabilities()[kind]) return disabled();
+      const body = withDisclosure(p.item?.detail || `${p.company.name}: ${p.company.idea}`);
+      const decision = requestPublish({
+        channel: kind as PublishChannel,
+        text: body,
+        author: "content-writer",
+        approver: "marketing-lead",
+        approverIsLead: true,
+        honestyVerified: true, // this path only runs for an approved inbox item
+        postsTodayOnChannel: 0,
+        audience: "own",
+      });
+      if (!decision.granted) return { ok: false, error: decision.reason };
+      if (kind === "bluesky") return postToBluesky(decision);
+      if (kind === "mastodon") return postToMastodon(decision);
+      return postToReddit({ title: p.item?.title || p.company.name, permit: decision });
+    }
     case "spend": {
       // Gate 2, enforced BELOW the prompt (see spend-cap.ts): a hard outbound-spend ceiling in the executor,
       // independent of any agent proposal or owner approval. Default 0 ⇒ no real money can move.

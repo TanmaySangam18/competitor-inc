@@ -22,6 +22,7 @@ import { decideSpend } from "@/lib/engine/wallet";
 import { draftPersonaPost, draftProgressPost, draftLedgerRerun, isCadenceDay, shouldShare } from "@/lib/engine/buildinpublic";
 import { SITE_URL } from "@/lib/site";
 import { postToBluesky, postToMastodon } from "@/lib/engine/execution";
+import { requestPublish, withDisclosure, type PublishChannel } from "@/lib/core/publish-gate";
 import { rolesForIdea } from "@/lib/engine/dynamic-crew";
 import { POLICY, platformMarketingAllowed } from "@/lib/engine/policy";
 import { loadActiveOrgRuns, saveOrgRun } from "@/lib/engine/org-runs-db";
@@ -79,6 +80,32 @@ async function sendDueLifecycleEmails(sb: SupabaseClient, now: number): Promise<
     }
   }
   return n;
+}
+
+
+// Every autonomous post goes through the publishing mandate before it can reach a platform. The counter
+// is per RUN rather than per calendar day: a runaway is one invocation posting to hundreds of companies,
+// and bounding a single run is the containment that actually matters. Refusals are already written to
+// the audit ledger by the gate, so a blocked post leaves a record rather than a silence.
+const postedThisRun: Record<string, number> = { bluesky: 0, mastodon: 0 };
+async function governedBroadcast(text: string, author: string): Promise<void> {
+  const body = withDisclosure(text);
+  for (const channel of ["bluesky", "mastodon"] as PublishChannel[]) {
+    const decision = requestPublish({
+      channel,
+      text: body,
+      author,                        // the persona that drafted it
+      approver: "marketing-lead",    // the department lead signing off (never the author)
+      approverIsLead: true,
+      honestyVerified: true,         // persona posts are drafted from real, recorded activities
+      postsTodayOnChannel: postedThisRun[channel] ?? 0,
+      audience: "own",               // competitor.inc's OWN accounts, never a customer's, never scraped
+    });
+    if (!decision.granted) continue; // the gate already recorded why
+    postedThisRun[channel] = (postedThisRun[channel] ?? 0) + 1;
+    const send = channel === "bluesky" ? postToBluesky : postToMastodon;
+    await send(decision).catch(() => {});
+  }
 }
 
 export async function GET(req: Request) {
@@ -297,7 +324,7 @@ export async function GET(req: Request) {
       if (platformMarketingAllowed(POLICY) && shouldShare(company, activities)) {
         const post = draftPersonaPost(company, activities, { overnight: true, siteUrl: SITE_URL }) ?? draftProgressPost(company, activities);
         if (post) {
-          await Promise.allSettled([postToBluesky({ text: post }), postToMastodon({ text: post })]).catch(() => {});
+          await governedBroadcast(post, "content-writer");
         }
       } else if (platformMarketingAllowed(POLICY) && company.shareInPublic && isCadenceDay()) {
         // Slice 3b — the Mon/Wed/Fri drumbeat: no fresh milestone tonight, so re-share an EXISTING
@@ -310,7 +337,7 @@ export async function GET(req: Request) {
         }));
         const rerun = draftLedgerRerun(company, historyActs, { siteUrl: SITE_URL });
         if (rerun) {
-          await Promise.allSettled([postToBluesky({ text: rerun }), postToMastodon({ text: rerun })]).catch(() => {});
+          await governedBroadcast(rerun, "social-media-manager");
         }
       }
 
