@@ -2,7 +2,7 @@
 // supervisor. Default execution is the deterministic SIMULATED path (keyless, $0, matches the product's
 // offline ethos); a model-backed/OpenHands `execute` is injected in Phase B. Pure + testable.
 
-import type { AgentRole, Proof } from "./types";
+import type { AgentRole, Proof } from "@/lib/core/types";
 import { type AgentTask, type TaskAction } from "./task-queue";
 import { runSupervisor, type ExecuteFn, type SupervisorOutcome, type TaskResult } from "./supervisor";
 import { type AgentInstance } from "./agent-lifecycle";

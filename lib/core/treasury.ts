@@ -13,7 +13,7 @@
 // track spend against the customer's OWN connected account; competitor.inc never holds or moves funds.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { POLICY, type Policy } from "@/lib/engine/policy";
+import { POLICY, type Policy } from "@/lib/core/policy";
 
 export type TreasuryKind = "debit" | "withdraw"; // debit = in-budget spend · withdraw = move funds OUT (human-only)
 

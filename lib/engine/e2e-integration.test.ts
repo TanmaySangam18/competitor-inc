@@ -16,8 +16,8 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { generateCrewFromIdea } from "./dynamic-crew";
 import { spawnSubAgents, executeSubAgentsSequential } from "./sub-agent-executor";
 import { enrichActivitiesWithSubAgents, buildActivityTree } from "./shift-with-subagents";
-import { decide } from "./policy";
-import type { Activity, Company, ApprovalItem, SubAgent } from "./types";
+import { decide } from "@/lib/core/policy";
+import type { Activity, Company, ApprovalItem, SubAgent } from "@/lib/core/types";
 
 describe("E2E Integration: Tesla Crew Lifecycle", () => {
   let company: Company;

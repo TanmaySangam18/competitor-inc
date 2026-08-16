@@ -4,7 +4,7 @@
 // app, no keys. Powers `competitor doctor` and GET /api/health.
 
 import { ROLES, validateOrg } from "@/lib/org/organization";
-import { AGENTS } from "@/lib/engine/types";
+import { AGENTS } from "@/lib/core/types";
 import { plan } from "./plan";
 import { deliberate } from "./deliberate";
 import { coordinate } from "./coordinate";

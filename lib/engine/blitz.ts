@@ -3,7 +3,7 @@
 // queues each as an approval, so nothing posts without the founder's sign-off. Fully simulated
 // (offline), personalized to the company.
 
-import type { ApprovalKind } from "./types";
+import type { ApprovalKind } from "@/lib/core/types";
 
 export interface BlitzDraft {
   channel: string;

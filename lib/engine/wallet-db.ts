@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DEFAULT_WALLET, type WalletConfig, type WalletTxn, type TxnStatus, type SpendCategory } from "./wallet";
-import type { AgentRole } from "./types";
+import type { AgentRole } from "@/lib/core/types";
 
 // Server-side wallet access for the autonomous loop (cron) + /api/execute. Fail-SAFE by design: if
 // there's no wallet row (not funded/configured) or Supabase is down, we return an UNFUNDED default —

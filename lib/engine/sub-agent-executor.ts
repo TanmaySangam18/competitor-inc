@@ -13,7 +13,7 @@
  * - If parent proposes work, amount must fit allocation
  */
 
-import type { SubAgent, SubAgentStatus, Activity, AgentRole } from "./types";
+import type { SubAgent, SubAgentStatus, Activity, AgentRole } from "@/lib/core/types";
 
 /* ── Sub-Agent Spawning ────────────────────────────────────────── */
 

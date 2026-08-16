@@ -2,7 +2,7 @@
 //
 // Pure + deterministic (no I/O) so it's unit-testable and behaves identically in the API, the cron,
 // and tests. It is the FUNDED, user-configurable layer that sits IN FRONT of the policy engine
-// (lib/engine/policy.ts): a spend must clear the wallet (funded balance, per-transaction cap, monthly
+// (lib/core/policy.ts): a spend must clear the wallet (funded balance, per-transaction cap, monthly
 // cap, per-category budget, not paused/revoked) AND then policy.decide() gives the AUTO/QUEUE/BLOCK
 // verdict. The wallet answers "is this money the user authorized to be spent this way?"; policy
 // answers "is this action safe/compliant/reversible?". Both must pass.
@@ -11,7 +11,7 @@
 // Every transaction is attributable to a specific agent + task, and nothing spends while paused or
 // revoked. The user can pause or revoke at any time; refunds are tracked and restore spendable funds.
 
-import type { AgentRole } from "./types";
+import type { AgentRole } from "@/lib/core/types";
 
 /* ── categories the crew may spend on (nothing else is a valid business expense) ── */
 export type SpendCategory =

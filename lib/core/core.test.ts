@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { core } from "./index";
-import { POLICY } from "@/lib/engine/policy";
+import { POLICY } from "@/lib/core/policy";
 
 // Proves the company OS runs HEADLESS — no React, no server, no env — which is the whole point of lib/core.
 

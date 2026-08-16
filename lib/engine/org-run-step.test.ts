@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import type { Activity } from "./types";
+import type { Activity } from "@/lib/core/types";
 import type { ExecuteFn, TaskResult } from "./supervisor";
 import { advanceOrgRun, type AdvanceDeps } from "./org-run-step";
 import { createOrgRun, isComplete, buildRepo, type OrgRun } from "./org-run";

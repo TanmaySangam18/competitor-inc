@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { auditShiftActivities } from "./office-house-architecture";
-import type { Activity } from "./types";
+import type { Activity } from "@/lib/core/types";
 
 const act = (over: Partial<Activity>): Activity => ({
   id: crypto.randomUUID(),

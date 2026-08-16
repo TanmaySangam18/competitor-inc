@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { organicShift, toChannelInputs } from "./organic-shift";
 import type { FunnelSnapshot } from "./growth";
-import type { Company } from "./types";
+import type { Company } from "@/lib/core/types";
 
 const company = (over: Partial<Company> = {}): Company =>
   ({ id: "c1", name: "Lumira", idea: "clean skincare for oily skin", slug: "lumira", night: 3, product: { url: "https://lumira.example" } } as unknown as Company);

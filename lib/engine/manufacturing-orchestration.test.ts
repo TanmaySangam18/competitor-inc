@@ -20,7 +20,7 @@ import {
   remainingBudget,
   MANUFACTURING_SUB_AGENTS,
 } from "./sub-agent-executor";
-import type { SubAgent, Activity } from "./types";
+import type { SubAgent, Activity } from "@/lib/core/types";
 
 describe("Manufacturing Sub-Agent Orchestration (E2E)", () => {
   it("orchestrates Supply Chain + Quality sub-agents for manufacturing task", async () => {

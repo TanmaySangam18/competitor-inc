@@ -7,7 +7,7 @@ import { reviewGeneratedSite } from "./site-review";
 import { mergeSyncState, type SyncState } from "./sync";
 import { getProvider } from "./provider";
 import { SECRET_PATTERNS } from "../../scripts/secret-patterns.mjs";
-import type { Company } from "./types";
+import type { Company } from "@/lib/core/types";
 
 const empty: SyncState = { companies: [], activities: {}, approvals: {}, operate: {}, experiments: {} };
 

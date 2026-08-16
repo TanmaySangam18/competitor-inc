@@ -6,7 +6,7 @@
 // (tagging revenue_events with the driving agent/experiment), feed it in here — the reweighting hook
 // (office-budget.reweightByPerformance) already accepts a 0..1 score.
 
-import type { Activity, AgentRole } from "./types";
+import type { Activity, AgentRole } from "@/lib/core/types";
 
 export interface AgentPerformance {
   agent: AgentRole;

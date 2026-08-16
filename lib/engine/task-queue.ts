@@ -2,7 +2,7 @@
 // priority. `orderTasks` is a Kahn topological sort (ties broken by priority) that throws on a cycle or a
 // dangling dependency — a malformed plan should fail loudly, not run half-done. Pure + deterministic.
 
-import type { AgentRole } from "./types";
+import type { AgentRole } from "@/lib/core/types";
 import type { SpineActKind } from "./accountability-spine";
 
 // What the executor should DO for a task. The org plan sets it explicitly; the legacy flat plan leaves it

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { pickMilestone, draftProgressPost, draftPersonaPost, receiptCardUrl, shouldShare, isCadenceDay, draftLedgerRerun } from "./buildinpublic";
-import type { Activity, Company, Proof } from "./types";
+import type { Activity, Company, Proof } from "@/lib/core/types";
 
 const act = (over: Partial<Activity>): Activity => ({
   id: crypto.randomUUID(), night: 1, agent: "engineering", action: "did work", cost: 10, status: "done", ...over,

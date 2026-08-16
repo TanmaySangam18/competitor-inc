@@ -8,7 +8,7 @@
 //      sections, reworded) that makes agents feel distinct in chat/banter rather than generic.
 // Selection is deterministic (no model call): specialists whose keywords match the idea rank first.
 
-import type { AgentRole } from "./types";
+import type { AgentRole } from "@/lib/core/types";
 
 export interface Specialist {
   name: string; // agency-agents role name (kept verbatim for attribution fidelity)

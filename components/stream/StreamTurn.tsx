@@ -9,7 +9,7 @@
 // URL, it renders masked ("unlock to view"), never as a link — a non-paying user must not be able to
 // read the link out of the thread (the product card is the only door).
 
-import { AGENTS, type Activity } from "@/lib/engine/types";
+import { AGENTS, type Activity } from "@/lib/core/types";
 import { rationaleFor } from "@/lib/engine/rationale";
 import { reversibility, canOfferUndo } from "@/lib/engine/reversibility";
 

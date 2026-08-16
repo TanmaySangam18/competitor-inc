@@ -7,7 +7,7 @@
  * into the Glass Box.
  */
 
-import type { Activity, Company } from "./types";
+import type { Activity, Company } from "@/lib/core/types";
 import {
   spawnSubAgents,
   getSubAgentTemplates,

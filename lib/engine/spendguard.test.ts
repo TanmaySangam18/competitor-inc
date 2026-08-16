@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { spendWouldExceed, recordSpend } from "./spendguard";
-import { POLICY } from "./policy";
+import { POLICY } from "@/lib/core/policy";
 
 describe("spendguard — daily/monthly caps", () => {
   it("allows spend within the caps", () => {

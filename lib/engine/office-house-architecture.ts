@@ -19,7 +19,7 @@
  * execution concerns (product, growth), enabling each layer to specialize.
  */
 
-import type { Activity, AgentRole, ApprovalItem, Company } from "./types";
+import type { Activity, AgentRole, ApprovalItem, Company } from "@/lib/core/types";
 
 /* ── Layer Definitions ──────────────────────────────────────────────────── */
 

@@ -5,7 +5,7 @@
 // owns the publish. Pure + deterministic (no model call → $0, fully testable). This is the "crew runs it
 // each cycle" promised in docs/PLAYBOOK-organic-growth.md, made real.
 
-import type { ApprovalItem, ApprovalKind, Activity, Company } from "./types";
+import type { ApprovalItem, ApprovalKind, Activity, Company } from "@/lib/core/types";
 import type { FunnelSnapshot } from "./growth";
 import { organicGrowthPlan, type ChannelInput, type OrganicPlan, type ContentTheme, type Constraint } from "./organic-growth";
 import type { Channel } from "./attribution";

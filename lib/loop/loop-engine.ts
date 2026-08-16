@@ -21,7 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { autopilotMode } from "@/lib/org/autopilot";
-import type { ActionContext } from "@/lib/engine/policy";
+import type { ActionContext } from "@/lib/core/policy";
 
 export type LoopPhase = "plan" | "build" | "test" | "review" | "fix" | "deploy" | "monitor" | "learn";
 export const LOOP_PHASES: readonly LoopPhase[] = ["plan", "build", "test", "review", "fix", "deploy", "monitor", "learn"] as const;

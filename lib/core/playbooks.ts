@@ -10,7 +10,7 @@
 // `needs` lists the connection-map ids required to act live — the UI shows requirements, it never claims
 // live-ness this module can't know. Nothing here is listed unless the machinery behind it exists today.
 
-import type { AgentRole } from "@/lib/engine/types";
+import type { AgentRole } from "@/lib/core/types";
 
 export interface PlaybookGoal {
   goal: string;

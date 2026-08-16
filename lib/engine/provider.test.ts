@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getProvider, slugify, companyNameFrom, scoreIdea } from "./provider";
-import type { Company } from "./types";
+import type { Company } from "@/lib/core/types";
 
 const provider = getProvider();
 

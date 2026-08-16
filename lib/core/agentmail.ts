@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { governAction, type GovernOptions } from "@/lib/core/govern";
-import type { AgentRole } from "@/lib/engine/types";
+import type { AgentRole } from "@/lib/core/types";
 
 const BASE = "https://api.agentmail.to/v0";
 const AI_DISCLOSURE = "\n\n— Sent by competitor.inc's named AI team on behalf of a real company. Reply STOP to opt out.";

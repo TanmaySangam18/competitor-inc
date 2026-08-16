@@ -11,7 +11,7 @@ import { generateSiteFiles } from "./server";
 import { buildOnGitHub, siteHtml } from "./execution";
 import { makeBuildExecute } from "./build-executor";
 import type { ExecuteFn } from "./supervisor";
-import type { ByokConfig, Connections } from "./types";
+import type { ByokConfig, Connections } from "@/lib/core/types";
 
 function repoName(goal: string): string {
   const base =

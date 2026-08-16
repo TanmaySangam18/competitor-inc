@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { runValidate, runShift, runChat, realModelConfigured, detectChatApproval, assertSafeBaseUrl, modelForAgent, streamChatReply, generateSiteFiles, auditSite } from "./server";
-import type { Company } from "./types";
+import type { Company } from "@/lib/core/types";
 
 const company: Company = {
   id: "co1",

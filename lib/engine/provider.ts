@@ -12,7 +12,7 @@ import type {
   Company,
   Experiment,
   ValidationResult,
-} from "./types";
+} from "@/lib/core/types";
 
 export interface ShiftResult {
   activities: Activity[];

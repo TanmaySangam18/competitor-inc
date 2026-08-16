@@ -3,7 +3,7 @@ import fc from "fast-check";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { shouldUploadMigrate, uploadLocalToDb, reconcileRealtime, applyOptimisticThenPersist } from "./authoritative";
 import { diffStore, EMPTY_STATE, type SyncState } from "./sync";
-import type { Company, Activity, ApprovalItem } from "./types";
+import type { Company, Activity, ApprovalItem } from "@/lib/core/types";
 
 const co = (id: string, night = 0): Company => ({ id, night } as unknown as Company);
 const act = (id: string): Activity => ({ id } as unknown as Activity);

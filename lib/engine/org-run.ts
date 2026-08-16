@@ -11,7 +11,7 @@
 
 import { decomposeGoal } from "./orchestrator";
 import { buildOrgPlan } from "./org-plan";
-import type { AgentRole, Proof } from "./types";
+import type { AgentRole, Proof } from "@/lib/core/types";
 import type { TaskAction } from "./task-queue";
 import type { SpineActKind } from "./accountability-spine";
 

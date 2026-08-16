@@ -3,7 +3,7 @@
 // provisioned (see docs/SUPABASE-SETUP.md) the app falls back to the local store in useEngine.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Activity, ApprovalItem, Company, GrowthGoal, Issue, Ledger, OperateData, Proof, Rock, ValidationResult } from "./types";
+import type { Activity, ApprovalItem, Company, GrowthGoal, Issue, Ledger, OperateData, Proof, Rock, ValidationResult } from "@/lib/core/types";
 import type { GrowthExperiment } from "./growth";
 
 /* ── row shapes ─────────────────────────────────────────────── */

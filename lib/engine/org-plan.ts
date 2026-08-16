@@ -15,7 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { AgentTask, TaskAction } from "./task-queue";
-import type { AgentRole } from "./types";
+import type { AgentRole } from "@/lib/core/types";
 import type { SpineActKind } from "./accountability-spine";
 import { getRole, type OrgRole } from "@/lib/org/organization";
 

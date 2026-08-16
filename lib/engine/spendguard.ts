@@ -1,4 +1,4 @@
-import { POLICY, type Policy } from "./policy";
+import { POLICY, type Policy } from "@/lib/core/policy";
 
 // Enforce the daily/monthly spend caps the policy DECLARES (the per-transaction cap is enforced
 // separately + hard in policy.executionRefusal). Best-effort + in-memory per serverless instance — the

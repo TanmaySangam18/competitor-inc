@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useCopy } from "@/components/useCopy";
 import { generateCrew, type CrewSpec } from "@/lib/engine/crew";
-import type { ValidationResult } from "@/lib/engine/types";
+import type { ValidationResult } from "@/lib/core/types";
 
 // Free, no-signup lead magnet. Type an idea → the crew scores it (verdict + evidence + the crew that'd
 // build it). Shareable /score?idea=… (auto-scores on load). Direction B: mono chrome, flat panels, NO icons.

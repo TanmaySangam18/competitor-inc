@@ -2,7 +2,7 @@ import "server-only";
 
 import { notifyFounder } from "./notify-founder";
 import { trace } from "./observability";
-import { shouldAlert, type AlertEvent } from "./policy";
+import { shouldAlert, type AlertEvent } from "@/lib/core/policy";
 import { escapeHtml as esc } from "./html";
 
 // The Glass Box made ACTIVE. When the policy engine refuses an action (forbidden_attempt / cap_breach) or

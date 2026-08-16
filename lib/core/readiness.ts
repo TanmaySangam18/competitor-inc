@@ -7,7 +7,7 @@
 // `ready` is true only when the safety-critical checks (1–5) pass and nothing is todo.
 
 import { governAction } from "./govern";
-import { governedDecision, withinCaps, scoreTier } from "@/lib/engine/policy";
+import { governedDecision, withinCaps, scoreTier } from "@/lib/core/policy";
 import { killSwitch } from "./killswitch";
 import { auditLog, AuditLog, MemoryAuditSink } from "./audit";
 import { requiresRegression } from "./separation";

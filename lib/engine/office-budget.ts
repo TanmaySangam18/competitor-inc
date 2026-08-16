@@ -1,7 +1,7 @@
 // Office · Resource Allocator + Policy Enforcer (the budget half of the two-layer model).
 // Pure + deterministic — no I/O — so it's unit-testable and behaves identically in cron and tests.
 //
-// The Allocator splits the company's real monthly spend cap (lib/engine/policy.ts → monthlyCapUsd)
+// The Allocator splits the company's real monthly spend cap (lib/core/policy.ts → monthlyCapUsd)
 // across the agents on the floor by role weight, normalized over whoever is actually present (a crew
 // without a manufacturing agent doesn't reserve its share). The Enforcer then compares each agent's
 // spend to its allocation and flags breaches — the signal the cron turns into an Approval-Inbox note
@@ -14,7 +14,7 @@
 // the deterministic hook that turns success-rate into an adjustment once that data exists. We never
 // pretend a number we can't measure.
 
-import type { Activity, AgentRole } from "./types";
+import type { Activity, AgentRole } from "@/lib/core/types";
 
 // Base role weights (importance of the function to a company's spend). Normalized over present roles.
 const ROLE_WEIGHT: Record<AgentRole, number> = {

@@ -22,7 +22,7 @@ import { dueDrills, drillReport, DRILLS, type DrillResult } from "@/lib/org/dril
 import { collectEvidence, evidenceSnapshot } from "@/lib/org/evidence";
 import { reviewAgents, reviewCycleArtifact, escalations, isReviewDay, type ReviewInput } from "@/lib/org/agent-review";
 import { successRateByAgent } from "@/lib/engine/agent-performance";
-import type { Activity } from "@/lib/engine/types";
+import type { Activity } from "@/lib/core/types";
 
 export interface RitualResult {
   fired: string[]; // ritual ids that produced a section this tick

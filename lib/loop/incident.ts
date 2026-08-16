@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { killSwitch as defaultSwitch } from "@/lib/core/killswitch";
-import type { Tier } from "@/lib/engine/policy";
+import type { Tier } from "@/lib/core/policy";
 import { mirrorDecision, postToDept, type OfficeDelivery, type OfficeDeps } from "./office";
 
 export type IncidentSeverity = "low" | "medium" | "high" | "critical";

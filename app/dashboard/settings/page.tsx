@@ -23,7 +23,7 @@ import {
 import { useConfig, validateByok } from "@/lib/engine/config";
 import { useAuth } from "@/lib/engine/useAuth";
 import { checkoutUrlFor, checkoutLiveFor, TIERS, type PricingTier } from "@/lib/engine/billing";
-import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/engine/types";
+import { AGENTS, type AgentRole, type ByokConfig } from "@/lib/core/types";
 import { WalletCard } from "@/components/dashboard/WalletCard";
 
 type Section = "brand" | "agents" | "engine" | "billing" | "wallet" | "integrations" | "account";

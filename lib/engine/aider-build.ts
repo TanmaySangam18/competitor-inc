@@ -15,7 +15,7 @@ import "server-only";
 
 import { makeBuildExecute } from "./build-executor";
 import type { ExecuteFn } from "./supervisor";
-import type { Connections } from "./types";
+import type { Connections } from "@/lib/core/types";
 
 // Minimal fetch shape so tests can inject a fake without a live network.
 export type FetchLike = (

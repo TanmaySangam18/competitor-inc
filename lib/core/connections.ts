@@ -18,7 +18,7 @@
 // don't consume programmatically yet) are TRACKED, NOT DETECTED — configured:false + a note, never
 // faked. Per-customer key vaults come in a later block; env-of-this-deployment is the truth today.
 
-import type { AgentRole } from "@/lib/engine/types";
+import type { AgentRole } from "@/lib/core/types";
 
 export type Owner = "founder" | "customer";
 export type ConnectionTier = "T0" | "T1" | "T2" | "T3";

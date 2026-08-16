@@ -7,7 +7,7 @@
 // special pinned artifact turn in the Stream.
 
 import Link from "next/link";
-import type { Company } from "@/lib/engine/types";
+import type { Company } from "@/lib/core/types";
 import { checkoutLiveFor, checkoutUrlFor } from "@/lib/engine/billing";
 import FoundingMember from "@/components/dashboard/FoundingMember";
 

@@ -8,7 +8,7 @@
 // funnel stage it measured is backed by real captured data. Estimates close as estimates and say so
 // in the learning. Missing data closes as "inconclusive" — we never invent a number.
 
-import type { Activity, Company, GrowthGoal } from "./types";
+import type { Activity, Company, GrowthGoal } from "@/lib/core/types";
 import { diagnoseBottleneck } from "./gtm";
 
 /* ── types ──────────────────────────────────────────────────── */

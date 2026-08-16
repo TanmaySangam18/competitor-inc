@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { governAction, type GovernOptions } from "@/lib/core/govern";
-import type { AgentRole } from "@/lib/engine/types";
+import type { AgentRole } from "@/lib/core/types";
 
 export interface McpConnection {
   id: string;

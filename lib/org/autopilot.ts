@@ -12,8 +12,8 @@
 // existing decide()/governApprovals behavior any current caller depends on. New surface, proven core.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { POLICY, withinCaps, absoluteBlock, type Policy, type ActionContext } from "@/lib/engine/policy";
-import type { AgentRole, ApprovalItem } from "@/lib/engine/types";
+import { POLICY, withinCaps, absoluteBlock, type Policy, type ActionContext } from "@/lib/core/policy";
+import type { AgentRole, ApprovalItem } from "@/lib/core/types";
 import { getRole } from "./organization";
 
 export type ActionMode = "auto" | "queue" | "block";

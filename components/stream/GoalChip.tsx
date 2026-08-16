@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { Company } from "@/lib/engine/types";
+import type { Company } from "@/lib/core/types";
 
 // The Revenue Loop scoreboard chip (Block R): ONE founder-chosen outcome metric every shift is judged
 // against. Moved from the dashboard page when the Stream replaced the cockpit; monochrome chrome,

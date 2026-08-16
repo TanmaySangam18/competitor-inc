@@ -23,7 +23,7 @@ import { withTrace } from "@/lib/engine/observability";
 import { runGrowthStep, type FunnelSnapshot, type GrowthExperiment } from "@/lib/engine/growth";
 import { organicGrowthPlan, type ChannelInput } from "@/lib/engine/organic-growth";
 import { readFunnel } from "@/lib/engine/funnel";
-import type { AgentRole, AgentDirective, ByokConfig, Company, Connections } from "@/lib/engine/types";
+import type { AgentRole, AgentDirective, ByokConfig, Company, Connections } from "@/lib/core/types";
 
 // Sanitize founder-config that rides on validate/shift bodies (client localStorage → server prompt).
 const cleanSoul = (s: unknown): string | undefined =>
@@ -44,7 +44,7 @@ function sanitizeDirective(d: AgentDirective | undefined): AgentDirective | unde
   }
   return { enabled, scopes };
 }
-import { AGENTS } from "@/lib/engine/types";
+import { AGENTS } from "@/lib/core/types";
 
 export const runtime = "nodejs";
 

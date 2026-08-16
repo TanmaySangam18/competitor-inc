@@ -3,11 +3,11 @@ import crypto from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { planDecisionApplication, type PendingItem, type RecordedDecision } from "./apply-decisions";
 import { loadMandate, UNSIGNED } from "./mandates-db";
-import { decide } from "./policy";
+import { decide } from "@/lib/core/policy";
 import { insertActivities } from "./db";
 import { postToBluesky, postToMastodon } from "./execution";
 import { requestPublish, withDisclosure, type PublishChannel } from "@/lib/core/publish-gate";
-import type { Activity, AgentRole, ApprovalKind } from "./types";
+import type { Activity, AgentRole, ApprovalKind } from "@/lib/core/types";
 
 // The cron's laptop-off application of recorded ChatOps decisions (Consent Rails, complete).
 // Webhooks record the human's word in approval_decisions; this joins it against the still-pending

@@ -12,7 +12,7 @@
  * actually needs one of those pieces.
  */
 
-import type { AgentRole } from "./types";
+import type { AgentRole } from "@/lib/core/types";
 
 /**
  * Default model tier per agent role — the SINGLE source of truth (server.ts imports this).

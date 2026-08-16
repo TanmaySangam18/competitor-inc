@@ -7,7 +7,7 @@ import {
   wouldExceedAllocation,
   reweightByPerformance,
 } from "./office-budget";
-import type { Activity, AgentRole } from "./types";
+import type { Activity, AgentRole } from "@/lib/core/types";
 
 const act = (agent: AgentRole, cost: number): Activity => ({
   id: crypto.randomUUID(),

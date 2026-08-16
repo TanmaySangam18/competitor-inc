@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildICP, rankChannels, diagnoseBottleneck, buildGTMPlan } from "./gtm";
-import type { Activity, Company } from "./types";
+import type { Activity, Company } from "@/lib/core/types";
 
 const base: Company = {
   id: "c1",

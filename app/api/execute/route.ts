@@ -1,14 +1,14 @@
 import { runAction, capabilities } from "@/lib/engine/execution";
 import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 import { getServerSupabase, isSupabaseConfigured } from "@/lib/supabase/server";
-import { executionRefusal, type ActionContext, type Refusal } from "@/lib/engine/policy";
+import { executionRefusal, type ActionContext, type Refusal } from "@/lib/core/policy";
 import { raiseAlert } from "@/lib/engine/alerts";
 import { spendWouldExceed, recordSpend } from "@/lib/engine/spendguard";
 import { gateSpend } from "@/lib/engine/treasury-db";
 import { serviceClient } from "@/lib/engine/service";
 import { isPremiumAction, serverPremium } from "@/lib/engine/access-server";
 import { waitlistGateOn } from "@/lib/engine/access-gate";
-import type { AgentRole, Connections } from "@/lib/engine/types";
+import type { AgentRole, Connections } from "@/lib/core/types";
 
 // Runs a real, gated agent action (build / deploy / outreach / spend / payments / delete) server-side.
 // Every executor is OFF unless its key is set, in which case it returns { disabled: true } and the
@@ -17,7 +17,7 @@ import type { AgentRole, Connections } from "@/lib/engine/types";
 // TWO server-enforced gates run before any executor fires:
 //   1. POLICY FLOOR (always): the deterministic decide() engine — kill switch, forbidden actions, the
 //      per-agent AUTO/APPROVE/NEVER matrix, and a hard spend ceiling. "Is this risky?" is a rule, not a
-//      vibe. See lib/engine/policy.ts.
+//      vibe. See lib/core/policy.ts.
 //   2. APPROVAL KEYSTONE (when Supabase is configured): the human-in-the-loop is a server invariant —
 //      a real executor only fires for an authenticated user who OWNS the target company, and approval-
 //      driven actions must map to an owned, approved inbox item. See authorize() below.

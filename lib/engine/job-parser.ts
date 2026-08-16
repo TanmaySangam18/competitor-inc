@@ -4,7 +4,7 @@
  * Used by dynamic crew generation to create agent profiles.
  */
 
-import type { AgentRole } from "./types";
+import type { AgentRole } from "@/lib/core/types";
 
 /* ── Title Standardization ────────────────────────────────────── */
 

@@ -14,7 +14,7 @@
 
 import { getServerSupabase } from "@/lib/supabase/server";
 import { generateWeeklyReviewSummary, type WeeklyReviewSummary } from "./scorecard-persistence";
-import type { Company, Rock, Issue } from "./types";
+import type { Company, Rock, Issue } from "@/lib/core/types";
 
 /* ── Digest Generation ──────────────────────────────────────────────────── */
 

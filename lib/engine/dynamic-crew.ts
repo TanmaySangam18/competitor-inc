@@ -6,7 +6,7 @@
  * and generate a custom crew with agents, sub-agents, spend caps, playbooks, etc.
  */
 
-import { AGENTS, type AgentRole } from "./types";
+import { AGENTS, type AgentRole } from "@/lib/core/types";
 import { parseJobs, type JobRole } from "./job-parser";
 import { specialistsForRole } from "./specialists";
 

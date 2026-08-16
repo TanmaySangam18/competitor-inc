@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Activity } from "@/lib/engine/types";
+import type { Activity } from "@/lib/core/types";
 import {
   DEPT_CHANNELS, channelForDepartment, departmentForExecFn,
   agentSlackIdentity, composeStandup, composeFounderBriefing,

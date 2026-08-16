@@ -9,7 +9,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getByok } from "@/lib/engine/config";
-import type { AgentRole, ApprovalKind, Company } from "@/lib/engine/types";
+import type { AgentRole, ApprovalKind, Company } from "@/lib/core/types";
 import { activeRoles, stageForSignals } from "@/lib/org/org-stages";
 import { orgSoul } from "@/lib/org/org-soul";
 import { displayName, personaFor } from "@/lib/org/personas";

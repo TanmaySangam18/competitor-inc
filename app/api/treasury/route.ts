@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { listEnvelopes, setCap } from "@/lib/engine/treasury-db";
 import { envelopeStatus, spendDepartments } from "@/lib/core/treasury";
-import { POLICY } from "@/lib/engine/policy";
+import { POLICY } from "@/lib/core/policy";
 
 // The treasury API (ADR-0020): read your department envelopes; SET a cap — the one human act, the
 // standing authorization that lets in-budget spend run silently. Session-bound client throughout →

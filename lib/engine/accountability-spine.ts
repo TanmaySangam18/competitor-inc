@@ -3,7 +3,7 @@
 // (materials gathered, exactly what the human must do); the single founder-operator reviews → executes it
 // manually. This is the governed core of the autonomous company, not a gap. Pure + deterministic.
 
-import type { AgentRole } from "./types";
+import type { AgentRole } from "@/lib/core/types";
 
 // "Your desk" = anything needing the human's YES: the irreducible legal/financial acts only a human can
 // do, PLUS consequential drafts an agent prepared but must not send without approval (Phase D outbound).

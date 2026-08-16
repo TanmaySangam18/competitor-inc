@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, GrowthGoal, OperateData, ValidationResult } from "./types";
+import type { Activity, AgentRole, ApprovalItem, ApprovalKind, Company, GrowthGoal, OperateData, ValidationResult } from "@/lib/core/types";
 import type { GrowthExperiment } from "./growth";
 import { companyNameFrom, getProvider, slugify, type ShiftResult } from "./provider";
 import { getByok, getConnections, getSoul, getAgentDirective, pingCustomerUpdate, pingApprovalRequest, fetchApprovalDecisions } from "./config";

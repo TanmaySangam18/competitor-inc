@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildOrgPlan, renderOrgChain } from "./org-plan";
 import { orderTasks } from "./task-queue";
-import { AGENTS, type AgentRole } from "./types";
+import { AGENTS, type AgentRole } from "@/lib/core/types";
 import { getRole, validateOrg } from "@/lib/org/organization";
 
 const byId = (tasks: ReturnType<typeof buildOrgPlan>) => Object.fromEntries(tasks.map((t) => [t.id, t]));

@@ -6,7 +6,7 @@ import "server-only";
 // payments — each gated, and (where it applies) checked by "verify-before-done" before being reported
 // as done. Nothing here runs live without the operator's credentials.
 
-import type { Proof, ApprovalKind, Connections } from "./types";
+import type { Proof, ApprovalKind, Connections } from "@/lib/core/types";
 // Publishers take a PERMIT, not text. The permit can only be minted by lib/core/publish-gate.ts after
 // the kill switch, the content gate and the department mandate have all passed. Making it the parameter
 // type means an ungated publish is a compile error rather than a code-review catch.

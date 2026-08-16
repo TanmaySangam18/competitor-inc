@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { DEPARTMENTS, ROLES, getRole, type OrgRole } from "./organization";
-import type { Activity, AgentRole } from "@/lib/engine/types";
+import type { Activity, AgentRole } from "@/lib/core/types";
 
 // One channel per department — the team room mirrors the org chart. Icons are the department's "avatar"
 // so a glance at Slack tells you which function is talking.

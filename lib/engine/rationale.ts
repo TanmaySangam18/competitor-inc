@@ -1,4 +1,4 @@
-import type { AgentRole } from "./types";
+import type { AgentRole } from "@/lib/core/types";
 
 // The Rationale Stream (PDR §6) — derive the "why" behind any action, grounded in the agent's governing
 // principle. Pure + deterministic so it works for EVERY activity (real, simulated, historical) with no

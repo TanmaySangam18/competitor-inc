@@ -3,7 +3,7 @@
 // successor or completes, then TERMINATES — returning unspent budget. No instance runs unbounded, which is
 // how we bound long-horizon drift. Pure + deterministic (no model calls, no I/O) so it's cheap to test.
 
-import type { AgentRole, Proof } from "./types";
+import type { AgentRole, Proof } from "@/lib/core/types";
 
 export type InstanceStatus =
   | "spawned"

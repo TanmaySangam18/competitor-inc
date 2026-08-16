@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { SPECIALISTS, PERSONA, specialistsForRole } from "./specialists";
-import { AGENTS, type AgentRole } from "./types";
+import { AGENTS, type AgentRole } from "@/lib/core/types";
 
 const ROLES = Object.keys(AGENTS) as AgentRole[];
 

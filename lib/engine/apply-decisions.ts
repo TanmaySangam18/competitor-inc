@@ -10,7 +10,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { decideMandate, type CustomerMandate, type MandateAct } from "@/lib/org/customer-mandate";
-import type { ApprovalKind } from "./types";
+import type { ApprovalKind } from "@/lib/core/types";
 
 // Map an approval's kind to the mandate act class it exercises. Anything unmapped is treated as the
 // most restrictive nearby class — unknown NEVER means "allowed".

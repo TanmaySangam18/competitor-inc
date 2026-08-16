@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { mergeSyncState, type SyncState } from "./sync";
-import type { Company, Activity, ApprovalItem } from "./types";
+import type { Company, Activity, ApprovalItem } from "@/lib/core/types";
 
 const co = (id: string, night = 0): Company => ({ id, night } as unknown as Company);
 const act = (id: string): Activity => ({ id } as unknown as Activity);

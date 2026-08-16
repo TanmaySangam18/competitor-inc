@@ -7,11 +7,11 @@ import "server-only";
 
 import { getProvider, scoreIdea, type ShiftResult } from "./provider";
 import { buildSalesPrompt, salesAttackFallback, type SalesAttack } from "./sales-playbooks";
-import { governApprovals } from "./policy";
+import { governApprovals } from "@/lib/core/policy";
 import { rolesForIdea } from "./dynamic-crew";
 import { enrichActivitiesWithSubAgents, flattenActivitiesForGlassBox } from "./shift-with-subagents";
-import type { Activity, ActivityStatus, AgentDirective, AgentRole, ApprovalItem, ApprovalKind, ByokConfig, Company, GrowthGoal, ValidationResult } from "./types";
-import { AGENTS } from "./types";
+import type { Activity, ActivityStatus, AgentDirective, AgentRole, ApprovalItem, ApprovalKind, ByokConfig, Company, GrowthGoal, ValidationResult } from "@/lib/core/types";
+import { AGENTS } from "@/lib/core/types";
 
 const PROVIDER = process.env.MODEL_PROVIDER ?? "simulated";
 // Default model: Claude Opus 4.8 — the same tier Claude's own agents (Claude Code) run on, so "our

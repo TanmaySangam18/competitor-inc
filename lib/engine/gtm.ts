@@ -9,7 +9,7 @@
 //  - Lead-source hierarchy referrals(~3x) > inbound > outbound > closed-lost: SaaStr Podcast #184
 //  - Obsess over implementation (first 30 days predict churn): SaaStr "9 Easy Sales Concepts" #9
 
-import type { Activity, Company } from "./types";
+import type { Activity, Company } from "@/lib/core/types";
 
 export interface ICPTier {
   tier: string;

@@ -6,7 +6,7 @@
 // Data note: our engine logs by NIGHT (shift), not calendar date, so we report per-shift + a rolling
 // average rather than inventing calendar weeks. Honest to the data we actually have.
 
-import type { Activity, Company } from "./types";
+import type { Activity, Company } from "@/lib/core/types";
 import { diagnoseBottleneck, type BottleneckDiagnosis } from "./gtm";
 
 export interface NightPoint {

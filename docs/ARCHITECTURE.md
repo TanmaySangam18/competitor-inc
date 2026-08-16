@@ -11,7 +11,7 @@ If you read one section, read **§2 The one idea**. Everything else follows from
 
 An AI company that builds and runs software, where a human is the legal principal and the machine does
 the work. It is a Next.js 16 App Router application in TypeScript strict mode: 28 pages, 62 API routes,
-223 source modules, 184 test files, 1,546 tests. Postgres via Supabase, row-level security keyed to
+224 source modules, 187 test files, 1,595 tests. Postgres via Supabase, row-level security keyed to
 `auth.uid()`. No microservices, no queues, no Kubernetes. One deployable.
 
 **Current honest state:** zero external users, checkout not live. The engineering is real; the company is
@@ -39,8 +39,8 @@ find the parameter that disables a floor stop. There isn't one. That is delibera
 ## 3. Layout, and the honest boundary between the layers
 
 ```
-lib/core/     48  governance and company primitives   the rules
-lib/engine/  116  runtime machinery                   the work
+lib/core/     52  governance and company primitives   the rules
+lib/engine/  114  runtime machinery                   the work
 lib/org/      32  the org model: 56 roles, SOPs       who does it
 lib/loop/     12  the autonomous loop                 when it happens
 lib/sim/       9  the proving ground                  how we know it works
@@ -62,22 +62,28 @@ graph, a second-price ads auction whose ledger closes to zero micros, and a shar
 fan-out. Every row is marked `simulated: true` and a test forbids any field name that could be misread as
 revenue. It proves the machine works. It never proves that people showed up.
 
-### The one wart, stated plainly
+### The layering rule, and how it is enforced
 
-`lib/core` imports `lib/engine` **10 times**; `lib/engine` imports `lib/core` **twice**. The names imply
-the opposite. A reviewer will notice this, so here is the exact diagnosis rather than a defence:
+**Policy must not depend on mechanism.** A rule you cannot reason about without loading the machinery is
+not a rule you can trust, so `lib/core` decides and `lib/engine` does, in that direction only.
 
-- **6 of the 10** are type-only imports of `AgentRole` / `AGENTS` from `lib/engine/types.ts`. That is org
-  vocabulary sitting in the engine package.
-- **4 of the 10** import `lib/engine/policy.ts`, which is the governance decision engine and is a core
-  concern by any reading.
-- The 2 in the other direction (`treasury-db.ts`, `market-watch-db.ts`) are correct: database adapters
-  calling *up* into governance.
+This was not true until 2026-08-16. `lib/core` imported `lib/engine` **ten times** while engine imported
+core twice, so the names implied the opposite of the real graph. The cause was exactly two misplaced
+files: `engine/types.ts` held org vocabulary (`AgentRole`, `AGENTS`) and `engine/policy.ts` was the
+governance decision engine. Both are core concerns and both moved, which took core → engine from **ten
+edges to one** across a 109-file import rewrite.
 
-**So exactly two files are misplaced**, and both are dependency leaves (`types.ts` imports nothing;
-`policy.ts` imports only `./types`). Moving them to `lib/core` makes the dependency graph strictly
-one-directional, engine → core. It is not done yet because 71 engine files import `./types` relatively,
-making it a ~120-file mechanical diff that would bury unrelated work. It is tracked, not forgotten.
+The remaining edge is deliberate. `lib/core/index.ts` is a **facade** over the whole company OS, and a
+facade composing mechanism is its job. Three helpers sit with it: `plan.ts` (turns a goal into an ordered
+task plan), `coordinate.ts` (closes the loop), `health.ts` (reads across both layers).
+
+**The rule is enforced by a test, not by discipline** (`lib/core/architecture.test.ts`). Eleven named
+policy modules may not import `lib/engine` at all. Any other core file that does must appear in the
+facade list with a written reason, so the exception set cannot grow silently. A new core module that
+reaches into engine fails CI until someone either removes the dependency or justifies it in writing.
+
+That is the honest answer to "how do you stop this drifting again": it drifted once precisely because
+nothing was checking.
 
 ---
 
@@ -88,7 +94,7 @@ This is the path a reviewer should trace. It is `app/api/execute/route.ts`.
 ```
 request
   │
-  ├─ 1. POLICY FLOOR  (always, deterministic, lib/engine/policy.ts)
+  ├─ 1. POLICY FLOOR  (always, deterministic, lib/core/policy.ts)
   │      kill switch → forbidden actions → per-agent AUTO/APPROVE/NEVER matrix → spend ceiling
   │      "Is this risky?" is a rule, not a judgement call by the model.
   │
@@ -213,9 +219,9 @@ A reviewer will ask why obvious things are missing. They are missing on purpose.
 services buys independent scaling that nothing here needs, and costs a distributed-systems problem that
 one founder cannot operate.
 
-**"116 files in `lib/engine` is a lot."** Agreed, and §3 names the real fix. It is not a god object;
-files average small and each has a top-of-file comment saying why it exists. The count reflects surface
-area, not tangling.
+**"114 files in `lib/engine` is a lot."** Agreed, and it is surface area rather than tangling: files
+average small, each has a top-of-file comment saying why it exists, and the layering rule in §3 is
+enforced by a test. Splitting it further buys tidier directory listings and costs churn.
 
 **"How do you know the synthetic data is not being used as traction?"** A test asserts no field on a
 simulated object can be named anything a dashboard would render as revenue, every network is literally
@@ -225,8 +231,8 @@ simulated object can be named anything a dashboard would render as revenue, ever
 already touches 20 of them and the p99 touches 38. Fan-out-on-read is not viable at the top of a
 power-law graph, and the hubs need materialised timelines. See `sim-out/tier3/TIER3-REPORT.md`.
 
-**"What is the weakest part?"** Distribution, not code. There are no users. The second weakest is that
-`lib/engine` needs the §3 split.
+**"What is the weakest part?"** Distribution, not code. There are no users, and no amount of
+engineering fixes that.
 
 ---
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { diffStore, isEmptyOps, type SyncState } from "./sync";
-import type { Activity, ApprovalItem, Company } from "./types";
+import type { Activity, ApprovalItem, Company } from "@/lib/core/types";
 
 function co(over: Partial<Company> = {}): Company {
   return {

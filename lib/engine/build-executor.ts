@@ -4,7 +4,7 @@
 // is available it degrades to the honest simulated path; if a build can't be verified, the task FAILS.
 // Pure (builder + verifier injected) so it's testable with zero infra / tokens.
 
-import type { AgentRole, Proof } from "./types";
+import type { AgentRole, Proof } from "@/lib/core/types";
 import type { AgentInstance } from "./agent-lifecycle";
 import type { AgentTask } from "./task-queue";
 import type { ExecuteFn, TaskResult } from "./supervisor";

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import fc from "fast-check";
 import { closeDueExperiments, diagnoseFunnel, proposeExperiments, runGrowthStep, readMetric } from "./growth";
 import type { FunnelSnapshot, GrowthExperiment, StageBasis } from "./growth";
-import type { Company } from "./types";
+import type { Company } from "@/lib/core/types";
 
 const co = (over: Partial<Company> = {}): Company => ({
   id: "c1",

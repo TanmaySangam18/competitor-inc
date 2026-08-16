@@ -6,7 +6,7 @@
 // Pure + deterministic: picks a shareable milestone from real activities and drafts an honest post.
 // Returns null when there's nothing verified to share — we never invent progress (the honesty invariant).
 
-import type { Activity, Company } from "./types";
+import type { Activity, Company } from "@/lib/core/types";
 import { getRole } from "@/lib/org/organization";
 import { personaFor } from "@/lib/org/personas";
 

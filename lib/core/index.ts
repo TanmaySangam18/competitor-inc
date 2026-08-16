@@ -17,8 +17,8 @@ import { getSop, rolesWithSop, type SOP } from "@/lib/org/sops";
 import {
   decide, withinCaps, executionRefusal, scoreTier, tierToVerdict, governedDecision, POLICY,
   type ActionContext, type PolicyDecision, type Verdict, type ExecAction, type Tier, type TierScore, type GovernedDecision,
-} from "@/lib/engine/policy";
-import { AGENTS, type AgentRole } from "@/lib/engine/types";
+} from "@/lib/core/policy";
+import { AGENTS, type AgentRole } from "@/lib/core/types";
 import { deliberate, type DecisionRecord, type Position, type Reasoner } from "./deliberate";
 import { plan, type Plan } from "./plan";
 import { coordinate, type Coordination } from "./coordinate";

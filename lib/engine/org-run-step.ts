@@ -6,7 +6,7 @@
 // Deps are INJECTED (executor + persistence spies) → fully unit-testable with zero DB/network. The cron
 // wires the real ones: makeRealExecutor(realDeps) + saveOrgRun + a company-scoped activity writer.
 
-import type { Activity } from "./types";
+import type { Activity } from "@/lib/core/types";
 import type { AgentInstance } from "./agent-lifecycle";
 import type { AgentTask } from "./task-queue";
 import type { ExecuteFn, TaskResult } from "./supervisor";

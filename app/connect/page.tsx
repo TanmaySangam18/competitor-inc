@@ -7,7 +7,7 @@ import { oauthProviderFor, getProvider } from "@/lib/core/oauth";
 import { envelopeStatus, spendDepartments } from "@/lib/core/treasury";
 import { listEnvelopes } from "@/lib/engine/treasury-db";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { POLICY } from "@/lib/engine/policy";
+import { POLICY } from "@/lib/core/policy";
 import TreasuryPanel, { type EnvelopeView } from "@/components/connect/TreasuryPanel";
 
 // /connect — THE FRONT DOOR (Block B, CONNECT-FIRST-RESET §2.1, ADR-0004).

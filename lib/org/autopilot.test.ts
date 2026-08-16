@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { POLICY, type Policy } from "@/lib/engine/policy";
-import type { ApprovalItem } from "@/lib/engine/types";
+import { POLICY, type Policy } from "@/lib/core/policy";
+import type { ApprovalItem } from "@/lib/core/types";
 import { autopilotMode, roleAutopilotMode, partitionActions, partitionApprovals, FOUNDER_GATED_KINDS } from "./autopilot";
 
 // A controlled policy that isolates the autopilot LOGIC from POLICY's matrix/forbidden internals:

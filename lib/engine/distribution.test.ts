@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { generateSocialDrafts, generateDistributionActivities } from "./distribution";
-import type { Company } from "./types";
+import type { Company } from "@/lib/core/types";
 
 const company: Company = {
   id: "test-id",

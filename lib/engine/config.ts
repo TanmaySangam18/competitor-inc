@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AGENTS, type AgentRole, type AgentDirective, type ByokConfig, type Connections } from "./types";
+import { AGENTS, type AgentRole, type AgentDirective, type ByokConfig, type Connections } from "@/lib/core/types";
 
 // Config = competitor.inc's "soul.md / agents.md" surface: brand voice, per-agent scoped authority,
 // and which engine drives it. Persisted locally (and ready to move to the DB with the rest).

@@ -16,7 +16,7 @@ import { makeBuildExecute } from "./build-executor";
 import { architectKnowledge } from "./architect-knowledge";
 import { setRepoSecret } from "./github-secrets";
 import type { ExecuteFn } from "./supervisor";
-import type { Connections } from "./types";
+import type { Connections } from "@/lib/core/types";
 import type { FetchLike } from "./aider-build";
 
 export const FULLSTACK_BUILDS = process.env.FULLSTACK_BUILDS === "1";

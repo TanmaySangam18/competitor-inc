@@ -2,7 +2,7 @@
 // Grounded in 2026 research: IH Stripe-verified data, Martal/MarketingProfs cold email stats,
 // omnius programmatic SEO case study, Paul Graham "do things that don't scale," April Dunford.
 // Every item is a ready-to-copy approval — draft → approve → send. No auto-posting.
-import type { ApprovalItem, Company } from "./types";
+import type { ApprovalItem, Company } from "@/lib/core/types";
 
 const uid = () => crypto.randomUUID();
 

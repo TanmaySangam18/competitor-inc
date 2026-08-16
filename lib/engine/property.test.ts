@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import fc from "fast-check";
 import { getProvider, slugify, companyNameFrom } from "./provider";
-import type { Company } from "./types";
+import type { Company } from "@/lib/core/types";
 
 // Property-based / fuzz layer (QuickCheck lineage). Each property runs hundreds of
 // generated inputs — thousands of "cycles" across the suite — to find edge cases that

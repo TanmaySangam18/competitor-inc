@@ -15,7 +15,7 @@
 // existing tool/execution + policy machinery run it unchanged.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { AgentRole } from "@/lib/engine/types";
+import type { AgentRole } from "@/lib/core/types";
 
 export type OrgLevel = "exec" | "director" | "lead" | "ic";
 export type ModelTier = "strong" | "mid" | "cheap";

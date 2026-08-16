@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { channelFor, founderMention, mentionNeeded, mirrorDecision, postToDept, renderDecisionMirror, DEPT_CHANNELS } from "./office";
 import { AuditLog } from "@/lib/core/audit";
 import { killSwitch } from "@/lib/core/killswitch";
-import { governedDecision } from "@/lib/engine/policy";
+import { governedDecision } from "@/lib/core/policy";
 
 const env = {
   SLACK_BOT_TOKEN: "xoxb-test",

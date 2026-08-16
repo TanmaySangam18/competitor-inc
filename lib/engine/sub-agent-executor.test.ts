@@ -9,7 +9,7 @@ import {
   getSubAgentTemplates,
   MANUFACTURING_SUB_AGENTS,
 } from "./sub-agent-executor";
-import type { SubAgent, Activity } from "./types";
+import type { SubAgent, Activity } from "@/lib/core/types";
 
 describe("sub-agent-executor", () => {
   describe("spawnSubAgents", () => {

@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Activity, ApprovalItem, Company, OperateData } from "./types";
+import type { Activity, ApprovalItem, Company, OperateData } from "@/lib/core/types";
 import type { GrowthExperiment } from "./growth";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import {

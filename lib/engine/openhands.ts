@@ -16,7 +16,7 @@ import "server-only";
 import { makeBuildExecute } from "./build-executor";
 import { verifyProof } from "./execution";
 import type { ExecuteFn } from "./supervisor";
-import type { ByokConfig } from "./types";
+import type { ByokConfig } from "@/lib/core/types";
 
 const API_URL = process.env.OPENHANDS_API_URL;
 const API_KEY = process.env.OPENHANDS_API_KEY;

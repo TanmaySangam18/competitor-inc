@@ -9,7 +9,7 @@
 // decide() stays pure (no I/O) — this wrapper adds the stateful guards around it, so the policy engine
 // remains unit-testable and this layer owns the side effects (audit write, switch read).
 
-import { governedDecision, type ActionContext, type PolicyDecision, type Policy, type Tier, POLICY } from "@/lib/engine/policy";
+import { governedDecision, type ActionContext, type PolicyDecision, type Policy, type Tier, POLICY } from "@/lib/core/policy";
 import { auditLog, type AuditLog, type AuditEntry } from "./audit";
 import { killSwitch, type KillSwitch } from "./killswitch";
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { reversibility, canOfferUndo } from "./reversibility";
-import type { Activity, Proof } from "./types";
+import type { Activity, Proof } from "@/lib/core/types";
 
 const act = (action: string, over: Partial<Activity> = {}): Activity => ({
   id: "x",

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { analyze } from "./analyst";
-import type { Activity, Company } from "./types";
+import type { Activity, Company } from "@/lib/core/types";
 
 const co = (night: number): Company => ({
   id: "c1",

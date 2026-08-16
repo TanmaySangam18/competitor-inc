@@ -10,7 +10,7 @@
 // gatekeeper (REQUIREMENTS §6) supersedes it later.
 
 import { governAction } from "@/lib/core/govern";
-import { scoreTier } from "@/lib/engine/policy";
+import { scoreTier } from "@/lib/core/policy";
 import { killSwitch } from "@/lib/core/killswitch";
 import { classifyActivity, enforceFreeze } from "@/lib/core/abuse";
 import { conversation } from "@/lib/core/conversation";

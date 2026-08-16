@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { AGENTS, type AgentRole } from "./types";
+import { AGENTS, type AgentRole } from "@/lib/core/types";
 
 const ROLES: AgentRole[] = ["ceo", "engineering", "marketing", "support", "growth"];
 

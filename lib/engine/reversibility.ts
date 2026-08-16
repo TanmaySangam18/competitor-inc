@@ -6,7 +6,7 @@
 // where a reversal genuinely exists, and (b) say plainly "can't recall" where it doesn't. It's pure
 // and deterministic so the UI and any server-side reversal path agree on what's reversible.
 
-import type { Activity } from "./types";
+import type { Activity } from "@/lib/core/types";
 
 export type ReversalMethod =
   | "ledger" // internal action, no external side effect — safe to mark undone

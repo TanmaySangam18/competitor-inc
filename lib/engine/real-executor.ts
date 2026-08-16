@@ -10,7 +10,7 @@ import { dispatchFullstackBuild } from "./fullstack-build";
 import { verifyProof } from "./execution";
 import { makeRealExecutor } from "./orchestrator";
 import type { ExecuteFn } from "./supervisor";
-import type { ByokConfig } from "./types";
+import type { ByokConfig } from "@/lib/core/types";
 
 export function serverRealExecutor(opts: { token?: string; byok?: ByokConfig; soul?: string }): ExecuteFn {
   const co = (goal: string) => ({ name: "the product", idea: goal });

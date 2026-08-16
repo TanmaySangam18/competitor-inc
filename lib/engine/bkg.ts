@@ -23,7 +23,7 @@ export interface Graph {
   edges: Edge[];
 }
 
-// Minimal shape we read from an activity (matches lib/engine/types Activity).
+// Minimal shape we read from an activity (matches lib/core/types Activity).
 export interface ActivityLike {
   action?: string;
   meta?: string;

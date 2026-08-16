@@ -9,7 +9,7 @@
 // Every simulated reply is labeled simulated — the honesty floor applies to demos too.
 
 import { useEffect, useRef, useState } from "react";
-import { AGENTS, type ApprovalItem, type ApprovalKind } from "@/lib/engine/types";
+import { AGENTS, type ApprovalItem, type ApprovalKind } from "@/lib/core/types";
 import { rationaleFor } from "@/lib/engine/rationale";
 
 const DEPT_LANE: ApprovalKind[] = ["twitter", "linkedin", "bluesky", "mastodon", "reddit", "video", "outreach"];

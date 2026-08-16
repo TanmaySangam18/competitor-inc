@@ -6,7 +6,7 @@
 // verification, escalation, budget) is deterministic and testable with ZERO model calls / tokens. The real
 // engine wires a model-backed `execute`; tests wire a deterministic one.
 
-import type { AgentRole, Proof } from "./types";
+import type { AgentRole, Proof } from "@/lib/core/types";
 import { type AgentTask, orderTasks } from "./task-queue";
 import {
   type AgentInstance,

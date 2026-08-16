@@ -4,7 +4,7 @@ import { serviceClient } from "@/lib/engine/service";
 import { createOrgRun, runProgress, buildRepo } from "@/lib/engine/org-run";
 import { insertOrgRun, loadOrgRun } from "@/lib/engine/org-runs-db";
 import { overLimit, clientIp } from "@/lib/engine/ratelimit";
-import { AGENTS, type AgentRole } from "@/lib/engine/types";
+import { AGENTS, type AgentRole } from "@/lib/core/types";
 
 export const runtime = "nodejs";
 

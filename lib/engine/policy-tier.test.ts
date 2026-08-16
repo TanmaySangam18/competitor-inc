@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scoreTier, tierToVerdict, governedDecision, type ActionContext } from "./policy";
+import { scoreTier, tierToVerdict, governedDecision, type ActionContext } from "@/lib/core/policy";
 
 const ctx = (over: Partial<ActionContext>): ActionContext => ({ type: "build", agent: "engineering", ...over });
 

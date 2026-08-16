@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { enrichActivitiesWithSubAgents, flattenActivitiesForGlassBox, buildActivityTree } from "./shift-with-subagents";
-import type { Activity, Company } from "./types";
+import type { Activity, Company } from "@/lib/core/types";
 
 describe("shift-with-subagents", () => {
   const mockCompany: Company = {

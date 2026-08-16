@@ -3,7 +3,7 @@
 // surface). AgentRole codes stay in the engine; these are the labels humans see. One map, used by the
 // roster, the stats pie, and the Meetings/deliberation view.
 
-import type { AgentRole } from "@/lib/engine/types";
+import type { AgentRole } from "@/lib/core/types";
 
 export const ROLE_TITLE: Record<AgentRole, string> = {
   ceo: "CEO",

@@ -18,8 +18,8 @@
 
 import { governAction, type GovernOptions } from "@/lib/core/govern";
 import { postToSlack } from "@/lib/engine/slack";
-import { rankOfTier, type Tier, type Verdict } from "@/lib/engine/policy";
-import type { AgentRole } from "@/lib/engine/types";
+import { rankOfTier, type Tier, type Verdict } from "@/lib/core/policy";
+import type { AgentRole } from "@/lib/core/types";
 
 export type Dept = "engineering" | "growth" | "sales" | "support" | "finance" | "decisions";
 

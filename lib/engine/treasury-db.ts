@@ -1,9 +1,9 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ruleSpend, applyDebit, type Envelope, type TreasuryVerdict } from "@/lib/core/treasury";
-import { absoluteBlock, POLICY } from "@/lib/engine/policy";
+import { absoluteBlock, POLICY } from "@/lib/core/policy";
 import { killSwitch } from "@/lib/core/killswitch";
-import type { AgentRole } from "@/lib/engine/types";
+import type { AgentRole } from "@/lib/core/types";
 
 // Treasury persistence + the governed spend GATE (migration 0034, ADR-0020). Composes the pure
 // ruleSpend (envelope + policy caps) with the DB and the governance spine. The executor calls gateSpend
