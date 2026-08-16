@@ -4,7 +4,7 @@
 // to a run in week one, which only holds if every generator draws from the same reproducible stream. No
 // module in lib/sim may call Math.random().
 
-export function hashSeed(s: string): number {
+function hashSeed(s: string): number {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);

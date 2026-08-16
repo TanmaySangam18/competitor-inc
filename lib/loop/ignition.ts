@@ -70,7 +70,7 @@ export function ignitionRoadmap(
 
 /** Who owns company #0's loop: FOUNDER_USER_ID when set, else the first auth user on the founder
  *  allow-list. No founder account ⇒ no ignition (the loop must have a real, accountable owner). */
-export async function resolveFounderUserId(
+async function resolveFounderUserId(
   sb: SupabaseClient,
   env: Record<string, string | undefined> = process.env,
 ): Promise<string | null> {

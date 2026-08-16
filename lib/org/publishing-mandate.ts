@@ -19,7 +19,7 @@
 // Kill switch and forbidden floor sit ABOVE this mandate and are checked before it, as everywhere.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const PUBLISH_KINDS: ReadonlySet<string> = new Set([
+const PUBLISH_KINDS: ReadonlySet<string> = new Set([
   "bluesky", "mastodon", "twitter", "linkedin", "reddit", "hackernews", "producthunt",
   "instagram", "video", "script", "blogpost",
 ]);

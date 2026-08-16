@@ -56,9 +56,9 @@ export interface ReviewOpts {
 //      stronger model before recommending retirement; an upgrade is allowed for every role)
 //   4. successRate ≥ KEEP_AT_OR_ABOVE → keep; and when successRate ≥ CHEAPER_TIER_AT with
 //      spendUsd ≤ lowSpendUsd, suggest the haiku tier UNLESS the role is high-stakes
-export const RETIRE_BELOW = 0.3;
-export const KEEP_AT_OR_ABOVE = 0.7;
-export const CHEAPER_TIER_AT = 0.9;
+const RETIRE_BELOW = 0.3;
+const KEEP_AT_OR_ABOVE = 0.7;
+const CHEAPER_TIER_AT = 0.9;
 
 const pct = (r: number) => r.toFixed(2);
 

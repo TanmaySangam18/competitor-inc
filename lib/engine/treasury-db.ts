@@ -16,7 +16,7 @@ function monthKey(now = Date.now()): string {
 
 /** Load a department's envelope, rolling the month if the stored key is stale (spend resets). Missing row
  *  ⇒ a zero-cap envelope (nothing auto-spends until the human sets a budget). */
-export async function loadEnvelope(sb: SupabaseClient, userId: string, department: string, now = Date.now()): Promise<Envelope> {
+async function loadEnvelope(sb: SupabaseClient, userId: string, department: string, now = Date.now()): Promise<Envelope> {
   const { data } = await sb.from("treasury_envelopes").select("monthly_cap_usd, spent_this_month_usd, month_key").eq("user_id", userId).eq("department", department).maybeSingle();
   const cap = Number(data?.monthly_cap_usd ?? 0);
   const stale = !data || data.month_key !== monthKey(now);
@@ -24,7 +24,7 @@ export async function loadEnvelope(sb: SupabaseClient, userId: string, departmen
 }
 
 /** Persist a debit (service-role). Upserts the running spend + current month key. */
-export async function recordDebit(sb: SupabaseClient, userId: string, env: Envelope, amountUsd: number, now = Date.now()): Promise<void> {
+async function recordDebit(sb: SupabaseClient, userId: string, env: Envelope, amountUsd: number, now = Date.now()): Promise<void> {
   const next = applyDebit(env, amountUsd);
   const { error } = await sb.from("treasury_envelopes").upsert({
     user_id: userId, department: env.department, monthly_cap_usd: env.monthlyCapUsd,

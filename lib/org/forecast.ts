@@ -133,7 +133,7 @@ export function thirteenWeekCashForecast(inputs: ForecastInputs): CashForecast {
 
 export type PipelineStage = "lead" | "qualified" | "proposal" | "verbal" | "closed";
 
-export const PIPELINE_STAGES: readonly PipelineStage[] = ["lead", "qualified", "proposal", "verbal", "closed"];
+const PIPELINE_STAGES: readonly PipelineStage[] = ["lead", "qualified", "proposal", "verbal", "closed"];
 
 export interface PipelineEntry {
   name: string;

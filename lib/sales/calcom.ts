@@ -6,10 +6,6 @@ import crypto from "node:crypto";
 // free (crypto), mirrors lib/payments/stripe-connect.ts + lib/engine/polar.ts: fail-CLOSED when
 // unconfigured, manual HMAC verification, honest parsing (only real BOOKING_CREATED events count).
 
-export function calcomConfigured(): boolean {
-  return !!process.env.CAL_WEBHOOK_SECRET;
-}
-
 // Cal.com signs webhooks as `X-Cal-Signature-256: <hex>` = HMAC-SHA256(rawBody, secret). Constant-time.
 export function verifyCalSignature(raw: string, sigHeader: string | null, secret: string): boolean {
   if (!sigHeader || !secret) return false;

@@ -37,7 +37,7 @@ const known = (n: number | null | undefined): n is number => typeof n === "numbe
 const usd = (n: number): string => `$${n.toFixed(2)}`;
 
 /** One metric line: the real number, or the honest "not connected" — never a fabricated zero. */
-export function metricLine(label: string, value: number | null | undefined, whenAbsent: string): string {
+function metricLine(label: string, value: number | null | undefined, whenAbsent: string): string {
   return known(value) ? `- ${label}: ${usd(value)}` : `- ${label}: not connected (${whenAbsent})`;
 }
 

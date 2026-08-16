@@ -13,7 +13,7 @@ export interface ShowcaseItem {
 }
 
 // Platform surfaces — every one is a real route built in this repo (the company, running on itself).
-export const SHOWCASE: ShowcaseItem[] = [
+const SHOWCASE: ShowcaseItem[] = [
   { name: "Services", blurb: "Hire the company — build, support, sales & more", href: "/services", kind: "platform" },
   { name: "The Org", blurb: "All 56 agents, their jobs, and who they report to", href: "/org", kind: "platform" },
   { name: "The Benchmark", blurb: "The machine stress-tested, live — proven in simulation", href: "/benchmark", kind: "platform" },

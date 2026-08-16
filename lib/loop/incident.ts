@@ -41,7 +41,7 @@ export function classifyIncident(severity: IncidentSeverity): { action: Incident
 }
 
 /** The #eng brief — what happened, how bad, what the org is doing about it. Pure string. */
-export function incidentBrief(p: IncidentPayload, cls: { action: IncidentAction; tier: Tier }): string {
+function incidentBrief(p: IncidentPayload, cls: { action: IncidentAction; tier: Tier }): string {
   const doing =
     cls.action === "auto-triage"
       ? "auto-triage: root-cause-and-fix run enqueued"

@@ -71,8 +71,6 @@ const CHANNEL_LABEL: Record<Channel, string> = {
   direct: "Direct",
   other: "Other",
 };
-export const channelLabel = (c: Channel): string => CHANNEL_LABEL[c];
-
 // The core rollup. Traffic (views→signups per channel) is always real from our pixel. Money legs
 // (revenue/ROAS) fill in only from a connected ad account; absent that they stay null with basis
 // "missing" — and the verdict falls back to conversion+volume signals, which ARE real.
