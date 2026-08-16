@@ -31,3 +31,33 @@ describe("model-providers — one interface for local + cloud models", () => {
     expect(resolveDefaultProvider({ MODEL_PROVIDER: "anthropic" }).id).toBe("local-ollama"); // override not usable → fall through
   });
 });
+
+describe("the registry agrees with the connection map", () => {
+  it("routes every model key the connection map accepts", async () => {
+    // THE COHERENCE BUG THIS CATCHES: connections.ts listed GROQ_API_KEY as a valid model key while this
+    // registry had no Groq provider, so the single key actually set in production resolved to nothing.
+    // Two lists describing the same fact drifted apart. Now they cannot.
+    const { CONNECTION_MAP } = await import("@/lib/core/connections");
+    const aiModel = CONNECTION_MAP.find((c) => c.id === "ai-model")!;
+    const routable = new Set(PROVIDERS.map((p) => p.envKey).filter(Boolean));
+    // MODEL_API_KEY is the deliberate generic escape hatch, paired with MODEL_PROVIDER.
+    const generic = new Set(["MODEL_API_KEY"]);
+    for (const env of aiModel.env) {
+      if (generic.has(env)) continue;
+      expect(routable.has(env), `${env} is accepted as a model key but no provider can route it`).toBe(true);
+    }
+  });
+
+  it("resolves a Groq-only deployment to Groq rather than falling through", () => {
+    const p = resolveDefaultProvider({ GROQ_API_KEY: "gsk_test" });
+    expect(p.id).toBe("groq");
+    expect(p.format).toBe("openai");
+  });
+
+  it("offers one adapter that covers the model-breadth claim honestly", () => {
+    const router = PROVIDERS.find((p) => p.id === "openrouter")!;
+    expect(router.format).toBe("openai");
+    expect(router.envKey).toBe("OPENROUTER_API_KEY");
+    expect(availableProviders({ OPENROUTER_API_KEY: "sk-or-test" }).map((p) => p.id)).toContain("openrouter");
+  });
+});

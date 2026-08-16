@@ -32,6 +32,13 @@ export const PROVIDERS: readonly ModelProvider[] = [
   { id: "gemini", label: "Google Gemini", kind: "cloud", format: "openai", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", envKey: "GEMINI_API_KEY" },
   { id: "mistral", label: "Mistral", kind: "cloud", format: "openai", baseUrl: "https://api.mistral.ai/v1", envKey: "MISTRAL_API_KEY" },
   { id: "grok", label: "xAI (Grok)", kind: "cloud", format: "openai", baseUrl: "https://api.x.ai/v1", envKey: "XAI_API_KEY" },
+  // Groq was already accepted as a valid model key by the connection map and had NO provider here, so
+  // the one key set in production resolved to nothing. Coherence bug, found by A5, fixed by A5.
+  { id: "groq", label: "Groq", kind: "cloud", format: "openai", baseUrl: "https://api.groq.com/openai/v1", envKey: "GROQ_API_KEY" },
+  // A5: one key, one adapter, several hundred models. This is the whole of the "model breadth" gap
+  // against a competitor claiming 300+ providers: they are almost all reachable through this router,
+  // and pretending each is a separate integration would be counting the same thing many times.
+  { id: "openrouter", label: "OpenRouter (300+ models)", kind: "cloud", format: "openai", baseUrl: "https://openrouter.ai/api/v1", envKey: "OPENROUTER_API_KEY" },
 ] as const;
 
 export function getProvider(id: string): ModelProvider | undefined {

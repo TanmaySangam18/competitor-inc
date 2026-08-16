@@ -33,11 +33,17 @@ export interface Connection {
   env: string[]; // env var(s) that indicate it's wired ([] = manual/legal, tracked not detected)
   unlocks: string; // what the org can do once connected (shown when configured)
   degraded: string; // the honest line shown while absent — the org still runs, minus this
-  required: boolean; // T0 = required to start the company / to go live
+  /**
+   * Required to START, not required to be useful. Exactly ONE customer connection is required (the model
+   * key), because that is the only thing the org cannot run without. Everything else gates a named
+   * capability in lib/core/capabilities.ts rather than blocking the front door. See A1 in
+   * docs/NAIVE-GAP-LIST.md for why this used to be four and what the category error was.
+   */
+  required: boolean;
 }
 
 export const TIER_LABELS: Record<ConnectionTier, { title: string; when: string }> = {
-  T0: { title: "The brain + hands", when: "day one, required" },
+  T0: { title: "The brain + hands", when: "day one; only the model key is required" },
   T1: { title: "The voice", when: "first week" },
   T2: { title: "The money", when: "before the first sale" },
   T3: { title: "The senses", when: "as the business grows" },
@@ -62,7 +68,8 @@ export const CONNECTION_MAP: Connection[] = [
     env: ["GITHUB_TOKEN"],
     unlocks: "The org can create repos, commit code, open PRs, and run CI.",
     degraded: "No hands on code. Builds are planned but nothing is committed or shipped.",
-    required: true,
+    required: false, // gates the "commit" capability, not startup (A1)
+  
   },
   {
     id: "hosting", name: "Vercel (or Cloudflare Pages)", tier: "T0", department: "engineering", owner: "customer",
@@ -70,7 +77,8 @@ export const CONNECTION_MAP: Connection[] = [
     env: ["FULLSTACK_VERCEL_TOKEN", "VERCEL_DEPLOY_HOOK_URL"],
     unlocks: "Ship to a real URL. Deploy, preview, verify, roll back.",
     degraded: "Builds stop at the repo. Nothing reaches a live URL.",
-    required: true,
+    required: false, // gates the "deploy" capability, not startup (A1)
+  
   },
   {
     id: "database", name: "Database (Supabase / Neon)", tier: "T0", department: "engineering", owner: "customer",
@@ -78,7 +86,17 @@ export const CONNECTION_MAP: Connection[] = [
     env: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
     unlocks: "Products can persist data; every tenant isolated by RLS.",
     degraded: "Stateless only. Nothing that needs stored data can ship.",
-    required: true,
+    required: false, // gates the "persist" capability, not startup (A1)
+  
+  },
+
+  {
+    id: "object-storage", name: "Object storage (Supabase Storage / S3 / R2)", tier: "T0", department: "engineering", owner: "customer",
+    purpose: "Files: uploads, images, documents, exports",
+    env: ["STORAGE_BUCKET_URL", "STORAGE_ACCESS_KEY_ID", "S3_BUCKET", "R2_ACCOUNT_ID"],
+    unlocks: "Products can accept uploads and hand back generated files, through signed URLs.",
+    degraded: "No file handling. Anything that takes an upload or returns a document cannot ship.",
+    required: false, // gates the "store" capability, not startup (A4)
   },
 
   // T1 · The voice (first week — the company becomes conversational)

@@ -14,7 +14,7 @@ describe("the 17-service connection map (CONNECT-FIRST-RESET §1)", () => {
   it("has exactly the doc's 17 entries, in doc order", () => {
     expect(CONNECTION_MAP.map((c) => c.id)).toEqual([
       // T0 · the brain + hands
-      "ai-model", "github", "hosting", "database",
+      "ai-model", "github", "hosting", "database", "object-storage",
       // T1 · the voice
       "slack", "email-sending", "agent-inbox", "registrar",
       // T2 · the money
@@ -22,7 +22,7 @@ describe("the 17-service connection map (CONNECT-FIRST-RESET §1)", () => {
       // T3 · the senses
       "analytics", "error-uptime", "support-inbox", "crm", "calendar", "social", "ads", "cloudflare",
     ]);
-    expect(CONNECTION_MAP).toHaveLength(18);
+    expect(CONNECTION_MAP).toHaveLength(19);
   });
 
   it("ids are unique across the whole registry (map + founder go-live)", () => {
@@ -37,8 +37,20 @@ describe("the 17-service connection map (CONNECT-FIRST-RESET §1)", () => {
     }
   });
 
-  it("T0 map entries are required (day one); T1–T3 are optional", () => {
-    for (const c of CONNECTION_MAP) expect(c.required, c.id).toBe(c.tier === "T0");
+  it("requires exactly ONE customer connection to start, and it is the model", () => {
+    // This replaces "every T0 entry is required." That invariant encoded the category error A1 fixed:
+    // it treated what a SHIPPED PRODUCT needs (a repo, a host, a database) as what the ORG needs in
+    // order to run at all. Only cognition is genuinely unsubstitutable, so only the model key blocks
+    // the front door. Everything else gates a named capability in lib/core/capabilities.ts.
+    const required = CONNECTION_MAP.filter((c) => c.required);
+    expect(required.map((c) => c.id)).toEqual(["ai-model"]);
+  });
+
+  it("keeps every non-required connection honest about what it gates", () => {
+    for (const c of CONNECTION_MAP) {
+      if (c.required) continue;
+      expect(c.degraded.trim().length, `${c.id} must say what is lost while absent`).toBeGreaterThan(0);
+    }
   });
 
   it("all four tiers are labeled and populated", () => {
@@ -90,7 +102,7 @@ describe("founder go-live switch (kept API)", () => {
     const founder = connectionStatus("founder", {});
     expect(founder).toHaveLength(FOUNDER_GO_LIVE.length);
     expect(founder.every((c) => c.owner === "founder" && c.required)).toBe(true);
-    expect(connectionStatus("customer", {})).toHaveLength(18);
+    expect(connectionStatus("customer", {})).toHaveLength(19);
   });
 
   it("goLiveReadiness still math-checks: required = configured + pending", () => {
