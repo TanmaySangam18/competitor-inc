@@ -38,3 +38,6 @@ p/
 
 # local hands runner artifact (ADR-0029): URLs + field names from a real session, never committed
 hands-audit.log
+
+# derived synthetic corpora (reproducible from seed, large, never committed)
+sim-out/
