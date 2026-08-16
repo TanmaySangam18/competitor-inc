@@ -208,39 +208,9 @@ export interface SyntheticSocialNetwork {
   jobs: SimJob[];
 }
 
-// ── deterministic pseudo-randomness (mulberry32 over an FNV-1a seed) ─────────
-function hashSeed(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-function rng(seed: string): () => number {
-  let a = hashSeed(seed);
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const pick = <T,>(r: () => number, xs: readonly T[]): T => xs[Math.floor(r() * xs.length)];
-const between = (r: () => number, lo: number, hi: number): number => lo + Math.floor(r() * (hi - lo + 1));
-/** Pick n distinct items, order preserved by draw. Used wherever a repeat would read as a bug. */
-function pickSome<T>(r: () => number, xs: readonly T[], n: number): T[] {
-  const out: T[] = [];
-  const used = new Set<number>();
-  for (let i = 0; i < n * 3 && out.length < Math.min(n, xs.length); i++) {
-    const k = Math.floor(r() * xs.length);
-    if (used.has(k)) continue;
-    used.add(k);
-    out.push(xs[k]);
-  }
-  return out;
-}
+// Deterministic pseudo-randomness lives in ./rand so the ads marketplace and the shard planner draw
+// from the same stream implementation. No module in lib/sim may call Math.random().
+import { rng, pick, between, pickSome, DAY_MS, YEAR_MS } from "./rand";
 
 // ── names ───────────────────────────────────────────────────────────────────
 // ~100 x ~90 = ~9,000 name combinations across 50,000 members, so duplicates occur at roughly the rate
@@ -435,8 +405,8 @@ const DEGREE_BY_LEVEL: readonly (readonly [string, number])[] = [["BS", 0.42], [
 const SCHOOLS = ["Northeastern University", "State Polytechnic", "City College", "National Institute of Technology", "Metropolitan University", "Riverside State University", "Kingsford College", "東京工科大学", "Universidade Central", "Cape Union University", "Universität Königsberg", "Üsküdar Teknik Üniversitesi", "São Paulo Politécnica"] as const;
 const CURRENCIES: Record<string, string> = { "United States": "USD", Canada: "CAD", Germany: "EUR", Netherlands: "EUR", Ireland: "EUR", Portugal: "EUR", India: "INR", Singapore: "SGD", Nigeria: "NGN", Kenya: "KES", Brazil: "BRL", Poland: "PLN", "United Kingdom": "GBP", Japan: "JPY", Mexico: "MXN", "Türkiye": "TRY", Sweden: "SEK" };
 
-const DAY = 86_400_000;
-const YEAR = 365 * DAY;
+const DAY = DAY_MS;
+const YEAR = YEAR_MS;
 
 export interface SocialOptions {
   members?: number;
