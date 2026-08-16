@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PROVIDERS, getProvider, availableProviders, resolveDefaultProvider } from "./model-providers";
+import { PROVIDERS, getProvider, availableProviders, resolveDefaultProvider, modelConfigured } from "./model-providers";
 
 describe("model-providers — one interface for local + cloud models", () => {
   it("registers local + the cloud providers the founder asked for", () => {
@@ -59,5 +59,33 @@ describe("the registry agrees with the connection map", () => {
     expect(router.format).toBe("openai");
     expect(router.envKey).toBe("OPENROUTER_API_KEY");
     expect(availableProviders({ OPENROUTER_API_KEY: "sk-or-test" }).map((p) => p.id)).toContain("openrouter");
+  });
+});
+
+describe("one answer to 'does this deployment have cognition?'", () => {
+  it("accepts every key the connection map advertises", async () => {
+    const { CONNECTION_MAP } = await import("@/lib/core/connections");
+    const aiModel = CONNECTION_MAP.find((c) => c.id === "ai-model")!;
+    for (const env of aiModel.env) {
+      expect(modelConfigured({ [env]: "test-key" }), `${env} is advertised but does not count as cognition`).toBe(true);
+    }
+  });
+
+  it("says yes for a Groq-only deployment, which is what production actually is", () => {
+    // The live bug: /connect showed "AI model key: CONNECTED" while the executor saw no model, so every
+    // real action silently fell back to simulated.
+    expect(modelConfigured({ GROQ_API_KEY: "gsk_test" })).toBe(true);
+    expect(modelConfigured({ OPENAI_API_KEY: "sk-test" })).toBe(true);
+    expect(modelConfigured({ OPENROUTER_API_KEY: "sk-or-test" })).toBe(true);
+  });
+
+  it("still honours the provider-agnostic escape hatches", () => {
+    expect(modelConfigured({ MODEL_API_KEY: "k" })).toBe(true);
+    expect(modelConfigured({ AI_GATEWAY_API_KEY: "k" })).toBe(true);
+  });
+
+  it("says no when there is genuinely nothing", () => {
+    expect(modelConfigured({})).toBe(false);
+    expect(modelConfigured({ GROQ_API_KEY: "   " })).toBe(false);
   });
 });

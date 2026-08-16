@@ -17,6 +17,7 @@ import { generateSiteFiles } from "./server";
 import { overHardCap, hardSpendCapCents } from "./spend-cap";
 import { namespacedResource } from "./hosting";
 import { dispatchFullstackBuild, fullstackConfigured } from "./fullstack-build";
+import { modelConfigured } from "./model-providers";
 
 const TIMEOUT_MS = 8000;
 
@@ -44,7 +45,10 @@ function repoSlug(s: string): string {
 // (e.g. the capability GET, which carries no creds) reports operator-env capabilities only.
 export function capabilities(conn?: Connections) {
   return {
-    model: !!(process.env.ANTHROPIC_API_KEY || process.env.AI_GATEWAY_API_KEY || process.env.MODEL_API_KEY),
+    // One source of truth (model-providers.modelConfigured). This used to check only Anthropic, the
+    // gateway and the generic key, so a Groq-only or OpenAI-only deployment reported no model while
+    // /connect showed the key as connected.
+    model: modelConfigured(),
     github: !!(conn?.githubToken || process.env.GITHUB_TOKEN),
     deploy: !!process.env.VERCEL_DEPLOY_HOOK_URL,
     email: !!((conn?.resendApiKey || process.env.RESEND_API_KEY) && (conn?.resendFrom || process.env.RESEND_FROM)),

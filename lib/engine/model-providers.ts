@@ -45,6 +45,24 @@ export function getProvider(id: string): ModelProvider | undefined {
   return PROVIDERS.find((p) => p.id === id);
 }
 
+/**
+ * THE SINGLE ANSWER TO "does this deployment have cognition?"
+ *
+ * There were three different answers to that question and they disagreed. The connection map counted
+ * Anthropic, OpenAI, Groq or a generic key; this registry knew a different set; and the executor's
+ * capability check looked only at Anthropic, the Vercel gateway, or the generic key. Production, which
+ * holds a Groq key and nothing else, therefore displayed "AI model key: CONNECTED" on /connect while the
+ * executor believed no model existed and every real action fell back to simulated.
+ *
+ * A fact with three definitions has none. Everything that needs this answer now calls here.
+ */
+export function modelConfigured(env: Record<string, string | undefined> = process.env): boolean {
+  if (PROVIDERS.some((p) => p.envKey && !!env[p.envKey]?.trim())) return true;
+  // The two provider-agnostic escape hatches: a generic key paired with MODEL_PROVIDER, and Vercel's
+  // AI Gateway, which fronts many providers behind one credential.
+  return !!env.MODEL_API_KEY?.trim() || !!env.AI_GATEWAY_API_KEY?.trim();
+}
+
 /** Which providers are usable given the environment: local is always a candidate; cloud needs its key. */
 export function availableProviders(env: Record<string, string | undefined> = process.env): ModelProvider[] {
   return PROVIDERS.filter((p) => p.kind === "local" || (p.envKey ? !!env[p.envKey]?.trim() : false));
