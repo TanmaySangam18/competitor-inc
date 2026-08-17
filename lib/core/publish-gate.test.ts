@@ -6,6 +6,7 @@ import {
 } from "./publish-gate";
 import { killSwitch } from "./killswitch";
 import { auditLog } from "./audit";
+import { emptyStore, assertBelief } from "./beliefs";
 
 const clean = (over: Partial<PublishAttempt> = {}): PublishAttempt => ({
   channel: "bluesky",
@@ -214,5 +215,69 @@ describe("the rails are explainable to a customer", () => {
       expect(r.rule.length).toBeGreaterThan(30);
       expect(r.rule, "no em-dashes in customer-facing prose").not.toMatch(/—/);
     }
+  });
+});
+
+describe("the honesty rail is checked against beliefs, not asserted by the caller", () => {
+  const T = Date.UTC(2026, 0, 1);
+  const store = (() => {
+    let s = emptyStore();
+    s = assertBelief(s, { subject: "product:checkout", predicate: "status", object: "shipped", provenance: "observed", source: "receipt_44" }, T).store;
+    s = assertBelief(s, { subject: "product:checkout", predicate: "adoption", object: "growing", provenance: "inferred", source: "model" }, T).store;
+    s = assertBelief(s, { subject: "customer:acme", predicate: "delight", object: "high", provenance: "asserted", source: "a call with Sam" }, T).store;
+    return s;
+  })();
+
+  it("publishes a claim that traces to a receipt", () => {
+    const d = requestPublish(clean({
+      claim: { store, subject: "product:checkout", predicate: "status", at: T + 1000 },
+      honestyVerified: false, // deliberately false: the CHECK should override the assertion
+    }));
+    expect(d.granted).toBe(true);
+  });
+
+  it("refuses an inferred claim even when the caller swears it is verified", () => {
+    // This is the whole point of the module. Before beliefs existed, honestyVerified: true was enough,
+    // which made the mandate's "receipt-backed" rail a promise rather than a check.
+    const d = requestPublish(clean({
+      claim: { store, subject: "product:checkout", predicate: "adoption", at: T + 1000 },
+      honestyVerified: true,
+    }));
+    expect(d.granted).toBe(false);
+    if (!d.granted) {
+      expect(d.rail).toBe("honesty");
+      expect(d.reason).toMatch(/not receipt-backed/i);
+      expect(d.reason).toMatch(/inferred, not observed/i);
+    }
+  });
+
+  it("refuses something we were merely told, and names who told us", () => {
+    const d = requestPublish(clean({
+      claim: { store, subject: "customer:acme", predicate: "delight", at: T + 1000 },
+      honestyVerified: true,
+    }));
+    expect(d.granted).toBe(false);
+    if (!d.granted) expect(d.reason).toMatch(/told this by a call with Sam/i);
+  });
+
+  it("refuses a claim about something the company knows nothing about", () => {
+    const d = requestPublish(clean({
+      claim: { store, subject: "product:checkout", predicate: "revenue", at: T + 1000 },
+      honestyVerified: true,
+    }));
+    expect(d.granted).toBe(false);
+    if (!d.granted) expect(d.reason).toMatch(/nothing known/i);
+  });
+
+  it("records the refusal in the audit ledger like every other rail", () => {
+    const before = auditLog.all().length;
+    requestPublish(clean({ claim: { store, subject: "product:checkout", predicate: "adoption", at: T + 1000 } }));
+    expect(auditLog.all().length).toBe(before + 1);
+    expect(auditLog.all()[auditLog.all().length - 1].verdict).toBe("QUEUE");
+  });
+
+  it("still honours the weak boolean when no belief is named, so existing callers keep working", () => {
+    expect(requestPublish(clean({ honestyVerified: true })).granted).toBe(true);
+    expect(requestPublish(clean({ honestyVerified: false })).granted).toBe(false);
   });
 });

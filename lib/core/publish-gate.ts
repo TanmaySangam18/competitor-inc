@@ -23,8 +23,10 @@
 //
 //   1. KILL SWITCH   — global, per-agent, per-customer. Above every mandate, always.
 //   2. CONTENT GATE  — screenContent(): hostility, tragedy adjacency, politics, medical, legal, bait.
-//   3. MANDATE       — the five rails: separation, honesty, disclosure, caps, audience, judgment.
-//   4. AUDIT         — appended either way. A refusal is a record, not a silence.
+//   3. HONESTY       — when the caller names the belief behind the claim, its PROVENANCE decides. An
+//                      observed belief with a source may be quoted; an assertion or an inference may not.
+//   4. MANDATE       — the five rails: separation, honesty, disclosure, caps, audience, judgment.
+//   5. AUDIT         — appended either way. A refusal is a record, not a silence.
 //
 // Steps 2 and 3 are ordered that way on purpose: the mandate ACCEPTS content flags as an input, so the
 // screen has to run first to produce them. Passing an empty array would quietly disable rail 6.
@@ -33,6 +35,7 @@ import { killSwitch } from "./killswitch";
 import { screenContent } from "./content-gate";
 import { auditLog } from "./audit";
 import { deptSelfApprove, CHANNEL_DAILY_CAP, type PublishRequest } from "@/lib/org/publishing-mandate";
+import { claimSupport, type BeliefStore } from "./beliefs";
 
 /** Platforms this gate knows how to reason about. Must stay a subset of the mandate's PUBLISH_KINDS. */
 export type PublishChannel = "bluesky" | "mastodon" | "reddit" | "linkedin" | "twitter";
@@ -46,8 +49,18 @@ export interface PublishAttempt {
   approver: string;
   /** Resolved from the org tree by the caller. */
   approverIsLead: boolean;
-  /** Claims are receipt-backed or explicitly labelled simulation. The honesty floor outranks everything. */
+  /**
+   * Claims are receipt-backed or explicitly labelled simulation. The honesty floor outranks everything.
+   * This is a caller ASSERTION and therefore the weak form. Prefer `claim` below, which is checked.
+   */
   honestyVerified: boolean;
+  /**
+   * The belief this post's factual claim rests on. When supplied, the gate CHECKS it against the belief
+   * store and ignores `honestyVerified` entirely, because a rail you can satisfy by setting a boolean is
+   * not a rail. Only an OBSERVED belief with a source can back a public claim (lib/core/beliefs.ts), which
+   * is what the mandate means by "receipt-backed" and what nobody else in the category governs.
+   */
+  claim?: { store: BeliefStore; subject: string; predicate: string; at?: number };
   /** Posts already made on this channel today, for the runaway cap. */
   postsTodayOnChannel: number;
   audience: "own" | "opted_in" | "scraped" | "unknown";
@@ -72,7 +85,7 @@ export interface PublishRefusal {
   readonly granted: false;
   readonly channel: PublishChannel;
   /** Which rail stopped it, so a human reading the queue knows what to fix. */
-  readonly rail: "kill-switch" | "content-gate" | "mandate" | "disclosure" | "empty";
+  readonly rail: "kill-switch" | "content-gate" | "mandate" | "disclosure" | "honesty" | "empty";
   readonly reason: string;
   readonly auditSeq: number;
 }
@@ -146,17 +159,29 @@ export function requestPublish(attempt: PublishAttempt): PublishDecision {
     return { granted: false, channel, rail: "mandate", reason, auditSeq: record("BLOCK", reason) };
   }
 
-  // 2. CONTENT GATE — produces the flags the mandate's judgment rail consumes.
+  // 2. HONESTY, CHECKED RATHER THAN CLAIMED. When the caller names the belief behind the post, the grade
+  //    decides: evidence may be quoted, an assertion or an inference may not, however confident it is.
+  let honest = attempt.honestyVerified;
+  if (attempt.claim) {
+    const support = claimSupport(attempt.claim.store, attempt.claim.subject, attempt.claim.predicate, attempt.claim.at ?? Date.now());
+    if (!support.supported) {
+      const reason = `claim not receipt-backed: ${support.reason}`;
+      return { granted: false, channel, rail: "honesty", reason, auditSeq: record("QUEUE", reason) };
+    }
+    honest = true;
+  }
+
+  // 3. CONTENT GATE — produces the flags the mandate's judgment rail consumes.
   const screen = screenContent(text);
 
-  // 3. MANDATE — the five rails, unchanged and unduplicated. This module composes it, never reimplements
+  // 4. MANDATE — the five rails, unchanged and unduplicated. This module composes it, never reimplements
   //    it, so there is one definition of what a department lead may approve.
   const req: PublishRequest = {
     kind: channel,
     author: attempt.author,
     approver: attempt.approver,
     approverIsLead: attempt.approverIsLead,
-    honestyVerified: attempt.honestyVerified,
+    honestyVerified: honest,
     disclosed: true, // established above by inspecting the text
     postsTodayOnChannel: attempt.postsTodayOnChannel,
     audience: attempt.audience,
