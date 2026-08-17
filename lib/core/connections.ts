@@ -31,6 +31,18 @@ export interface Connection {
   owner: Owner;
   purpose: string;
   env: string[]; // env var(s) that indicate it's wired ([] = manual/legal, tracked not detected)
+  /**
+   * How `env` is READ, when a bare any-of would lie.
+   *
+   * Detection was `env.some(present)` for every entry, which is right for a list of alternatives (any
+   * model provider will do) and wrong for a list of halves. Production had SUPABASE_SERVICE_ROLE_KEY and
+   * no public URL, so /connect reported the database CONNECTED while the browser had no client config and
+   * nobody could sign in. A false positive on the page whose entire job is to be honest.
+   *
+   * Each inner array is a COMPLETE way to satisfy this connection: configured when ANY group has ALL of
+   * its members present. Absent, every env var is its own group, which is the old any-of behaviour.
+   */
+  envGroups?: string[][];
   unlocks: string; // what the org can do once connected (shown when configured)
   degraded: string; // the honest line shown while absent — the org still runs, minus this
   /**
@@ -84,6 +96,9 @@ export const CONNECTION_MAP: Connection[] = [
     id: "database", name: "Database (Supabase / Neon)", tier: "T0", department: "engineering", owner: "customer",
     purpose: "Per-product data, RLS isolation",
     env: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+    // Both halves or neither: the client needs the public URL, the server needs the service key. One
+    // alone is a deployment that looks connected and cannot authenticate anybody.
+    envGroups: [["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]],
     unlocks: "Products can persist data; every tenant isolated by RLS.",
     degraded: "Stateless only. Nothing that needs stored data can ship.",
     required: false, // gates the "persist" capability, not startup (A1)
@@ -94,6 +109,7 @@ export const CONNECTION_MAP: Connection[] = [
     id: "object-storage", name: "Object storage (Supabase Storage / S3 / R2)", tier: "T0", department: "engineering", owner: "customer",
     purpose: "Files: uploads, images, documents, exports",
     env: ["STORAGE_BUCKET_URL", "STORAGE_ACCESS_KEY_ID", "S3_BUCKET", "R2_ACCOUNT_ID"],
+    envGroups: [["STORAGE_BUCKET_URL", "STORAGE_ACCESS_KEY_ID"], ["S3_BUCKET"], ["R2_ACCOUNT_ID"]],
     unlocks: "Products can accept uploads and hand back generated files, through signed URLs.",
     degraded: "No file handling. Anything that takes an upload or returns a document cannot ship.",
     required: false, // gates the "store" capability, not startup (A4)
@@ -104,6 +120,7 @@ export const CONNECTION_MAP: Connection[] = [
     id: "slack", name: "Slack workspace", tier: "T1", department: "ops", owner: "customer",
     purpose: "The OFFICE: agents deliberate in channels 24/7; you're @-tagged only on real decisions",
     env: ["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"],
+    envGroups: [["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"]], // post with the token, verify inbound with the secret
     unlocks: "The org talks where you already live; decisions reach you as @-mentions.",
     degraded: "No office in Slack. Deliberation stays on the web surface only.",
     required: false,
@@ -112,6 +129,7 @@ export const CONNECTION_MAP: Connection[] = [
     id: "email-sending", name: "Email sending", tier: "T1", department: "support", owner: "customer",
     purpose: "Google Workspace or Resend/Postmark, support@, reports, receipts",
     env: ["RESEND_API_KEY", "RESEND_FROM"],
+    envGroups: [["RESEND_API_KEY", "RESEND_FROM"]], // a key with no from-address cannot send
     unlocks: "The org can send: receipts, reports, and support replies from your domain.",
     degraded: "Mute by mail. Receipts and reports render but cannot be sent.",
     required: false,
@@ -198,6 +216,9 @@ export const CONNECTION_MAP: Connection[] = [
     id: "social", name: "Social accounts", tier: "T3", department: "marketing", owner: "customer",
     purpose: "Bluesky / Mastodon / X / LinkedIn, post to your OWN opted-in audience, never scraped graphs",
     env: ["BLUESKY_HANDLE", "BLUESKY_APP_PASSWORD", "MASTODON_BASE_URL", "MASTODON_ACCESS_TOKEN"],
+    // Either platform is enough, but each needs its own pair. This is exactly what the executors in
+    // lib/engine/execution.ts already require with &&, so detection now matches reality.
+    envGroups: [["BLUESKY_HANDLE", "BLUESKY_APP_PASSWORD"], ["MASTODON_BASE_URL", "MASTODON_ACCESS_TOKEN"]],
     unlocks: "Marketing agents publish to your audience, clearly disclosed as AI.",
     degraded: "Nothing is posted anywhere. Drafts queue for a human to paste.",
     required: false,
@@ -298,11 +319,35 @@ export interface ConnectionStatus extends Connection {
 
 const TRACKED_NOT_DETECTED = "No env detection; tracked manually, shown as not connected until a human verifies it.";
 
+/** Present and non-empty. A var set to "" is not set, which is a real Vercel foot-gun. */
+const present = (env: Record<string, string | undefined>, name: string): boolean =>
+  typeof env[name] === "string" && env[name] !== "";
+
+/**
+ * Configured when ANY group has ALL its members present. With no groups declared, each var is its own
+ * group, which reproduces the original any-of rule for the entries where alternatives are the truth.
+ */
+export function isConfigured(c: Connection, env: Record<string, string | undefined> = process.env): boolean {
+  if (c.env.length === 0) return false; // manual/legal: tracked, never guessed
+  const groups = c.envGroups ?? c.env.map((e) => [e]);
+  return groups.some((g) => g.length > 0 && g.every((e) => present(env, e)));
+}
+
+/** How the UI should label the requirement, so "set any of" never appears above a list of halves. */
+export function envRequirement(c: Connection): { label: string; groups: string[][] } {
+  const groups = c.envGroups ?? c.env.map((e) => [e]);
+  const multi = groups.some((g) => g.length > 1);
+  const label = groups.length === 1
+    ? (groups[0].length > 1 ? "set all of" : "set")
+    : multi ? "set any complete group" : "set any of";
+  return { label, groups };
+}
+
 export function connectionStatus(owner?: Owner, env: Record<string, string | undefined> = process.env): ConnectionStatus[] {
   return CONNECTIONS.filter((c) => !owner || c.owner === owner).map((c) => ({
     ...c,
     // env-detectable items report real status; manual/legal (env:[]) can't be detected → false until done.
-    configured: c.env.length > 0 && c.env.some((e) => typeof env[e] === "string" && env[e] !== ""),
+    configured: isConfigured(c, env),
     ...(c.env.length === 0 ? { note: TRACKED_NOT_DETECTED } : {}),
   }));
 }

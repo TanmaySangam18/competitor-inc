@@ -8,6 +8,8 @@ import {
   connectionStatus,
   connectionMapStatus,
   goLiveReadiness,
+  isConfigured,
+  envRequirement,
 } from "./connections";
 
 describe("the 17-service connection map (CONNECT-FIRST-RESET §1)", () => {
@@ -109,5 +111,60 @@ describe("founder go-live switch (kept API)", () => {
     const r = goLiveReadiness();
     expect(r.required).toBe(FOUNDER_GO_LIVE.length);
     expect(r.configured + r.pending.length).toBe(r.required);
+  });
+});
+
+describe("detection cannot report connected when it is only half connected", () => {
+  it("refuses to call the database connected on the service key alone", () => {
+    // THE BUG THIS CLOSES, found by reading production: /connect said the database was CONNECTED because
+    // detection was env.some() and SUPABASE_SERVICE_ROLE_KEY was set. The browser had no public URL, so
+    // nobody could sign in. A false positive on the page whose whole job is to be honest.
+    const db = CONNECTION_MAP.find((c) => c.id === "database")!;
+    expect(isConfigured(db, { SUPABASE_SERVICE_ROLE_KEY: "svc" })).toBe(false);
+    expect(isConfigured(db, { NEXT_PUBLIC_SUPABASE_URL: "https://x.supabase.co" })).toBe(false);
+    expect(isConfigured(db, { NEXT_PUBLIC_SUPABASE_URL: "https://x.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "svc" })).toBe(true);
+  });
+
+  it("keeps any-of where alternatives really are alternatives", () => {
+    const model = CONNECTION_MAP.find((c) => c.id === "ai-model")!;
+    expect(isConfigured(model, { GROQ_API_KEY: "g" })).toBe(true);
+    expect(isConfigured(model, { ANTHROPIC_API_KEY: "a" })).toBe(true);
+  });
+
+  it("requires a complete pair per platform for social, matching what the executors demand", () => {
+    const social = CONNECTION_MAP.find((c) => c.id === "social")!;
+    expect(isConfigured(social, { BLUESKY_HANDLE: "h" })).toBe(false);
+    expect(isConfigured(social, { BLUESKY_HANDLE: "h", BLUESKY_APP_PASSWORD: "p" })).toBe(true);
+    expect(isConfigured(social, { MASTODON_BASE_URL: "u", MASTODON_ACCESS_TOKEN: "t" })).toBe(true);
+    // One half of each platform is still nothing, however many vars are set.
+    expect(isConfigured(social, { BLUESKY_HANDLE: "h", MASTODON_BASE_URL: "u" })).toBe(false);
+  });
+
+  it("treats an empty string as absent, which is a real deployment foot-gun", () => {
+    const model = CONNECTION_MAP.find((c) => c.id === "ai-model")!;
+    expect(isConfigured(model, { GROQ_API_KEY: "" })).toBe(false);
+  });
+
+  it("never guesses for items with no env detection", () => {
+    for (const c of CONNECTION_MAP.filter((x) => x.env.length === 0)) {
+      expect(isConfigured(c, { ANYTHING: "set" })).toBe(false);
+    }
+  });
+
+  it("labels a group of halves as all-of rather than any-of", () => {
+    const db = CONNECTION_MAP.find((c) => c.id === "database")!;
+    const model = CONNECTION_MAP.find((c) => c.id === "ai-model")!;
+    const social = CONNECTION_MAP.find((c) => c.id === "social")!;
+    expect(envRequirement(db).label).toBe("set all of");
+    expect(envRequirement(model).label).toBe("set any of");
+    expect(envRequirement(social).label).toBe("set any complete group");
+  });
+
+  it("declares only env vars it also lists, so the UI and detection cannot diverge", () => {
+    for (const c of CONNECTION_MAP) {
+      for (const g of c.envGroups ?? []) {
+        for (const e of g) expect(c.env, `${c.id} detects on ${e} without listing it`).toContain(e);
+      }
+    }
   });
 });
