@@ -20,6 +20,12 @@ tell you *don't build this* — and it keeps working while your laptop is closed
 This README explains the whole thing — the plain‑English story **and** the technical guts — so anyone
 (technical or not) can understand what we built, why, and how to run it.
 
+> **Reading this as an engineer? Start with [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).** It covers the
+> one load-bearing idea, the layer boundaries and the test that enforces them, the gate order every real
+> action passes through, and a section answering the questions reviewers actually ask, including "what is
+> the weakest part" (distribution, not code). What is still missing and in what order lives in
+> [`docs/NAIVE-GAP-LIST.md`](docs/NAIVE-GAP-LIST.md).
+
 > ### 🧭 Current direction (2026-07): prove it works → win the first receipts
 >
 > The $10k revenue goal is **paused by the founder** (2026-07-15) in favor of **platform proof**: turn every
@@ -44,7 +50,8 @@ This README explains the whole thing — the plain‑English story **and** the t
 > AI disclosure appended.
 >
 > The product is now **three surfaces, not a dashboard** ([`docs/CONNECT-FIRST-RESET.md`](docs/CONNECT-FIRST-RESET.md)):
-> **`/connect`** (a 17-service BYOK connection map + OAuth "2-minute" flow + a one-line `curl … | node` activation),
+> **`/connect`** (a BYOK connection map of **19 capabilities grouped into 9 accounts, exactly one of which
+> is required** (see the 2026-08 update below), plus OAuth and a one-line `curl … | node` activation),
 > **the Stream** (one conversational thread that replaced the 6-tab cockpit — the org talks to itself; the human
 > oversees and signs only the rare decision), and a **simple site** that explains it. Approvals happen **in Slack**,
 > answered by department leads under five rails; only the irreducible floor (money, contracts, launches, deletion)
@@ -59,6 +66,47 @@ This README explains the whole thing — the plain‑English story **and** the t
 >
 > Honest state: the machine is built and QA-green; **$0 settled, 0 paying customers** — shown proudly, never faked.
 > The arc is **Prove (now) → first receipt → revenue**. No rung is claimed before its receipt.
+
+---
+
+> ### 🧭 Current direction (2026-08-16): one benchmark, one key, and truth as the moat
+>
+> **The benchmark is Naive** (usenaive.ai, $28.5M Series A on 2026-08-06). They shipped the bundle thesis
+> and got funded for it, so bundling is table stakes now. We copy their **execution bar** and refuse their
+> **strategy**: managed credentials plus reselling infrastructure needs an entity, banking partners and
+> capital to eat vendor bills, none of which exist here. Full reasoning and the deliberate refusals are in
+> [`docs/NAIVE-GAP-LIST.md`](docs/NAIVE-GAP-LIST.md).
+>
+> **Onboarding: four keys became one.** T0 used to require a model key, GitHub, hosting and a database
+> before anything ran, which was the worst measured number in the category. The diagnosis was a category
+> error: T0 conflated *what competitor.inc needs to run* with *what a shipped product needs to exist*. Only
+> cognition is unsubstitutable, so only the model key blocks the door; everything else gates a named
+> capability ([`lib/core/capabilities.ts`](lib/core/capabilities.ts)) and `/connect` now asks for **one
+> account at a time, with the reason** ([`lib/core/accounts.ts`](lib/core/accounts.ts)). A test asserts the
+> required count cannot drift back to four.
+>
+> **Memory got a spine.** Flat vector recall was replaced by provenance-graded beliefs with validity windows
+> ([`lib/core/beliefs.ts`](lib/core/beliefs.ts)): facts **supersede** instead of duplicating, contradictions
+> are surfaced for a human rather than resolved by picking, and every belief is graded **observed** (a
+> receipt, citeable), **asserted** (we were told) or **inferred** (the model derived it). The rule nobody
+> else in the category has: **only an observed belief with a source may back a claim that reaches a
+> customer**, refused by grade rather than by confidence.
+>
+> **Outbound is gated by a type, not a convention.** The publishing mandate existed, was fully tested, and
+> was wired to nothing while three live publishers posted without it. Publishers now take a
+> `PublishPermit` that only [`lib/core/publish-gate.ts`](lib/core/publish-gate.ts) can mint, so an ungated
+> publish is a compile error. The compiler found a fourth ungated call site nobody had noticed by reading.
+>
+> **The proving ground got bigger.** 50,000 synthetic members with a power-law graph, a generalised
+> second-price ads auction whose ledger closes to zero micros, and a shard planner that measures fan-out
+> ([`lib/sim/`](lib/sim/)). The finding worth reading: at 40 shards the **median** feed read already touches
+> 20 of them, so fan-out-on-read is not viable at the top of that graph. Every row is `simulated: true` and
+> a test forbids any field name that could be misread as revenue.
+>
+> **Standing rule learned the hard way:** a rail you can satisfy by setting a boolean is not a rail. Derive
+> it (disclosure is checked in the post text, honesty against provenance) or make it a type the caller
+> cannot forge.
+
 
 ---
 
@@ -273,10 +321,17 @@ The engine is **swappable**, with three modes:
    **per‑request**, and **never persisted or logged** by us.
 
 **Why BYOK matters (the honest framing):** the product's value is the **validation engine + the agent
-orchestration + the Glass Box proof + the accumulating trust/data** — *not* the model call. The model
-is a commodity brain we plug in. Most users run the managed default; BYOK is an optional tier for the
-privacy‑ or cost‑conscious. This also means our **marginal inference cost is ~$0**, which is how the
-project stays viable on a tiny budget without VC‑subsidized pricing.
+orchestration + the Glass Box proof + the accumulating trust/data**, *not* the model call. The model is a
+commodity brain we plug in.
+
+**BYOK is the model, not an option** (corrected 2026-08-16; this section previously said most users run a
+managed default, which was backwards). We never hold a customer's keys. Our **marginal inference cost is
+~$0**, which is how the project stays viable without VC-subsidised pricing, and it is the reason we cannot
+copy competitors who reach zero-connection onboarding by holding every account and paying every vendor
+bill. What we do instead is lend **our own capped free-tier key** for a few runs a day so a visitor can look
+before connecting anything ([`lib/core/trial.ts`](lib/core/trial.ts)). That trial can only *think*: it
+cannot deploy, publish, email or spend, which is both the honest scope of a free look and the containment
+boundary.
 
 **The build step — real apps, on a free key.** Turning an idea into working software is the
 highest‑value model call, so it gets its own override: set **`BUILD_API_KEY`** (defaults to Google AI
@@ -361,6 +416,14 @@ testing via **fast‑check**. One command gates everything:
 npm run qa     # = tsc --noEmit  &&  vitest run  &&  next build  &&  node scripts/smoke.mjs
 ```
 
+As of 2026-08-16 that gate is **200 test files and 1,662 tests**, green.
+
+The tests worth showing a reviewer are not the coverage ones, they are the **invariants**: the honesty wall
+on synthetic data, the anti-drift test on the six hard-stops, "exactly one connection is required", the ads
+ledger reconciling to zero micros, the sharding residency check asserting no member is stored outside its
+legal jurisdiction, and [`lib/core/architecture.test.ts`](lib/core/architecture.test.ts), which fails CI if
+a policy module ever imports mechanism again.
+
 `scripts/smoke.mjs` boots the **production build**, sweeps every route + the API, checks the brand
 string, exercises the happy paths and `400`s, and **fuzzes 60 garbage payloads asserting zero 5xx**.
 The codebase also went through a full **line‑by‑line security & correctness audit** (see the journey
@@ -371,9 +434,14 @@ below) before launch hardening.
 ## 11 · Business & strategy
 
 - **Positioning** — a standalone brand with its own values (validation‑first, honest, human‑in‑control).
-  The lead competitor is **Polsia** (autonomous AI company‑builder, 20% revenue cut); we
-  **counter‑position** as the proof‑first, human‑in‑control, 0%‑cut alternative — full analysis +
-  roadmap in [`docs/COMPETITIVE-polsia.md`](docs/COMPETITIVE-polsia.md) (internal).
+  The lead competitor as of **2026-08** is **Naive** (usenaive.ai, "Ship Apps. Agents. Companies.",
+  $28.5M Series A announced 2026-08-06): the same bundle thesis, funded. Wix Symphony shipped a comparable
+  bundle for SMBs on 2026-08-11. **Bundling is therefore table stakes, not a wedge.** We
+  **counter-position** on the thing none of them govern: whether what the agent says is TRUE. Naive's own
+  docs concede the default tenant user is ungated and that **222 of their 271 tools assert no gate at
+  all**; no vendor surveyed names CAN-SPAM, TCPA or the AI-disclosure statutes. Full analysis in
+  [`docs/NAIVE-GAP-LIST.md`](docs/NAIVE-GAP-LIST.md), including what we deliberately refuse to copy
+  (company formation, virtual cards, "no human in the loop").
 - **Pricing** — **Validate $0** (free forever) · **Operator $39/mo** · **Founder $299/mo** (done‑with‑you,
   limited slots) · **$499 Validation Sprint** (one‑time). No revenue share, no lock‑in. Payments via
   **Polar** (Merchant‑of‑Record — handles VAT/tax globally, GitHub‑login checkout, free at our scale).
@@ -497,8 +565,16 @@ For the person deploying this (the "techie friend"):
 
 ## 16 · Status & roadmap
 
-**Status (2026‑07‑10): the autonomous software company is real, live, and proven — twice.**
-Live at `competitor-inc-zeta.vercel.app`.
+**Status (2026‑08‑16).** The deployed site is at `competitor-inc-zeta.vercel.app`, and the honest state of
+that deployment is **2 of 19 capabilities live**: a model key and Slack. GitHub, hosting and the database
+are not connected there, so on the live site the org can **think** (plan, research, draft, decide) and
+cannot yet commit, deploy or persist. **Nobody can sign in** either: the browser receives no Supabase
+config. Turning that on is env-var work in Vercel, not code. See
+[`docs/ACTIVATION-RUNBOOK.md`](docs/ACTIVATION-RUNBOOK.md) and `scripts/activate-prod.sh`.
+
+Everything below is proven in the repo and reproducible locally with `npm run qa`. The build pipeline
+itself was proven live twice (receipts below). Do not read "proven" as "running for users today": there
+are none, and `$0` is settled.
 
 - **Real full‑stack builds, proven live.** Describe an idea → the company creates a real GitHub repo →
   **Claude Sonnet** implements a real Next.js app (never the blank starter — a scaffold gate refuses to
