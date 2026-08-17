@@ -3,6 +3,8 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { connectionMapStatus, TIER_LABELS, TIER_ORDER, type ConnectionStatus, type ConnectionTier } from "@/lib/core/connections";
 import { mcpStatus } from "@/lib/core/mcp-connect";
+import { accountSummary, nextStep } from "@/lib/core/accounts";
+import { trialOffer } from "@/lib/core/trial";
 import { oauthProviderFor, getProvider } from "@/lib/core/oauth";
 import { envelopeStatus, spendDepartments } from "@/lib/core/treasury";
 import { listEnvelopes } from "@/lib/engine/treasury-db";
@@ -112,6 +114,13 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
   const mcpConnected = mcp.filter((m) => m.configured).length;
   const byTier = (t: ConnectionTier) => map.filter((c) => c.tier === t);
 
+  // ACCOUNTS, NOT SERVICES. Nineteen capabilities map onto nine accounts a human actually opens, and
+  // only ONE of them is ever required. Leading with the full map made a one-key product read as a
+  // nineteen-chore product, which is exactly how it felt to the founder reading its own page.
+  const configuredIds = map.filter((c) => c.configured).map((c) => c.id);
+  const accounts = accountSummary(configuredIds);
+  const step = nextStep(configuredIds);
+
   // The bank (ADR-0020): the signed-in owner's department envelopes — the standing authorization that
   // lets in-budget spend run silently. Signed out (or no Supabase) → honest $0 defaults, nothing invented.
   const sb = await getServerSupabase();
@@ -141,16 +150,41 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
       {/* Hero */}
       <section className={`border-b ${HAIR} px-6 py-14`}>
         <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.3em] text-muted-2">
-          the connection map · {connected} of {total} connected
+          {accounts.connected} of {accounts.total} accounts connected
         </p>
         <h1 className="max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
           Connect your accounts.<br />The company runs itself.
         </h1>
         <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted">
-          Everything a software company runs on, in four tiers. Connect T0 and the company starts ITSELF on the
-          next heartbeat — no button (ignition, ADR-0021). The org runs degraded-but-honest with any subset and
-          asks for the next connection only when a task truly needs it. BYOK — your accounts, your keys, your ownership.
+          One model key is all that is ever required. Everything else waits until a task actually needs it,
+          and then asks for one thing, once. BYOK: your accounts, your keys, your ownership.
         </p>
+
+        {/* THE ONE NEXT THING. Just-in-time consent, implemented rather than promised. */}
+        <div className={`mt-8 max-w-2xl border ${HAIR} p-5`}>
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-2">
+            {step ? "your next step · one thing" : "nothing left to connect"}
+          </p>
+          {step ? (
+            <>
+              <p className="mt-3 text-lg font-semibold tracking-tight">{step.account.action}</p>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{step.because} {step.account.why}</p>
+              <a
+                href={step.account.signupUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-block border border-text px-4 py-2 font-mono text-[11px] uppercase tracking-[0.2em] hover:bg-text hover:text-bg"
+              >
+                open {step.account.name}
+              </a>
+            </>
+          ) : (
+            <p className="mt-3 text-lg font-semibold tracking-tight">Everything is connected.</p>
+          )}
+          <p className="mt-4 font-mono text-[10px] uppercase leading-relaxed tracking-[0.15em] text-muted-2">
+            {trialOffer()}
+          </p>
+        </div>
 
         {/* Progress rule */}
         <div className="mt-10">
@@ -158,7 +192,7 @@ export default async function ConnectPage({ searchParams }: { searchParams: Prom
             <div className="h-[3px] bg-text" style={{ width: `${pct}%` }} />
           </div>
           <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-2">
-            {connected} of {total} · {pct}% of the map connected
+            {accounts.connected} of {accounts.total} accounts · {connected} of {total} capabilities
           </p>
         </div>
 
