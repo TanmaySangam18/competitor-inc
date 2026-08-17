@@ -95,10 +95,16 @@ export const CONNECTION_MAP: Connection[] = [
   {
     id: "database", name: "Database (Supabase / Neon)", tier: "T0", department: "engineering", owner: "customer",
     purpose: "Per-product data, RLS isolation",
-    env: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
-    // Both halves or neither: the client needs the public URL, the server needs the service key. One
-    // alone is a deployment that looks connected and cannot authenticate anybody.
-    envGroups: [["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]],
+    env: ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"],
+    // ALL THREE or nothing. The browser client reads NEXT_PUBLIC_SUPABASE_URL and
+    // NEXT_PUBLIC_SUPABASE_ANON_KEY (lib/supabase/client.ts); the server reads the service key. The anon
+    // key was missing from this list, which meant detection could still say CONNECTED while sign-in was
+    // impossible: the same false positive one layer down.
+    //
+    // Both NEXT_PUBLIC_ vars must be NON-SENSITIVE in Vercel. A var marked Sensitive is not inlined into
+    // the client bundle, so it is present on the server, absent in the browser, and the deployment looks
+    // configured while nobody can log in. That is exactly how this shipped.
+    envGroups: [["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"]],
     unlocks: "Products can persist data; every tenant isolated by RLS.",
     degraded: "Stateless only. Nothing that needs stored data can ship.",
     required: false, // gates the "persist" capability, not startup (A1)

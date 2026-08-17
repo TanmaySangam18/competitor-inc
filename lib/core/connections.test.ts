@@ -122,7 +122,14 @@ describe("detection cannot report connected when it is only half connected", () 
     const db = CONNECTION_MAP.find((c) => c.id === "database")!;
     expect(isConfigured(db, { SUPABASE_SERVICE_ROLE_KEY: "svc" })).toBe(false);
     expect(isConfigured(db, { NEXT_PUBLIC_SUPABASE_URL: "https://x.supabase.co" })).toBe(false);
-    expect(isConfigured(db, { NEXT_PUBLIC_SUPABASE_URL: "https://x.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "svc" })).toBe(true);
+    // The anon key is what the BROWSER authenticates with. Omitting it from detection was the same false
+    // positive one layer down: server-side reads work, sign-in does not.
+    expect(isConfigured(db, { NEXT_PUBLIC_SUPABASE_URL: "https://x.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "svc" })).toBe(false);
+    expect(isConfigured(db, {
+      NEXT_PUBLIC_SUPABASE_URL: "https://x.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
+      SUPABASE_SERVICE_ROLE_KEY: "svc",
+    })).toBe(true);
   });
 
   it("keeps any-of where alternatives really are alternatives", () => {
