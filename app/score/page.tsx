@@ -11,16 +11,16 @@ import DemandRadarPanel from "@/components/DemandRadarPanel";
 // HN/StackExchange/GitHub, every signal a clickable source link) is folded in below the scorecard, so
 // the honest, verifiable demand read survives the simplification. Shared site chrome, one nav.
 export const metadata: Metadata = {
-  title: "Score your startup idea — free · competitor.inc",
+  title: "Score your startup idea, free · competitor.inc",
   description:
     "Get an honest AI verdict on your startup idea in 30 seconds — the score, the evidence behind it, and the crew that would build it. Free, no signup.",
   openGraph: {
-    title: "Score your startup idea — free",
+    title: "Score your startup idea, free",
     description: "An honest AI verdict in 30 seconds: the score, the evidence, and the crew that would build it.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Score your startup idea — free",
+    title: "Score your startup idea, free",
     description: "An honest AI verdict in 30 seconds: the score, the evidence, and the crew that would build it.",
   },
 };

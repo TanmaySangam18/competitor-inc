@@ -10,7 +10,7 @@ import { vaultReady } from "@/lib/engine/user-connections-db";
 // no localhost listeners, nothing stored until the CLI actually saves a key.
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "competitor.inc — pair your terminal" };
+export const metadata: Metadata = { title: "competitor.inc · pair your terminal" };
 
 export default async function CliPairPage() {
   const sb = await getServerSupabase();

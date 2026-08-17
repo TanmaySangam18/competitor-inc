@@ -437,7 +437,10 @@ below) before launch hardening.
   The lead competitor as of **2026-08** is **Naive** (usenaive.ai, "Ship Apps. Agents. Companies.",
   $28.5M Series A announced 2026-08-06): the same bundle thesis, funded. Wix Symphony shipped a comparable
   bundle for SMBs on 2026-08-11. **Bundling is therefore table stakes, not a wedge.** We
-  **counter-position** on the thing none of them govern: whether what the agent says is TRUE. Naive's own
+  **counter-position** on the thing almost none of them govern and none of them govern lawfully: whether what
+  the agent says is TRUE, and which statute applies when it says it. One of 26 surveyed (Lyzr) governs output
+  quality; ZERO name CAN-SPAM, TCPA, DNC or recipient-side AI disclosure, and two sell safety as an add-on.
+  Naive's own
   docs concede the default tenant user is ungated and that **222 of their 271 tools assert no gate at
   all**; no vendor surveyed names CAN-SPAM, TCPA or the AI-disclosure statutes. Full analysis in
   [`docs/NAIVE-GAP-LIST.md`](docs/NAIVE-GAP-LIST.md), including what we deliberately refuse to copy

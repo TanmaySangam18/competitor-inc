@@ -28,7 +28,7 @@ import TreasuryPanel, { type EnvelopeView } from "@/components/connect/TreasuryP
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "competitor.inc — connect",
+  title: "competitor.inc · connect",
   description: "Connect your accounts. The company runs itself. The full connection map, with live status.",
 };
 

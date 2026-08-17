@@ -21,7 +21,7 @@ function hostIsLocalhost(): boolean {
 
 // The real internal tooling — each is its own gated page under /house.
 const TOOLS: { href: string; title: string; desc: string; icon: typeof Receipt }[] = [
-  { href: "/house/proof", title: "Proof & receipts", desc: "The private, receipted revenue ledger — real numbers only, no projected fiction.", icon: Receipt },
+  { href: "/house/proof", title: "Proof & receipts", desc: "The private, receipted revenue ledger: real numbers only, no projected fiction.", icon: Receipt },
   { href: "/house/ledger", title: "Revenue pipeline", desc: "The cohort-owner pipeline toward $10K MRR.", icon: LineChart },
   { href: "/house/board", title: "Metrics board", desc: "The live KPI board (secret-gated).", icon: BarChart3 },
   { href: "/house/cohort", title: "Cohort", desc: "Cohort view with sample data.", icon: Users },

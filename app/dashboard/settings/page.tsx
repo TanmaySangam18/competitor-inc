@@ -365,11 +365,11 @@ function Integrations({ cfg }: { cfg: ReturnType<typeof useConfig> }) {
 
   // `self` = the user can connect it themselves below; otherwise it's operator-level (set via deploy env).
   const items: { key: string; icon: typeof Github; name: string; desc: string; self?: boolean }[] = [
-    { key: "model", icon: Cpu, name: "AI model", desc: "Real reasoning — Claude, GPT, gateway, or your own key.", self: true },
+    { key: "model", icon: Cpu, name: "AI model", desc: "Real reasoning via Claude, GPT, gateway, or your own key.", self: true },
     { key: "github", icon: Github, name: "GitHub build", desc: "Engineering creates real repos & commits (verified before done).", self: true },
-    { key: "deploy", icon: Globe, name: "Deploy", desc: "Real Vercel deploys — a live product URL." },
+    { key: "deploy", icon: Globe, name: "Deploy", desc: "Real Vercel deploys, a live product URL." },
     { key: "email", icon: Mail, name: "Email", desc: "Outreach, support & the nightly morning summary.", self: true },
-    { key: "payments", icon: CreditCard, name: "Payments", desc: "Payment links for your product — coming soon, not available yet." },
+    { key: "payments", icon: CreditCard, name: "Payments", desc: "Payment links for your product, coming soon, not available yet." },
     { key: "ads", icon: Megaphone, name: "Ads", desc: "Approved ad spend routed to your own pipeline.", self: true },
   ];
 

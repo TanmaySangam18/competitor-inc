@@ -2,7 +2,7 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
-export const metadata = { title: "Terms — competitor.inc" };
+export const metadata = { title: "Terms · competitor.inc" };
 
 export default function Terms() {
   return (

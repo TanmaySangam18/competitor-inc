@@ -45,7 +45,7 @@ const fraunces = Fraunces({
 
 // Canonical site URL (single source of truth in @/lib/site) — absolute OG image URLs need it, and
 // canonical/share URLs must point at the founder's live domain, not the stale account.
-const TITLE = "competitor.inc — an AI software company that runs itself";
+const TITLE = "competitor.inc · an AI software company that runs itself";
 const DESCRIPTION =
   "Connect your accounts once. A governed AI organization validates, builds, deploys, runs, and sells — you oversee the work and sign the rare decision that needs a human. Every claim is verifiable.";
 

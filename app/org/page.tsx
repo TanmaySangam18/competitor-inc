@@ -12,7 +12,7 @@ import { DEPARTMENTS, ROLES, orgSize, getRole, validateOrg, type OrgRole } from 
 // show an agent that doesn't exist or hide one that does. Every role links to its detail page.
 
 export const metadata: Metadata = {
-  title: "competitor.inc — the workforce",
+  title: "competitor.inc · the workforce",
   description:
     "Every AI employee in the company, as a real org chart: who reports to whom, what each role does, and the acts that always require the human. Rendered from the canonical role model.",
 };

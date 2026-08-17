@@ -20,9 +20,9 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const role = getRole(id);
-  if (!role) return { title: "Role not found — competitor.inc" };
+  if (!role) return { title: "Role not found · competitor.inc" };
   return {
-    title: `${role.title} — the workforce — competitor.inc`,
+    title: `${role.title} · the workforce · competitor.inc`,
     description: role.mandate,
   };
 }

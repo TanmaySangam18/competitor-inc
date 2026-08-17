@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 // simulation. We NEVER claim real customers or "Microsoft-scale"; we claim exactly what the machine passes.
 
 export const metadata: Metadata = {
-  title: "competitor.inc — proven in simulation",
+  title: "competitor.inc · proven in simulation",
   description:
     "A live, dated benchmark: the governed AI company run against a synthetic enterprise — grounded answers, tenant isolation, six failure drills, and the safety gate. Proven in simulation, not a customer claim.",
 };

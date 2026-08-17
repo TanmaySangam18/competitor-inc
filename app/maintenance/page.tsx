@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 // The public maintenance screen shown while the backend is rebuilt (see middleware.ts). One calm screen,
 // no scroll, teal brand. Honest: we're rebuilding, back soon — no fake countdowns or promises.
 export const metadata: Metadata = {
-  title: "competitor.inc — under maintenance",
+  title: "competitor.inc · under maintenance",
   description: "competitor.inc is briefly down for maintenance while we rebuild. Back soon.",
   robots: { index: false, follow: false },
 };

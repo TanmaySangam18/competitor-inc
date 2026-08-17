@@ -21,8 +21,17 @@ not yet. Nothing in this document should be read as traction.
 
 ## 2. The one idea: an agent may act, but it may never be the last word on anything that matters
 
-Every competitor in this category governs **spend** and **permissions**. None of them governs **truth**.
-That is the design centre here, and it explains most of the structure. An agent can draft, plan, build,
+Every competitor in this category governs **spend** and **permissions**. Almost none governs **truth**, and
+none governs it while naming the law. That is the design centre here, and it explains most of the structure.
+
+**Stated precisely, because the loose version was wrong.** A 2026-08-17 sweep of 26 companies found exactly
+one (Lyzr) governing output quality at all: hallucination scoring, PII masking, bias checks and immutable
+decision logs. So "nobody governs truth" is false. What is still true, and checked against every page
+surveyed, is that **recipient-side AI disclosure, CAN-SPAM, TCPA and DNC appear nowhere** across all 26,
+including a dozen that ship outbound email, SMS or phone calls. Two vendors go further and make safety
+optional: Retell bills guardrails at $0.005 a minute, ZoomInfo makes DNC suppression opt-in. Our claim is
+therefore narrow and defensible: we govern truth **and** name the statute, and our rails are never priced
+and never toggled. See [research/COMPETITOR-CORPUS.md](research/COMPETITOR-CORPUS.md). An agent can draft, plan, build,
 test and deploy. It cannot decide that a claim is accurate, that a term is accepted, or that money moves.
 
 This produces three things a normal SaaS codebase does not have:

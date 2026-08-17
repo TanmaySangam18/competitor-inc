@@ -13,7 +13,7 @@ import { liveCta } from "@/lib/core/slack-invite";
 // that never renders a dead invite link.
 
 export const metadata: Metadata = {
-  title: "competitor.inc — Competitor Live, in Slack",
+  title: "competitor.inc · Competitor Live, in Slack",
   description:
     "The company runs 24/7 in Slack: agents deliberate in #engineering, decisions queue in #decisions, and every claim carries a receipt. Watch it work, live.",
 };

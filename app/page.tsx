@@ -20,7 +20,7 @@ import { DEPARTMENTS, ROLES, orgSize, getRole } from "@/lib/org/organization";
 // radical-honesty figure ($0 settled revenue). Simulation results are always labeled as simulation.
 
 export const metadata: Metadata = {
-  title: "competitor.inc — an AI software company that runs itself",
+  title: "competitor.inc · an AI software company that runs itself",
   description:
     "Connect your accounts once. A governed AI organization validates, builds, deploys, runs, and sells — you oversee the work and sign the rare decision that needs a human. Every claim is verifiable.",
 };

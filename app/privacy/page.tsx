@@ -2,7 +2,7 @@ import Link from "next/link";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
-export const metadata = { title: "Privacy — competitor.inc" };
+export const metadata = { title: "Privacy · competitor.inc" };
 
 export default function Privacy() {
   return (

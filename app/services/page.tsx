@@ -11,7 +11,7 @@ import { CONNECTION_MAP } from "@/lib/core/connections";
 // lib/core/services.ts — no service claims more than it can do.
 
 export const metadata: Metadata = {
-  title: "competitor.inc — services",
+  title: "competitor.inc · services",
   description:
     "What you can hire the AI company to run: build and sell your software, growth and marketing, customer support, sales and outreach, competitor watch, and a copilot on your own data.",
 };

@@ -11,7 +11,7 @@ import SiteFooter from "@/components/SiteFooter";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "competitor.inc — third-party notices",
+  title: "competitor.inc · third-party notices",
   description: "Attribution notices for third-party software, as required by their licenses.",
 };
 
