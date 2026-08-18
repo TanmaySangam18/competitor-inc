@@ -75,7 +75,7 @@ describe("the report adds up", () => {
   });
 
   it("covers all eight departments", () => {
-    const covered = new Set(DELIVERABLES.map((d) => d.department));
+    const covered = new Set<string>(DELIVERABLES.map((d) => d.department));
     for (const dept of DEPARTMENTS) expect(covered.has(dept.id), `${dept.id} has no deliverables`).toBe(true);
   });
 
