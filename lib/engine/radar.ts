@@ -45,15 +45,20 @@ const STOP = new Set([
   "a","an","the","for","and","or","of","to","in","on","with","that","this","app","platform","tool",
   "my","your","our","is","are","be","it","as","at","by","from","i","we","you","they","help","people",
   "make","build","building","new","startup","idea","company","service","product","using","use","via",
+  // filler that was outranking the real nouns: "tells northeastern" beat "co-op postings" until these
+  // joined the list. Verbs-of-saying and interrogatives carry no search signal.
+  "which","who","what","when","where","why","how","tells","tell","turns","turn","want","wants",
+  "need","needs","into","really","actually","just","about","them","their","gets","get","lets","let",
 ]);
 
 // Pull the meaningful keywords out of an idea sentence (pure — unit-tested without network).
 export function deriveQuery(idea: string, max = 5): string {
   const words = (idea || "")
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/[^a-z0-9\s-]/g, " ")     // KEEP hyphens: "co-op" must stay one token, not "co" + "op"
     .split(/\s+/)
-    .filter((w) => w.length > 2 && !STOP.has(w));
+    .map((w) => w.replace(/^-+|-+$/g, ""))  // trim stray edge hyphens ("-" alone becomes "")
+    .filter((w) => (w.length > 2 || w.includes("-")) && !STOP.has(w));
   // de-dupe, keep order, cap
   const seen = new Set<string>();
   const out: string[] = [];

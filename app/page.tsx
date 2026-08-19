@@ -22,7 +22,7 @@ import { DEPARTMENTS, ROLES, orgSize, getRole } from "@/lib/org/organization";
 export const metadata: Metadata = {
   title: "competitor.inc · an AI software company that runs itself",
   description:
-    "Connect your accounts once. A governed AI organization validates, builds, deploys, runs, and sells — you oversee the work and sign the rare decision that needs a human. Every claim is verifiable.",
+    "Connect your accounts once. A governed AI organization validates, builds, deploys, runs, and sells. You oversee the work and sign the rare decision that needs a human. Every claim is verifiable.",
 };
 
 // The mono eyebrow label — the section marker of the brutalist system.
@@ -44,7 +44,7 @@ const STEPS = [
     n: "01",
     title: "Connect",
     body:
-      "Your accounts, your keys, your ownership. The company runs on accounts you control — bring your own keys — so everything it builds and earns is yours.",
+      "Your accounts, your keys, your ownership. The company runs on accounts you control, with your own keys, so everything it builds and earns is yours.",
   },
   {
     n: "02",
@@ -56,22 +56,22 @@ const STEPS = [
     n: "03",
     title: "Verify everything",
     body:
-      "Every action lands on a tamper-evident, hash-chained ledger. Every claim carries a receipt — or it is labeled simulation and never counted as real.",
+      "Every action lands on a tamper-evident, hash-chained ledger. Every claim carries a receipt, or it is labeled simulation and never counted as real.",
   },
 ];
 
 const FAQ = [
   {
     q: "Is it free to start?",
-    a: "Yes. The demo and the whole showcase are free — no card. You pay only when you put the company to work on paid tiers, and payments are currently paused while the platform proof hardens.",
+    a: "Yes. The demo and the whole showcase are free, no card. You pay only when you put the company to work on paid tiers, and payments are currently paused while the platform proof hardens.",
   },
   {
     q: "Whose keys and accounts does it run on?",
-    a: "Yours. BYOK — the org runs on your model keys, your GitHub, your hosting, your payment account. Everything it builds and earns belongs to you, and you can revoke any key at any time.",
+    a: "Yours. With BYOK, the org runs on your model keys, your GitHub, your hosting, your payment account. Everything it builds and earns belongs to you, and you can revoke any key at any time.",
   },
   {
     q: "What can it actually do today?",
-    a: "Exactly what the benchmark page passes, live: grounded answers, tenant isolation, honest abstention, the failure drills, and the safety gate — proven in simulation. We claim nothing beyond what the machine passes.",
+    a: "Exactly what the benchmark page passes, live: grounded answers, tenant isolation, honest abstention, the failure drills, and the safety gate, proven in simulation. We claim nothing beyond what the machine passes.",
   },
   {
     q: "Is anything on this site made up?",
@@ -109,8 +109,8 @@ export default async function Landing() {
           <span className="text-muted">Governed by one human: you.</span>
         </h1>
         <p className="mt-7 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
-          Connect your accounts once. The AI organization validates, builds, deploys, runs, and sells —
-          you oversee the work and sign the rare decision that needs a human.
+          Connect your accounts once. The AI organization validates, builds, deploys, runs, and sells. You
+          oversee the work and sign the rare decision that needs a human.
         </p>
         <div className="mt-10 flex flex-wrap items-center gap-6">
           <a href="/dashboard" className={BTN_PRIMARY}>
@@ -154,14 +154,14 @@ export default async function Landing() {
               {/* HONESTY FLOOR: this figure changes ONLY when real, settled receipts exist.
                   Never seed it, never round it up, never mix simulation into it. */}
               <p className="display text-4xl sm:text-5xl">$0</p>
-              <p className="mt-2 text-sm text-muted">settled revenue — the real number, shown proudly</p>
+              <p className="mt-2 text-sm text-muted">settled revenue, the real number, shown proudly</p>
               <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-2">
                 settled = cash received, not refunded
               </p>
             </div>
           </div>
           <p className="mt-4 text-xs leading-relaxed text-muted-2">
-            The drill and gate numbers run from the same code the test suite enforces — rerun them live,
+            The drill and gate numbers run from the same code the test suite enforces. Rerun them live,
             with methodology, on{" "}
             <a href="/benchmark" className="underline underline-offset-2 transition hover:text-text">
               the benchmark page
@@ -207,7 +207,7 @@ export default async function Landing() {
             {orgSize()} AI employees. {departments.length} departments. One human signature.
           </h2>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted">
-            This is the real org chart, rendered from the same role model the engine runs — it cannot
+            This is the real org chart, rendered from the same role model the engine runs, so it cannot
             show an agent that doesn&apos;t exist or hide one that does. Agents prepare everything; the
             human signs money, contracts, and launches.
           </p>
@@ -254,8 +254,8 @@ export default async function Landing() {
               The company runs 24/7 in Slack. Watch it work, live.
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted">
-              No new app to learn. The org deliberates in channels while you sleep — engineering reviews
-              in #engineering, decisions queued in #decisions — and @-mentions you exactly when a human
+              No new app to learn. The org deliberates in channels while you sleep: engineering reviews
+              in #engineering, decisions queued in #decisions, and @-mentions you exactly when a human
               signature is required. The website is the showcase; the office is Slack.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-5">
@@ -275,7 +275,7 @@ export default async function Landing() {
             </div>
             {!cta.live && (
               <p className="mt-4 font-mono text-[11px] leading-relaxed text-muted-2">
-                The workspace opens soon — the waitlist gets the first invites. No dead links, no fake doors.
+                The workspace opens soon, and the waitlist gets the first invites. No dead links, no fake doors.
               </p>
             )}
           </div>
@@ -286,10 +286,10 @@ export default async function Landing() {
       {/* 6 · the receipts — every drill a case, computed at render, labeled simulation */}
       <section className="border-t border-border">
         <div className="mx-auto w-full max-w-5xl px-6 py-16">
-          <Label>The receipts — proven in simulation</Label>
+          <Label>The receipts, proven in simulation</Label>
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted">
             No customer case studies exist yet, so we don&apos;t invent any. These are the cases we can
-            prove: {drills.total} failure drills run against the governed company — each one a disaster
+            prove: {drills.total} failure drills run against the governed company, each one a disaster
             scenario it must survive. Three of them below, computed at render from the same code the
             test suite enforces; the full set runs live on the benchmark page.
           </p>
@@ -309,7 +309,7 @@ export default async function Landing() {
             href="/benchmark"
             className="mt-6 inline-block font-mono text-xs font-medium underline underline-offset-4 transition hover:text-muted"
           >
-            Run the full benchmark live — numbers + methodology
+            Run the full benchmark live: numbers and methodology
           </a>
         </div>
         {/* the live surfaces the company runs on itself — every pill a real route */}
@@ -332,7 +332,7 @@ export default async function Landing() {
               </p>
               <h2 className="display mt-2 text-lg">Spend + process</h2>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                Budgets, caps, approval queues, kill switches. Necessary — ours are on by default.
+                Budgets, caps, approval queues, kill switches. Necessary, and ours are on by default.
               </p>
             </div>
             <div className="bg-bg p-6">
@@ -341,8 +341,8 @@ export default async function Landing() {
               </p>
               <h2 className="display mt-2 text-lg">Truth + outcome</h2>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                Validate before build — the org tests demand first and will tell you &quot;don&apos;t
-                build it.&quot; Verify after ship — every action is hash-chained to the ledger, and every
+                Validate before build: the org tests demand first and will tell you &quot;don&apos;t
+                build it.&quot; Verify after ship: every action is hash-chained to the ledger, and every
                 public number traces to a receipt or is labeled simulation.
               </p>
             </div>

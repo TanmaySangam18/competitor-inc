@@ -78,3 +78,27 @@ describe("buildReport", () => {
     expect(rep.trend).toBe("rising");
   });
 });
+
+describe("deriveQuery survives the real ideas (regression from a live run)", () => {
+  it("keeps co-op as one token instead of destroying it", () => {
+    // Found by running the product: "A tool that tells Northeastern students which co-op postings are
+    // actually real" searched "tells northeastern" and surfaced Yankee Candle articles. The hyphen was
+    // split into "co" + "op", both dropped as too short, and filler verbs outranked the real nouns.
+    const q = deriveQuery("A tool that tells Northeastern students which co-op postings are actually real");
+    expect(q).toContain("co-op");
+    expect(q).toContain("northeastern");
+    expect(q).toContain("postings");
+    expect(q).not.toContain("tells");
+    expect(q).not.toContain("which");
+    expect(q).not.toContain("actually");
+  });
+
+  it("still extracts sane queries from the other seed ideas", () => {
+    expect(deriveQuery("A tool that turns my voice notes into to-dos")).toContain("voice");
+    expect(deriveQuery("A booking page for a local tutor")).toMatch(/booking|tutor/);
+  });
+
+  it("never returns an empty query even for a stopword-only idea", () => {
+    expect(deriveQuery("a tool that we build").length).toBeGreaterThan(0);
+  });
+});
