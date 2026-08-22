@@ -32,6 +32,9 @@ const MODEL_CHEAP = process.env.MODEL_CHEAP || "claude-haiku-4-5";
 // Mid tier: Sonnet 5 — near-Opus quality on agentic work at $3/$15 per MTok (intro $2/$10 through
 // 2026-08-31) vs Opus 4.8's $5/$25. Override with MODEL_MID.
 const MODEL_MID = process.env.MODEL_MID || "claude-sonnet-5";
+// Captured here, beside MODEL_MID / MODEL_CHEAP themselves, rather than read live at call time. A live
+// check against frozen values can disagree with them, which is a bug waiting for its first test.
+const TIERS_NAMED = !!(process.env.MODEL_MID?.trim() || process.env.MODEL_CHEAP?.trim());
 
 // Hybrid routing (cost): route the CHEAP tier (routine copy — marketing/growth/support/ops) to a FREE
 // OpenAI-compatible provider (e.g. Groq) while MID/STRONG stay on Claude (the validation verdict + code
@@ -46,6 +49,7 @@ const FREE_TIER_MODEL = process.env.FREE_TIER_MODEL || "llama-3.3-70b-versatile"
 // lives in ./per-agent-model-routing (shared with cost estimation + telemetry); this resolver adds
 // the env-overridable model ids. The managed engine honors this; BYOK always uses the user's model.
 import { AGENT_MODEL_TIER } from "./per-agent-model-routing";
+import { availableProviders } from "./model-providers";
 // Runtime cost governance: trim/dedupe/budget any prior-context blob before it enters a model prompt,
 // so a company's growing history can't balloon the per-shift token bill. Pure/deterministic, and
 // idempotent-safe (compressing an already-compressed blob stays within budget), so it's safe to apply
@@ -54,6 +58,11 @@ import { compressContext } from "./context-compression";
 
 export function modelForAgent(role: AgentRole): string {
   const tier = AGENT_MODEL_TIER[role] ?? "cheap";
+  // The three tiers are Claude model ids. Sending "claude-haiku-4-5" to Groq is a 404, so when the
+  // resolved provider came from the registry and is not Anthropic, the tiers collapse to that
+  // provider's own model. An operator who names tier models explicitly keeps them.
+  const m = managedModel();
+  if (m?.providerId && m.providerId !== "anthropic" && !TIERS_NAMED) return m.model;
   return tier === "strong" ? MODEL : tier === "mid" ? MODEL_MID : MODEL_CHEAP;
 }
 
@@ -61,8 +70,50 @@ export function modelForAgent(role: AgentRole): string {
 // engine resolves from env to: Anthropic, the Vercel AI Gateway (any provider via "provider/model"),
 // or any OpenAI-compatible / self-hosted endpoint. BYOK (below) adds a per-user override.
 type Managed =
-  | { kind: "anthropic"; key: string; model: string }
-  | { kind: "openai"; baseUrl: string; key: string; model: string };
+  | { kind: "anthropic"; key: string; model: string; providerId?: string }
+  | { kind: "openai"; baseUrl: string; key: string; model: string; providerId?: string };
+
+/**
+ * Default model per provider, used when the operator set a vendor key but no MODEL_ID. Without this a
+ * bare GROQ_API_KEY would send "claude-opus-4-8" to Groq and 404 on every call. MODEL_ID still wins.
+ */
+const PROVIDER_DEFAULT_MODEL: Record<string, string> = {
+  anthropic: "claude-opus-4-8",
+  groq: "llama-3.3-70b-versatile",
+  openai: "gpt-4o-mini",
+  openrouter: "openai/gpt-4o-mini",
+  gemini: "gemini-2.0-flash",
+  mistral: "mistral-small-latest",
+  grok: "grok-2-latest",
+};
+
+/**
+ * Resolve a provider from the REGISTRY (lib/engine/model-providers), which is the single source of
+ * truth for what this deployment can talk to.
+ *
+ * WHY THIS EXISTS. managedModel below understood exactly three env shapes: anthropic+MODEL_PROVIDER,
+ * the Vercel gateway, and a self-hosted endpoint. A bare vendor key such as GROQ_API_KEY matched none
+ * of them, so realModelConfigured() returned false and every agent stayed silent while /connect
+ * happily reported a model was connected. That is the same "one fact, three definitions" defect the
+ * comment in model-providers.ts describes; modelConfigured() there was taught about Groq, but the
+ * function that actually picks the endpoint never was. Found 2026-08-22 by adding a real key and
+ * getting silence.
+ *
+ * Local providers are deliberately skipped: Ollama needs no key, so its mere presence in the registry
+ * must never be read as "this deployment has cognition" when nothing is listening on that port.
+ */
+function registryModel(): Managed | null {
+  for (const prov of availableProviders()) {
+    if (prov.kind === "local" || !prov.envKey) continue;
+    const key = process.env[prov.envKey]?.trim();
+    if (!key) continue;
+    const model = process.env.MODEL_ID?.trim() || PROVIDER_DEFAULT_MODEL[prov.id] || MODEL;
+    return prov.format === "anthropic"
+      ? { kind: "anthropic", key, model, providerId: prov.id }
+      : { kind: "openai", baseUrl: prov.baseUrl, key, model, providerId: prov.id };
+  }
+  return null;
+}
 
 function managedModel(): Managed | null {
   if (PROVIDER === "anthropic" && KEY) return { kind: "anthropic", key: KEY, model: MODEL };
@@ -70,7 +121,9 @@ function managedModel(): Managed | null {
     return { kind: "openai", baseUrl: "https://ai-gateway.vercel.sh/v1", key: GATEWAY_KEY, model: MODEL };
   if ((PROVIDER === "openai-compatible" || PROVIDER === "private") && SELF_HOST_URL && SELF_HOST_KEY)
     return { kind: "openai", baseUrl: SELF_HOST_URL, key: SELF_HOST_KEY, model: MODEL };
-  return null;
+  // A bare vendor key with no MODEL_PROVIDER set. This is the ordinary case for anyone who just
+  // pasted one key, and it used to resolve to nothing.
+  return registryModel();
 }
 
 export function realModelConfigured(): boolean {
