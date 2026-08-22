@@ -117,6 +117,11 @@ export interface ToolResult {
    * request for a signature, and the UI renders it as a card with Approve and Decline.
    */
   proposal?: { tool: string; what: string; detail: string; because: string; args: Record<string, unknown> };
+  /**
+   * Set once an approved build has cleared every gate and the caller should now actually dispatch it.
+   * Present ONLY on the approved path, so its existence is itself the proof that a human signed.
+   */
+  dispatch?: { goal: string };
 }
 
 /**
@@ -275,13 +280,16 @@ export function runApproved(agentId: string, tool: string, args: Record<string, 
       };
     }
 
-    // Reached only once builds are genuinely configured. Deliberately NOT dispatching yet: this
-    // endpoint has no caller authentication, and an unauthenticated route that spends CI minutes and
-    // writes to a real repo is not something to ship quietly. Gate the route first, then dispatch.
+    // Reached only when builds are configured AND the route has already identified the caller
+    // (lib/workspace/who.ts). Dispatch is still the caller's job rather than this pure module's: the
+    // actual GitHub call is async and this function is deliberately synchronous and side-effect free
+    // so it stays exhaustively testable.
     return {
       tool,
-      ok: false,
-      summary: `Builds are configured, but this door is not authenticated yet. Approving here must not be able to spend from a repo without knowing who clicked. That gate comes before the first real build.`,
+      ok: true,
+      mutated: true,
+      summary: `Approved and ready to dispatch: ${goal}`,
+      dispatch: { goal },
     };
   }
 

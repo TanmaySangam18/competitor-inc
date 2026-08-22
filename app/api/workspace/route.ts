@@ -3,6 +3,7 @@ import { routeMessage, agentPersona, getAgent } from "@/lib/workspace/agents";
 import { getChannel, channels } from "@/lib/workspace/channels";
 import { toolPrompt, parseAction, stripAction, runTool, runApproved, contextFor } from "@/lib/workspace/tools";
 import { speakAsAgent } from "@/lib/engine/server";
+import { authoriseApproval } from "@/lib/workspace/who";
 import { realModelConfigured } from "@/lib/engine/server";
 
 export const runtime = "nodejs";
@@ -44,10 +45,18 @@ export async function POST(req: Request) {
     }
     const who = getAgent(agentId);
     if (!who) return Response.json({ ok: false, error: `no agent ${agentId}` }, { status: 400 });
+
+    // WHO IS SIGNING. Checked before anything runs, and fail-closed: an approval from nobody is not
+    // an approval. This is the gate that had to exist before build.start could ever dispatch.
+    const caller = await authoriseApproval(req);
+    if (!caller.ok) {
+      return Response.json({ ok: false, error: caller.reason }, { status: 401 });
+    }
     const args = c.args && typeof c.args === "object" && !Array.isArray(c.args) ? (c.args as Record<string, unknown>) : {};
     return Response.json({
       ok: true,
-      speaker: { id: who.id, title: who.title, handle: who.handle, department: who.departmentName, why: "you approved this" },
+      speaker: { id: who.id, title: who.title, handle: who.handle, department: who.departmentName, why: `approved by ${caller.who}` },
+      approvedBy: { who: caller.who, proof: caller.proof },
       action: runApproved(agentId, tool, args),
     });
   }
