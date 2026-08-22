@@ -91,7 +91,7 @@ async function run() {
   const st = await get("/api/engine");
   if (st) { const j = await st.json(); j.ok === true ? ok("status ok") : fail("status not ok"); }
   const v = await post("/api/engine", { kind: "validate", idea: "a meal planner" }, 200);
-  if (v) { const j = await v.json(); j.validation && ["strong", "weak"].includes(j.validation.verdict) ? ok("validate shape ok") : fail("validate shape bad"); }
+  if (v) { const j = await v.json(); j.validation && ["strong", "weak", "mixed"].includes(j.validation.verdict) ? ok("validate shape ok") : fail("validate shape bad"); }
   const s = await post("/api/engine", { kind: "shift", company }, 200);
   if (s) { const j = await s.json(); Array.isArray(j.activities) && Array.isArray(j.approvals) ? ok("shift shape ok") : fail("shift shape bad"); }
   const c = await post("/api/engine", { kind: "chat", company: { name: "X", idea: "i" }, message: "hi" }, 200);

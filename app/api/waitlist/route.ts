@@ -1,5 +1,6 @@
 import { serviceClient } from "@/lib/engine/service";
 import { codeFrom } from "@/lib/engine/refcode";
+import { captureLead, DIRECT_CONTACT } from "@/lib/engine/lead-fallback";
 import { notifyFounder } from "@/lib/engine/notify-founder";
 import { overLimit, clientIp } from "@/lib/engine/ratelimit";
 
@@ -47,10 +48,26 @@ export async function POST(req: Request) {
   }
   const code = codeFrom(email);
 
+  // Every path below that cannot persist routes through here, so a lead is never dropped in silence.
+  const rescue = async (why: string) => {
+    const got = await captureLead({ email, ref, why });
+    if (got.reached) {
+      // The founder has it. From the visitor's point of view they ARE on the list, which is true.
+      return Response.json({ ok: true, code, persisted: false, reached: true });
+    }
+    // Nothing caught it. Telling the visitor is the only way the lead survives.
+    return Response.json(
+      {
+        ok: false,
+        error: `We could not save that just now. Please email ${DIRECT_CONTACT} directly and you will be added by hand.`,
+        detail: got.why,
+      },
+      { status: 503 }
+    );
+  };
+
   const sb = serviceClient();
-  if (!sb) {
-    return Response.json({ ok: true, code, persisted: false });
-  }
+  if (!sb) return rescue("no database configured");
 
   try {
     // Is this a brand-new signup? (so we only email the founder once, not on every returning-visitor sync)
@@ -64,7 +81,7 @@ export async function POST(req: Request) {
       .upsert({ email, code, ref }, { onConflict: "email", ignoreDuplicates: true });
     if (insErr) {
       console.error("[/api/waitlist] insert failed:", insErr.message);
-      return Response.json({ ok: true, code, persisted: false });
+      return rescue(`insert failed: ${insErr.message}`);
     }
     if (isNew) {
       void notifyFounder(
@@ -83,6 +100,6 @@ export async function POST(req: Request) {
     return Response.json({ ok: true, code, persisted: true, position, referrals });
   } catch (err) {
     console.error("[/api/waitlist] failed:", err instanceof Error ? err.message : "unknown");
-    return Response.json({ ok: true, code, persisted: false });
+    return rescue(err instanceof Error ? err.message : "unknown error");
   }
 }
