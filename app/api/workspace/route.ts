@@ -1,0 +1,98 @@
+import { getRole } from "@/lib/org/organization";
+import { routeMessage, agentPersona, getAgent } from "@/lib/workspace/agents";
+import { getChannel, channels } from "@/lib/workspace/channels";
+import { toolPrompt, parseAction, stripAction, runTool, contextFor } from "@/lib/workspace/tools";
+import { speakAsAgent } from "@/lib/engine/server";
+import { realModelConfigured } from "@/lib/engine/server";
+
+export const runtime = "nodejs";
+
+// THE WORKSPACE DOOR (2026-08-22). POST a message into a channel; the colleague who owns that channel
+// answers, and may run one of ITS OWN tools. This is goal step 4 ("give a prompt to the agents") with
+// the Slack dependency removed: the prompt arrives here instead of through someone else's webhook.
+//
+// Honesty contract: when no model is reachable this returns modelConfigured:false and NO reply. It
+// does not fabricate a colleague's answer. A simulated employee is exactly the thing this company
+// exists not to ship.
+
+export async function GET() {
+  return Response.json({
+    ok: true,
+    capability: "workspace",
+    modelConfigured: realModelConfigured(),
+    channels: channels().map((c) => ({ id: c.id, purpose: c.purpose, members: c.memberCount, lead: c.lead?.title })),
+    usage: 'POST { "channel": "#product", "text": "...", "history": "optional transcript" }',
+  });
+}
+
+export async function POST(req: Request) {
+  let body: { channel?: unknown; text?: unknown; history?: unknown };
+  try {
+    body = await req.json();
+  } catch {
+    return Response.json({ ok: false, error: "bad json" }, { status: 400 });
+  }
+
+  const text = typeof body.text === "string" ? body.text.trim() : "";
+  if (!text || text.length > 4000) {
+    return Response.json({ ok: false, error: "text must be a non-empty string ≤ 4000 chars" }, { status: 400 });
+  }
+
+  const channelId = typeof body.channel === "string" ? body.channel : "#exec";
+  const channel = getChannel(channelId);
+  if (!channel) {
+    return Response.json({ ok: false, error: `no channel ${channelId}` }, { status: 400 });
+  }
+
+  const routed = routeMessage(text, channel.id);
+  if (!routed) {
+    return Response.json({ ok: false, error: `nobody is in ${channel.id}` }, { status: 400 });
+  }
+  const agent = routed.agent;
+  const role = getRole(agent.id)!;
+
+  const speaker = {
+    id: agent.id,
+    title: agent.title,
+    handle: agent.handle,
+    department: agent.departmentName,
+    why: routed.why,
+  };
+
+  if (!realModelConfigured()) {
+    // The honest dead-end. Named colleague, no invented words.
+    return Response.json({
+      ok: true,
+      modelConfigured: false,
+      speaker,
+      reply: null,
+      note: "No model key is configured, so no colleague can answer yet. Add one key to .env.local (GROQ_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY or OPENROUTER_API_KEY) and restart. Nothing here will invent a reply in the meantime.",
+    });
+  }
+
+  const history = typeof body.history === "string" ? body.history.slice(-6000) : "";
+  const system = agentPersona(role, contextFor(agent)) + "\n" + toolPrompt(agent.id);
+  const user = history ? `Recent conversation in ${channel.id}:\n${history}\n\nFounder: ${text}` : text;
+
+  const raw = await speakAsAgent(system, user, agent.execFn);
+  if (!raw) {
+    return Response.json({
+      ok: true,
+      modelConfigured: true,
+      speaker,
+      reply: null,
+      note: "The model did not answer. Nothing was invented in its place.",
+    });
+  }
+
+  const call = parseAction(raw);
+  const action = call ? runTool(agent.id, call) : null;
+
+  return Response.json({
+    ok: true,
+    modelConfigured: true,
+    speaker,
+    reply: stripAction(raw) || raw,
+    action: action ?? undefined,
+  });
+}

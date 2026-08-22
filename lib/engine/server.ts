@@ -529,6 +529,56 @@ function chatSystem(company: { name: string; idea: string }, soul?: string): str
   );
 }
 
+/**
+ * THE WORKSPACE BRIDGE (2026-08-22). Speak as a NAMED COLLEAGUE with a caller-supplied system prompt.
+ *
+ * `runChat` below hardcodes "You are the AI co-founder", which is right for the customer-facing
+ * co-founder chat and wrong for 56 distinct employees: the persona has to LEAD the prompt, not be
+ * appended to someone else's identity. So this takes the system prompt whole, from
+ * lib/workspace/agents.ts, and reuses every existing primitive underneath (key resolution, provider
+ * routing, SSRF guard, per-agent model tier, timeouts). No second HTTP path.
+ *
+ * Returns null rather than a fake reply when no model is reachable. The workspace shows an honest
+ * "no model configured" state instead of a simulated colleague, because a fabricated employee answer
+ * is exactly the kind of thing this company exists not to do.
+ */
+export async function speakAsAgent(
+  system: string,
+  user: string,
+  execFn: AgentRole = "ceo",
+  byok?: ByokConfig,
+  maxTokens = 700
+): Promise<string | null> {
+  if (!modelAvailable(byok)) return null;
+  try {
+    const text = await callModel(system, user, byok, modelForAgent(execFn), maxTokens);
+    return text.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Streaming twin of speakAsAgent. Null means "no model", same contract. */
+export async function streamAsAgent(
+  system: string,
+  user: string,
+  execFn: AgentRole = "ceo",
+  byok?: ByokConfig
+): Promise<AsyncGenerator<string> | null> {
+  if (!modelAvailable(byok)) return null;
+  try {
+    const gen = await callModelStream(system, user, byok, modelForAgent(execFn));
+    const first = await gen.next();
+    if (first.done || !first.value) return null;
+    return (async function* () {
+      yield first.value;
+      yield* gen;
+    })();
+  } catch {
+    return null;
+  }
+}
+
 export async function runChat(
   company: { name: string; idea: string },
   message: string,
