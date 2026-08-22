@@ -1,7 +1,7 @@
 import { getRole } from "@/lib/org/organization";
 import { routeMessage, agentPersona, getAgent } from "@/lib/workspace/agents";
 import { getChannel, channels } from "@/lib/workspace/channels";
-import { toolPrompt, parseAction, stripAction, runTool, contextFor } from "@/lib/workspace/tools";
+import { toolPrompt, parseAction, stripAction, runTool, runApproved, contextFor } from "@/lib/workspace/tools";
 import { speakAsAgent } from "@/lib/engine/server";
 import { realModelConfigured } from "@/lib/engine/server";
 
@@ -26,11 +26,30 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  let body: { channel?: unknown; text?: unknown; history?: unknown };
+  let body: { channel?: unknown; text?: unknown; history?: unknown; confirm?: unknown };
   try {
     body = await req.json();
   } catch {
     return Response.json({ ok: false, error: "bad json" }, { status: 400 });
+  }
+
+  // THE APPROVAL DOOR. The founder signing a specific proposal. Separate from the message path
+  // because an agent must not be able to reach it by writing a convincing sentence.
+  if (body.confirm && typeof body.confirm === "object") {
+    const c = body.confirm as Record<string, unknown>;
+    const agentId = typeof c.agentId === "string" ? c.agentId : "";
+    const tool = typeof c.tool === "string" ? c.tool : "";
+    if (!agentId || !tool) {
+      return Response.json({ ok: false, error: "confirm needs agentId and tool" }, { status: 400 });
+    }
+    const who = getAgent(agentId);
+    if (!who) return Response.json({ ok: false, error: `no agent ${agentId}` }, { status: 400 });
+    const args = c.args && typeof c.args === "object" && !Array.isArray(c.args) ? (c.args as Record<string, unknown>) : {};
+    return Response.json({
+      ok: true,
+      speaker: { id: who.id, title: who.title, handle: who.handle, department: who.departmentName, why: "you approved this" },
+      action: runApproved(agentId, tool, args),
+    });
   }
 
   const text = typeof body.text === "string" ? body.text.trim() : "";

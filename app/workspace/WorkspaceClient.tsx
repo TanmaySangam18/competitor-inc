@@ -7,7 +7,8 @@ import { useEffect, useRef, useState } from "react";
 // and it means this works tonight rather than after a migration.
 
 type Speaker = { id: string; title: string; handle: string; department: string; why: string };
-type Action = { tool: string; ok: boolean; summary: string; mutated?: boolean };
+type Proposal = { tool: string; what: string; detail: string; because: string; args: Record<string, unknown> };
+type Action = { tool: string; ok: boolean; summary: string; mutated?: boolean; proposal?: Proposal };
 
 type Msg = {
   id: string;
@@ -19,6 +20,9 @@ type Msg = {
   at: string;
   action?: Action;
   note?: string;
+  agentId?: string;
+  /** Set once the founder has decided, so a card cannot be clicked twice. */
+  decided?: "approved" | "declined";
 };
 
 export type ChannelInfo = { id: string; name: string; purpose: string; members: number; lead: string | null };
@@ -116,6 +120,7 @@ export default function WorkspaceClient({
             who: "agent",
             title: data.speaker?.title ?? "Colleague",
             handle: data.speaker?.handle,
+            agentId: data.speaker?.id,
             text: data.reply ?? "",
             note: data.note,
             action: data.action,
@@ -125,6 +130,42 @@ export default function WorkspaceClient({
       }
     } catch {
       setMessages((m) => [...m, { id: `x${Date.now()}`, channel: active, who: "agent", title: "System", text: "Could not reach the workspace API.", at: new Date().toISOString() }]);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // THE FOUNDER'S SIGNATURE. Marks the card decided FIRST so a double click cannot double-run, then
+  // posts. Declining is purely local: nothing was started, so there is nothing to call off.
+  async function decide(msg: Msg, yes: boolean) {
+    const p = msg.action?.proposal;
+    if (!p || msg.decided) return;
+    setMessages((m) => m.map((x) => (x.id === msg.id ? { ...x, decided: yes ? "approved" : "declined" } : x)));
+    if (!yes) return;
+
+    setBusy(true);
+    try {
+      const res = await fetch("/api/workspace", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ confirm: { agentId: msg.agentId, tool: p.tool, args: p.args } }),
+      });
+      const data = (await res.json()) as { ok: boolean; speaker?: Speaker; action?: Action; error?: string };
+      setMessages((m) => [
+        ...m,
+        {
+          id: `c${Date.now()}`,
+          channel: msg.channel,
+          who: "agent",
+          title: data.speaker?.title ?? msg.title,
+          agentId: msg.agentId,
+          text: "",
+          action: data.action ?? { tool: p.tool, ok: false, summary: data.error ?? "The approval did not go through." },
+          at: new Date().toISOString(),
+        },
+      ]);
+    } catch {
+      setMessages((m) => [...m, { id: `c${Date.now()}`, channel: msg.channel, who: "agent", title: "System", text: "Could not reach the workspace API.", at: new Date().toISOString() }]);
     } finally {
       setBusy(false);
     }
@@ -237,7 +278,32 @@ export default function WorkspaceClient({
                   {m.note && (
                     <p className="mt-2 border-l-2 border-border pl-3 text-xs leading-relaxed text-muted-2">{m.note}</p>
                   )}
-                  {m.action && (
+                  {m.action?.proposal && (
+                    <div className="mt-3 border border-border p-4">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-2">
+                        {m.decided ? `you ${m.decided} this` : "needs your approval"}
+                      </p>
+                      <p className="mt-2 text-sm font-semibold">{m.action.proposal.what}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-muted">{m.action.proposal.because}</p>
+                      {!m.decided && (
+                        <div className="mt-4 flex gap-3">
+                          <button
+                            onClick={() => void decide(m, true)}
+                            className="border border-text bg-text px-4 py-2 text-xs font-semibold text-bg transition hover:bg-bg hover:text-text"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => void decide(m, false)}
+                            className="border border-border px-4 py-2 text-xs font-semibold text-muted transition hover:border-text hover:text-text"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {m.action && !m.action.proposal && (
                     <div className={`mt-2 border-l-2 pl-3 ${m.action.ok ? "border-text" : "border-amber"}`}>
                       <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-2">
                         {m.action.ok ? (m.action.mutated ? "changed" : "ran") : "refused"} · {m.action.tool}

@@ -16,19 +16,27 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { applyChanges, paletteSummary, readTokens, type TokenChange } from "./design-tokens";
+import { plan } from "@/lib/core/plan";
+import { fullstackConfigured } from "@/lib/engine/fullstack-build";
 import { coverageReport } from "@/lib/org/coverage";
 import { getRole } from "@/lib/org/organization";
 import { getAgent, type Agent } from "./agents";
 
-export type ToolId = "design.read" | "design.set" | "org.coverage" | "org.who";
+export type ToolId = "design.read" | "design.set" | "org.coverage" | "org.who" | "build.plan" | "build.start";
 
 export interface ToolSpec {
   id: ToolId;
   /** Role ids allowed to call it. Empty means every agent may. */
   allowedRoles: readonly string[];
   describe: string;
-  /** Does calling it change something the founder would want to have approved first? */
+  /** Does calling it change something? */
   mutates: boolean;
+  /**
+   * Tier 3: the founder signs, always. A tool marked here NEVER executes from an agent's own block.
+   * It returns a proposal that the founder has to approve, which is goal step 5 ("agents build, ask
+   * to check, human approves") expressed as a type rather than as a promise.
+   */
+  needsFounder?: boolean;
 }
 
 export const TOOLS: readonly ToolSpec[] = [
@@ -40,6 +48,13 @@ export const TOOLS: readonly ToolSpec[] = [
     describe: `org.coverage — the measured share of company work that runs unattended. No arguments.` },
   { id: "org.who", allowedRoles: [], mutates: false,
     describe: `org.who — look up which colleague owns something. Arguments: {"roleId":"qa-lead"}.` },
+  // PLANNING IS KEYLESS. It is deterministic and needs no model and no vendor, so a prompt turns into
+  // real work with named owners tonight, whether or not anything is connected.
+  { id: "build.plan", allowedRoles: ["chief-of-staff", "head-of-product", "engineering-lead", "program-manager"], mutates: false,
+    describe: `build.plan — turn a goal into a real ordered plan with named owners and the sign-off chain. Arguments: {"goal":"a tool that ..."}.` },
+  // BUILDING IS NOT. It spends money, writes to a repo and deploys, so it is the founder's call.
+  { id: "build.start", allowedRoles: ["engineering-lead"], mutates: true, needsFounder: true,
+    describe: `build.start — actually build and deploy a product. Arguments: {"goal":"..."}. This ALWAYS goes to the founder for approval first; you never start one yourself.` },
 ] as const;
 
 export function toolsFor(agentId: string): ToolSpec[] {
@@ -97,6 +112,11 @@ export interface ToolResult {
   summary: string;
   /** Set when the tool changed something, so the UI can say so loudly. */
   mutated?: boolean;
+  /**
+   * Set instead of acting when the tool is founder-signed. Nothing has happened yet: this is the
+   * request for a signature, and the UI renders it as a card with Approve and Decline.
+   */
+  proposal?: { tool: string; what: string; detail: string; because: string; args: Record<string, unknown> };
 }
 
 /**
@@ -114,6 +134,27 @@ export function runTool(agentId: string, call: ParsedCall): ToolResult | null {
   if (!toolsFor(agentId).some((t) => t.id === spec.id)) {
     const owners = spec.allowedRoles.map((r) => getRole(r)?.title ?? r).join(" or ");
     return { tool: spec.id, ok: false, summary: `The ${agent.title} is not allowed to run ${spec.id}. That belongs to the ${owners}.` };
+  }
+
+  // THE TIER-3 GATE. Checked before the switch so no future case can accidentally bypass it: a
+  // founder-signed tool returns a proposal and NOTHING runs. There is deliberately no argument that
+  // turns this off, which is the same shape as the six hard-stops.
+  if (spec.needsFounder) {
+    const role = getRole(agentId);
+    return {
+      tool: spec.id,
+      ok: true,
+      summary: `Waiting on your approval. Nothing has run.`,
+      proposal: {
+        tool: spec.id,
+        what: spec.id === "build.start" ? `Build and deploy: ${String(call.args.goal ?? "").slice(0, 160)}` : spec.id,
+        detail: spec.describe,
+        because: role?.humanApprovalFor.length
+          ? `The ${agent.title} needs your sign-off for: ${role.humanApprovalFor.join(", ")}.`
+          : `This spends money and publishes something, so it is yours to sign.`,
+        args: call.args,
+      },
+    };
   }
 
   switch (spec.id) {
@@ -151,6 +192,32 @@ export function runTool(agentId: string, call: ParsedCall): ToolResult | null {
       };
     }
 
+    case "build.plan": {
+      const goal = typeof call.args.goal === "string" ? call.args.goal.trim() : "";
+      if (!goal) return { tool: spec.id, ok: false, summary: `build.plan needs a "goal" string.` };
+      if (goal.length > 500) return { tool: spec.id, ok: false, summary: `That goal is too long. Keep it under 500 characters.` };
+      const p = plan(goal);
+      // orgTitle is the POSITION NAME, which is what the founder mandate says to show ("names are
+      // positions"). Fall back to the execution role only when a task has no org attribution.
+      const head = p.tasks.slice(0, 8).map((t, i) => `${i + 1}. ${t.goal} (${t.orgTitle ?? t.role})`);
+      return {
+        tool: spec.id,
+        ok: true,
+        summary: [
+          `${p.tasks.length} tasks, owners assigned:`,
+          ...head,
+          p.tasks.length > head.length ? `and ${p.tasks.length - head.length} more.` : "",
+          ``,
+          `Sign-off chain: ${p.chain.slice(0, 4).join(" then ")}`,
+        ].filter(Boolean).join("\n"),
+      };
+    }
+
+    // build.start never reaches here: the Tier-3 gate above returns a proposal first. The case exists
+    // so the switch is exhaustive and a future edit cannot silently drop it.
+    case "build.start":
+      return { tool: spec.id, ok: false, summary: `build.start is founder-signed and cannot run directly.` };
+
     case "org.who": {
       const id = typeof call.args.roleId === "string" ? call.args.roleId : "";
       const r = getRole(id);
@@ -170,4 +237,53 @@ export function contextFor(agent: Agent): string {
     bits.push(`Current design tokens (${readTokens().length} total) are readable with design.read.`);
   }
   return bits.join("\n");
+}
+
+/**
+ * RUN AN APPROVED PROPOSAL. The only path by which a founder-signed tool actually executes, and it
+ * is reachable only after the founder has said yes to a specific proposal.
+ *
+ * Kept separate from runTool on purpose: runTool is what an AGENT can reach, and it can never get
+ * here. Two functions with two callers is a boundary you can see; one function with a boolean is a
+ * boundary you have to trust.
+ */
+export function runApproved(agentId: string, tool: string, args: Record<string, unknown>): ToolResult {
+  const spec = TOOLS.find((t) => t.id === tool);
+  if (!spec) return { tool, ok: false, summary: `There is no tool called "${tool}".` };
+  if (!spec.needsFounder) {
+    // A non-signed tool has no business coming through the approval door.
+    return { tool, ok: false, summary: `${tool} does not need approval. Ask the agent to run it.` };
+  }
+  if (!toolsFor(agentId).some((t) => t.id === spec.id)) {
+    return { tool, ok: false, summary: `${getAgent(agentId)?.title ?? agentId} is not allowed to run ${tool}.` };
+  }
+
+  if (spec.id === "build.start") {
+    const goal = typeof args.goal === "string" ? args.goal.trim() : "";
+    if (!goal) return { tool, ok: false, summary: `Nothing to build: the goal is empty.` };
+
+    // The honest configuration check. Naming BOTH missing pieces matters: "not configured" sends
+    // someone hunting, and the whole point of this company is that a refusal tells you what to do.
+    if (!fullstackConfigured()) {
+      const missing: string[] = [];
+      if (process.env.FULLSTACK_BUILDS !== "1") missing.push("FULLSTACK_BUILDS=1");
+      if (!process.env.GITHUB_TOKEN) missing.push("GITHUB_TOKEN (a token with repo and workflow scope)");
+      return {
+        tool,
+        ok: false,
+        summary: `Approved, but I cannot build yet. Missing: ${missing.join(" and ")}. Add them to .env.local and restart, then approve again. Nothing was started and nothing was spent.`,
+      };
+    }
+
+    // Reached only once builds are genuinely configured. Deliberately NOT dispatching yet: this
+    // endpoint has no caller authentication, and an unauthenticated route that spends CI minutes and
+    // writes to a real repo is not something to ship quietly. Gate the route first, then dispatch.
+    return {
+      tool,
+      ok: false,
+      summary: `Builds are configured, but this door is not authenticated yet. Approving here must not be able to spend from a repo without knowing who clicked. That gate comes before the first real build.`,
+    };
+  }
+
+  return { tool, ok: false, summary: `${tool} has no approved-execution path yet.` };
 }
