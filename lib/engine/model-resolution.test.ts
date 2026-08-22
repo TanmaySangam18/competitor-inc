@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { realModelConfigured, modelForAgent } from "./server";
+import { realModelConfigured, modelForAgent, PROVIDER_DEFAULT_MODEL } from "./server";
 
 // REGRESSION GUARD for the bug found 2026-08-22: a bare vendor key (GROQ_API_KEY and friends)
 // resolved to NO model, so realModelConfigured() was false and every agent stayed silent, while the
@@ -46,9 +46,23 @@ describe("the model id sent to a provider must be one that provider has", () => 
     // This is the half of the bug that would have produced a 404 on every single call even after the
     // key was recognised. The tiers are Claude ids; Groq has none of them.
     only("GROQ_API_KEY");
-    const m = modelForAgent("ceo");
-    expect(m).not.toMatch(/claude/i);
-    expect(m).toBe("llama-3.3-70b-versatile");
+    expect(modelForAgent("ceo")).not.toMatch(/claude/i);
+  });
+
+  it("routes to the registry default for the resolved provider, whatever that default currently is", () => {
+    // Asserts the WIRING, not the value. The first version of this test hardcoded
+    // "llama-3.3-70b-versatile" and broke the moment Groq decommissioned it, which is the same
+    // staleness that caused the original bug. A test that mirrors a literal tells you nothing.
+    only("GROQ_API_KEY");
+    expect(modelForAgent("ceo")).toBe(PROVIDER_DEFAULT_MODEL.groq);
+    only("MISTRAL_API_KEY");
+    expect(modelForAgent("ceo")).toBe(PROVIDER_DEFAULT_MODEL.mistral);
+  });
+
+  it("has a default for every cloud provider in the registry, so none falls back to a Claude id", () => {
+    for (const p of ["anthropic", "groq", "openai", "openrouter", "gemini", "mistral", "grok"]) {
+      expect(PROVIDER_DEFAULT_MODEL[p], p).toBeTruthy();
+    }
   });
 
   it("collapses all three tiers onto the provider's own model", () => {

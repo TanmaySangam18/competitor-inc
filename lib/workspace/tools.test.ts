@@ -262,3 +262,34 @@ describe("build.plan works with no keys at all, because planning is deterministi
     expect(runTool("product-designer", { tool: "build.plan", args: { goal: "x" } })!.ok).toBe(false);
   });
 });
+
+describe("a dead-end refusal is a defect, not a feature", () => {
+  it("returns near matches when a role id is guessed wrong", () => {
+    // Observed live 2026-08-22: an agent asked org.who for "frontend", got a flat "no colleague",
+    // and had no way to recover because it could not see the valid ids.
+    const r = runTool("chief-of-staff", { tool: "org.who", args: { roleId: "frontend" } })!;
+    expect(r.ok).toBe(false);
+    expect(r.summary).toMatch(/Closest matches/);
+    expect(r.summary).toMatch(/frontend-engineer/);
+    expect(r.summary).toMatch(/Ask again with one of those ids/);
+  });
+
+  it("matches on title and department, not just the id", () => {
+    const r = runTool("chief-of-staff", { tool: "org.who", args: { roleId: "designer" } })!;
+    expect(r.summary).toMatch(/product-designer/);
+  });
+
+  it("is case and separator insensitive", () => {
+    expect(runTool("chief-of-staff", { tool: "org.who", args: { roleId: "QA-Lead" } })!.ok).toBe(true);
+  });
+
+  it("says how many colleagues exist when nothing is close, rather than a bare no", () => {
+    const r = runTool("chief-of-staff", { tool: "org.who", args: { roleId: "zzzzqqqq" } })!;
+    expect(r.ok).toBe(false);
+    expect(r.summary).toMatch(/\d+ colleagues across \d+ departments/);
+  });
+
+  it("still needs an id", () => {
+    expect(runTool("chief-of-staff", { tool: "org.who", args: {} })!.summary).toMatch(/needs a "roleId"/);
+  });
+});

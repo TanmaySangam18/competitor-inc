@@ -42,7 +42,8 @@ const TIERS_NAMED = !!(process.env.MODEL_MID?.trim() || process.env.MODEL_CHEAP?
 // then cheap-tier calls cost ≈$0. BYOK and mid/strong tiers are unaffected. See freemium-flow decision.
 const FREE_TIER_URL = process.env.FREE_TIER_BASE_URL; // e.g. https://api.groq.com/openai/v1
 const FREE_TIER_KEY = process.env.FREE_TIER_API_KEY; // your Groq/OpenRouter/etc. key (reuse a free one)
-const FREE_TIER_MODEL = process.env.FREE_TIER_MODEL || "llama-3.3-70b-versatile";
+// Same decommissioned-model bug as PROVIDER_DEFAULT_MODEL.groq had; fixed together 2026-08-22.
+const FREE_TIER_MODEL = process.env.FREE_TIER_MODEL || "openai/gpt-oss-120b";
 
 // Per-agent model routing — three tiers, chosen to minimize cost per shift without dumbing down the
 // work that earns trust (2026-07-03 token-savings pass). The tier map's single source of truth
@@ -77,15 +78,23 @@ type Managed =
  * Default model per provider, used when the operator set a vendor key but no MODEL_ID. Without this a
  * bare GROQ_API_KEY would send "claude-opus-4-8" to Groq and 404 on every call. MODEL_ID still wins.
  */
-const PROVIDER_DEFAULT_MODEL: Record<string, string> = {
+export const PROVIDER_DEFAULT_MODEL: Record<string, string> = {
   anthropic: "claude-opus-4-8",
-  groq: "llama-3.3-70b-versatile",
+  // VERIFIED 2026-08-22 against Groq's own /v1/models: llama-3.3-70b-versatile is GONE. It was the
+  // default here and in FREE_TIER_MODEL below, so a correct key produced a 404 on every call. Groq
+  // serves 13 models of which only a few are general chat; gpt-oss-120b is the most capable and,
+  // unlike qwen3.6-27b, does not leak <think> blocks into the content field.
+  groq: "openai/gpt-oss-120b",
   openai: "gpt-4o-mini",
   openrouter: "openai/gpt-4o-mini",
   gemini: "gemini-2.0-flash",
   mistral: "mistral-small-latest",
   grok: "grok-2-latest",
 };
+// NOTE, so nobody trusts this table more than it deserves: only the anthropic and groq entries are
+// verified against a live provider. The rest are best-known ids. A wrong one now fails LOUDLY with the
+// provider's own message (see speakAsAgent) rather than as a silent shrug, which is how the Groq entry
+// was caught in the first place. Override any of them with MODEL_ID.
 
 /**
  * Resolve a provider from the REGISTRY (lib/engine/model-providers), which is the single source of
@@ -601,13 +610,20 @@ export async function speakAsAgent(
   execFn: AgentRole = "ceo",
   byok?: ByokConfig,
   maxTokens = 700
-): Promise<string | null> {
+): Promise<{ text: string } | { error: string } | null> {
   if (!modelAvailable(byok)) return null;
+  const model = modelForAgent(execFn);
   try {
-    const text = await callModel(system, user, byok, modelForAgent(execFn), maxTokens);
-    return text.trim() || null;
-  } catch {
-    return null;
+    const text = await callModel(system, user, byok, model, maxTokens);
+    // An empty completion is not an error, but it is not an answer either, and saying which model
+    // produced nothing is the difference between a fix and a guess.
+    return text.trim() ? { text: text.trim() } : { error: `${model} returned an empty reply.` };
+  } catch (e) {
+    // WHY THIS IS NOT A BARE `return null`: it used to be, and a decommissioned model id therefore
+    // presented as "the model did not answer" with no clue which model or why. That cost a long hunt
+    // for a one-line config error. A refusal that does not say what to fix is the thing this company
+    // exists not to ship, and that applies to our own diagnostics too.
+    return { error: `${model}: ${e instanceof Error ? e.message : "unknown error"}` };
   }
 }
 

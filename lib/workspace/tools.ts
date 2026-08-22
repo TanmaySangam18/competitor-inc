@@ -19,7 +19,7 @@ import { applyChanges, paletteSummary, readTokens, type TokenChange } from "./de
 import { plan } from "@/lib/core/plan";
 import { fullstackConfigured } from "@/lib/engine/fullstack-build";
 import { coverageReport } from "@/lib/org/coverage";
-import { getRole } from "@/lib/org/organization";
+import { getRole, ROLES } from "@/lib/org/organization";
 import { getAgent, type Agent } from "./agents";
 
 export type ToolId = "design.read" | "design.set" | "org.coverage" | "org.who" | "build.plan" | "build.start";
@@ -47,7 +47,7 @@ export const TOOLS: readonly ToolSpec[] = [
   { id: "org.coverage", allowedRoles: [], mutates: false,
     describe: `org.coverage — the measured share of company work that runs unattended. No arguments.` },
   { id: "org.who", allowedRoles: [], mutates: false,
-    describe: `org.who — look up which colleague owns something. Arguments: {"roleId":"qa-lead"}.` },
+    describe: `org.who — look up which colleague owns something. Arguments: {"roleId":"qa-lead"}. Ids are kebab-case job titles like qa-lead, frontend-engineer, product-designer. A near miss returns the closest ids, so guess and refine.` },
   // PLANNING IS KEYLESS. It is deterministic and needs no model and no vendor, so a prompt turns into
   // real work with named owners tonight, whether or not anything is connected.
   { id: "build.plan", allowedRoles: ["chief-of-staff", "head-of-product", "engineering-lead", "program-manager"], mutates: false,
@@ -224,10 +224,22 @@ export function runTool(agentId: string, call: ParsedCall): ToolResult | null {
       return { tool: spec.id, ok: false, summary: `build.start is founder-signed and cannot run directly.` };
 
     case "org.who": {
-      const id = typeof call.args.roleId === "string" ? call.args.roleId : "";
-      const r = getRole(id);
-      if (!r) return { tool: spec.id, ok: false, summary: `No colleague with id "${id}".` };
-      return { tool: spec.id, ok: true, summary: `${r.title} (${r.department}) owns: ${r.mandate} Escalates when: ${r.escalatesWhen}` };
+      const q = (typeof call.args.roleId === "string" ? call.args.roleId : "").trim().toLowerCase();
+      if (!q) return { tool: spec.id, ok: false, summary: `org.who needs a "roleId".` };
+      const exact = getRole(q);
+      if (exact) {
+        return { tool: spec.id, ok: true, summary: `${exact.title} (${exact.department}) owns: ${exact.mandate} Escalates when: ${exact.escalatesWhen}` };
+      }
+      // A DEAD-END REFUSAL IS A DEFECT, observed 2026-08-22: an agent asked for "frontend", got
+      // "no colleague with id frontend", and had no way to recover because it could not see the
+      // valid ids. Near-matches turn a dead end into the next step, which is the whole point.
+      const near = ROLES.filter((r) => {
+        const hay = `${r.id} ${r.title} ${r.department}`.toLowerCase();
+        return q.split(/[\s-]+/).some((w) => w.length > 2 && hay.includes(w));
+      }).slice(0, 6);
+      return near.length
+        ? { tool: spec.id, ok: false, summary: `No colleague with id "${q}". Closest matches: ${near.map((r) => `${r.id} (${r.title})`).join(", ")}. Ask again with one of those ids.` }
+        : { tool: spec.id, ok: false, summary: `No colleague with id "${q}", and nothing close. There are ${ROLES.length} colleagues across ${new Set(ROLES.map((r) => r.department)).size} departments.` };
     }
   }
 }

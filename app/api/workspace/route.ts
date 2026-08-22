@@ -102,17 +102,21 @@ export async function POST(req: Request) {
   const system = agentPersona(role, contextFor(agent)) + "\n" + toolPrompt(agent.id);
   const user = history ? `Recent conversation in ${channel.id}:\n${history}\n\nFounder: ${text}` : text;
 
-  const raw = await speakAsAgent(system, user, agent.execFn);
-  if (!raw) {
+  const spoken = await speakAsAgent(system, user, agent.execFn);
+  if (!spoken || "error" in spoken) {
     return Response.json({
       ok: true,
       modelConfigured: true,
       speaker,
       reply: null,
-      note: "The model did not answer. Nothing was invented in its place.",
+      // The provider's own words, so a bad model id or a rate limit is readable instead of a shrug.
+      note: spoken
+        ? `The model could not answer: ${spoken.error} Nothing was invented in its place.`
+        : "No model is reachable. Nothing was invented in its place.",
     });
   }
 
+  const raw = spoken.text;
   const call = parseAction(raw);
   const action = call ? runTool(agent.id, call) : null;
 
