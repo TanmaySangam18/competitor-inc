@@ -5,6 +5,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { liveCta } from "@/lib/core/slack-invite";
 import { orgSize } from "@/lib/org/organization";
 import { coverageReport } from "@/lib/org/coverage";
+import { totalStudentActs } from "@/lib/core/campus";
 
 // THE LANDING (/) — the Viktor-structure marketing layer (ADR-0008, restructures ADR-0006's five
 // sections; the honesty floor carries over UNCHANGED). One promise per section, one CTA repeated,
@@ -22,9 +23,9 @@ import { coverageReport } from "@/lib/org/coverage";
 // radical-honesty figure ($0 settled revenue). Simulation results are always labeled as simulation.
 
 export const metadata: Metadata = {
-  title: "competitor.inc · an AI software company that runs itself",
+  title: "competitor.inc · an AI software company your students can run",
   description:
-    "Connect your accounts once. A governed AI organization validates, builds, deploys, runs, and sells. You oversee the work and sign the rare decision that needs a human. Every claim is verifiable.",
+    "A campus licence gives every student a governed AI organization that plans, builds, deploys and operates real software. The university authorises the accounts once. Students connect nothing. Every action lands on a tamper-evident ledger, and every claim is verifiable.",
 };
 
 // The mono eyebrow label — the section marker of the brutalist system.
@@ -90,6 +91,7 @@ export default function Landing() {
   // The coverage ledger is the strongest single number we own and the only published one in the
   // category, so it earns the hero slot that three weaker numbers used to share.
   const cov = coverageReport();
+  const studentActs = totalStudentActs(); // real count from the vendor inventory, never hardcoded
   const cta = liveCta(); // never renders a dead link: falls back to the waitlist when Slack is unset
 
   return (
@@ -148,6 +150,45 @@ export default function Landing() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* 4 · WHO IT IS FOR — added 2026-08-22. The site previously never once said the words
+          "university", "campus" or "student", so an intelligent reader could study the whole page and
+          conclude the customer was a solo SaaS founder. That is not a copy nit, it is the top of the
+          funnel arguing against the GTM. Every number here is COMPUTED (the student's real act count
+          comes from lib/core/campus.ts), and it deliberately claims NO campus: zero are signed, and
+          saying otherwise would break the one rule this whole company is built on. */}
+      <section id="who" className="border-t border-border">
+        <div className="mx-auto w-full max-w-5xl px-6 py-16">
+          <Label>Who this is built for</Label>
+          <div className="mt-8 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
+            <div className="bg-bg p-6">
+              <p className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-muted-2">
+                The university buys it
+              </p>
+              <h2 className="display mt-2 text-lg">One licence, a whole cohort</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted">
+                An administrator authorises the accounts once. Every student after that inherits them
+                and connects nothing, so the {studentActs} setup steps a student would otherwise face
+                become zero. Nothing here needs a service key pasted into a form.
+              </p>
+            </div>
+            <div className="bg-bg p-6">
+              <p className="font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-muted-2">
+                The student uses it
+              </p>
+              <h2 className="display mt-2 text-lg">Sign in and start</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted">
+                Describe what you want to build. A governed AI organization plans it, builds it, and
+                asks you to approve the decisions that carry real consequences. The work, the code and
+                anything it earns are yours.
+              </p>
+            </div>
+          </div>
+          <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-2">
+            no campus has signed yet · we will name the first one here when it does
+          </p>
         </div>
       </section>
 
