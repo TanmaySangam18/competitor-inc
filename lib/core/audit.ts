@@ -23,6 +23,12 @@ export interface AuditInput {
   costUsd?: number; // model/tool cost attributed to this action
   rationale?: string; // WHY the decision went the way it did
   reversible?: boolean;
+  /**
+   * The seq of the entry that AUTHORISED this one. One optional field, and it is what turns a flat log
+   * into something that can answer "why did the company spend $312?" without inventing the answer.
+   * Absent is a legitimate state and reads as "the reason was never recorded", never as a guess.
+   */
+  because?: number;
 }
 
 export interface AuditEntry extends AuditInput {
@@ -49,7 +55,11 @@ export class MemoryAuditSink implements AuditSink {
 function canonical(e: Omit<AuditEntry, "hash">): string {
   return JSON.stringify([
     e.seq, e.ts, e.actor, e.action, e.customer ?? "", e.tier ?? "", e.verdict ?? "",
-    e.input ?? "", e.output ?? "", e.costUsd ?? 0, e.rationale ?? "", e.reversible ?? null, e.prevHash,
+    e.input ?? "", e.output ?? "", e.costUsd ?? 0, e.rationale ?? "", e.reversible ?? null,
+    // INSIDE the hash on purpose: if the causal link were outside it, someone could rewrite who
+    // authorised a spend without breaking the chain, which would make every explanation forgeable.
+    e.because ?? null,
+    e.prevHash,
   ]);
 }
 
