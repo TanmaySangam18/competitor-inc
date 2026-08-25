@@ -1,4 +1,5 @@
 import "server-only";
+import { askGemini, geminiConfigured } from "./gemini";
 
 // Server-side engine. Runs the simulated provider by default; when a frontier model is
 // configured (MODEL_PROVIDER=anthropic + ANTHROPIC_API_KEY), it asks the real model and
@@ -611,6 +612,18 @@ export async function speakAsAgent(
   byok?: ByokConfig,
   maxTokens = 700
 ): Promise<{ text: string } | { error: string } | null> {
+  // GEMINI FIRST, THROUGH GOOGLE'S OWN SDK, whenever a Gemini key is present and the caller has not
+  // brought their own provider. The registry can reach Gemini through its OpenAI-compatible endpoint,
+  // and that is NOT the same thing as using Google's SDK. This branch exists so the claim "runs on
+  // Gemini" describes the code path rather than the vendor's compatibility shim.
+  //
+  // Written because the adapter and the store were both DEAD CODE for two hours: they existed, they
+  // were tested, and nothing called them. A module that enforces nothing is the exact defect this
+  // codebase keeps finding in other people's agent platforms.
+  if (!byok?.apiKey && geminiConfigured()) {
+    return askGemini(system, user, { maxTokens });
+  }
+
   if (!modelAvailable(byok)) return null;
   const model = modelForAgent(execFn);
   try {

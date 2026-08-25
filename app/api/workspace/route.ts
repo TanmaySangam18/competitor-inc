@@ -4,6 +4,7 @@ import { getChannel, channels } from "@/lib/workspace/channels";
 import { toolPrompt, parseAction, stripAction, runTool, runApproved, contextFor } from "@/lib/workspace/tools";
 import { speakAsAgent } from "@/lib/engine/server";
 import { authoriseApproval } from "@/lib/workspace/who";
+import { saveMessage, loadChannel, firestoreConfigured } from "@/lib/engine/transcript-store";
 import { realModelConfigured } from "@/lib/engine/server";
 
 export const runtime = "nodejs";
@@ -116,6 +117,15 @@ export async function POST(req: Request) {
     });
   }
 
+  // PERSIST BOTH SIDES. Fire and forget so a slow write never delays a reply, but the result is
+  // recorded rather than discarded, and the response tells the caller whether it actually landed.
+  const persisted = firestoreConfigured()
+    ? await Promise.all([
+        saveMessage({ channel: channelId, author: "you", text, at: new Date().toISOString() }),
+        saveMessage({ channel: channelId, author: agent.id, authorTitle: agent.title, text: spoken.text, at: new Date().toISOString() }),
+      ]).then((r) => r.every((x) => x.saved))
+    : false;
+
   const raw = spoken.text;
   const call = parseAction(raw);
   const action = call ? runTool(agent.id, call) : null;
@@ -123,6 +133,9 @@ export async function POST(req: Request) {
   return Response.json({
     ok: true,
     modelConfigured: true,
+    // COMPUTED from what the write actually returned, never asserted. False means the exchange lives
+    // only in this browser, which is the truth worth telling rather than hiding.
+    remembered: persisted,
     speaker,
     reply: stripAction(raw) || raw,
     action: action ?? undefined,
