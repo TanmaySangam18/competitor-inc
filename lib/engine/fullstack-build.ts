@@ -57,13 +57,21 @@ export function fullstackPromptFile(goal: string, opts: { recall?: string; suite
     goal,
     ``,
     `Requirements:`,
-    `- A polished UI in app/page.tsx (a client component) with the core create/list/delete flow.`,
-    `- A REAL backend API route at app/api/items/route.ts (GET + POST) — no mock data.`,
+    // A content goal REPLACES the CRUD requirements rather than adding to them. Doing both is how a
+    // build ends up with a create form bolted onto a book.
+    ...(impliesContent(goal)
+      ? [contentBrief(), ``]
+      : [
+          `- A polished UI in app/page.tsx (a client component) with the core create/list/delete flow.`,
+          `- A REAL backend API route at app/api/items/route.ts (GET + POST) with no mock data.`,
+        ]),
     // WHY NO SUPABASE BRANCH: this used to say "if SUPABASE_URL exists use Supabase, otherwise use an
     // in-memory store". The agent wrote the Supabase import unconditionally and @supabase/supabase-js is
     // not in the scaffold's package.json, so `next build` failed with "Module not found" AFTER Aider had
     // done all its work. A conditional the agent cannot verify is a conditional it will get wrong.
-    `- Persist data in a simple typed in-memory store inside the API route, so it runs with zero config.`,
+    ...(impliesContent(goal)
+      ? []
+      : [`- Persist data in a simple typed in-memory store inside the API route, so it runs with zero config.`]),
     ``,
     `DEPENDENCIES, AND THIS IS THE HARDEST RULE HERE:`,
     `- DO NOT add, import, or require ANY package that is not already in package.json. Not one.`,
@@ -156,6 +164,48 @@ export function saasBrief(): string {
 // R10 (S2 rung — "a copilot for MY business," honestly scoped). Detect when the requested product wants an
 // assistant/chat/"answer questions about my data" capability. Conservative on purpose: a false positive
 // bloats the brief with a chat feature nobody asked for, so match only clear intent.
+/**
+ * Is this goal asking for CONTENT rather than an app?
+ *
+ * WHY THIS EXISTS: the build prompt hardcoded "the core create/list/delete flow" and an API route at
+ * app/api/items, so every goal came out as a CRUD app. Asked for an ebook of every Google tool, the
+ * pipeline produced a working, cleanly compiling item tracker containing the word "Docs" once. The
+ * software was fine. It was not what anyone asked for.
+ *
+ * A book, a guide, a directory or a reference is a reading experience: real prose, real structure,
+ * navigation. Forcing a create form onto it is how a build succeeds and still fails.
+ */
+export function impliesContent(goal: string): boolean {
+  return /\b(e-?book|book|guide|handbook|manual|reference|directory|catalog(ue)?|encyclopedia|glossary|cheat[- ]?sheet|documentation|docs site|course|curriculum|tutorial|listicle|compendium|almanac|report|whitepaper)\b/i.test(goal);
+}
+
+/**
+ * The additive brief for a content product. Replaces the CRUD requirements rather than sitting beside
+ * them, because the failure mode is doing both badly.
+ */
+export function contentBrief(): string {
+  return [
+    `THIS IS A CONTENT PRODUCT, NOT A CRUD APP. Do NOT build a create/list/delete form. Do NOT build`,
+    `app/api/items. Nobody is going to type entries into this; they are going to read it.`,
+    ``,
+    `What to build instead:`,
+    `- REAL WRITTEN CONTENT, and this is the whole product. Be exhaustive and specific. If the goal names`,
+    `  a category, cover it properly: many entries, each with a real description someone could act on.`,
+    `  Twenty thorough entries beat a hundred one-line stubs, and three entries is a failure however`,
+    `  beautiful the page is.`,
+    `- Put the content in a typed data file (lib/content.ts or similar) exporting a plain array, so it is`,
+    `  editable without touching layout. Every entry gets a name, a one-line summary, and a short`,
+    `  practical "how to use it" of two or three sentences.`,
+    `- A reading layout: a clear index or grouped sections, in-page navigation to each section, and`,
+    `  comfortable measure (max-w-prose or similar). It should feel like a document, not a dashboard.`,
+    `- Search or filter across entries IS worth having, done client-side over the data file. No backend.`,
+    `- No database, no API route, no forms. If you find yourself writing a POST handler, stop.`,
+    ``,
+    `WRITE THE ACTUAL WORDS. Placeholder text, lorem ipsum, "TODO: add description", or three example`,
+    `entries with a comment saying to add the rest all count as not having built the product.`,
+  ].join("\n");
+}
+
 export function impliesAiFeature(goal: string): boolean {
   return /\b(co-?pilot|assistant|chat\s?bot|chat\b|ask (it|questions?)|answer(s|ing)? (questions?|about)|q ?& ?a|knowledge base|natural language|summar(y|ise|ize)|search (my|through) )/i.test(goal);
 }
@@ -185,10 +235,15 @@ export function aiFeatureBrief(): string {
 // The Actions workflow: scaffold Next → Aider implements → deploy to Vercel (production). Best-effort;
 // Slice 2 iterates it against real runs. The repo's default GITHUB_TOKEN pushes; the only secrets are the
 // free model key (LLM_API_KEY) and VERCEL_TOKEN.
-export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV, opts: { withChat?: boolean; withSaas?: boolean; withPlatform?: boolean } = {}): string {
+export function buildFullstackWorkflowYaml(model = FS_MODEL, keyEnv = FS_KEY_ENV, opts: { withChat?: boolean; withSaas?: boolean; withPlatform?: boolean; withContent?: boolean } = {}): string {
   // The files Aider is allowed to edit. The base (page + items) is byte-identical to before; a grounded AI
   // feature (R10) adds the chat route; a real SaaS (S3) adds the auth route + the login/dashboard pages.
-  const fileSet = ["app/page.tsx", "app/api/items/route.ts"];
+  // A CONTENT build gets a data file instead of an API route. Handing the agent api/items/route.ts
+  // while the brief tells it not to build an API route is a contradiction, and the concrete file list
+  // wins over prose every time.
+  const fileSet = opts.withContent
+    ? ["app/page.tsx", "lib/content.ts"]
+    : ["app/page.tsx", "app/api/items/route.ts"];
   if (opts.withSaas) fileSet.push("app/signup/page.tsx", "app/login/page.tsx", "app/dashboard/page.tsx", "app/api/auth/route.ts");
   if (opts.withPlatform) fileSet.push("app/api/v1/items/route.ts", "app/api/keys/route.ts", "app/openapi.json");
   if (opts.withChat) fileSet.push("app/api/chat/route.ts");
@@ -437,7 +492,7 @@ export async function dispatchFullstackBuild(opts: {
       });
     const wf = await commitFile(
       ".github/workflows/build-fullstack.yml",
-      buildFullstackWorkflowYaml(opts.model ?? FS_MODEL, FS_KEY_ENV, { withChat: impliesAiFeature(opts.goal), withSaas: impliesSaaS(opts.goal), withPlatform: impliesPlatform(opts.goal) }),
+      buildFullstackWorkflowYaml(opts.model ?? FS_MODEL, FS_KEY_ENV, { withChat: impliesAiFeature(opts.goal), withSaas: impliesSaaS(opts.goal), withPlatform: impliesPlatform(opts.goal), withContent: impliesContent(opts.goal) }),
     );
     if (!wf.ok) return { error: `commit workflow → HTTP ${wf.status}${wf.status === 403 ? " — the token needs the 'workflow' scope" : ""}` };
     if (!opts.fetchImpl) await new Promise((r) => setTimeout(r, 3000));
