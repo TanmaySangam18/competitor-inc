@@ -5,6 +5,7 @@ import { toolPrompt, parseAction, stripAction, runTool, runApproved, contextFor 
 import { speakAsAgent } from "@/lib/engine/server";
 import { authoriseApproval } from "@/lib/workspace/who";
 import { saveMessage, loadChannel, firestoreConfigured } from "@/lib/engine/transcript-store";
+import { dispatchFullstackBuild, fullstackConfigured } from "@/lib/engine/fullstack-build";
 import { realModelConfigured } from "@/lib/engine/server";
 
 export const runtime = "nodejs";
@@ -25,6 +26,32 @@ export async function GET() {
     channels: channels().map((c) => ({ id: c.id, purpose: c.purpose, members: c.memberCount, lead: c.lead?.title })),
     usage: 'POST { "channel": "#product", "text": "...", "history": "optional transcript" }',
   });
+}
+
+/**
+ * THE LAST MILE. runApproved is pure and synchronous by design, so it returns a `dispatch` instruction
+ * rather than performing one. Something has to act on that, and until now nothing did: an approval
+ * produced a dispatch object that was returned to the caller and dropped. The gate worked, the signature
+ * worked, and no build ever started.
+ *
+ * The presence of `dispatch` is itself the proof a human signed, since only the approved path sets it.
+ */
+async function runAndDispatch(agentId: string, tool: string, args: Record<string, unknown>) {
+  const result = runApproved(agentId, tool, args);
+  if (!result.dispatch) return result;
+
+  if (!fullstackConfigured()) {
+    return { ...result, ok: false, summary: `${result.summary} But builds are not configured, so nothing was dispatched.` };
+  }
+  const token = process.env.GITHUB_TOKEN?.trim();
+  if (!token) return { ...result, ok: false, summary: `${result.summary} But GITHUB_TOKEN is absent, so nothing was dispatched.` };
+
+  const r = await dispatchFullstackBuild({ goal: result.dispatch.goal, token });
+  if ("error" in r) {
+    // The provider's own words. A build that failed to start must say why, not just fail quietly.
+    return { ...result, ok: false, summary: `Dispatch failed: ${r.error}` };
+  }
+  return { ...result, summary: `Building. Repo: ${r.repo}`, built: { repo: r.repo, url: r.url } };
 }
 
 export async function POST(req: Request) {
@@ -58,7 +85,7 @@ export async function POST(req: Request) {
       ok: true,
       speaker: { id: who.id, title: who.title, handle: who.handle, department: who.departmentName, why: `approved by ${caller.who}` },
       approvedBy: { who: caller.who, proof: caller.proof },
-      action: runApproved(agentId, tool, args),
+      action: await runAndDispatch(agentId, tool, args),
     });
   }
 
