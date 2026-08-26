@@ -59,8 +59,19 @@ export function fullstackPromptFile(goal: string, opts: { recall?: string; suite
     `Requirements:`,
     `- A polished UI in app/page.tsx (a client component) with the core create/list/delete flow.`,
     `- A REAL backend API route at app/api/items/route.ts (GET + POST) — no mock data.`,
-    `- Persist data. If SUPABASE_URL + SUPABASE_ANON_KEY env vars exist use Supabase; otherwise use an`,
-    `  in-memory store in the route so it runs with zero config. Keep it typed and simple.`,
+    // WHY NO SUPABASE BRANCH: this used to say "if SUPABASE_URL exists use Supabase, otherwise use an
+    // in-memory store". The agent wrote the Supabase import unconditionally and @supabase/supabase-js is
+    // not in the scaffold's package.json, so `next build` failed with "Module not found" AFTER Aider had
+    // done all its work. A conditional the agent cannot verify is a conditional it will get wrong.
+    `- Persist data in a simple typed in-memory store inside the API route, so it runs with zero config.`,
+    ``,
+    `DEPENDENCIES, AND THIS IS THE HARDEST RULE HERE:`,
+    `- DO NOT add, import, or require ANY package that is not already in package.json. Not one.`,
+    `- If you catch yourself typing an import for a package you have not seen in package.json, write the`,
+    `  code without it instead. Node's standard library and what is already installed are enough.`,
+    `- An import of a package that is not installed does not fail when you write it. It fails at`,
+    `  \`next build\`, after all your work is done, and the whole build is thrown away. This single`,
+    `  mistake is the most common way these builds die.`,
     `- Clean, responsive, no console errors. It must build with \`next build\` and run on Vercel.`,
     `- CODE MUST COMPILE: correct TypeScript types (no \`any\`-that-breaks), no unused imports/vars, only`,
     `  stable Next.js 16 App Router APIs. Prefer simple, standard patterns over clever ones.`,
